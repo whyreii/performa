@@ -1,11 +1,13 @@
 """Performa FastAPI application entrypoint.
 
 Bootstraps the ASGI app, creates database tables from the ORM metadata on
-startup (per ARCHITECTURE.md), configures CORS for the Vite dev servers, and
-mounts the authentication router.
+startup (per ARCHITECTURE.md), configures CORS, and mounts the auth, admin,
+employees, evaluations, and interventions routers.
 """
 from __future__ import annotations
 
+import logging
+import os
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
@@ -21,6 +23,23 @@ from .routers.employees import router as employees_router
 from .routers.evaluations import router as evaluations_router
 from .routers.interventions import router as interventions_router
 
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+
+DEFAULT_CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "").split(",")
+    if origin.strip()
+] or DEFAULT_CORS_ORIGINS
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -35,12 +54,7 @@ app = FastAPI(title="Performa API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,6 +1,9 @@
 """Authentication routes: form-based login and current-user introspection."""
 from __future__ import annotations
 
+import time
+from collections import defaultdict, deque
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
@@ -18,6 +21,28 @@ from ..schemas import PasswordChange, Token, UserResponse
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
+# Lightweight in-process login throttle (per email). For multi-worker
+# deployments this should be backed by a shared store (e.g. Redis).
+_FAILED_ATTEMPTS: dict[str, deque[float]] = defaultdict(deque)
+_MAX_FAILED_ATTEMPTS = 5
+_FAILED_WINDOW_SECONDS = 300
+
+
+def _is_rate_limited(key: str) -> bool:
+    now = time.monotonic()
+    attempts = _FAILED_ATTEMPTS[key]
+    while attempts and now - attempts[0] > _FAILED_WINDOW_SECONDS:
+        attempts.popleft()
+    return len(attempts) >= _MAX_FAILED_ATTEMPTS
+
+
+def _record_failure(key: str) -> None:
+    _FAILED_ATTEMPTS[key].append(time.monotonic())
+
+
+def _clear_failures(key: str) -> None:
+    _FAILED_ATTEMPTS.pop(key, None)
+
 
 @router.post("/login", response_model=Token, summary="Authenticate and issue a JWT")
 async def login(
@@ -25,16 +50,25 @@ async def login(
     db: AsyncSession = Depends(get_db),
 ) -> Token:
     """Validate credentials and return a bearer access token."""
+    attempt_key = form_data.username.strip().lower()
+    if _is_rate_limited(attempt_key):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed login attempts. Please try again later.",
+        )
+
     result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalar_one_or_none()
 
     if user is None or not user.is_active or not verify_password(form_data.password, user.hashed_password):
+        _record_failure(attempt_key)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    _clear_failures(attempt_key)
     access_token = create_access_token(
         data={
             "sub": str(user.id),
