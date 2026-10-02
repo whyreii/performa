@@ -16,6 +16,7 @@ from . import models  # noqa: F401  (registers ORM metadata before create_all)
 from .database import Base, engine
 from .routers.auth import router as auth_router
 from .routers.employees import router as employees_router
+from .routers.evaluations import router as evaluations_router
 
 
 @asynccontextmanager
@@ -39,6 +40,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(employees_router, prefix="/api/employees")
+app.include_router(evaluations_router, prefix="/api/evaluations")
 
 
 @app.get("/health", tags=["System"], summary="Service health check")

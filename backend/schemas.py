@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
-from typing import Any, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -202,42 +202,58 @@ class KpiRubricResponse(KpiRubricBase):
 
 
 # ---------------------------------------------------------------------------
-# WeeklyEvaluation
+# WeeklyEvaluation / Scorecard
 # ---------------------------------------------------------------------------
-class WeeklyEvaluationBase(BaseModel):
-    employee_id: uuid.UUID
-    supervisor_id: uuid.UUID
-    week_number: int = Field(..., ge=1)
-    date_logged: date
-    task_completion_score: float = Field(..., ge=1.0, le=5.0)
-    attendance_score: float = Field(..., ge=1.0, le=5.0)
-    communication_score: float = Field(..., ge=1.0, le=5.0)
-    initiative_score: float = Field(..., ge=1.0, le=5.0)
-    quality_score: float = Field(..., ge=1.0, le=5.0)
-    qualitative_notes: Optional[str] = None
+class WeeklyRatingSubmit(BaseModel):
+    """Evaluator payload for a weekly rating across the five competencies."""
+
+    task_completion: float = Field(..., ge=1.0, le=5.0)
+    attendance_and_punctuality: float = Field(..., ge=1.0, le=5.0)
+    communication_and_teamwork: float = Field(..., ge=1.0, le=5.0)
+    initiative_and_adaptability: float = Field(..., ge=1.0, le=5.0)
+    quality_of_work: float = Field(..., ge=1.0, le=5.0)
+    remarks: Optional[str] = Field(default=None, max_length=500)
 
 
-class WeeklyEvaluationCreate(WeeklyEvaluationBase):
-    pass
+class WeeklyEvaluationResponse(BaseModel):
+    """A persisted weekly evaluation."""
 
-
-class WeeklyEvaluationUpdate(BaseModel):
-    supervisor_id: Optional[uuid.UUID] = None
-    week_number: Optional[int] = Field(default=None, ge=1)
-    date_logged: Optional[date] = None
-    task_completion_score: Optional[float] = Field(default=None, ge=1.0, le=5.0)
-    attendance_score: Optional[float] = Field(default=None, ge=1.0, le=5.0)
-    communication_score: Optional[float] = Field(default=None, ge=1.0, le=5.0)
-    initiative_score: Optional[float] = Field(default=None, ge=1.0, le=5.0)
-    quality_score: Optional[float] = Field(default=None, ge=1.0, le=5.0)
-    qualitative_notes: Optional[str] = None
-
-
-class WeeklyEvaluationResponse(WeeklyEvaluationBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+    employee_id: uuid.UUID
+    evaluator_id: uuid.UUID
+    organization_id: str
+    evaluation_date: date
+    task_completion: float
+    attendance_and_punctuality: float
+    communication_and_teamwork: float
+    initiative_and_adaptability: float
+    quality_of_work: float
+    overall_score: float
+    remarks: Optional[str] = None
     created_at: datetime
+
+
+class CompetencyScoreItem(BaseModel):
+    """A single competency's current score relative to its target."""
+
+    key: str
+    label: str
+    score: float
+    target: float = 4.0
+    gap: float
+
+
+class EmployeeScorecardResponse(BaseModel):
+    """Current competency standing for a probationary employee."""
+
+    employee_id: uuid.UUID
+    overall_score: float
+    target_score: float = 4.0
+    gap: float
+    competencies: list[CompetencyScoreItem]
+    latest_evaluation_date: Optional[date] = None
 
 
 # ---------------------------------------------------------------------------
@@ -321,30 +337,15 @@ class TrainingPlanResponse(TrainingPlanBase):
 # ---------------------------------------------------------------------------
 # EvaluationAuditLog
 # ---------------------------------------------------------------------------
-class EvaluationAuditLogBase(BaseModel):
-    evaluation_id: uuid.UUID
-    employee_id: uuid.UUID
-    evaluator_id: uuid.UUID
-    previous_scores: dict[str, Any]
-    new_scores: dict[str, Any]
-    justification: str
-
-
-class EvaluationAuditLogCreate(EvaluationAuditLogBase):
-    pass
-
-
-class EvaluationAuditLogUpdate(BaseModel):
-    previous_scores: Optional[dict[str, Any]] = None
-    new_scores: Optional[dict[str, Any]] = None
-    justification: Optional[str] = None
-
-
-class EvaluationAuditLogResponse(EvaluationAuditLogBase):
-    model_config = ConfigDict(from_attributes=True)
+class AuditLogItemResponse(BaseModel):
+    """A single immutable competency audit entry for display."""
 
     id: uuid.UUID
-    timestamp: datetime
+    competency: str
+    evaluator_name: str
+    prior_score: Optional[float] = None
+    new_score: float
+    created_at: datetime
 
 
 __all__ = [
@@ -367,10 +368,10 @@ __all__ = [
     "KpiRubricCreate",
     "KpiRubricUpdate",
     "KpiRubricResponse",
-    "WeeklyEvaluationBase",
-    "WeeklyEvaluationCreate",
-    "WeeklyEvaluationUpdate",
+    "WeeklyRatingSubmit",
     "WeeklyEvaluationResponse",
+    "CompetencyScoreItem",
+    "EmployeeScorecardResponse",
     "MonthlySummaryBase",
     "MonthlySummaryCreate",
     "MonthlySummaryUpdate",
@@ -379,8 +380,5 @@ __all__ = [
     "TrainingPlanCreate",
     "TrainingPlanUpdate",
     "TrainingPlanResponse",
-    "EvaluationAuditLogBase",
-    "EvaluationAuditLogCreate",
-    "EvaluationAuditLogUpdate",
-    "EvaluationAuditLogResponse",
+    "AuditLogItemResponse",
 ]

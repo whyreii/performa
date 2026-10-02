@@ -165,7 +165,7 @@ async def _reset(session: AsyncSession) -> None:
     await session.execute(
         delete(WeeklyEvaluation).where(
             WeeklyEvaluation.employee_id.in_(employee_ids)
-            | WeeklyEvaluation.supervisor_id.in_(user_ids)
+            | WeeklyEvaluation.evaluator_id.in_(user_ids)
         )
     )
     await session.execute(

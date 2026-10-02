@@ -14,11 +14,10 @@ from __future__ import annotations
 
 import enum
 import uuid
-from datetime import date, datetime
-from typing import Any, Optional
+from datetime import date, datetime, timezone
+from typing import Optional
 
 from sqlalchemy import (
-    JSON,
     Boolean,
     Date,
     DateTime,
@@ -84,6 +83,16 @@ def _enum_values(enum_cls: type[enum.Enum]) -> list[str]:
     return [member.value for member in enum_cls]
 
 
+def _utcnow() -> datetime:
+    """Timezone-aware UTC timestamp with microsecond precision.
+
+    Paired with ``server_default=func.now()`` so newest-first ordering remains
+    deterministic on databases whose native ``CURRENT_TIMESTAMP`` is
+    second-granular (e.g. SQLite).
+    """
+    return datetime.now(timezone.utc)
+
+
 class Organization(Base):
     """A tenant. ``slug`` is the value stored as ``organization_id``."""
 
@@ -135,8 +144,8 @@ class User(Base):
     )
     weekly_evaluations: Mapped[list["WeeklyEvaluation"]] = relationship(
         "WeeklyEvaluation",
-        back_populates="supervisor",
-        foreign_keys="WeeklyEvaluation.supervisor_id",
+        back_populates="evaluator",
+        foreign_keys="WeeklyEvaluation.evaluator_id",
     )
     evaluation_audit_logs: Mapped[list["EvaluationAuditLog"]] = relationship(
         "EvaluationAuditLog",
@@ -231,39 +240,38 @@ class KpiRubric(Base):
 
 
 class WeeklyEvaluation(Base):
-    """Weekly supervisor ratings across the five competency categories."""
+    """A weekly rating of an employee across the five fixed competencies."""
 
     __tablename__ = "weekly_evaluations"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     employee_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("probationary_employees.id"), nullable=False
+        Uuid, ForeignKey("probationary_employees.id"), nullable=False, index=True
     )
-    supervisor_id: Mapped[uuid.UUID] = mapped_column(
+    evaluator_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("users.id"), nullable=False
     )
-    week_number: Mapped[int] = mapped_column(Integer, nullable=False)
-    date_logged: Mapped[date] = mapped_column(Date, nullable=False)
-    task_completion_score: Mapped[float] = mapped_column(Float, nullable=False)
-    attendance_score: Mapped[float] = mapped_column(Float, nullable=False)
-    communication_score: Mapped[float] = mapped_column(Float, nullable=False)
-    initiative_score: Mapped[float] = mapped_column(Float, nullable=False)
-    quality_score: Mapped[float] = mapped_column(Float, nullable=False)
-    qualitative_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    evaluation_date: Mapped[date] = mapped_column(Date, default=date.today, nullable=False)
+    task_completion: Mapped[float] = mapped_column(Float, nullable=False)
+    attendance_and_punctuality: Mapped[float] = mapped_column(Float, nullable=False)
+    communication_and_teamwork: Mapped[float] = mapped_column(Float, nullable=False)
+    initiative_and_adaptability: Mapped[float] = mapped_column(Float, nullable=False)
+    quality_of_work: Mapped[float] = mapped_column(Float, nullable=False)
+    overall_score: Mapped[float] = mapped_column(Float, nullable=False)
+    remarks: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        default=_utcnow,
+        server_default=func.now(),
+        nullable=False,
     )
 
     employee: Mapped["ProbationaryEmployee"] = relationship(
         "ProbationaryEmployee", back_populates="weekly_evaluations"
     )
-    supervisor: Mapped["User"] = relationship(
-        "User", back_populates="weekly_evaluations", foreign_keys=[supervisor_id]
-    )
-    audit_logs: Mapped[list["EvaluationAuditLog"]] = relationship(
-        "EvaluationAuditLog",
-        back_populates="evaluation",
-        cascade="all, delete-orphan",
+    evaluator: Mapped["User"] = relationship(
+        "User", back_populates="weekly_evaluations", foreign_keys=[evaluator_id]
     )
 
 
@@ -343,30 +351,29 @@ class TrainingPlan(Base):
 
 
 class EvaluationAuditLog(Base):
-    """Immutable audit record written on any evaluation score update."""
+    """Append-only audit record for a competency score change."""
 
     __tablename__ = "evaluation_audit_logs"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    evaluation_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("weekly_evaluations.id"), nullable=False
-    )
     employee_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("probationary_employees.id"), nullable=False
+        Uuid, ForeignKey("probationary_employees.id"), nullable=False, index=True
     )
     evaluator_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("users.id"), nullable=False
     )
-    previous_scores: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
-    new_scores: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
-    justification: Mapped[str] = mapped_column(Text, nullable=False)
-    timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+    organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    competency: Mapped[str] = mapped_column(String(100), nullable=False)
+    prior_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    new_score: Mapped[float] = mapped_column(Float, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=_utcnow,
+        server_default=func.now(),
+        nullable=False,
+        index=True,
     )
 
-    evaluation: Mapped["WeeklyEvaluation"] = relationship(
-        "WeeklyEvaluation", back_populates="audit_logs"
-    )
     employee: Mapped["ProbationaryEmployee"] = relationship(
         "ProbationaryEmployee", back_populates="evaluation_audit_logs"
     )
