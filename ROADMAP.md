@@ -147,7 +147,7 @@ sequenceDiagram
 ---
 
 ### Phase 7: Frontend SPA - Design System & Full UI Implementation
-**Status: PENDING (Specification & Prototype Ready)**
+**Status: IN PROGRESS (Foundations, Design Tokens, Primitives & AppShell Complete)**
 
 > **Design Specification Reference**: Extracted from `reference/performa-redesign-preview.html` and `HANDOFF_PROMPT.md`.
 > **Design Philosophy**: High-polish, editorial-grade UI for Philippine SMEs. 100% real data from FastAPI endpoints; no dummy prototype strings in production.
@@ -169,12 +169,12 @@ sequenceDiagram
 - **Command Palette (`Ctrl+K` / `⌘K`)**: Fast search across pages, employees, and quick actions.
 
 #### 3. Phased Implementation Roadmap
-- [ ] **Phase 7A: Foundations & Audit**:
+- [x] **Phase 7A: Foundations & Audit**:
   - API client (Axios/Fetch wrapper) with JWT header attachment, auto-logout on 401, and FastAPI 422 error normalization.
   - TanStack Query defaults (query-key factory, `staleTime`, no retry on 4xx, error boundaries).
   - Router setup (React Router 6) with AuthGuard, RoleGuard (`403`), and `404` handling.
   - Shared date & time utility locked strictly to `Asia/Manila` (never using client browser clock for day math).
-- [ ] **Phase 7B: Design System Integration**:
+- [x] **Phase 7B: Design System Integration**:
   - Create `frontend/src/tokens.css` with exact variables and palette definitions.
   - Configure `tailwind.config.js` to map colors and radii directly to CSS variables (no hardcoded hex).
   - Install and self-host `Geist` and `Geist Mono` via `@fontsource/geist-sans` and `@fontsource/geist-mono`.
