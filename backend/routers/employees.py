@@ -29,6 +29,7 @@ from ..schemas import (
     ProbationaryEmployeeCreateRequest,
     ProbationaryEmployeeDetailResponse,
     ProbationaryEmployeeStatusUpdate,
+    UserResponse,
 )
 
 router = APIRouter(tags=["Employees"])
@@ -315,6 +316,29 @@ async def list_milestones(
             day_178.append(item)
 
     return MilestoneReport(as_of=as_of, day_150=day_150, day_165=day_165, day_178=day_178)
+
+
+@router.get(
+    "/supervisors",
+    response_model=list[UserResponse],
+    summary="List supervisors in the tenant",
+)
+async def list_supervisors(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+) -> list[User]:
+    """Return active supervisors in the caller's organization for assignment."""
+    stmt = (
+        select(User)
+        .where(
+            User.organization_id == current_user.organization_id,
+            User.role == UserRole.SUPERVISOR,
+            User.is_active.is_(True),
+        )
+        .order_by(User.full_name.asc())
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
 @router.get(
