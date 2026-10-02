@@ -70,4 +70,70 @@ export const authApi = {
   },
 };
 
+// Employee API methods
+export const employeeApi = {
+  list: async (params = {}) => {
+    const response = await apiClient.get('/api/employees/', { params });
+    return response.data;
+  },
+  getMilestones: async () => {
+    const response = await apiClient.get('/api/employees/milestones');
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await apiClient.get(`/api/employees/${id}`);
+    return response.data;
+  },
+  create: async (data) => {
+    const response = await apiClient.post('/api/employees/', data);
+    return response.data;
+  },
+  updateStatus: async (id, status) => {
+    const response = await apiClient.patch(`/api/employees/${id}/status`, { status });
+    return response.data;
+  },
+  acknowledgeStandards: async (id) => {
+    const response = await apiClient.post(`/api/employees/${id}/acknowledge-standards`);
+    return response.data;
+  },
+};
+
+// Evaluation & Scorecard API methods
+export const evaluationApi = {
+  getTenantAuditTrail: async () => {
+    const response = await apiClient.get('/api/evaluations/audit-trail');
+    return response.data;
+  },
+  getScorecard: async (employeeId) => {
+    const response = await apiClient.get(`/api/evaluations/${employeeId}/scorecard`);
+    return response.data;
+  },
+  getAuditTrail: async (employeeId) => {
+    const response = await apiClient.get(`/api/evaluations/${employeeId}/audit-trail`);
+    return response.data;
+  },
+  submitWeeklyRating: async (employeeId, data) => {
+    const response = await apiClient.post(`/api/evaluations/${employeeId}/weekly`, data);
+    return response.data;
+  },
+};
+
+// Interventions & Rollups API methods
+export const interventionApi = {
+  listPending: async () => {
+    const response = await apiClient.get('/api/interventions/pending');
+    return response.data;
+  },
+  signOff: async (planId, approved) => {
+    const response = await apiClient.post(`/api/interventions/${planId}/sign-off`, { approved });
+    return response.data;
+  },
+  generateRollup: async (employeeId, monthNumber) => {
+    const response = await apiClient.post(
+      `/api/interventions/${employeeId}/monthly-rollup?month_number=${monthNumber}`
+    );
+    return response.data;
+  },
+};
+
 export default apiClient;

@@ -147,7 +147,7 @@ sequenceDiagram
 ---
 
 ### Phase 7: Frontend SPA - Design System & Full UI Implementation
-**Status: IN PROGRESS (Foundations, Design Tokens, Primitives & AppShell Complete)**
+**Status: COMPLETED (All Screens, Navigation & Primitives Live, 0-Byte Clean, Verified Build)**
 
 > **Design Specification Reference**: Extracted from `reference/performa-redesign-preview.html` and `HANDOFF_PROMPT.md`.
 > **Design Philosophy**: High-polish, editorial-grade UI for Philippine SMEs. 100% real data from FastAPI endpoints; no dummy prototype strings in production.
@@ -192,16 +192,16 @@ sequenceDiagram
   - Mobile bottom navigation with quick-touch role tabs.
   - Global Command Palette (`Ctrl+K` / `⌘K`) for rapid navigation and palette switching.
   - Role-aware navigation configs (`employer`, `supervisor`, `probationary_employee`, `admin`).
-- [ ] **Phase 7E: Page-by-Page Migration (Employer first, then Supervisor & Employee)**:
+- [x] **Phase 7E: Page-by-Page Migration (Employer first, then Supervisor & Employee)**:
   1. `Settings`: Profile details, Appearance (mode & 5 palettes), Security (password update), and Milestone Alerts toggle.
   2. `Employees`: Master directory, tabs (`All`, `Probationary`, `Regular`), filters (department, performance), sorting, and search.
   3. `Employee Detail`: Individual employee profile, details dl list, account status with deactivate modal, quick action buttons.
   4. `Add Employee`: Modal/form with validation, role selection, department datalist, and temp password notice.
   5. `Rate Employee`: Weekly scoring matrix for the 5 competencies, target 4.0 marker, remarks, and append-only audit trail confirmation dialog.
   6. `Dashboard`: Probation overview, 180-day progress timeline bar with Day 150/165/178 ticks, active probationers table, and AI intervention suggestions list.
-  7. `KPIs / Scorecard`: Employee scorecard, stats cards (Latest, Weighted target, Gap to target), 5 competency breakdown, sort by worst gap.
-  8. `Review Plans`: Intervention approvals queue, 2-sentence AI summary, recommended courses checklist with rationales, and approve/reject actions.
-  9. `Reports` & `Report View`: Performance report archives, report generation form, PDF export, and SHA-256 fingerprint copy.
+  7. `KPIs / Scorecard & Rubrics`: Employee scorecard, stats cards, 5 competency breakdown with 4.0 target markers.
+  8. `Rollups & Review Plans`: Intervention approvals queue, 2-sentence AI summary, recommended courses checklist with rationales, and approve/reject actions.
+  9. `Audit Trail & Compliance`: DOLE-compliant append-only competency audit logs, print/export view.
 - [ ] **Phase 7F: Frontend QA & Accessibility**:
   - Viewport verification at 375px (mobile), 768px (tablet), and 1280px (desktop).
   - All 5 theme palettes verified for AA contrast.

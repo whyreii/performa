@@ -110,7 +110,9 @@ async def monthly_rollup(
     employee_id: uuid.UUID,
     month_number: int = Query(..., ge=1, description="Probation month number"),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.EMPLOYER, UserRole.SUPERVISOR)),
+    current_user: User = Depends(
+        require_role(UserRole.ADMIN, UserRole.EMPLOYER, UserRole.SUPERVISOR)
+    ),
 ) -> MonthlySummary:
     """Aggregate evaluations and produce a MonthlySummary plus training plans."""
     employee = await _get_scoped_employee(db, employee_id, current_user.organization_id)
@@ -204,7 +206,7 @@ async def monthly_rollup(
 )
 async def list_pending_interventions(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
 ) -> list[TrainingPlan]:
     """Return every pending intervention for employees in the tenant."""
     stmt = (
@@ -229,7 +231,7 @@ async def sign_off_intervention(
     plan_id: uuid.UUID,
     payload: TrainingPlanSignOff,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
 ) -> TrainingPlan:
     """Approve or reject a pending intervention within the caller's tenant."""
     stmt = (

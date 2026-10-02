@@ -204,6 +204,39 @@ async def get_scorecard(
 
 
 @router.get(
+    "/audit-trail",
+    response_model=list[AuditLogItemResponse],
+    summary="Tenant-wide competency audit trail (newest first)",
+)
+async def get_tenant_audit_trail(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+) -> list[AuditLogItemResponse]:
+    """Return every immutable competency audit entry in the tenant, newest first."""
+    stmt = (
+        select(EvaluationAuditLog)
+        .options(selectinload(EvaluationAuditLog.evaluator))
+        .where(EvaluationAuditLog.organization_id == current_user.organization_id)
+        .order_by(EvaluationAuditLog.created_at.desc())
+        .limit(100)
+    )
+    result = await db.execute(stmt)
+    logs = result.scalars().all()
+
+    return [
+        AuditLogItemResponse(
+            id=log.id,
+            competency=log.competency,
+            evaluator_name=log.evaluator.full_name if log.evaluator else "Unknown",
+            prior_score=log.prior_score,
+            new_score=log.new_score,
+            created_at=log.created_at,
+        )
+        for log in logs
+    ]
+
+
+@router.get(
     "/{employee_id}/audit-trail",
     response_model=list[AuditLogItemResponse],
     summary="Append-only competency audit trail (newest first)",
