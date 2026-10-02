@@ -35,30 +35,33 @@ Open your browser to: **`http://localhost:5173`**
 
 | Role | Email | Redirects To | What You Can Test Right Now |
 | :--- | :--- | :--- | :--- |
-| **Employer / Admin** | `admin@acme.com` | `/dashboard` | • Executive KPI metrics & Day 150 urgent banner<br/>• 180-Day Probation timeline & live employee pipeline<br/>• Onboard new employee with auto Day 180 calculation<br/>• Monthly 30-Day Rollups with Gemini AI summaries<br/>• Employer digital sign-off on training plans<br/>• DOLE-compliant audit trail with printable export view<br/>• Settings: Switch between all 5 theme palettes live |
-| **Supervisor** | `supervisor@acme.com` | `/supervisor/dashboard` | • Direct reports list with milestone tags<br/>• Weekly evaluation matrix (rate 1.0–5.0 across 5 competencies)<br/>• Target 4.0 marker and live gap calculations<br/>• Complete 5-competency legal rubrics guide |
+| **System Administrator** | `admin@acme.com` | `/admin/users` | • **User Account Management Module**: Provision accounts & assign roles<br/>• Deactivate/reactivate accounts & reset user passwords<br/>• View-only employee directory oversight (cannot add records per Art. 296)<br/>• System-wide DOLE audit trail log<br/>• System settings & live 5-palette theme switcher |
+| **Employer (Business Owner)** | `employer@acme.com` | `/dashboard` | • Executive KPI metrics & Day 150 urgent banner<br/>• 180-Day Probation timeline & live employee pipeline<br/>• **Exclusive Onboarding**: Add employee with auto Day 180 calculation<br/>• Monthly 30-Day Rollups with Gemini AI summaries<br/>• Employer digital sign-off on training plans<br/>• DOLE-compliant audit trail with printable export view<br/>• Settings: Switch between all 5 theme palettes live |
+| **Supervisor** | `supervisor@acme.com` | `/supervisor/dashboard` | • Direct reports list with milestone tags<br/>• Weekly evaluation matrix (rate 1.0–5.0 across 5 competencies)<br/>• Target 4.0 marker and live gap calculations<br/>• View-only employee directory<br/>• Complete 5-competency statutory rubrics guide |
 | **Probationary Employee** | `emp1@acme.com` | `/employee/dashboard` | • Personal 180-day countdown & milestone pill<br/>• 5-Competency performance scorecard<br/>• View assigned AI-recommended training courses |
 
 ---
 
-## 🗺️ Live Application Screen Directory (All 10 Screens Complete)
+## 🗺️ Live Application Screen Directory (All 11 Screens Complete)
 
 Every single screen is live, responsive, and wired to FastAPI:
 
 | # | Route | Screen Name | Roles Allowed | Status | Key Features |
 | :---: | :--- | :--- | :--- | :---: | :--- |
-| **1** | `/dashboard` | **Employer Dashboard** | `employer`, `admin` | ✅ **LIVE** | 4 KPI cards, Day 150 milestone alerts, probationers table, AI plan feed |
-| **2** | `/employees` | **Employee Directory** | `employer`, `admin` | ✅ **LIVE** | Tabbed views (All / Probationary / Regular), search, filter, 180-day progress bar |
-| **3** | `/employees/:id` | **Employee Detail** | `employer`, `admin` | ✅ **LIVE** | 180-day milestone timeline, 5-score scorecard, audit history, Regularize/Terminate modal |
-| **4** | Modal | **Add Employee Modal** | `employer`, `admin` | ✅ **LIVE** | Auto-computes Day 180 statutory deadline in `Asia/Manila`, form validation |
-| **5** | `/rollups` | **Monthly Rollups & Plans**| `employer`, `admin` | ✅ **LIVE** | 30-day evaluation aggregations, Gemini AI rationales, employer sign-off actions |
-| **6** | `/audits` | **DOLE Audit Trail** | `employer`, `admin` | ✅ **LIVE** | Immutable competency log, prior vs new score diffs, DOLE print/export view |
-| **7** | `/supervisor/dashboard`| **Supervisor Workspace** | `supervisor` | ✅ **LIVE** | Quick links, direct reports list, pending evaluations count |
-| **8** | `/supervisor/rate` | **Rate Employee Matrix** | `supervisor`, `admin` | ✅ **LIVE** | 1.0 to 5.0 slider/buttons, 4.0 benchmark indicator, audit warning modal |
-| **9** | `/supervisor/rubrics` | **KPI Rubrics Guide** | `supervisor`, `employer`| ✅ **LIVE** | Complete legal standards table for all 5 statutory competencies |
-| **10**| `/employee/dashboard` | **Employee Scorecard** | `probationary_employee`| ✅ **LIVE** | 180-day progress, 5-competency radar/scores, status banner |
-| **11**| `/employee/training` | **My Training Plans** | `probationary_employee`| ✅ **LIVE** | Assigned training modules with Gemini AI competency rationales |
-| **12**| `/settings` | **System Settings** | All Roles | ✅ **LIVE** | 5 Palettes (`paper`, `midnight`, `dusk`, `mist`, `sage`), alert toggles, password |
+| **1** | `/admin/users` | **User Account Management**| `admin` | ✅ **LIVE** | System-level account provisioning, role picker modal, deactivation, password reset |
+| **2** | `/dashboard` | **Employer Dashboard** | `employer` | ✅ **LIVE** | 4 KPI cards, Day 150 milestone alerts, probationers table, AI plan feed |
+| **3** | `/employees` | **Employee Directory** | `employer`, `admin`, `supervisor` | ✅ **LIVE** | Tabbed views (All / Probationary / Regular), search, filter, 180-day progress bar. Onboard button exclusive to Employer |
+| **4** | `/employees/:id` | **Employee Detail** | `employer`, `admin`, `supervisor` | ✅ **LIVE** | 180-day milestone timeline, 5-score scorecard, audit history, Regularize/Terminate modal |
+| **5** | Modal | **Add Employee Modal** | `employer` | ✅ **LIVE** | Exclusive to Employer; Auto-computes Day 180 statutory deadline in `Asia/Manila` |
+| **6** | `/rollups` | **Monthly Rollups & Plans**| `employer` | ✅ **LIVE** | 30-day evaluation aggregations, Gemini AI rationales, employer sign-off actions |
+| **7** | `/audits` | **DOLE Audit Trail** | `employer`, `admin` | ✅ **LIVE** | Immutable competency log, prior vs new score diffs, DOLE print/export view |
+| **8** | `/supervisor/dashboard`| **Supervisor Workspace** | `supervisor` | ✅ **LIVE** | Quick links, direct reports list, pending evaluations count |
+| **9** | `/supervisor/rate` | **Rate Employee Matrix** | `supervisor` | ✅ **LIVE** | 1.0 to 5.0 slider/buttons, 4.0 benchmark indicator, audit warning modal |
+| **10**| `/supervisor/rubrics` | **KPI Rubrics Guide** | `supervisor`, `employer`| ✅ **LIVE** | Complete legal standards table for all 5 statutory competencies |
+| **11**| `/employee/dashboard` | **Employee Scorecard** | `probationary_employee`| ✅ **LIVE** | 180-day progress, 5-competency radar/scores, status banner |
+| **12**| `/employee/training` | **My Training Plans** | `probationary_employee`| ✅ **LIVE** | Assigned training modules with Gemini AI competency rationales |
+| **13**| `/settings` | **System Settings** | All Roles | ✅ **LIVE** | 5 Palettes (`paper`, `midnight`, `dusk`, `mist`, `sage`), alert toggles, password |
+
 
 ---
 

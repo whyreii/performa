@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function Sidebar({ onOpenCommandPalette }) {
@@ -42,7 +43,15 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
   // Role-specific navigation items
   const getNavItems = () => {
-    if (role === 'admin' || role === 'employer') {
+    if (role === 'admin') {
+      return [
+        { label: 'User Accounts', path: '/admin/users', icon: ShieldCheck },
+        { label: 'Employee Records', path: '/employees', icon: Users },
+        { label: 'Audit Trail', path: '/audits', icon: History },
+        { label: 'Settings', path: '/settings', icon: Settings },
+      ];
+    }
+    if (role === 'employer') {
       return [
         { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
         { label: 'Employees', path: '/employees', icon: Users },
@@ -86,9 +95,14 @@ export default function Sidebar({ onOpenCommandPalette }) {
       {/* Brand Header */}
       <div className={`flex items-center ${collapsed ? 'flex-col gap-2.5 mb-3' : 'justify-between mb-4 h-10'}`}>
         <div
-          onClick={() => navigate(role === 'probationary_employee' ? '/employee/dashboard' : '/dashboard')}
+          onClick={() => {
+            if (role === 'admin') navigate('/admin/users');
+            else if (role === 'probationary_employee') navigate('/employee/dashboard');
+            else if (role === 'supervisor') navigate('/supervisor/dashboard');
+            else navigate('/dashboard');
+          }}
           className={`flex items-center gap-3 cursor-pointer group min-w-0 ${collapsed ? 'justify-center' : ''}`}
-          title="Performa Dashboard"
+          title="Performa Home"
         >
           <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform">
             <BarChart3 className="w-4 h-4" />

@@ -14,6 +14,7 @@ import Rubrics from './pages/supervisor/Rubrics';
 import Dashboard from './pages/employer/Dashboard';
 import Rollups from './pages/employer/Rollups';
 import AuditTrail from './pages/admin/AuditTrail';
+import UserManagement from './pages/admin/UserManagement';
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import EmployeeTraining from './pages/employee/EmployeeTraining';
 
@@ -84,16 +85,26 @@ export default function App() {
                   </ProtectedRoute>
                 }
               >
+                {/* Admin Exclusive User Management Route */}
+                <Route
+                  path="/admin/users"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <UserManagement />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/admin/dashboard" element={<Navigate to="/admin/users" replace />} />
+
                 {/* Employer & Admin Routes */}
                 <Route
                   path="/dashboard"
                   element={
-                    <ProtectedRoute allowedRoles={['employer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['employer']}>
                       <Dashboard />
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/admin/dashboard" element={<Navigate to="/dashboard" replace />} />
                 <Route
                   path="/employees"
                   element={

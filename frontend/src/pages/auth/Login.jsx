@@ -30,12 +30,13 @@ export default function Login() {
 
     if (result.success) {
       const role = result.user?.role;
-      if (role === 'probationary_employee') {
+      if (role === 'admin') {
+        navigate('/admin/users');
+      } else if (role === 'probationary_employee') {
         navigate('/employee/dashboard');
       } else if (role === 'supervisor') {
         navigate('/supervisor/dashboard');
       } else {
-        // Both admin and employer roles route to the employer dashboard
         navigate('/dashboard');
       }
     } else {
@@ -177,10 +178,17 @@ export default function Login() {
             <span className="block text-xs font-medium text-ink-3 mb-2.5 text-center">
               Quick demo login (Seeded accounts):
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 type="button"
                 onClick={() => handleQuickLogin('admin@acme.com')}
+                className="px-2.5 py-1.5 text-xs font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
+              >
+                Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('employer@acme.com')}
                 className="px-2.5 py-1.5 text-xs font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
               >
                 Employer

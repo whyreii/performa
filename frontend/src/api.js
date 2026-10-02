@@ -136,4 +136,25 @@ export const interventionApi = {
   },
 };
 
+// Admin User Management API methods
+export const adminApi = {
+  listUsers: async () => {
+    const response = await apiClient.get('/api/admin/users');
+    return response.data;
+  },
+  createUser: async (data) => {
+    const response = await apiClient.post('/api/admin/users', data);
+    return response.data;
+  },
+  updateStatus: async (userId, isActive) => {
+    const response = await apiClient.patch(`/api/admin/users/${userId}/status`, { is_active: isActive });
+    return response.data;
+  },
+  resetPassword: async (userId, password) => {
+    const response = await apiClient.post(`/api/admin/users/${userId}/reset-password`, { password });
+    return response.data;
+  },
+};
+
 export default apiClient;
+

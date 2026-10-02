@@ -41,6 +41,7 @@ SEED_PASSWORD = "Password123!"
 ORG_NAME = "Acme Philippines Corp."
 ORG_SLUG = "acme-ph"
 ADMIN_EMAIL = "admin@acme.com"
+EMPLOYER_EMAIL = "employer@acme.com"
 SUPERVISOR_EMAIL = "supervisor@acme.com"
 PROBATION_TERM_DAYS = 180
 
@@ -195,8 +196,16 @@ async def seed(session: AsyncSession) -> SeedResult:
     admin = User(
         email=ADMIN_EMAIL,
         hashed_password=get_password_hash(SEED_PASSWORD),
-        full_name="Admin User",
+        full_name="System Administrator",
         role=UserRole.ADMIN,
+        organization_id=tenant_key,
+        is_active=True,
+    )
+    employer = User(
+        email=EMPLOYER_EMAIL,
+        hashed_password=get_password_hash(SEED_PASSWORD),
+        full_name="Cecile Robelo",
+        role=UserRole.EMPLOYER,
         organization_id=tenant_key,
         is_active=True,
     )
@@ -208,11 +217,14 @@ async def seed(session: AsyncSession) -> SeedResult:
         organization_id=tenant_key,
         is_active=True,
     )
-    session.add_all([admin, supervisor])
+    session.add_all([admin, employer, supervisor])
     await session.flush()
 
     accounts: list[SeededAccount] = [
         SeededAccount(ADMIN_EMAIL, admin.full_name, admin.role.value, SEED_PASSWORD),
+        SeededAccount(
+            EMPLOYER_EMAIL, employer.full_name, employer.role.value, SEED_PASSWORD
+        ),
         SeededAccount(
             SUPERVISOR_EMAIL, supervisor.full_name, supervisor.role.value, SEED_PASSWORD
         ),

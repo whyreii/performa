@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../../context/AuthContext';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
 import AddEmployeeModal from '../../components/employees/AddEmployeeModal';
@@ -17,6 +18,8 @@ import {
 
 export default function Employees() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isEmployer = user?.role === 'employer';
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Filter and sort state
@@ -151,15 +154,17 @@ export default function Employees() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            variant="primary"
-            leftIcon={Plus}
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            Onboard Employee
-          </Button>
-        </div>
+        {isEmployer && (
+          <div className="flex items-center gap-3">
+            <Button
+              variant="primary"
+              leftIcon={Plus}
+              onClick={() => setIsAddModalOpen(true)}
+            >
+              Onboard Employee
+            </Button>
+          </div>
+        )}
       </header>
 
       {/* Tabs and Search Bar */}
