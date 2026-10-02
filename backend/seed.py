@@ -15,13 +15,14 @@ import asyncio
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone, tzinfo
+from datetime import date, timedelta
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .auth import get_password_hash
 from .database import Base, async_session_maker, engine
+from .timeutils import manila_today
 from .models import (
     EvaluationAuditLog,
     KpiRubric,
@@ -44,24 +45,6 @@ ADMIN_EMAIL = "admin@acme.com"
 EMPLOYER_EMAIL = "employer@acme.com"
 SUPERVISOR_EMAIL = "supervisor@acme.com"
 PROBATION_TERM_DAYS = 180
-
-
-def _manila_tz() -> tzinfo:
-    """Return the Asia/Manila timezone, falling back to a fixed UTC+8 offset."""
-    try:
-        from zoneinfo import ZoneInfo
-
-        return ZoneInfo("Asia/Manila")
-    except Exception:
-        return timezone(timedelta(hours=8))
-
-
-MANILA_TZ = _manila_tz()
-
-
-def _today_manila() -> date:
-    """Current calendar date in the statutory (Asia/Manila) timezone."""
-    return datetime.now(MANILA_TZ).date()
 
 
 @dataclass(frozen=True)
@@ -186,7 +169,7 @@ async def seed(session: AsyncSession) -> SeedResult:
     """Seed the Acme Philippines Corp. tenant and return a result summary."""
     await _reset(session)
 
-    today = _today_manila()
+    today = manila_today()
 
     organization = Organization(name=ORG_NAME, slug=ORG_SLUG)
     session.add(organization)

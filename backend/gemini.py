@@ -15,7 +15,7 @@ import asyncio
 import json
 import logging
 import os
-from typing import Any
+from typing import Any, Optional
 
 try:  # The SDK is optional at import time so the API can still boot without it.
     from google import genai
@@ -27,27 +27,34 @@ except ImportError:  # pragma: no cover - exercised only when the SDK is absent
 logger = logging.getLogger(__name__)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-PRIMARY_MODEL = "gemini-3.5-flash-lite"
-FALLBACK_MODEL = "gemini-flash-latest"
+PRIMARY_MODEL = "gemini-2.5-flash"
+FALLBACK_MODEL = "gemini-1.5-flash"
 TEMPERATURE = 0.0
 REQUEST_TIMEOUT_SECONDS = 10.0
 
 FALLBACK_SUMMARY = "Performance summary unavailable."
 
 _client: Any = None
+_client_key: Optional[str] = None
 
 
 def _get_client() -> Any:
-    """Lazily construct the Gemini client, or ``None`` if unavailable."""
-    global _client
+    """Lazily construct the Gemini client, or ``None`` if unavailable.
+
+    The API key is read at call time (not import time) so runtime configuration
+    changes are honoured.
+    """
+    global _client, _client_key
     if genai is None:
         logger.warning("google-genai SDK is not installed; returning fallback rationales.")
         return None
-    if not GEMINI_API_KEY:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
         logger.warning("GEMINI_API_KEY is not configured; returning fallback rationales.")
         return None
-    if _client is None:
-        _client = genai.Client(api_key=GEMINI_API_KEY)
+    if _client is None or _client_key != api_key:
+        _client = genai.Client(api_key=api_key)
+        _client_key = api_key
     return _client
 
 

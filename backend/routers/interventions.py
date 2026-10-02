@@ -12,13 +12,14 @@ no direct tenant column, so they are always joined through their
 """
 from __future__ import annotations
 
+import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from statistics import fmean
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -44,6 +45,10 @@ from ..schemas import (
 )
 
 router = APIRouter(prefix="/api/interventions", tags=["Interventions"])
+
+logger = logging.getLogger(__name__)
+
+PROBATION_MONTH_DAYS = 30
 
 
 def _course_id(course: dict[str, Any]) -> str:
@@ -75,6 +80,11 @@ def _to_rating(value: str) -> PerformanceRatingEnum:
     try:
         return PerformanceRatingEnum(value)
     except ValueError:
+        logger.warning(
+            "Unknown predicted tier %r; defaulting to %s",
+            value,
+            PerformanceRatingEnum.NEEDS_IMPROVEMENT.value,
+        )
         return PerformanceRatingEnum.NEEDS_IMPROVEMENT
 
 
@@ -122,15 +132,25 @@ async def monthly_rollup(
     """Aggregate evaluations and produce a MonthlySummary plus training plans."""
     employee = await _get_scoped_employee(db, employee_id, current_user)
 
+    month_start = employee.start_date + timedelta(
+        days=(month_number - 1) * PROBATION_MONTH_DAYS
+    )
+    month_end = employee.start_date + timedelta(days=month_number * PROBATION_MONTH_DAYS)
+
     evaluation_stmt = select(WeeklyEvaluation).where(
         WeeklyEvaluation.employee_id == employee.id,
         WeeklyEvaluation.organization_id == current_user.organization_id,
+        WeeklyEvaluation.evaluation_date >= month_start,
+        WeeklyEvaluation.evaluation_date <= month_end,
     )
     evaluations = list((await db.execute(evaluation_stmt)).scalars().all())
     if not evaluations:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No weekly evaluations found for this employee",
+            detail=(
+                f"No weekly evaluations found for month {month_number} "
+                f"({month_start.isoformat()} to {month_end.isoformat()})"
+            ),
         )
 
     # Compute the five competency averages in canonical COMPETENCIES order.
@@ -175,6 +195,22 @@ async def monthly_rollup(
         competency_scores=competency_scores,
         recommended_courses=courses,
     )
+
+    # Idempotent regeneration: replace any existing summary for this month.
+    existing = (
+        await db.execute(
+            select(MonthlySummary).where(
+                MonthlySummary.employee_id == employee.id,
+                MonthlySummary.month_number == month_number,
+            )
+        )
+    ).scalar_one_or_none()
+    if existing is not None:
+        await db.execute(
+            delete(TrainingPlan).where(TrainingPlan.monthly_summary_id == existing.id)
+        )
+        await db.delete(existing)
+        await db.flush()
 
     summary = MonthlySummary(
         employee_id=employee.id,

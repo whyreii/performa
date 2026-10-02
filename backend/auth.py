@@ -65,7 +65,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Return ``True`` when ``plain_password`` matches ``hashed_password``."""
     try:
         return pwd_context.verify(plain_password, hashed_password)
-    except ValueError:
+    except Exception:
+        # Malformed/unknown hash formats must never authenticate.
         return False
 
 

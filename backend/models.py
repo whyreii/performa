@@ -252,7 +252,9 @@ class WeeklyEvaluation(Base):
         Uuid, ForeignKey("users.id"), nullable=False
     )
     organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
-    evaluation_date: Mapped[date] = mapped_column(Date, default=date.today, nullable=False)
+    evaluation_date: Mapped[date] = mapped_column(
+        Date, default=date.today, nullable=False, index=True
+    )
     task_completion: Mapped[float] = mapped_column(Float, nullable=False)
     attendance_and_punctuality: Mapped[float] = mapped_column(Float, nullable=False)
     communication_and_teamwork: Mapped[float] = mapped_column(Float, nullable=False)

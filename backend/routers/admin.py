@@ -6,7 +6,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth import get_password_hash, require_role
@@ -108,6 +108,25 @@ async def update_user_status(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found.",
         )
+
+    if not payload.is_active and target_user.role == UserRole.ADMIN:
+        other_active_admins = (
+            await db.execute(
+                select(func.count())
+                .select_from(User)
+                .where(
+                    User.organization_id == target_user.organization_id,
+                    User.role == UserRole.ADMIN,
+                    User.is_active.is_(True),
+                    User.id != target_user.id,
+                )
+            )
+        ).scalar_one()
+        if other_active_admins == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot deactivate the last active administrator.",
+            )
 
     target_user.is_active = payload.is_active
     await db.commit()

@@ -9,11 +9,11 @@ written per competency whose score changed or was set for the first time.
 """
 from __future__ import annotations
 
+import logging
 import uuid
-from datetime import date
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -34,6 +34,9 @@ from ..schemas import (
     WeeklyEvaluationResponse,
     WeeklyRatingSubmit,
 )
+from ..timeutils import manila_today
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Evaluations"])
 
@@ -136,7 +139,7 @@ async def submit_weekly_rating(
         employee_id=employee.id,
         evaluator_id=current_user.id,
         organization_id=current_user.organization_id,
-        evaluation_date=date.today(),
+        evaluation_date=manila_today(),
         overall_score=overall_score,
         remarks=payload.remarks,
         **new_scores,
@@ -214,16 +217,19 @@ async def get_scorecard(
     summary="Tenant-wide competency audit trail (newest first)",
 )
 async def get_tenant_audit_trail(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
 ) -> list[AuditLogItemResponse]:
-    """Return every immutable competency audit entry in the tenant, newest first."""
+    """Return immutable competency audit entries in the tenant, newest first."""
     stmt = (
         select(EvaluationAuditLog)
         .options(selectinload(EvaluationAuditLog.evaluator))
         .where(EvaluationAuditLog.organization_id == current_user.organization_id)
         .order_by(EvaluationAuditLog.created_at.desc())
-        .limit(100)
+        .offset(skip)
+        .limit(limit)
     )
     result = await db.execute(stmt)
     logs = result.scalars().all()

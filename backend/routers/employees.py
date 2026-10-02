@@ -11,7 +11,7 @@ applied a missing row yields ``404`` (never leaking cross-tenant existence).
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, timedelta, timezone, tzinfo
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -31,30 +31,12 @@ from ..schemas import (
     ProbationaryEmployeeStatusUpdate,
     UserResponse,
 )
+from ..timeutils import manila_today
 
 router = APIRouter(tags=["Employees"])
 
 PROBATION_TERM_DAYS = 180
-MILESTONE_THRESHOLDS = (150, 165, 178)
 MILESTONE_LEAD_DAYS = 7
-
-
-def _manila_tz() -> tzinfo:
-    """Return the Asia/Manila timezone, falling back to a fixed UTC+8 offset."""
-    try:
-        from zoneinfo import ZoneInfo
-
-        return ZoneInfo("Asia/Manila")
-    except Exception:
-        return timezone(timedelta(hours=8))
-
-
-MANILA_TZ = _manila_tz()
-
-
-def _today_manila() -> date:
-    """Current calendar date in the statutory (Asia/Manila) timezone."""
-    return datetime.now(MANILA_TZ).date()
 
 
 def _employee_load_options() -> tuple[Load, ...]:
@@ -283,7 +265,7 @@ async def list_milestones(
     ),
 ) -> MilestoneReport:
     """Return active employees approaching or past each statutory threshold."""
-    as_of = _today_manila()
+    as_of = manila_today()
 
     stmt = (
         select(ProbationaryEmployee)

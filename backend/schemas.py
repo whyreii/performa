@@ -91,10 +91,6 @@ class ProbationaryEmployeeBase(BaseModel):
     status: ProbationStatus = ProbationStatus.ACTIVE
 
 
-class ProbationaryEmployeeCreate(ProbationaryEmployeeBase):
-    pass
-
-
 class ProbationaryEmployeeUpdate(BaseModel):
     employer_id: Optional[uuid.UUID] = None
     supervisor_id: Optional[uuid.UUID] = None
@@ -370,7 +366,6 @@ __all__ = [
     "TokenPayload",
     "PasswordChange",
     "ProbationaryEmployeeBase",
-    "ProbationaryEmployeeCreate",
     "ProbationaryEmployeeUpdate",
     "ProbationaryEmployeeResponse",
     "ProbationaryEmployeeDetailResponse",
