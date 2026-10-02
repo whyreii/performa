@@ -69,6 +69,13 @@ class TokenPayload(BaseModel):
     exp: Optional[int] = None
 
 
+class PasswordChange(BaseModel):
+    """Self-service password change payload."""
+
+    current_password: str = Field(..., min_length=1, max_length=128)
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
 # ---------------------------------------------------------------------------
 # ProbationaryEmployee
 # ---------------------------------------------------------------------------
@@ -361,6 +368,7 @@ __all__ = [
     "UserResponse",
     "Token",
     "TokenPayload",
+    "PasswordChange",
     "ProbationaryEmployeeBase",
     "ProbationaryEmployeeCreate",
     "ProbationaryEmployeeUpdate",
