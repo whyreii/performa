@@ -33,7 +33,12 @@ app = FastAPI(title="Performa API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,6 +48,18 @@ app.include_router(auth_router)
 app.include_router(employees_router, prefix="/api/employees")
 app.include_router(evaluations_router, prefix="/api/evaluations")
 app.include_router(interventions_router)
+
+
+@app.get("/", tags=["System"], summary="API Root Information")
+async def root() -> dict[str, str]:
+    """Root endpoint welcoming clients and referencing documentation."""
+    return {
+        "service": "Performa API",
+        "version": "1.0.0",
+        "status": "online",
+        "docs_url": "/docs",
+        "health_url": "/health",
+    }
 
 
 @app.get("/health", tags=["System"], summary="Service health check")
