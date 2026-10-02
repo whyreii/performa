@@ -9,8 +9,9 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from . import models  # noqa: F401  (registers ORM metadata before create_all)
 from .database import Base, engine
@@ -66,8 +67,20 @@ async def root() -> dict[str, str]:
 
 @app.get("/health", tags=["System"], summary="Service health check")
 async def health() -> dict[str, str]:
-    """Liveness probe used by orchestrators and uptime checks."""
-    return {"status": "healthy", "service": "performa-api"}
+    """Readiness probe that verifies the database is reachable."""
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "status": "unhealthy",
+                "service": "performa-api",
+                "database": "unreachable",
+            },
+        )
+    return {"status": "healthy", "service": "performa-api", "database": "ok"}
 
 
 __all__ = ["app", "lifespan"]
