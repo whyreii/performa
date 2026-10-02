@@ -62,13 +62,8 @@ async def create_user(
     current_user: User = Depends(require_role(UserRole.ADMIN)),
 ) -> User:
     """Create a new user account and assign their role (Employer, Supervisor, or Probationary Employee)."""
-    # Check if email is already taken in this tenant
-    existing = await db.execute(
-        select(User.id).where(
-            User.email == payload.email,
-            User.organization_id == current_user.organization_id,
-        )
-    )
+    # Email is globally unique across the platform (see User model)
+    existing = await db.execute(select(User.id).where(User.email == payload.email))
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

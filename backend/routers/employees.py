@@ -159,7 +159,7 @@ async def create_employee(
         duplicate = await db.execute(select(User.id).where(User.email == payload.email))
         if duplicate.scalar_one_or_none() is not None:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_409_CONFLICT,
                 detail="A user with this email already exists",
             )
         user = User(
