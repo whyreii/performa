@@ -334,6 +334,12 @@ class TrainingPlanResponse(TrainingPlanBase):
     created_at: datetime
 
 
+class TrainingPlanSignOff(BaseModel):
+    """Employer decision payload for a pending training intervention."""
+
+    approved: bool = True
+
+
 # ---------------------------------------------------------------------------
 # EvaluationAuditLog
 # ---------------------------------------------------------------------------
@@ -380,5 +386,6 @@ __all__ = [
     "TrainingPlanCreate",
     "TrainingPlanUpdate",
     "TrainingPlanResponse",
+    "TrainingPlanSignOff",
     "AuditLogItemResponse",
 ]

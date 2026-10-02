@@ -1,71 +1,111 @@
 [
   {
+    "catalog_id": "TC-101",
     "course_id": "TC-101",
     "competency": "task_completion",
+    "intervention_title": "SOP Workflow & Throughput Optimization",
     "title": "SOP Workflow & Throughput Optimization",
+    "intervention_type": "on-the-job coaching",
+    "default_timeline": "2 weeks",
     "duration_hours": 6,
     "description": "Hands-on coaching on standard operating procedures, work sequencing, and removing bottlenecks to consistently finish assigned tasks on schedule."
   },
   {
+    "catalog_id": "TC-102",
     "course_id": "TC-102",
     "competency": "task_completion",
+    "intervention_title": "Prioritization & Time-Boxing for Deliverables",
     "title": "Prioritization & Time-Boxing for Deliverables",
+    "intervention_type": "workshop",
+    "default_timeline": "1 week",
     "duration_hours": 4,
     "description": "Practical techniques for breaking work into milestones, prioritizing high-impact tasks, and defending focus time to close deliverables without follow-up."
   },
   {
+    "catalog_id": "AP-101",
     "course_id": "AP-101",
     "competency": "attendance_and_punctuality",
+    "intervention_title": "Shift Preparedness & Punctuality Coaching",
     "title": "Shift Preparedness & Punctuality Coaching",
+    "intervention_type": "mentoring",
+    "default_timeline": "1 week",
     "duration_hours": 3,
     "description": "Coaching on pre-shift routines, commute planning, and reliability habits that protect consistent on-time attendance."
   },
   {
+    "catalog_id": "AP-102",
     "course_id": "AP-102",
     "competency": "attendance_and_punctuality",
+    "intervention_title": "Time Management & Absence Prevention",
     "title": "Time Management & Absence Prevention",
+    "intervention_type": "counseling",
+    "default_timeline": "2 weeks",
     "duration_hours": 4,
     "description": "Covers personal time management, early escalation of conflicts, and proactive scheduling to minimize unplanned absences."
   },
   {
+    "catalog_id": "CT-101",
     "course_id": "CT-101",
     "competency": "communication_and_teamwork",
+    "intervention_title": "Cross-Functional Collaboration Workshop",
     "title": "Cross-Functional Collaboration Workshop",
+    "intervention_type": "workshop",
+    "default_timeline": "3 weeks",
     "duration_hours": 8,
     "description": "Interactive workshop on shared goals, hand-offs, and constructive feedback for smoother collaboration across teams."
   },
   {
+    "catalog_id": "CT-102",
     "course_id": "CT-102",
     "competency": "communication_and_teamwork",
+    "intervention_title": "Clear Escalation & Active Listening",
     "title": "Clear Escalation & Active Listening",
+    "intervention_type": "mentoring",
+    "default_timeline": "2 weeks",
     "duration_hours": 4,
     "description": "Builds concise status updates, structured escalation, and active-listening habits that reduce misunderstandings."
   },
   {
+    "catalog_id": "IA-101",
     "course_id": "IA-101",
     "competency": "initiative_and_adaptability",
+    "intervention_title": "Proactive Problem Solving in Agile SME Environments",
     "title": "Proactive Problem Solving in Agile SME Environments",
+    "intervention_type": "self-directed learning",
+    "default_timeline": "2 weeks",
     "duration_hours": 6,
     "description": "Frameworks for spotting issues early, proposing solutions, and taking ownership in fast-changing small-business settings."
   },
   {
+    "catalog_id": "IA-102",
     "course_id": "IA-102",
     "competency": "initiative_and_adaptability",
+    "intervention_title": "Adapting to Change & Ownership Mindset",
     "title": "Adapting to Change & Ownership Mindset",
+    "intervention_type": "mentoring",
+    "default_timeline": "3 weeks",
     "duration_hours": 5,
     "description": "Helps employees respond constructively to shifting priorities and volunteer for stretch work without waiting for direction."
   },
   {
+    "catalog_id": "QW-101",
     "course_id": "QW-101",
     "competency": "quality_of_work",
+    "intervention_title": "Error Reduction & Quality Control Standards",
     "title": "Error Reduction & Quality Control Standards",
+    "intervention_type": "on-the-job coaching",
+    "default_timeline": "3 weeks",
     "duration_hours": 6,
     "description": "Practical quality-control checklists, self-review habits, and error-reduction techniques aligned to company standards."
   },
   {
+    "catalog_id": "QW-102",
     "course_id": "QW-102",
     "competency": "quality_of_work",
+    "intervention_title": "Root-Cause Analysis & Continuous Improvement",
     "title": "Root-Cause Analysis & Continuous Improvement",
+    "intervention_type": "workshop",
+    "default_timeline": "2 weeks",
     "duration_hours": 5,
     "description": "Introduces root-cause analysis and small continuous-improvement cycles to raise output accuracy and consistency."
   }

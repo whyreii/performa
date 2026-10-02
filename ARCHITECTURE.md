@@ -5,14 +5,14 @@
 - Backend: Python 3.10+, FastAPI (async endpoints), SQLAlchemy 2.0 (asyncpg), Pydantic v2.
 - Database: PostgreSQL (tables initialized via Base.metadata.create_all on startup).
 - ML & GenAI: scikit-learn (Random Forest loaded in-memory), Google Gemini API (async, temp 0.0).
-- Auth: JWT Bearer tokens enforcing 4 distinct roles: dmin, employer, supervisor, probationary_employee.
+- Auth: JWT Bearer tokens enforcing 4 distinct roles: admin, employer, supervisor, probationary_employee.
 
 ## 2. Legal Constraints (Philippine Labor Code Article 296)
 - Timeline Cap: Strict 180 calendar days computed in Asia/Manila timezone.
 - Statutory Milestones: Automated alerts triggered at Day 150, Day 165, and Day 178.
 - 5 Competency Categories Only:
-  1. 	ask_completion
-  2. ttendance_and_punctuality (evaluator rating score only; no biometric punch clocks or leave requests)
+  1. task_completion
+  2. attendance_and_punctuality (evaluator rating score only; no biometric punch clocks or leave requests)
   3. communication_and_teamwork
   4. initiative_and_adaptability
   5. quality_of_work
@@ -20,7 +20,7 @@
 ## 3. Intervention & Decision Pipeline
 - Weekly scores roll up into monthly averages across the 5 competencies.
 - Random Forest classifies competency status: Meets Expectations, Needs Improvement, or Critical Gap.
-- Deficiencies (Needs Improvement, Critical Gap) map deterministically to 	raining_catalog.json.
+- Deficiencies (Needs Improvement, Critical Gap) map deterministically to backend/ml/training_catalog.json.
 - The Gemini API generates ONLY:
   - A 2-sentence performance summary.
   - A 1-sentence rationale per catalog intervention.

@@ -1,0 +1,166 @@
+/* Performa design tokens extracted verbatim from reference/performa-redesign-preview.html.
+   Single source of truth for color, type, spacing, radius, motion.
+   Palettes switch via <html data-theme="paper|midnight|dusk|mist|sage">.
+   No attribute = follow the OS: paper (light) / midnight (dark).
+   Fonts: Geist (UI) + Geist Mono (numbers, dates, scores, IDs, hashes). */
+
+:root {
+  --t-12: 12px;
+  --t-13: 13px;
+  --t-15: 15px;
+  --t-17: 17px;
+  --t-22: 22px;
+  --t-34: 34px;
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 16px;
+  --s4: 24px;
+  --s5: 32px;
+  --s6: 48px;
+  --s7: 64px;
+  --r-ctl: 6px;
+  --r-field: 10px;
+  --r-nav: 10px;
+  --r-float: 14px;
+  --m: 160ms;
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+}
+
+/* ========================================================
+   THEME PALETTES (Harmonized, Accessible & Semantically Isolated)
+   ======================================================== */
+
+/* Paper (Default Light) - Refined Editorial Warmth */
+:root, :root[data-theme="paper"] {
+  color-scheme: light;
+  --bg: #f6f3ed;
+  --side: #fcfbfa;
+  --surface: #ffffff;
+  --ink: #1a1714;
+  --ink-2: #57524d;
+  --ink-3: #726c66;
+  --line: rgba(50, 40, 30, 0.11);
+  --hover: rgba(50, 40, 30, 0.045);
+  --seg: #ffffff;
+  --accent: #b94b21;
+  --on-accent: #ffffff;
+  --good: #1b7a43;
+  --bad: #9f1239;
+  --warn: #b25209;
+  --off: rgba(120, 115, 110, 0.28);
+  --shadow: 4px 0 24px rgba(40, 30, 20, 0.06);
+  --pop: 0 16px 40px rgba(40, 30, 20, 0.14);
+}
+
+/* Midnight - Clean Obsidian Slate */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg: #090b10;
+    --side: #0f121a;
+    --surface: #151923;
+    --ink: #f3f5f9;
+    --ink-2: #9ba3b5;
+    --ink-3: #7b8398;
+    --line: rgba(148, 163, 184, 0.12);
+    --hover: rgba(148, 163, 184, 0.06);
+    --seg: rgba(148, 163, 184, 0.14);
+    --accent: #3b82f6;
+    --on-accent: #090b10;
+    --good: #10b981;
+    --bad: #f43f5e;
+    --warn: #f59e0b;
+    --off: rgba(100, 116, 139, 0.35);
+    --shadow: 6px 0 24px rgba(0, 0, 0, 0.55);
+    --pop: 0 16px 48px rgba(0, 0, 0, 0.7);
+  }
+}
+
+:root[data-theme="midnight"] {
+  color-scheme: dark;
+  --bg: #090b10;
+  --side: #0f121a;
+  --surface: #151923;
+  --ink: #f3f5f9;
+  --ink-2: #9ba3b5;
+  --ink-3: #7b8398;
+  --line: rgba(148, 163, 184, 0.12);
+  --hover: rgba(148, 163, 184, 0.06);
+  --seg: rgba(148, 163, 184, 0.14);
+  --accent: #3b82f6;
+  --on-accent: #090b10;
+  --good: #10b981;
+  --bad: #f43f5e;
+  --warn: #f59e0b;
+  --off: rgba(100, 116, 139, 0.35);
+  --shadow: 6px 0 24px rgba(0, 0, 0, 0.55);
+  --pop: 0 16px 48px rgba(0, 0, 0, 0.7);
+}
+
+/* Dusk - Deep Amethyst / Cosmic Violet */
+:root[data-theme="dusk"] {
+  color-scheme: dark;
+  --bg: #0c0a14;
+  --side: #13101f;
+  --surface: #1a162b;
+  --ink: #f5f3fc;
+  --ink-2: #a79fc0;
+  --ink-3: #867f9d;
+  --line: rgba(196, 181, 253, 0.12);
+  --hover: rgba(196, 181, 253, 0.065);
+  --seg: rgba(196, 181, 253, 0.14);
+  --accent: #9368f7;
+  --on-accent: #0c0a14;
+  --good: #34d399;
+  --bad: #fb7185;
+  --warn: #fbbf24;
+  --off: rgba(139, 92, 246, 0.3);
+  --shadow: 6px 0 24px rgba(5, 2, 15, 0.65);
+  --pop: 0 16px 48px rgba(4, 1, 12, 0.75);
+}
+
+/* Mist - Scandinavian Technical Slate */
+:root[data-theme="mist"] {
+  color-scheme: light;
+  --bg: #f0f4f8;
+  --side: #f8fafc;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --ink-2: #475569;
+  --ink-3: #5c6f8a;
+  --line: rgba(15, 23, 42, 0.09);
+  --hover: rgba(15, 23, 42, 0.04);
+  --seg: #ffffff;
+  --accent: #0274af;
+  --on-accent: #ffffff;
+  --good: #047e58;
+  --bad: #d61c45;
+  --warn: #a55b05;
+  --off: rgba(100, 116, 139, 0.25);
+  --shadow: 4px 0 20px rgba(15, 23, 42, 0.05);
+  --pop: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+/* Sage - Organic Editorial (Distinct Spruce Accent) */
+:root[data-theme="sage"] {
+  color-scheme: light;
+  --bg: #edf2ee;
+  --side: #f7faf7;
+  --surface: #ffffff;
+  --ink: #111e15;
+  --ink-2: #435547;
+  --ink-3: #5f7063;
+  --line: rgba(17, 30, 21, 0.1);
+  --hover: rgba(17, 30, 21, 0.045);
+  --seg: #ffffff;
+  --accent: #0f766e;
+  --on-accent: #ffffff;
+  --good: #147c3b;
+  --bad: #be123c;
+  --warn: #b05109;
+  --off: rgba(67, 85, 71, 0.25);
+  --shadow: 4px 0 20px rgba(17, 30, 21, 0.05);
+  --pop: 0 16px 40px rgba(17, 30, 21, 0.12);
+}
