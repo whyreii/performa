@@ -454,7 +454,11 @@ function CreateUserModal({ onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+    >
       <div className="w-full max-w-md bg-surface border border-line rounded-float p-6 shadow-pop space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
@@ -612,7 +616,11 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+    >
       <div className="w-full max-w-sm bg-surface border border-line rounded-float p-6 shadow-pop space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>

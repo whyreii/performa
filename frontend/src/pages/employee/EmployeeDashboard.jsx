@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, ScoreMeter, MilestonePill, Skeleton } from '../../components/ui';
+import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import {
   Award,
   Calendar,
@@ -49,13 +50,6 @@ export default function EmployeeDashboard() {
     queryFn: () => evaluationApi.getAuditTrail(myProfile.id),
     enabled: !!myProfile?.id,
   });
-
-  const getDaysElapsed = (startDate) => {
-    if (!startDate) return 0;
-    const start = new Date(startDate);
-    const now = new Date();
-    return Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)));
-  };
 
   const daysElapsed = myProfile ? getDaysElapsed(myProfile.start_date) : 0;
   const daysRemaining = Math.max(0, 180 - daysElapsed);

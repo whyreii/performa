@@ -1,22 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
+import { manilaTodayISO } from '../../utils/datetime';
 import { Button } from '../ui';
 import { X, UserPlus, AlertCircle, Calendar, ShieldCheck, UserCog } from 'lucide-react';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
   const queryClient = useQueryClient();
 
-  // Manila current date
-  const getTodayManila = () => {
-    return new Date().toISOString().split('T')[0];
-  };
-
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [department, setDepartment] = useState('Engineering');
   const [jobTitle, setJobTitle] = useState('');
-  const [startDate, setStartDate] = useState(getTodayManila);
+  const [startDate, setStartDate] = useState(manilaTodayISO);
   const [password, setPassword] = useState('Password123!');
   const [supervisorId, setSupervisorId] = useState('');
   const [error, setError] = useState('');
@@ -62,7 +58,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
       setEmail('');
       setDepartment('Engineering');
       setJobTitle('');
-      setStartDate(getTodayManila());
+      setStartDate(manilaTodayISO());
       setPassword('Password123!');
       setSupervisorId('');
       setError('');
@@ -107,6 +103,9 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Onboard probationary employee"
       className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
       onClick={onClose}
     >

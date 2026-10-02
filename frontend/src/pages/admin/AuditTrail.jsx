@@ -77,7 +77,7 @@ export default function AuditTrail() {
             Audit Trail & Compliance
           </h1>
           <p className="text-sm text-ink-2 mt-1">
-            Article 296 Evidentiary Due Process Logs · Immutable & Tamper-Proof
+            Article 296 Evidentiary Due Process Logs · Immutable & Append-Only
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export default function AuditTrail() {
             leftIcon={Printer}
             onClick={() => window.print()}
           >
-            Print / Export DOLE Log
+            Print Compliance Log
           </Button>
         </div>
       </header>
@@ -209,7 +209,7 @@ export default function AuditTrail() {
                       <td className="py-3 px-4">
                         <span className="inline-flex items-center gap-1.5 text-ok text-[11px] font-sans">
                           <ShieldCheck className="w-3.5 h-3.5" />
-                          <span>Hashed</span>
+                          <span>Append-only</span>
                         </span>
                       </td>
                     </tr>

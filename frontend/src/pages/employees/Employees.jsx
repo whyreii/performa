@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
+import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import AddEmployeeModal from '../../components/employees/AddEmployeeModal';
 import {
   Users,
@@ -26,8 +27,7 @@ export default function Employees() {
   const [activeTab, setActiveTab] = useState('all'); // 'all' | 'prob' | 'reg'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('all');
-  const [selectedPerf, setSelectedPerf] = useState('all');
-  const [sortKey, setSortKey] = useState('day'); // 'name' | 'day' | 'score'
+  const [sortKey, setSortKey] = useState('day'); // 'name' | 'day'
   const [sortDirection, setSortDirection] = useState('asc'); // 'asc' | 'desc'
 
   // Fetch employees list
@@ -39,7 +39,8 @@ export default function Employees() {
     refetch,
   } = useQuery({
     queryKey: ['employees'],
-    queryFn: () => employeeApi.list(),
+    // SMEs operate within 5-30 employees; request the API max so the directory is complete.
+    queryFn: () => employeeApi.list({ limit: 200 }),
   });
 
   // Calculate distinct departments from data
@@ -62,15 +63,7 @@ export default function Employees() {
     return { all: employees.length, prob, reg };
   }, [employees]);
 
-  // Compute days elapsed in Manila
-  const getDaysElapsed = (startDate) => {
-    if (!startDate) return 0;
-    const start = new Date(startDate);
-    const now = new Date();
-    const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-    return Math.max(0, diff);
-  };
-
+  // Compute days elapsed in Manila (Asia/Manila)
   // Filter and sort employees
   const filteredEmployees = useMemo(() => {
     return employees
@@ -133,12 +126,11 @@ export default function Employees() {
   };
 
   const hasActiveFilters =
-    searchQuery.trim() !== '' || selectedDept !== 'all' || selectedPerf !== 'all';
+    searchQuery.trim() !== '' || selectedDept !== 'all';
 
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedDept('all');
-    setSelectedPerf('all');
   };
 
   return (

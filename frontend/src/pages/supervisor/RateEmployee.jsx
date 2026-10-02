@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, ScoreMeter, StatusDot, Skeleton } from '../../components/ui';
+import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import {
   Award,
   AlertTriangle,
@@ -118,13 +119,6 @@ export default function RateEmployee() {
     });
   };
 
-  const getDaysElapsed = (startDate) => {
-    if (!startDate) return 0;
-    const start = new Date(startDate);
-    const now = new Date();
-    return Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)));
-  };
-
   const competencies = [
     {
       key: 'task_completion',
@@ -165,7 +159,7 @@ export default function RateEmployee() {
             Evaluation Successfully Recorded
           </h1>
           <p className="text-sm text-ink-2 max-w-md mx-auto">
-            The weekly evaluation for <b>{selectedEmployee?.user?.full_name}</b> has been cryptographically logged into the immutable audit trail.
+            The weekly evaluation for <b>{selectedEmployee?.user?.full_name}</b> has been recorded in the immutable audit trail.
           </p>
         </div>
 
@@ -445,7 +439,7 @@ export default function RateEmployee() {
             <div className="p-3.5 rounded-ctl bg-hover border border-line text-xs text-ink-3 space-y-1">
               <span className="font-semibold text-ink block">Legal Notice on Audit Trail:</span>
               <p className="leading-relaxed">
-                Under Philippine labor jurisprudence, evaluations once entered into the platform are permanently hashed into the audit trail. They cannot be retracted, edited, or deleted.
+                Under Philippine labor jurisprudence, evaluations once entered into the platform are permanently recorded in the append-only audit trail. They cannot be retracted, edited, or deleted.
               </p>
             </div>
 

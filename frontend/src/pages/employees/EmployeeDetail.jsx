@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
+import { daysElapsed as getDaysElapsed, parseDateOnly } from '../../utils/datetime';
 import {
   ArrowLeft,
   Calendar,
@@ -89,13 +90,6 @@ export default function EmployeeDetail() {
     if (!name) return 'U';
     const parts = name.trim().split(/\s+/);
     return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
-  };
-
-  const getDaysElapsed = (startDate) => {
-    if (!startDate) return 0;
-    const start = new Date(startDate);
-    const now = new Date();
-    return Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)));
   };
 
   const formatDate = (dateStr) => {
@@ -296,7 +290,7 @@ export default function EmployeeDetail() {
               <span className="text-warn block">Day 150 (Review Due)</span>
               <span className="font-semibold text-ink">
                 {formatDate(
-                  new Date(new Date(employee.start_date).getTime() + 150 * 86400000)
+                  new Date(parseDateOnly(employee.start_date).getTime() + 150 * 86400000)
                 )}
               </span>
             </div>
@@ -305,7 +299,7 @@ export default function EmployeeDetail() {
               <span className="text-warn block">Day 165 (Notice Due)</span>
               <span className="font-semibold text-ink">
                 {formatDate(
-                  new Date(new Date(employee.start_date).getTime() + 165 * 86400000)
+                  new Date(parseDateOnly(employee.start_date).getTime() + 165 * 86400000)
                 )}
               </span>
             </div>
@@ -431,6 +425,9 @@ export default function EmployeeDetail() {
       {/* Status Transition Modal */}
       {isDeactivateModalOpen && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Update probationary status"
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setIsDeactivateModalOpen(false)}
         >

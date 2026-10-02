@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, MilestonePill, StatusDot, Skeleton } from '../../components/ui';
+import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import {
   Users,
   Award,
@@ -28,13 +29,6 @@ export default function SupervisorDashboard() {
     queryKey: ['employees'],
     queryFn: () => employeeApi.list(),
   });
-
-  const getDaysElapsed = (startDate) => {
-    if (!startDate) return 0;
-    const start = new Date(startDate);
-    const now = new Date();
-    return Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)));
-  };
 
   const activeProbationers = useMemo(() => {
     return employees.filter((e) => e.status === 'active');
@@ -121,6 +115,13 @@ export default function SupervisorDashboard() {
           <div className="space-y-3">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
+          </div>
+        ) : isError ? (
+          <div className="py-10 text-center space-y-2">
+            <AlertTriangle className="w-8 h-8 mx-auto text-bad" />
+            <p className="text-xs text-bad">
+              {getApiErrorMessage(error, 'Failed to load your assigned employees.')}
+            </p>
           </div>
         ) : activeProbationers.length === 0 ? (
           <div className="py-10 text-center space-y-2 text-ink-3">

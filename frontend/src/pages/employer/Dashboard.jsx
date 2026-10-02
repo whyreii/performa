@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
+import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import {
   Users,
   AlertTriangle,
@@ -32,18 +33,14 @@ export default function Dashboard() {
   });
 
   // Fetch intervention plans
-  const { data: plans = [], isLoading: isPlansLoading } = useQuery({
+  const {
+    data: plans = [],
+    isLoading: isPlansLoading,
+    isError: isPlansError,
+  } = useQuery({
     queryKey: ['intervention-plans'],
     queryFn: () => interventionApi.listPending(),
   });
-
-  // Manila days elapsed calculation
-  const getDaysElapsed = (startDate) => {
-    if (!startDate) return 0;
-    const start = new Date(startDate);
-    const now = new Date();
-    return Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)));
-  };
 
   const activeProbationers = useMemo(() => {
     return employees.filter((e) => e.status === 'active');
@@ -361,6 +358,10 @@ export default function Dashboard() {
 
         {isPlansLoading ? (
           <Skeleton className="h-20 w-full" />
+        ) : isPlansError ? (
+          <div className="py-8 text-center text-xs text-bad">
+            Unable to load AI training recommendations right now. Please retry.
+          </div>
         ) : plans.length === 0 ? (
           <div className="py-8 text-center text-xs text-ink-3">
             All probationary employees are performing at or above benchmark. No active intervention plans required.

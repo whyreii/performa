@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { authApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, StatusDot } from '../../components/ui';
+import { Button, Badge } from '../../components/ui';
 import {
   User,
   Palette,
@@ -16,7 +16,7 @@ import {
 
 export default function Settings() {
   const { user } = useAuth();
-  const { palette, setPalette, isDark } = useTheme();
+  const { palette, setPalette } = useTheme();
 
   // Milestone Notification preferences
   const [notifications, setNotifications] = useState(() => {
@@ -198,7 +198,7 @@ export default function Settings() {
             </span>
             <span className="text-sm font-semibold text-ink flex items-center gap-1.5 truncate">
               <Building className="w-3.5 h-3.5 text-ink-3 shrink-0" />
-              <span>Acme Philippines Corp.</span>
+              <span>{user?.organization_id || '—'}</span>
             </span>
           </div>
         </div>

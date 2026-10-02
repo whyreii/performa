@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { BarChart3, Eye, EyeOff, Lock, AlertCircle, Sun, Moon, ArrowRight } from 'lucide-react';
+import { BarChart3, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
 
 export default function Login() {
   const { login } = useAuth();
-  const { palette, setPalette, isDark } = useTheme();
+  const { palette, setPalette } = useTheme();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -133,7 +133,6 @@ export default function Login() {
                 <label className="text-xs font-medium text-ink-2" htmlFor="password">
                   Password
                 </label>
-                <span className="text-xs text-ink-3">Default: Password123!</span>
               </div>
               <div className="relative">
                 <input

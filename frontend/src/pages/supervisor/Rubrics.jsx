@@ -7,7 +7,7 @@ export default function Rubrics() {
     {
       id: 'task',
       name: '1. Task Completion & Work Output',
-      weight: '25%',
+      weight: '20%',
       target: '4.0',
       desc: 'Execution of core job responsibilities, volume of throughput, and adherence to assigned sprint deadlines.',
       levels: [
@@ -20,7 +20,7 @@ export default function Rubrics() {
     {
       id: 'quality',
       name: '2. Quality of Work & Accuracy',
-      weight: '25%',
+      weight: '20%',
       target: '4.0',
       desc: 'Attention to detail, low error rate, and strict compliance with company operational standards and SOPs.',
       levels: [
@@ -46,7 +46,7 @@ export default function Rubrics() {
     {
       id: 'communication',
       name: '4. Communication & Teamwork',
-      weight: '15%',
+      weight: '20%',
       target: '4.0',
       desc: 'Constructive cross-functional collaboration, transparency, courteous peer relations, and responsiveness.',
       levels: [
@@ -59,7 +59,7 @@ export default function Rubrics() {
     {
       id: 'initiative',
       name: '5. Initiative & Adaptability',
-      weight: '15%',
+      weight: '20%',
       target: '4.0',
       desc: 'Self-driven problem resolution, openness to coaching, and agility when organizational needs shift.',
       levels: [

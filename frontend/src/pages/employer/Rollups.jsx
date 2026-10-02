@@ -243,6 +243,9 @@ export default function Rollups() {
       {/* Generate Rollup Modal */}
       {isGenerateModalOpen && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Generate monthly rollup"
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setIsGenerateModalOpen(false)}
         >
@@ -306,7 +309,7 @@ export default function Rollups() {
                 <p>
                   1. Aggregates weekly evaluation scores.<br />
                   2. Random Forest predicts risk tier (`Meets Expectations`, `Needs Improvement`, `Critical Gap`).<br />
-                  3. Gemini 3.5 Flash generates tailored executive rationale.
+                  3. Gemini 2.5 Flash generates tailored executive rationale.
                 </p>
               </div>
 
