@@ -81,14 +81,14 @@ def _to_rating(value: str) -> PerformanceRatingEnum:
 async def _get_scoped_employee(
     db: AsyncSession,
     employee_id: uuid.UUID,
-    organization_id: str,
+    current_user: User,
 ) -> ProbationaryEmployee:
     stmt = (
         select(ProbationaryEmployee)
         .options(selectinload(ProbationaryEmployee.user))
         .where(
             ProbationaryEmployee.id == employee_id,
-            ProbationaryEmployee.organization_id == organization_id,
+            ProbationaryEmployee.organization_id == current_user.organization_id,
         )
     )
     employee = (await db.execute(stmt)).scalar_one_or_none()
@@ -96,6 +96,11 @@ async def _get_scoped_employee(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Probationary employee not found",
+        )
+    if current_user.role == UserRole.SUPERVISOR and employee.supervisor_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Supervisors may only access employees assigned to them",
         )
     return employee
 
@@ -115,7 +120,7 @@ async def monthly_rollup(
     ),
 ) -> MonthlySummary:
     """Aggregate evaluations and produce a MonthlySummary plus training plans."""
-    employee = await _get_scoped_employee(db, employee_id, current_user.organization_id)
+    employee = await _get_scoped_employee(db, employee_id, current_user)
 
     evaluation_stmt = select(WeeklyEvaluation).where(
         WeeklyEvaluation.employee_id == employee.id,
@@ -242,9 +247,11 @@ async def list_my_interventions(
 )
 async def list_pending_interventions(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+    current_user: User = Depends(
+        require_role(UserRole.ADMIN, UserRole.EMPLOYER, UserRole.SUPERVISOR)
+    ),
 ) -> list[TrainingPlan]:
-    """Return every pending intervention for employees in the tenant."""
+    """Return pending interventions, scoped to the tenant (and to a supervisor's team)."""
     stmt = (
         select(TrainingPlan)
         .join(ProbationaryEmployee, TrainingPlan.employee_id == ProbationaryEmployee.id)
@@ -254,6 +261,8 @@ async def list_pending_interventions(
         )
         .order_by(TrainingPlan.created_at.desc())
     )
+    if current_user.role == UserRole.SUPERVISOR:
+        stmt = stmt.where(ProbationaryEmployee.supervisor_id == current_user.id)
     result = await db.execute(stmt)
     return list(result.scalars().all())
 

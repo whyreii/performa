@@ -81,6 +81,11 @@ async def _get_scoped_employee(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Probationary employees may only access their own records",
         )
+    if current_user.role == UserRole.SUPERVISOR and employee.supervisor_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Supervisors may only access employees assigned to them",
+        )
     return employee
 
 
@@ -172,26 +177,26 @@ async def get_scorecard(
     """Return the latest competency scores, target, and gaps."""
     employee = await _get_scoped_employee(db, employee_id, current_user)
     latest = await _latest_evaluation(db, employee.id, current_user.organization_id)
+    if latest is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No evaluations recorded for this employee",
+        )
 
-    scores = _scores_from_evaluation(latest) if latest is not None else {}
+    scores = _scores_from_evaluation(latest)
 
     competencies = [
         CompetencyScoreItem(
             key=attribute,
             label=label,
-            score=scores.get(attribute, 0.0),
+            score=scores[attribute],
             target=TARGET_SCORE,
-            gap=round(scores.get(attribute, 0.0) - TARGET_SCORE, 2),
+            gap=round(scores[attribute] - TARGET_SCORE, 2),
         )
         for attribute, label in COMPETENCIES
     ]
 
-    if latest is not None:
-        overall_score = round(float(latest.overall_score), 2)
-        latest_evaluation_date: Optional[date] = latest.evaluation_date
-    else:
-        overall_score = 0.0
-        latest_evaluation_date = None
+    overall_score = round(float(latest.overall_score), 2)
 
     return EmployeeScorecardResponse(
         employee_id=employee.id,
@@ -199,7 +204,7 @@ async def get_scorecard(
         target_score=TARGET_SCORE,
         gap=round(overall_score - TARGET_SCORE, 2),
         competencies=competencies,
-        latest_evaluation_date=latest_evaluation_date,
+        latest_evaluation_date=latest.evaluation_date,
     )
 
 
