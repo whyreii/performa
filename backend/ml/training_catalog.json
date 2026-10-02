@@ -1,0 +1,72 @@
+[
+  {
+    "course_id": "TC-101",
+    "competency": "task_completion",
+    "title": "SOP Workflow & Throughput Optimization",
+    "duration_hours": 6,
+    "description": "Hands-on coaching on standard operating procedures, work sequencing, and removing bottlenecks to consistently finish assigned tasks on schedule."
+  },
+  {
+    "course_id": "TC-102",
+    "competency": "task_completion",
+    "title": "Prioritization & Time-Boxing for Deliverables",
+    "duration_hours": 4,
+    "description": "Practical techniques for breaking work into milestones, prioritizing high-impact tasks, and defending focus time to close deliverables without follow-up."
+  },
+  {
+    "course_id": "AP-101",
+    "competency": "attendance_and_punctuality",
+    "title": "Shift Preparedness & Punctuality Coaching",
+    "duration_hours": 3,
+    "description": "Coaching on pre-shift routines, commute planning, and reliability habits that protect consistent on-time attendance."
+  },
+  {
+    "course_id": "AP-102",
+    "competency": "attendance_and_punctuality",
+    "title": "Time Management & Absence Prevention",
+    "duration_hours": 4,
+    "description": "Covers personal time management, early escalation of conflicts, and proactive scheduling to minimize unplanned absences."
+  },
+  {
+    "course_id": "CT-101",
+    "competency": "communication_and_teamwork",
+    "title": "Cross-Functional Collaboration Workshop",
+    "duration_hours": 8,
+    "description": "Interactive workshop on shared goals, hand-offs, and constructive feedback for smoother collaboration across teams."
+  },
+  {
+    "course_id": "CT-102",
+    "competency": "communication_and_teamwork",
+    "title": "Clear Escalation & Active Listening",
+    "duration_hours": 4,
+    "description": "Builds concise status updates, structured escalation, and active-listening habits that reduce misunderstandings."
+  },
+  {
+    "course_id": "IA-101",
+    "competency": "initiative_and_adaptability",
+    "title": "Proactive Problem Solving in Agile SME Environments",
+    "duration_hours": 6,
+    "description": "Frameworks for spotting issues early, proposing solutions, and taking ownership in fast-changing small-business settings."
+  },
+  {
+    "course_id": "IA-102",
+    "competency": "initiative_and_adaptability",
+    "title": "Adapting to Change & Ownership Mindset",
+    "duration_hours": 5,
+    "description": "Helps employees respond constructively to shifting priorities and volunteer for stretch work without waiting for direction."
+  },
+  {
+    "course_id": "QW-101",
+    "competency": "quality_of_work",
+    "title": "Error Reduction & Quality Control Standards",
+    "duration_hours": 6,
+    "description": "Practical quality-control checklists, self-review habits, and error-reduction techniques aligned to company standards."
+  },
+  {
+    "course_id": "QW-102",
+    "competency": "quality_of_work",
+    "title": "Root-Cause Analysis & Continuous Improvement",
+    "duration_hours": 5,
+    "description": "Introduces root-cause analysis and small continuous-improvement cycles to raise output accuracy and consistency."
+  }
+]

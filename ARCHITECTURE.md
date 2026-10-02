@@ -27,3 +27,11 @@
 - Fallback: If Gemini times out, catalog items are saved with empty rationales.
 - Human-in-the-Loop: Interventions remain pending_approval until an Employer explicitly signs off.
 - Audit Trail: Any score update writes an immutable audit record containing evaluator ID, employee ID, prior score, new score, and timestamp.
+
+## Agent Pre-Execution Audit & Gap Protocol
+1. Source of Truth First: Read all referenced files before writing code. Verify actual exported names, variable naming (e.g., AsyncSessionLocal vs. async_session_maker), and database constraints.
+2. Gap Handling & Alignment: If a prompt references a model, column, relationship, or import that does not exist or conflicts with current code:
+   - Do NOT fail silently or blindly assume the prompt is 100% correct.
+   - Apply necessary additive modifications (e.g., declare missing models, make restrictive columns nullable if business logic requires it, add clean aliases) without breaking existing functionality.
+   - List every discrepancy, gap, or assumption you reconciled in your final report.
+3. Zero Breaking Changes: Do not remove existing columns, alter passing routes, or bypass multi-tenancy rules.
