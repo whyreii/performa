@@ -119,7 +119,7 @@ export default function Rubrics() {
                   key={lvl.score}
                   className={`p-3.5 rounded-ctl border text-xs space-y-1.5 ${
                     lvl.title.includes('Target')
-                      ? 'bg-ok/5 border-ok/30'
+                      ? 'bg-ok/5 border-line'
                       : 'bg-hover/60 border-line'
                   }`}
                 >

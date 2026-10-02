@@ -123,10 +123,10 @@ export default function Rollups() {
       {/* Action Notification */}
       {actionMessage.text && (
         <div
-          className={`p-3.5 rounded-ctl text-xs flex items-center gap-2 animate-in fade-in duration-150 ${
+          className={`p-3.5 rounded-ctl text-xs flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
             actionMessage.type === 'error'
-              ? 'bg-bad/10 text-bad border border-bad/20'
-              : 'bg-ok/10 text-ok border border-ok/20'
+              ? 'bg-bad/8 text-bad'
+              : 'bg-ok/8 text-ok'
           }`}
         >
           {actionMessage.type === 'error' ? (

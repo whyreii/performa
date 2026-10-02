@@ -189,7 +189,7 @@ export default function Dashboard() {
 
       {/* 2. Critical Milestones Banner (If any probationers >= Day 150) */}
       {urgentProbationers.length > 0 && (
-        <section className="bg-warn/10 border border-warn/30 rounded-float p-5 space-y-3">
+        <section className="bg-warn/6 border border-line rounded-float p-5 space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
               <ShieldAlert className="w-5 h-5 text-warn shrink-0" />
@@ -216,7 +216,7 @@ export default function Dashboard() {
               <div
                 key={emp.id}
                 onClick={() => navigate(`/employees/${emp.id}`)}
-                className="p-3 rounded-ctl bg-surface border border-line hover:border-accent cursor-pointer transition-all space-y-1.5 shadow-xs"
+                className="p-3 rounded-ctl bg-surface border border-line hover:border-ink-3/40 cursor-pointer transition-all space-y-1.5 shadow-xs"
               >
                 <div className="flex justify-between items-start">
                   <span className="font-semibold text-xs text-ink truncate block">

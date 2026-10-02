@@ -359,10 +359,10 @@ export default function Settings() {
 
         {passwordStatus.message && (
           <div
-            className={`mb-5 p-3 rounded-ctl text-xs flex items-center gap-2 ${
+            className={`mb-5 p-3 rounded-ctl text-xs flex items-center gap-2 border border-line ${
               passwordStatus.type === 'error'
-                ? 'bg-bad/10 text-bad border border-bad/20'
-                : 'bg-ok/10 text-ok border border-ok/20'
+                ? 'bg-bad/8 text-bad'
+                : 'bg-ok/8 text-ok'
             }`}
           >
             {passwordStatus.type === 'error' ? (

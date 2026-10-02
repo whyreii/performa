@@ -108,7 +108,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-ctl bg-bad/10 border border-bad/20 text-bad text-xs flex items-center gap-2">
+          <div className="mb-4 p-3 rounded-ctl bg-bad/8 border border-line text-bad text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>

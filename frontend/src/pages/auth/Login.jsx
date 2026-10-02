@@ -104,7 +104,7 @@ export default function Login() {
           </div>
 
           {error && (
-            <div className="mb-5 p-3 rounded-ctl bg-bad/10 border border-bad/20 flex items-start gap-2.5 text-bad text-sm">
+            <div className="mb-5 p-3 rounded-ctl bg-bad/8 border border-line flex items-start gap-2.5 text-bad text-sm">
               <AlertCircle className="w-4 h-4 mt-0.5 flex-none" />
               <span>{error}</span>
             </div>

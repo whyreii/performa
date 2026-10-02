@@ -1,3 +1,12 @@
+function withOpacity(variableName) {
+  return ({ opacityValue }) => {
+    if (opacityValue !== undefined) {
+      return `color-mix(in srgb, var(${variableName}) calc(100% * ${opacityValue}), transparent)`;
+    }
+    return `var(${variableName})`;
+  };
+}
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -7,25 +16,29 @@ export default {
   darkMode: ['class', '[data-theme="midnight"]'],
   theme: {
     extend: {
+      borderColor: {
+        DEFAULT: 'var(--line)',
+      },
       colors: {
         bg: 'var(--bg)',
         side: 'var(--side)',
         surface: 'var(--surface)',
         ink: {
-          DEFAULT: 'var(--ink)',
-          2: 'var(--ink-2)',
-          3: 'var(--ink-3)',
+          DEFAULT: withOpacity('--ink'),
+          2: withOpacity('--ink-2'),
+          3: withOpacity('--ink-3'),
         },
         line: 'var(--line)',
         hover: 'var(--hover)',
         seg: 'var(--seg)',
         accent: {
-          DEFAULT: 'var(--accent)',
+          DEFAULT: withOpacity('--accent'),
           foreground: 'var(--on-accent)',
         },
-        good: 'var(--good)',
-        bad: 'var(--bad)',
-        warn: 'var(--warn)',
+        good: withOpacity('--good'),
+        ok: withOpacity('--good'),
+        bad: withOpacity('--bad'),
+        warn: withOpacity('--warn'),
         off: 'var(--off)',
       },
       borderRadius: {
