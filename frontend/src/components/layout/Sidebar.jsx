@@ -1,0 +1,255 @@
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import {
+  BarChart3,
+  Users,
+  LayoutDashboard,
+  FileCheck2,
+  History,
+  Settings,
+  Target,
+  Award,
+  BookOpen,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+} from 'lucide-react';
+
+export default function Sidebar({ onOpenCommandPalette }) {
+  const { user, logout } = useAuth();
+  const { palette, setPalette, isDark } = useTheme();
+  const navigate = useNavigate();
+
+  // Remember collapsed state in localStorage
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('performa_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    try {
+      localStorage.setItem('performa_sidebar_collapsed', String(next));
+    } catch {}
+  };
+
+  const role = user?.role;
+
+  // Role-specific navigation items
+  const getNavItems = () => {
+    if (role === 'admin' || role === 'employer') {
+      return [
+        { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { label: 'Employees', path: '/employees', icon: Users },
+        { label: 'Rollups & AI Plans', path: '/rollups', icon: FileCheck2 },
+        { label: 'Audit Trail', path: '/audits', icon: History },
+        { label: 'Settings', path: '/settings', icon: Settings },
+      ];
+    }
+    if (role === 'supervisor') {
+      return [
+        { label: 'Supervisor Dashboard', path: '/supervisor/dashboard', icon: LayoutDashboard },
+        { label: 'Employees', path: '/employees', icon: Users },
+        { label: 'Rate Employee', path: '/supervisor/rate', icon: Award },
+        { label: 'KPI Rubrics', path: '/supervisor/rubrics', icon: Target },
+        { label: 'Settings', path: '/settings', icon: Settings },
+      ];
+    }
+    // Probationary Employee
+    return [
+      { label: 'My Scorecard', path: '/employee/dashboard', icon: Award },
+      { label: 'Training Plans', path: '/employee/training', icon: BookOpen },
+      { label: 'Settings', path: '/settings', icon: Settings },
+    ];
+  };
+
+  const navItems = getNavItems();
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(/\s+/);
+    return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
+  };
+
+  const palettes = ['paper', 'midnight', 'dusk', 'mist', 'sage'];
+
+  return (
+    <aside
+      className={`hidden md:flex flex-col sticky top-0 h-screen bg-side border-r border-line shadow-side z-20 transition-all duration-performa ${
+        collapsed ? 'w-[72px] p-2.5' : 'w-[250px] p-4'
+      }`}
+      aria-label="Main Navigation"
+    >
+      {/* Brand Header */}
+      <div className={`flex items-center justify-between mb-4 h-10 ${collapsed ? 'flex-col gap-2' : ''}`}>
+        <div
+          onClick={() => navigate(role === 'probationary_employee' ? '/employee/dashboard' : '/dashboard')}
+          className="flex items-center gap-3 cursor-pointer group min-w-0"
+        >
+          <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+            <BarChart3 className="w-4 h-4" />
+          </div>
+          {!collapsed && (
+            <div className="min-w-0">
+              <span className="font-semibold text-base tracking-tight text-ink block leading-none">
+                Performa
+              </span>
+              <span className="text-[11px] text-ink-3 tracking-normal font-mono block mt-0.5">
+                Acme PH
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Collapse toggle */}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="w-7 h-7 rounded-ctl border border-line/60 bg-transparent text-ink-3 hover:text-ink hover:bg-hover flex items-center justify-center transition-colors"
+          title={collapsed ? 'Expand sidebar ([)' : 'Collapse sidebar ([)'}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+        </button>
+      </div>
+
+      {/* Quick Search trigger */}
+      {!collapsed ? (
+        <button
+          type="button"
+          onClick={onOpenCommandPalette}
+          className="w-full h-9 mb-4 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-between text-xs transition-colors shadow-xs"
+        >
+          <div className="flex items-center gap-2">
+            <Search className="w-3.5 h-3.5" />
+            <span>Search / Commands...</span>
+          </div>
+          <kbd className="font-mono text-[10px] px-1.5 py-0.5 rounded border border-line text-ink-3 bg-bg">
+            Ctrl+K
+          </kbd>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onOpenCommandPalette}
+          className="w-10 h-10 mx-auto mb-4 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-center transition-colors"
+          title="Command Palette (Ctrl+K)"
+        >
+          <Search className="w-4 h-4" />
+        </button>
+      )}
+
+      {/* Navigation Section */}
+      <div className="flex-1 overflow-y-auto space-y-1 py-1">
+        {!collapsed && (
+          <div className="text-[11px] font-medium uppercase tracking-wider text-ink-3 px-2 py-1.5">
+            Navigation
+          </div>
+        )}
+        <nav className="space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                title={collapsed ? item.label : undefined}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 h-10 rounded-nav text-sm font-medium transition-colors ${
+                    collapsed ? 'justify-center px-0' : 'px-3'
+                  } ${
+                    isActive
+                      ? 'text-accent bg-accent/12 font-semibold shadow-xs'
+                      : 'text-ink-2 hover:bg-hover hover:text-ink'
+                  }`
+                }
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                {!collapsed && <span className="truncate">{item.label}</span>}
+              </NavLink>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Palette Selector */}
+      <div className={`pt-3 border-t border-line ${collapsed ? 'flex flex-col items-center' : ''}`}>
+        {!collapsed && (
+          <div className="flex items-center justify-between text-xs text-ink-3 mb-2 px-1">
+            <span>Theme</span>
+            <span className="capitalize font-mono text-[11px]">{palette}</span>
+          </div>
+        )}
+        <div
+          className={`flex items-center gap-1.5 p-1 rounded-full bg-hover border border-line ${
+            collapsed ? 'flex-col' : 'justify-around'
+          }`}
+        >
+          {palettes.map((p) => (
+            <button
+              key={p}
+              onClick={() => setPalette(p)}
+              className={`w-5 h-5 rounded-full border transition-transform ${
+                palette === p ? 'border-ink scale-110 shadow-sm' : 'border-line/80 hover:scale-105'
+              }`}
+              title={`Switch to ${p} theme`}
+              aria-label={`Switch to ${p} theme`}
+              style={{
+                backgroundColor:
+                  p === 'paper'
+                    ? '#f6f3ed'
+                    : p === 'midnight'
+                    ? '#090b10'
+                    : p === 'dusk'
+                    ? '#0c0a14'
+                    : p === 'mist'
+                    ? '#f0f4f8'
+                    : '#edf2ee',
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* User Footer Card */}
+      <div className="pt-3 mt-3 border-t border-line">
+        <div className={`flex items-center gap-2.5 ${collapsed ? 'flex-col justify-center' : ''}`}>
+          <div
+            className="w-9 h-9 rounded-full bg-accent/15 border border-accent/30 text-accent font-semibold text-xs flex items-center justify-center shrink-0"
+            title={`${user?.full_name} (${user?.email})`}
+          >
+            {getInitials(user?.full_name)}
+          </div>
+
+          {!collapsed && (
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-xs text-ink truncate leading-tight">
+                {user?.full_name || 'User'}
+              </div>
+              <div className="text-[11px] text-ink-3 truncate capitalize">
+                {user?.role?.replace('_', ' ')}
+              </div>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={logout}
+            className="p-1.5 text-ink-3 hover:text-bad rounded-ctl hover:bg-bad/10 transition-colors shrink-0"
+            title="Sign out"
+            aria-label="Sign out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+}
