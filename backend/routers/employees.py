@@ -1,0 +1,411 @@
+"""Probationary employee routes for Performa.
+
+Covers onboarding (linking or creating the backing user account), tenant-scoped
+listing, Philippine Labor Code Article 296 milestone reporting, profile
+retrieval, standards acknowledgement, and status transitions.
+
+Multi-tenancy is enforced on every query by filtering on
+``organization_id == current_user.organization_id``. When a tenant filter is
+applied a missing row yields ``404`` (never leaking cross-tenant existence).
+"""
+from __future__ import annotations
+
+import uuid
+from datetime import date, datetime, timedelta, timezone, tzinfo
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Load, selectinload
+
+from ..auth import get_current_user, get_password_hash, require_role
+from ..database import get_db
+from ..models import ProbationaryEmployee, ProbationStatus, User, UserRole
+from ..schemas import (
+    MilestoneEmployee,
+    MilestoneReport,
+    ProbationaryEmployeeCreateRequest,
+    ProbationaryEmployeeDetailResponse,
+    ProbationaryEmployeeStatusUpdate,
+)
+
+router = APIRouter(tags=["Employees"])
+
+PROBATION_TERM_DAYS = 180
+MILESTONE_THRESHOLDS = (150, 165, 178)
+MILESTONE_LEAD_DAYS = 7
+
+
+def _manila_tz() -> tzinfo:
+    """Return the Asia/Manila timezone, falling back to a fixed UTC+8 offset."""
+    try:
+        from zoneinfo import ZoneInfo
+
+        return ZoneInfo("Asia/Manila")
+    except Exception:
+        return timezone(timedelta(hours=8))
+
+
+MANILA_TZ = _manila_tz()
+
+
+def _today_manila() -> date:
+    """Current calendar date in the statutory (Asia/Manila) timezone."""
+    return datetime.now(MANILA_TZ).date()
+
+
+def _employee_load_options() -> tuple[Load, ...]:
+    """Eager-load relationships required by the detail response schema."""
+    return (
+        selectinload(ProbationaryEmployee.user),
+        selectinload(ProbationaryEmployee.employer),
+        selectinload(ProbationaryEmployee.supervisor),
+    )
+
+
+async def _fetch_employee(
+    db: AsyncSession,
+    employee_id: uuid.UUID,
+    organization_id: str,
+) -> ProbationaryEmployee:
+    """Fetch an employee within the tenant, eagerly loading account relations."""
+    stmt = (
+        select(ProbationaryEmployee)
+        .options(*_employee_load_options())
+        .where(
+            ProbationaryEmployee.id == employee_id,
+            ProbationaryEmployee.organization_id == organization_id,
+        )
+    )
+    result = await db.execute(stmt)
+    employee = result.scalar_one_or_none()
+    if employee is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Probationary employee not found",
+        )
+    return employee
+
+
+def _milestone_item(employee: ProbationaryEmployee, as_of: date) -> MilestoneEmployee:
+    """Compute an employee's position relative to the statutory milestones."""
+    day_150_date = employee.start_date + timedelta(days=150)
+    day_165_date = employee.start_date + timedelta(days=165)
+    day_178_date = employee.start_date + timedelta(days=178)
+    days_elapsed = (as_of - employee.start_date).days
+    days_remaining = (employee.day_180_date - as_of).days
+    return MilestoneEmployee(
+        employee=employee,
+        days_elapsed=days_elapsed,
+        days_remaining=days_remaining,
+        day_150_date=day_150_date,
+        day_165_date=day_165_date,
+        day_178_date=day_178_date,
+        day_150_reached=as_of >= day_150_date,
+        day_165_reached=as_of >= day_165_date,
+        day_178_reached=as_of >= day_178_date,
+        overdue=days_remaining < 0,
+    )
+
+
+def _is_approaching_or_past(threshold_date: date, as_of: date) -> bool:
+    """True once a threshold is reached or within the lead window before it."""
+    return as_of >= threshold_date - timedelta(days=MILESTONE_LEAD_DAYS)
+
+
+@router.post(
+    "/",
+    response_model=ProbationaryEmployeeDetailResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Onboard a probationary employee",
+)
+async def create_employee(
+    payload: ProbationaryEmployeeCreateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+) -> ProbationaryEmployee:
+    """Create a probationary profile, creating or linking its user account."""
+    organization_id = current_user.organization_id
+
+    if payload.user_id is not None:
+        user = await db.get(User, payload.user_id)
+        if user is None or user.organization_id != organization_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+        if user.role != UserRole.PROBATIONARY_EMPLOYEE:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Linked user must have the probationary_employee role",
+            )
+        existing = await db.execute(
+            select(ProbationaryEmployee.id).where(ProbationaryEmployee.user_id == user.id)
+        )
+        if existing.scalar_one_or_none() is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User already has a probationary employee profile",
+            )
+    else:
+        if not payload.email or not payload.full_name or not payload.password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="email, full_name, and password are required to create a new user",
+            )
+        duplicate = await db.execute(select(User.id).where(User.email == payload.email))
+        if duplicate.scalar_one_or_none() is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A user with this email already exists",
+            )
+        user = User(
+            email=payload.email,
+            hashed_password=get_password_hash(payload.password),
+            full_name=payload.full_name,
+            role=UserRole.PROBATIONARY_EMPLOYEE,
+            organization_id=organization_id,
+            is_active=True,
+        )
+        db.add(user)
+        await db.flush()
+
+    employer_id = payload.employer_id or current_user.id
+    employer = await db.get(User, employer_id)
+    if (
+        employer is None
+        or employer.organization_id != organization_id
+        or employer.role not in (UserRole.ADMIN, UserRole.EMPLOYER)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="employer_id must reference an admin or employer in your organization",
+        )
+
+    supervisor = await db.get(User, payload.supervisor_id)
+    if (
+        supervisor is None
+        or supervisor.organization_id != organization_id
+        or supervisor.role != UserRole.SUPERVISOR
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="supervisor_id must reference a supervisor in your organization",
+        )
+
+    day_180_date = payload.day_180_date or (payload.start_date + timedelta(days=PROBATION_TERM_DAYS))
+    if day_180_date <= payload.start_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="day_180_date must be after start_date",
+        )
+
+    employee = ProbationaryEmployee(
+        user_id=user.id,
+        employer_id=employer.id,
+        supervisor_id=supervisor.id,
+        organization_id=organization_id,
+        job_title=payload.job_title,
+        department=payload.department,
+        start_date=payload.start_date,
+        day_180_date=day_180_date,
+        status=payload.status,
+    )
+    db.add(employee)
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Could not create the probationary employee profile",
+        )
+
+    return await _fetch_employee(db, employee.id, organization_id)
+
+
+@router.get(
+    "/",
+    response_model=list[ProbationaryEmployeeDetailResponse],
+    summary="List probationary employees in the tenant",
+)
+async def list_employees(
+    status_filter: Optional[ProbationStatus] = Query(default=None, alias="status"),
+    department: Optional[str] = Query(default=None, max_length=255),
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[ProbationaryEmployee]:
+    """List employees, scoped by tenant and, for supervisors, by assignment."""
+    stmt = (
+        select(ProbationaryEmployee)
+        .options(*_employee_load_options())
+        .where(ProbationaryEmployee.organization_id == current_user.organization_id)
+    )
+
+    if current_user.role == UserRole.SUPERVISOR:
+        stmt = stmt.where(ProbationaryEmployee.supervisor_id == current_user.id)
+    elif current_user.role == UserRole.PROBATIONARY_EMPLOYEE:
+        stmt = stmt.where(ProbationaryEmployee.user_id == current_user.id)
+    elif current_user.role not in (UserRole.ADMIN, UserRole.EMPLOYER):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Operation not permitted for current role",
+        )
+
+    if status_filter is not None:
+        stmt = stmt.where(ProbationaryEmployee.status == status_filter)
+    if department is not None:
+        stmt = stmt.where(ProbationaryEmployee.department == department)
+
+    stmt = (
+        stmt.order_by(ProbationaryEmployee.day_180_date.asc())
+        .offset(skip)
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+@router.get(
+    "/milestones",
+    response_model=MilestoneReport,
+    summary="Article 296 milestone report (Day 150 / 165 / 178)",
+)
+async def list_milestones(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(
+        require_role(UserRole.ADMIN, UserRole.EMPLOYER, UserRole.SUPERVISOR)
+    ),
+) -> MilestoneReport:
+    """Return active employees approaching or past each statutory threshold."""
+    as_of = _today_manila()
+
+    stmt = (
+        select(ProbationaryEmployee)
+        .options(*_employee_load_options())
+        .where(
+            ProbationaryEmployee.organization_id == current_user.organization_id,
+            ProbationaryEmployee.status == ProbationStatus.ACTIVE,
+            ProbationaryEmployee.start_date
+            <= as_of - timedelta(days=150 - MILESTONE_LEAD_DAYS),
+        )
+    )
+    if current_user.role == UserRole.SUPERVISOR:
+        stmt = stmt.where(ProbationaryEmployee.supervisor_id == current_user.id)
+    stmt = stmt.order_by(ProbationaryEmployee.day_180_date.asc())
+
+    result = await db.execute(stmt)
+    employees = list(result.scalars().all())
+
+    day_150: list[MilestoneEmployee] = []
+    day_165: list[MilestoneEmployee] = []
+    day_178: list[MilestoneEmployee] = []
+
+    for employee in employees:
+        item = _milestone_item(employee, as_of)
+        if _is_approaching_or_past(item.day_150_date, as_of):
+            day_150.append(item)
+        if _is_approaching_or_past(item.day_165_date, as_of):
+            day_165.append(item)
+        if _is_approaching_or_past(item.day_178_date, as_of):
+            day_178.append(item)
+
+    return MilestoneReport(as_of=as_of, day_150=day_150, day_165=day_165, day_178=day_178)
+
+
+@router.get(
+    "/{employee_id}",
+    response_model=ProbationaryEmployeeDetailResponse,
+    summary="Retrieve a probationary employee profile",
+)
+async def get_employee(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ProbationaryEmployee:
+    """Return a full profile for an admin/employer, assigned supervisor, or self."""
+    employee = await _fetch_employee(db, employee_id, current_user.organization_id)
+
+    if current_user.role in (UserRole.ADMIN, UserRole.EMPLOYER):
+        return employee
+    if current_user.role == UserRole.SUPERVISOR and employee.supervisor_id == current_user.id:
+        return employee
+    if (
+        current_user.role == UserRole.PROBATIONARY_EMPLOYEE
+        and employee.user_id == current_user.id
+    ):
+        return employee
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Operation not permitted for current role",
+    )
+
+
+@router.post(
+    "/{employee_id}/acknowledge-standards",
+    response_model=ProbationaryEmployeeDetailResponse,
+    summary="Acknowledge initial performance standards",
+)
+async def acknowledge_standards(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ProbationaryEmployee:
+    """Stamp standards acknowledgement for the employee's own profile only."""
+    employee = await _fetch_employee(db, employee_id, current_user.organization_id)
+
+    if (
+        current_user.role != UserRole.PROBATIONARY_EMPLOYEE
+        or employee.user_id != current_user.id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the probationary employee may acknowledge their standards",
+        )
+
+    if employee.standards_acknowledged_at is None:
+        employee.standards_acknowledged_at = datetime.now(timezone.utc)
+        await db.commit()
+        await db.refresh(employee)
+
+    return employee
+
+
+@router.patch(
+    "/{employee_id}/status",
+    response_model=ProbationaryEmployeeDetailResponse,
+    summary="Update probationary status (regularized / terminated)",
+)
+async def update_status(
+    employee_id: uuid.UUID,
+    payload: ProbationaryEmployeeStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+) -> ProbationaryEmployee:
+    """Transition status to regularized or terminated, recording the reason."""
+    if payload.status not in (ProbationStatus.REGULARIZED, ProbationStatus.TERMINATED):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="status must be 'regularized' or 'terminated'",
+        )
+    if payload.status == ProbationStatus.TERMINATED and not payload.reason:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="reason is required when terminating an employee",
+        )
+
+    employee = await _fetch_employee(db, employee_id, current_user.organization_id)
+    employee.status = payload.status
+    if payload.reason is not None:
+        employee.status_reason = payload.reason
+    await db.commit()
+
+    return await _fetch_employee(db, employee_id, current_user.organization_id)
+
+
+__all__ = ["router"]

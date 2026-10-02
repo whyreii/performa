@@ -163,6 +163,13 @@ class ProbationaryEmployee(Base):
     standards_acknowledged_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    status_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     user: Mapped["User"] = relationship(
         "User", back_populates="probationary_profile", foreign_keys=[user_id]

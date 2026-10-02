@@ -101,6 +101,7 @@ class ProbationaryEmployeeUpdate(BaseModel):
     milestone_165_alerted: Optional[bool] = None
     milestone_178_alerted: Optional[bool] = None
     standards_acknowledged_at: Optional[datetime] = None
+    status_reason: Optional[str] = None
 
 
 class ProbationaryEmployeeResponse(ProbationaryEmployeeBase):
@@ -111,6 +112,66 @@ class ProbationaryEmployeeResponse(ProbationaryEmployeeBase):
     milestone_165_alerted: bool = False
     milestone_178_alerted: bool = False
     standards_acknowledged_at: Optional[datetime] = None
+    status_reason: Optional[str] = None
+    updated_at: datetime
+
+
+class ProbationaryEmployeeDetailResponse(ProbationaryEmployeeResponse):
+    """Employee profile enriched with its linked account relationships."""
+
+    user: UserResponse
+    employer: UserResponse
+    supervisor: UserResponse
+
+
+class ProbationaryEmployeeCreateRequest(BaseModel):
+    """Onboarding payload: link an existing user or create a new account."""
+
+    user_id: Optional[uuid.UUID] = None
+    email: Optional[str] = Field(default=None, max_length=255)
+    full_name: Optional[str] = Field(default=None, max_length=255)
+    password: Optional[str] = Field(default=None, min_length=8, max_length=128)
+
+    employer_id: Optional[uuid.UUID] = None
+    supervisor_id: uuid.UUID
+    job_title: str = Field(..., max_length=255)
+    department: str = Field(..., max_length=255)
+    start_date: date
+    day_180_date: Optional[date] = None
+    status: ProbationStatus = ProbationStatus.ACTIVE
+
+
+class ProbationaryEmployeeStatusUpdate(BaseModel):
+    """Status transition payload for regularizing or terminating an employee."""
+
+    status: ProbationStatus
+    reason: Optional[str] = None
+
+
+class MilestoneEmployee(BaseModel):
+    """An active employee positioned relative to the statutory milestones."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    employee: ProbationaryEmployeeDetailResponse
+    days_elapsed: int
+    days_remaining: int
+    day_150_date: date
+    day_165_date: date
+    day_178_date: date
+    day_150_reached: bool
+    day_165_reached: bool
+    day_178_reached: bool
+    overdue: bool
+
+
+class MilestoneReport(BaseModel):
+    """Active employees approaching or past each Article 296 threshold."""
+
+    as_of: date
+    day_150: list[MilestoneEmployee]
+    day_165: list[MilestoneEmployee]
+    day_178: list[MilestoneEmployee]
 
 
 # ---------------------------------------------------------------------------
@@ -297,6 +358,11 @@ __all__ = [
     "ProbationaryEmployeeCreate",
     "ProbationaryEmployeeUpdate",
     "ProbationaryEmployeeResponse",
+    "ProbationaryEmployeeDetailResponse",
+    "ProbationaryEmployeeCreateRequest",
+    "ProbationaryEmployeeStatusUpdate",
+    "MilestoneEmployee",
+    "MilestoneReport",
     "KpiRubricBase",
     "KpiRubricCreate",
     "KpiRubricUpdate",
