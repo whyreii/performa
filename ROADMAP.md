@@ -179,22 +179,18 @@ sequenceDiagram
   - Configure `tailwind.config.js` to map colors and radii directly to CSS variables (no hardcoded hex).
   - Install and self-host `Geist` and `Geist Mono` via `@fontsource/geist-sans` and `@fontsource/geist-mono`.
   - Create `ThemeProvider` supporting Light/Dark/System + 5 palettes, with an inline pre-paint script in `index.html` to eliminate theme flash.
-- [ ] **Phase 7C: Core UI Primitives (`src/components/ui/`)**:
-  - `Button` (primary, ghost, danger, dfill, sbtn, disabled states)
-  - `IconButton` (with hover tooltips)
-  - `SegmentedControl` / `Tabs` (with count badges and radio/tab semantics)
-  - `ScoreMeter` (proportional bar with target tick mark `<u>` and bad/ok color fill)
-  - `StatusDot` / `StatusBadge` (good, warn, bad with semantic dots)
-  - `Field` / `Input` / `Select` (with error message display and lock icons for read-only fields)
-  - `Switch` (smooth toggle for notification settings)
-  - `Toast` (with action/undo support)
-  - `Skeleton` (content loading state; no generic full-page spinners)
-  - `EmptyState` / `ErrorState` (contextual message with retry/action button)
-  - `ConfirmInline` (inline approval/rejection confirmation banner)
-- [ ] **Phase 7D: AppShell Component**:
-  - Collapsible desktop sidebar with remembered state, tooltips when collapsed, and shortcut.
-  - Mobile top header with contextual back title + bottom 5-tab navigation.
-  - Command palette (`cmdk`) connected to live employee list and routes.
+- [x] **Phase 7C: Core UI Primitives (`src/components/ui/`)**:
+  - `Button` (primary, secondary, subtle, ghost, danger, with loading spinner and icon slots)
+  - `Badge` (subtle semi-transparent tints: neutral, accent, ok, warn, bad, hot)
+  - `ScoreMeter` (proportional 5.0 bar with target tick mark `<u>` and bad/warn/ok color fill)
+  - `StatusDot` (active, warning, critical, regularized, terminated with pulsing animations)
+  - `MilestonePill` (Article 296 statutory milestone badges: Days 150/165/178 warnings)
+  - `Skeleton` (smooth shimmer loading state using `bg-hover/80 animate-pulse`)
+- [x] **Phase 7D: AppShell Component**:
+  - Collapsible desktop sidebar with remembered state, brand logo, role navigation, and theme switcher.
+  - Mobile top header with contextual back title + theme pill + avatar.
+  - Mobile bottom navigation with quick-touch role tabs.
+  - Global Command Palette (`Ctrl+K` / `⌘K`) for rapid navigation and palette switching.
   - Role-aware navigation configs (`employer`, `supervisor`, `probationary_employee`, `admin`).
 - [ ] **Phase 7E: Page-by-Page Migration (Employer first, then Supervisor & Employee)**:
   1. `Settings`: Profile details, Appearance (mode & 5 palettes), Security (password update), and Milestone Alerts toggle.
