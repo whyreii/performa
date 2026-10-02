@@ -22,7 +22,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..auth import require_role
+from ..auth import get_current_user, require_role
 from ..database import get_db
 from ..gemini import generate_performance_rationales
 from ..ml.catalog import COMPETENCIES, recommend_courses
@@ -197,6 +197,42 @@ async def monthly_rollup(
     await db.commit()
     await db.refresh(summary)
     return summary
+
+
+@router.get(
+    "/mine",
+    response_model=list[TrainingPlanResponse],
+    summary="List the current employee's own training interventions",
+)
+async def list_my_interventions(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[TrainingPlan]:
+    """Return all training plans attached to the caller's own employee profile."""
+    employee = (
+        await db.execute(
+            select(ProbationaryEmployee).where(
+                ProbationaryEmployee.user_id == current_user.id,
+                ProbationaryEmployee.organization_id == current_user.organization_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if employee is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No probationary employee profile is linked to this account",
+        )
+
+    stmt = (
+        select(TrainingPlan)
+        .where(
+            TrainingPlan.employee_id == employee.id,
+            TrainingPlan.status == TrainingStatusEnum.APPROVED,
+        )
+        .order_by(TrainingPlan.created_at.desc())
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
 @router.get(
