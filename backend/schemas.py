@@ -75,7 +75,7 @@ class TokenPayload(BaseModel):
 class ProbationaryEmployeeBase(BaseModel):
     user_id: uuid.UUID
     employer_id: uuid.UUID
-    supervisor_id: uuid.UUID
+    supervisor_id: Optional[uuid.UUID] = None
     organization_id: str = Field(..., max_length=100)
     job_title: str = Field(..., max_length=255)
     department: str = Field(..., max_length=255)
@@ -121,7 +121,7 @@ class ProbationaryEmployeeDetailResponse(ProbationaryEmployeeResponse):
 
     user: UserResponse
     employer: UserResponse
-    supervisor: UserResponse
+    supervisor: Optional[UserResponse] = None
 
 
 class ProbationaryEmployeeCreateRequest(BaseModel):

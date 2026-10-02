@@ -27,6 +27,10 @@ AsyncSessionLocal: async_sessionmaker[AsyncSession] = async_sessionmaker(
     expire_on_commit=False,
 )
 
+# Lowercase alias for callers (e.g. the seed script) that import
+# ``async_session_maker`` by name.
+async_session_maker = AsyncSessionLocal
+
 
 class Base(DeclarativeBase):
     """Declarative base class shared by every ORM model."""
@@ -51,6 +55,7 @@ __all__ = [
     "DATABASE_URL",
     "engine",
     "AsyncSessionLocal",
+    "async_session_maker",
     "Base",
     "get_db",
 ]

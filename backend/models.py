@@ -84,6 +84,19 @@ def _enum_values(enum_cls: type[enum.Enum]) -> list[str]:
     return [member.value for member in enum_cls]
 
 
+class Organization(Base):
+    """A tenant. ``slug`` is the value stored as ``organization_id``."""
+
+    __tablename__ = "organizations"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    slug: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class User(Base):
     """A platform account occupying one of the four roles."""
 
@@ -144,8 +157,8 @@ class ProbationaryEmployee(Base):
     employer_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("users.id"), nullable=False
     )
-    supervisor_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id"), nullable=False
+    supervisor_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        Uuid, ForeignKey("users.id"), nullable=True
     )
     organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
     job_title: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -177,7 +190,7 @@ class ProbationaryEmployee(Base):
     employer: Mapped["User"] = relationship(
         "User", back_populates="employer_profiles", foreign_keys=[employer_id]
     )
-    supervisor: Mapped["User"] = relationship(
+    supervisor: Mapped[Optional["User"]] = relationship(
         "User", back_populates="supervised_profiles", foreign_keys=[supervisor_id]
     )
     weekly_evaluations: Mapped[list["WeeklyEvaluation"]] = relationship(
@@ -368,6 +381,7 @@ __all__ = [
     "CompetencyEnum",
     "PerformanceRatingEnum",
     "TrainingStatusEnum",
+    "Organization",
     "User",
     "ProbationaryEmployee",
     "KpiRubric",
