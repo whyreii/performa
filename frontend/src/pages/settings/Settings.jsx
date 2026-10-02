@@ -240,7 +240,7 @@ export default function Settings() {
                 </div>
                 <p className="text-xs text-ink-2 leading-relaxed">{p.desc}</p>
                 {isSelected && (
-                  <div className="mt-3 pt-2.5 border-t border-line/60 flex items-center gap-1.5 text-xs font-semibold text-accent">
+                  <div className="mt-3 pt-2.5 border-t border-line flex items-center gap-1.5 text-xs font-semibold text-accent">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Active Palette</span>
                   </div>

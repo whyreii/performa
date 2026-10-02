@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import {
   BarChart3,
   Users,
@@ -20,7 +19,6 @@ import {
 
 export default function Sidebar({ onOpenCommandPalette }) {
   const { user, logout } = useAuth();
-  const { palette, setPalette, isDark } = useTheme();
   const navigate = useNavigate();
 
   // Remember collapsed state in localStorage
@@ -78,20 +76,19 @@ export default function Sidebar({ onOpenCommandPalette }) {
     return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
   };
 
-  const palettes = ['paper', 'midnight', 'dusk', 'mist', 'sage'];
-
   return (
     <aside
       className={`hidden md:flex flex-col sticky top-0 h-screen bg-side border-r border-line shadow-side z-20 transition-all duration-performa ${
-        collapsed ? 'w-[72px] p-2.5' : 'w-[250px] p-4'
+        collapsed ? 'w-[72px] px-2.5 py-3.5' : 'w-[250px] p-4'
       }`}
       aria-label="Main Navigation"
     >
       {/* Brand Header */}
-      <div className={`flex items-center justify-between mb-4 h-10 ${collapsed ? 'flex-col gap-2' : ''}`}>
+      <div className={`flex items-center ${collapsed ? 'flex-col gap-2.5 mb-3' : 'justify-between mb-4 h-10'}`}>
         <div
           onClick={() => navigate(role === 'probationary_employee' ? '/employee/dashboard' : '/dashboard')}
-          className="flex items-center gap-3 cursor-pointer group min-w-0"
+          className={`flex items-center gap-3 cursor-pointer group min-w-0 ${collapsed ? 'justify-center' : ''}`}
+          title="Performa Dashboard"
         >
           <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform">
             <BarChart3 className="w-4 h-4" />
@@ -112,11 +109,13 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={toggleCollapsed}
-          className="w-7 h-7 rounded-ctl border border-line/60 bg-transparent text-ink-3 hover:text-ink hover:bg-hover flex items-center justify-center transition-colors"
+          className={`${
+            collapsed ? 'w-8 h-8' : 'w-7 h-7'
+          } shrink-0 rounded-ctl border border-line bg-surface/50 text-ink-3 hover:text-ink hover:bg-hover flex items-center justify-center transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-accent`}
           title={collapsed ? 'Expand sidebar ([)' : 'Collapse sidebar ([)'}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-3.5 h-3.5" />}
         </button>
       </div>
 
@@ -125,7 +124,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="w-full h-9 mb-4 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-between text-xs transition-colors shadow-xs"
+          className="w-full h-9 mb-4 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-between text-xs transition-colors shadow-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
         >
           <div className="flex items-center gap-2">
             <Search className="w-3.5 h-3.5" />
@@ -139,7 +138,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="w-10 h-10 mx-auto mb-4 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-center transition-colors"
+          className="w-8 h-8 mx-auto mb-3 shrink-0 rounded-ctl border border-line bg-surface/50 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
           title="Command Palette (Ctrl+K)"
         >
           <Search className="w-4 h-4" />
@@ -179,50 +178,11 @@ export default function Sidebar({ onOpenCommandPalette }) {
         </nav>
       </div>
 
-      {/* Palette Selector */}
-      <div className={`pt-3 border-t border-line ${collapsed ? 'flex flex-col items-center' : ''}`}>
-        {!collapsed && (
-          <div className="flex items-center justify-between text-xs text-ink-3 mb-2 px-1">
-            <span>Theme</span>
-            <span className="capitalize font-mono text-[11px]">{palette}</span>
-          </div>
-        )}
-        <div
-          className={`flex items-center gap-1.5 p-1 rounded-full bg-hover border border-line ${
-            collapsed ? 'flex-col' : 'justify-around'
-          }`}
-        >
-          {palettes.map((p) => (
-            <button
-              key={p}
-              onClick={() => setPalette(p)}
-              className={`w-5 h-5 rounded-full border transition-transform ${
-                palette === p ? 'border-ink scale-110 shadow-sm' : 'border-line/80 hover:scale-105'
-              }`}
-              title={`Switch to ${p} theme`}
-              aria-label={`Switch to ${p} theme`}
-              style={{
-                backgroundColor:
-                  p === 'paper'
-                    ? '#f6f3ed'
-                    : p === 'midnight'
-                    ? '#090b10'
-                    : p === 'dusk'
-                    ? '#0c0a14'
-                    : p === 'mist'
-                    ? '#f0f4f8'
-                    : '#edf2ee',
-              }}
-            />
-          ))}
-        </div>
-      </div>
-
       {/* User Footer Card */}
-      <div className="pt-3 mt-3 border-t border-line">
+      <div className="pt-3 mt-auto border-t border-line">
         <div className={`flex items-center gap-2.5 ${collapsed ? 'flex-col justify-center' : ''}`}>
           <div
-            className="w-9 h-9 rounded-full bg-accent/15 border border-accent/30 text-accent font-semibold text-xs flex items-center justify-center shrink-0"
+            className="w-8 h-8 rounded-full bg-accent/15 border border-accent/30 text-accent font-semibold text-xs flex items-center justify-center shrink-0"
             title={`${user?.full_name} (${user?.email})`}
           >
             {getInitials(user?.full_name)}
@@ -242,7 +202,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
           <button
             type="button"
             onClick={logout}
-            className="p-1.5 text-ink-3 hover:text-bad rounded-ctl hover:bg-bad/10 transition-colors shrink-0"
+            className="p-1.5 text-ink-3 hover:text-bad rounded-ctl hover:bg-bad/10 transition-colors shrink-0 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
             title="Sign out"
             aria-label="Sign out"
           >

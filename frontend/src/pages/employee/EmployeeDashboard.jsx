@@ -253,7 +253,7 @@ export default function EmployeeDashboard() {
                   <span className="font-mono text-ink-3">{formatDate(log.created_at)}</span>
                 </div>
                 {log.remarks && (
-                  <p className="text-xs text-ink-2 bg-hover/50 p-2.5 rounded-ctl border border-line/60">
+                  <p className="text-xs text-ink-2 bg-hover/50 p-2.5 rounded-ctl border border-line">
                     "{log.remarks}"
                   </p>
                 )}

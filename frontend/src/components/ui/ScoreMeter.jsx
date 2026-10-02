@@ -41,7 +41,7 @@ export default function ScoreMeter({
       )}
 
       {/* Meter track */}
-      <div className="relative h-2 w-full bg-hover border border-line/60 rounded-full overflow-hidden">
+      <div className="relative h-2 w-full bg-hover border border-line rounded-full overflow-hidden">
         {/* Progress fill */}
         <div
           className={`h-full ${fillColor} rounded-full transition-all duration-performa`}
