@@ -35,6 +35,7 @@ export default function EmployeeDetail() {
 
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('regularized');
+  const [statusReason, setStatusReason] = useState('');
   const [actionError, setActionError] = useState('');
 
   // Fetch employee profile
@@ -65,7 +66,7 @@ export default function EmployeeDetail() {
 
   // Status transition mutation (regularize or terminate)
   const statusMutation = useMutation({
-    mutationFn: (newStatus) => employeeApi.updateStatus(id, newStatus),
+    mutationFn: ({ status, reason }) => employeeApi.updateStatus(id, status, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employee', id] });
       queryClient.invalidateQueries({ queryKey: ['employees'] });
@@ -140,7 +141,7 @@ export default function EmployeeDetail() {
   const progressPct = Math.min(100, Math.round((daysElapsed / 180) * 100));
 
   const canManageStatus = user?.role === 'admin' || user?.role === 'employer';
-  const canRate = user?.role === 'supervisor' || user?.role === 'admin' || user?.role === 'employer';
+  const canRate = user?.role === 'supervisor' || user?.role === 'employer';
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
@@ -203,7 +204,12 @@ export default function EmployeeDetail() {
             {canManageStatus && employee.status === 'active' && (
               <Button
                 variant="secondary"
-                onClick={() => setIsDeactivateModalOpen(true)}
+                onClick={() => {
+                  setSelectedStatus('regularized');
+                  setStatusReason('');
+                  setActionError('');
+                  setIsDeactivateModalOpen(true);
+                }}
               >
                 Update Status
               </Button>
@@ -233,7 +239,7 @@ export default function EmployeeDetail() {
             </span>
           </div>
 
-          {!employee.standards_acknowledged_at && (
+          {!employee.standards_acknowledged_at && user?.role === 'probationary_employee' && (
             <Button
               variant="subtle"
               size="sm"
@@ -500,6 +506,26 @@ export default function EmployeeDetail() {
               </label>
             </div>
 
+            {selectedStatus === 'terminated' && (
+              <div>
+                <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="status_reason">
+                  Reason for Termination *
+                </label>
+                <textarea
+                  id="status_reason"
+                  rows={3}
+                  maxLength={500}
+                  value={statusReason}
+                  onChange={(e) => setStatusReason(e.target.value)}
+                  placeholder="State the documented, performance-based justification for non-regularization..."
+                  className="w-full p-3 text-xs border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 focus:outline-none focus:border-accent transition-colors"
+                />
+                <p className="text-[11px] text-ink-3 mt-1 font-mono">
+                  {statusReason.length} / 500 characters
+                </p>
+              </div>
+            )}
+
             <div className="flex justify-end gap-2.5 pt-3 border-t border-line">
               <Button
                 variant="ghost"
@@ -510,7 +536,17 @@ export default function EmployeeDetail() {
               <Button
                 variant={selectedStatus === 'regularized' ? 'primary' : 'danger'}
                 isLoading={statusMutation.isPending}
-                onClick={() => statusMutation.mutate(selectedStatus)}
+                onClick={() => {
+                  if (selectedStatus === 'terminated' && !statusReason.trim()) {
+                    setActionError('A reason is required when terminating an employee.');
+                    return;
+                  }
+                  setActionError('');
+                  statusMutation.mutate({
+                    status: selectedStatus,
+                    reason: statusReason.trim() || undefined,
+                  });
+                }}
               >
                 Confirm Decision
               </Button>

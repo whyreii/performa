@@ -10,14 +10,29 @@ import {
   Target,
   Award,
   BookOpen,
+  ShieldCheck,
 } from 'lucide-react';
+
+const TAB_GRID = {
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+  5: 'grid-cols-5',
+};
 
 export default function BottomTabBar() {
   const { user } = useAuth();
   const role = user?.role;
 
   const getTabs = () => {
-    if (role === 'admin' || role === 'employer') {
+    if (role === 'admin') {
+      return [
+        { label: 'Accounts', path: '/admin/users', icon: ShieldCheck },
+        { label: 'Directory', path: '/employees', icon: Users },
+        { label: 'Audits', path: '/audits', icon: History },
+        { label: 'Settings', path: '/settings', icon: Settings },
+      ];
+    }
+    if (role === 'employer') {
       return [
         { label: 'Overview', path: '/dashboard', icon: LayoutDashboard },
         { label: 'Directory', path: '/employees', icon: Users },
@@ -50,7 +65,7 @@ export default function BottomTabBar() {
       className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-side/95 backdrop-blur-md border-t border-line px-2 py-1 shadow-lg pb-[calc(0.25rem+env(safe-area-inset-bottom,0px))]"
       aria-label="Mobile Navigation"
     >
-      <div className={`grid gap-1 ${tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-5'}`}>
+      <div className={`grid gap-1 ${TAB_GRID[tabs.length] || 'grid-cols-5'}`}>
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (

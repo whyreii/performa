@@ -132,7 +132,7 @@ export default function App() {
                 <Route
                   path="/employees/:id"
                   element={
-                    <ProtectedRoute allowedRoles={['employer', 'admin', 'supervisor']}>
+                    <ProtectedRoute allowedRoles={['employer', 'admin', 'supervisor', 'probationary_employee']}>
                       <EmployeeDetail />
                     </ProtectedRoute>
                   }

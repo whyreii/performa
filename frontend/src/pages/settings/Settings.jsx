@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { authApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, StatusDot } from '../../components/ui';
 import {
   User,
@@ -53,7 +54,7 @@ export default function Settings() {
   const [passwordStatus, setPasswordStatus] = useState({ type: '', message: '' });
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setPasswordStatus({ type: '', message: '' });
 
@@ -79,9 +80,8 @@ export default function Settings() {
     }
 
     setIsUpdatingPassword(true);
-    // Simulate updating password against auth endpoint
-    setTimeout(() => {
-      setIsUpdatingPassword(false);
+    try {
+      await authApi.changePassword(currentPassword, newPassword);
       setPasswordStatus({
         type: 'success',
         message: 'Password updated successfully.',
@@ -89,7 +89,14 @@ export default function Settings() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    }, 600);
+    } catch (err) {
+      setPasswordStatus({
+        type: 'error',
+        message: getApiErrorMessage(err, 'Failed to update password.'),
+      });
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
   const palettes = [

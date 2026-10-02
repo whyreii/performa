@@ -68,6 +68,13 @@ export const authApi = {
     const response = await apiClient.get('/api/auth/me');
     return response.data; // UserResponse: { id, email, full_name, role, organization_id, is_active }
   },
+  changePassword: async (currentPassword, newPassword) => {
+    const response = await apiClient.post('/api/auth/change-password', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+    return response.data;
+  },
 };
 
 // Employee API methods
@@ -92,8 +99,10 @@ export const employeeApi = {
     const response = await apiClient.post('/api/employees/', data);
     return response.data;
   },
-  updateStatus: async (id, status) => {
-    const response = await apiClient.patch(`/api/employees/${id}/status`, { status });
+  updateStatus: async (id, status, reason) => {
+    const payload = { status };
+    if (reason) payload.reason = reason;
+    const response = await apiClient.patch(`/api/employees/${id}/status`, payload);
     return response.data;
   },
   acknowledgeStandards: async (id) => {

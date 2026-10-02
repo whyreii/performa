@@ -14,6 +14,7 @@ import {
   BookOpen,
   Palette,
   X,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function CommandPalette({ isOpen, onClose }) {
@@ -30,7 +31,13 @@ export default function CommandPalette({ isOpen, onClose }) {
   const getCommands = () => {
     const list = [];
 
-    if (role === 'admin' || role === 'employer') {
+    if (role === 'admin') {
+      list.push(
+        { id: 'users', label: 'Manage User Accounts', category: 'Navigation', icon: ShieldCheck, action: () => navigate('/admin/users') },
+        { id: 'emp', label: 'View Employee Records', category: 'Navigation', icon: Users, action: () => navigate('/employees') },
+        { id: 'audit', label: 'Audit Trail & Compliance Logs', category: 'Navigation', icon: History, action: () => navigate('/audits') },
+      );
+    } else if (role === 'employer') {
       list.push(
         { id: 'dash', label: 'Go to Employer Dashboard', category: 'Navigation', icon: LayoutDashboard, action: () => navigate('/dashboard') },
         { id: 'emp', label: 'View Employee Directory', category: 'Navigation', icon: Users, action: () => navigate('/employees') },
