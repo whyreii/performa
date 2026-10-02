@@ -19,6 +19,14 @@ import {
   UserX,
 } from 'lucide-react';
 
+const COMPETENCY_DESCRIPTIONS = {
+  task_completion: 'Deliverables completed on schedule and adherence to task assignments',
+  quality_of_work: 'Accuracy, attention to detail, and compliance with quality standards',
+  attendance_and_punctuality: 'On-time arrival and dependability during scheduled hours',
+  communication_and_teamwork: 'Cross-functional collaboration and clear status reporting',
+  initiative_and_adaptability: 'Self-driven problem solving and agility to change',
+};
+
 export default function EmployeeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -317,13 +325,15 @@ export default function EmployeeDetail() {
             </p>
           </div>
 
-          {scorecard?.overall_score && (
+          {scorecard?.latest_evaluation_date ? (
             <div className="text-right">
               <span className="text-xs text-ink-3 block font-mono">Overall Average</span>
               <span className="text-xl font-bold font-mono text-ink">
-                {scorecard.overall_score.toFixed(1)} / 5.0
+                {Number(scorecard.overall_score).toFixed(1)} / 5.0
               </span>
             </div>
+          ) : (
+            <Badge variant="neutral">Initial Evaluations Pending</Badge>
           )}
         </div>
 
@@ -333,51 +343,26 @@ export default function EmployeeDetail() {
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
+        ) : !scorecard || !scorecard.competencies || scorecard.competencies.length === 0 ? (
+          <div className="py-8 text-center text-xs text-ink-3">
+            No evaluations have been submitted for this employee yet.
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {[
-              {
-                name: 'Core Technical Competence',
-                key: 'technical',
-                desc: 'Job-specific technical execution and standards compliance',
-                score: scorecard?.technical_score || 3.8,
-              },
-              {
-                name: 'Quality & Accuracy',
-                key: 'quality',
-                desc: 'Error-free deliverables and attention to detail',
-                score: scorecard?.quality_score || 4.1,
-              },
-              {
-                name: 'Productivity & Work Output',
-                key: 'productivity',
-                desc: 'Throughput speed, output volume, and deadline discipline',
-                score: scorecard?.productivity_score || 3.6,
-              },
-              {
-                name: 'Attendance & Punctuality',
-                key: 'attendance',
-                desc: 'On-time shift arrival and schedule dependability',
-                score: scorecard?.attendance_score || 4.5,
-              },
-              {
-                name: 'Culture & Teamwork',
-                key: 'culture',
-                desc: 'Cross-functional collaboration and company values',
-                score: scorecard?.culture_score || 4.0,
-              },
-            ].map((comp) => (
+            {scorecard.competencies.map((comp) => (
               <div key={comp.key} className="p-4 rounded-ctl bg-hover/60 border border-line space-y-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="font-semibold text-sm text-ink block">{comp.name}</span>
-                    <span className="text-xs text-ink-3 block">{comp.desc}</span>
+                    <span className="font-semibold text-sm text-ink block">{comp.label}</span>
+                    <span className="text-xs text-ink-3 block">
+                      {COMPETENCY_DESCRIPTIONS[comp.key] || 'Statutory competency'}
+                    </span>
                   </div>
                   <span className="font-mono font-bold text-sm text-ink shrink-0 ml-2">
-                    {comp.score.toFixed(1)}
+                    {Number(comp.score).toFixed(1)}
                   </span>
                 </div>
-                <ScoreMeter score={comp.score} target={4.0} />
+                <ScoreMeter score={comp.score} target={comp.target} />
               </div>
             ))}
           </div>
@@ -407,24 +392,32 @@ export default function EmployeeDetail() {
           </div>
         ) : (
           <div className="divide-y divide-line">
-            {auditLogs.map((log) => (
-              <div key={log.id} className="py-3.5 space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-ink">
-                      {log.evaluator?.full_name || 'Supervisor'}
-                    </span>
-                    <Badge variant="accent">Week {log.week_number || 1}</Badge>
+            {auditLogs.map((log) => {
+              const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
+              return (
+                <div key={log.id} className="py-3.5 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-ink">
+                        {log.evaluator_name || 'Evaluator'}
+                      </span>
+                      <Badge variant="accent">
+                        {log.competency?.replace(/_/g, ' ') || 'score'}
+                      </Badge>
+                    </div>
+                    <span className="font-mono text-ink-3">{formatDate(log.created_at)}</span>
                   </div>
-                  <span className="font-mono text-ink-3">{formatDate(log.created_at)}</span>
+                  <div className="flex items-center gap-2 text-xs font-mono text-ink-2">
+                    <span className="text-ink-3">
+                      {hasPrior ? `${Number(log.prior_score).toFixed(1)} → ` : 'Initial → '}
+                    </span>
+                    <span className="font-bold text-ink">
+                      {Number(log.new_score).toFixed(1)}
+                    </span>
+                  </div>
                 </div>
-                {log.remarks && (
-                  <p className="text-xs text-ink-2 bg-hover/50 p-2.5 rounded-ctl border border-line">
-                    "{log.remarks}"
-                  </p>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

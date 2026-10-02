@@ -80,6 +80,10 @@ export const employeeApi = {
     const response = await apiClient.get('/api/employees/milestones');
     return response.data;
   },
+  listSupervisors: async () => {
+    const response = await apiClient.get('/api/employees/supervisors');
+    return response.data;
+  },
   getById: async (id) => {
     const response = await apiClient.get(`/api/employees/${id}`);
     return response.data;
@@ -122,6 +126,10 @@ export const evaluationApi = {
 export const interventionApi = {
   listPending: async () => {
     const response = await apiClient.get('/api/interventions/pending');
+    return response.data;
+  },
+  listMine: async () => {
+    const response = await apiClient.get('/api/interventions/mine');
     return response.data;
   },
   signOff: async (planId, approved) => {

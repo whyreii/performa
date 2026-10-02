@@ -1,27 +1,20 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
-import { useAuth } from '../../context/AuthContext';
+import { interventionApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, Skeleton } from '../../components/ui';
-import { BookOpen, Sparkles, CheckCircle2, Clock, ExternalLink } from 'lucide-react';
+import { Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function EmployeeTraining() {
-  const { user } = useAuth();
-
-  // Fetch all employees to find current user's profile
-  const { data: employees = [] } = useQuery({
-    queryKey: ['employees'],
-    queryFn: () => employeeApi.list(),
-  });
-
-  const myProfile = employees.find(
-    (e) => e.user_id === user?.id || e.user?.email === user?.email
-  );
-
-  // Fetch intervention plans
-  const { data: plans = [], isLoading } = useQuery({
-    queryKey: ['pending-interventions'],
-    queryFn: () => interventionApi.listPending(),
+  // Fetch the employee's own assigned intervention plans
+  const {
+    data: plans = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['my-interventions'],
+    queryFn: () => interventionApi.listMine(),
   });
 
   return (
@@ -41,6 +34,17 @@ export default function EmployeeTraining() {
           <div className="space-y-3">
             <Skeleton className="h-28 w-full" />
             <Skeleton className="h-28 w-full" />
+          </div>
+        ) : isError ? (
+          <div className="p-10 bg-surface border border-line rounded-float text-center space-y-3 shadow-sm">
+            <AlertCircle className="w-8 h-8 text-bad mx-auto" />
+            <h3 className="text-base font-semibold text-ink">Failed to load your training plans</h3>
+            <p className="text-xs text-ink-3 max-w-sm mx-auto">
+              {getApiErrorMessage(error, 'An error occurred while fetching your interventions.')}
+            </p>
+            <Button variant="secondary" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
           </div>
         ) : plans.length === 0 ? (
           <div className="p-12 bg-surface border border-line rounded-float text-center space-y-3 shadow-sm">
@@ -65,7 +69,7 @@ export default function EmployeeTraining() {
                       <h3 className="text-base font-semibold text-ink">
                         {plan.intervention_title}
                       </h3>
-                      <Badge variant="accent">{plan.competency?.replace('_', ' ')}</Badge>
+                      <Badge variant="accent">{plan.competency?.replace(/_/g, ' ')}</Badge>
                       <Badge variant="neutral">{plan.intervention_type}</Badge>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-ink-3 font-mono">
@@ -75,8 +79,12 @@ export default function EmployeeTraining() {
                     </div>
                   </div>
 
-                  <Badge variant={plan.status === 'approved' ? 'ok' : 'warn'}>
-                    {plan.status === 'approved' ? 'Active Assignment' : 'Pending Approval'}
+                  <Badge variant={plan.status === 'approved' ? 'ok' : plan.status === 'rejected' ? 'bad' : 'warn'}>
+                    {plan.status === 'approved'
+                      ? 'Active Assignment'
+                      : plan.status === 'rejected'
+                      ? 'Not Assigned'
+                      : 'Pending Approval'}
                   </Badge>
                 </div>
 

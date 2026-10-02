@@ -34,7 +34,7 @@ export default function Dashboard() {
   // Fetch intervention plans
   const { data: plans = [], isLoading: isPlansLoading } = useQuery({
     queryKey: ['intervention-plans'],
-    queryFn: () => interventionApi.listPlans(),
+    queryFn: () => interventionApi.listPending(),
   });
 
   // Manila days elapsed calculation
@@ -372,20 +372,28 @@ export default function Dashboard() {
                 key={plan.id}
                 className="p-3.5 rounded-ctl bg-hover/60 border border-line space-y-2"
               >
-                <div className="flex items-center justify-between">
-                  <Badge variant={plan.status === 'completed' ? 'ok' : 'accent'}>
-                    {plan.status?.replace('_', ' ')}
+                <div className="flex items-center justify-between gap-2">
+                  <Badge
+                    variant={
+                      plan.status === 'approved'
+                        ? 'ok'
+                        : plan.status === 'rejected'
+                        ? 'bad'
+                        : 'accent'
+                    }
+                  >
+                    {plan.status?.replace(/_/g, ' ')}
                   </Badge>
-                  <span className="font-mono text-[11px] text-ink-3">
-                    Est: {plan.estimated_hours || 4}h
+                  <span className="font-mono text-[11px] text-ink-3 truncate">
+                    {plan.default_timeline || '—'}
                   </span>
                 </div>
                 <div>
                   <span className="font-semibold text-xs text-ink block truncate">
-                    {plan.course_name}
+                    {plan.intervention_title}
                   </span>
                   <p className="text-[11px] text-ink-2 line-clamp-2 mt-0.5">
-                    {plan.rationale}
+                    {plan.rationale || plan.competency?.replace(/_/g, ' ')}
                   </p>
                 </div>
               </div>

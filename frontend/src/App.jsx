@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -35,6 +35,17 @@ const queryClient = new QueryClient({
   },
 });
 
+const ROLE_HOME = {
+  admin: '/admin/users',
+  employer: '/dashboard',
+  supervisor: '/supervisor/dashboard',
+  probationary_employee: '/employee/dashboard',
+};
+
+function homeForRole(role) {
+  return ROLE_HOME[role] || '/login';
+}
+
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, isAuthenticated, isLoading } = useAuth();
 
@@ -58,7 +69,12 @@ function ProtectedRoute({ children, allowedRoles }) {
           <p className="text-sm text-ink-2 mb-4">
             Your account ({user?.role}) does not have permission to view this page.
           </p>
-          <Navigate to="/login" replace />
+          <Link
+            to={homeForRole(user?.role)}
+            className="inline-flex items-center justify-center h-9 px-4 rounded-ctl bg-accent text-accent-foreground text-sm font-medium hover:brightness-110 transition-all"
+          >
+            Go to my dashboard
+          </Link>
         </div>
       </div>
     );

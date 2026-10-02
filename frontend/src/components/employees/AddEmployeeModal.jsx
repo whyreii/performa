@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
-import { Button, Badge } from '../ui';
-import { X, UserPlus, AlertCircle, Calendar, ShieldCheck } from 'lucide-react';
+import { Button } from '../ui';
+import { X, UserPlus, AlertCircle, Calendar, ShieldCheck, UserCog } from 'lucide-react';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
   const queryClient = useQueryClient();
@@ -18,7 +18,20 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
   const [jobTitle, setJobTitle] = useState('');
   const [startDate, setStartDate] = useState(getTodayManila);
   const [password, setPassword] = useState('Password123!');
+  const [supervisorId, setSupervisorId] = useState('');
   const [error, setError] = useState('');
+
+  // Load assignable supervisors for this tenant
+  const { data: supervisors = [], isLoading: isSupervisorsLoading } = useQuery({
+    queryKey: ['supervisors'],
+    queryFn: () => employeeApi.listSupervisors(),
+  });
+
+  useEffect(() => {
+    if (!supervisorId && supervisors.length > 0) {
+      setSupervisorId(supervisors[0].id);
+    }
+  }, [supervisors, supervisorId]);
 
   // Calculate Day 180 preview (+180 days)
   const calculateDay180 = (start) => {
@@ -51,6 +64,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
       setJobTitle('');
       setStartDate(getTodayManila());
       setPassword('Password123!');
+      setSupervisorId('');
       setError('');
     },
     onError: (err) => {
@@ -62,8 +76,19 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
     e.preventDefault();
     setError('');
 
-    if (!fullName.trim() || !email.trim() || !department.trim() || !jobTitle.trim() || !startDate) {
+    if (
+      !fullName.trim() ||
+      !email.trim() ||
+      !department.trim() ||
+      !jobTitle.trim() ||
+      !startDate
+    ) {
       setError('Please fill in all required fields.');
+      return;
+    }
+
+    if (!supervisorId) {
+      setError('Please assign a supervisor for this employee.');
       return;
     }
 
@@ -73,6 +98,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
       department: department.trim(),
       job_title: jobTitle.trim(),
       start_date: startDate,
+      supervisor_id: supervisorId,
       password: password || 'Password123!',
     });
   };
@@ -199,6 +225,40 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                 className="w-full h-9 px-3 border border-line rounded-field bg-transparent text-ink text-sm focus:outline-none focus:border-accent transition-colors font-mono"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-ink-2 mb-1" htmlFor="m_supervisor">
+              Assigned Supervisor *
+            </label>
+            <div className="relative">
+              <UserCog className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <select
+                id="m_supervisor"
+                required
+                value={supervisorId}
+                onChange={(e) => setSupervisorId(e.target.value)}
+                disabled={isSupervisorsLoading || supervisors.length === 0}
+                className="w-full h-9 pl-9 pr-3 border border-line rounded-field bg-transparent text-ink text-sm focus:outline-none focus:border-accent transition-colors disabled:opacity-60"
+              >
+                {supervisors.length === 0 ? (
+                  <option value="">
+                    {isSupervisorsLoading ? 'Loading supervisors…' : 'No supervisors available'}
+                  </option>
+                ) : (
+                  supervisors.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.full_name} ({s.email})
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+            {!isSupervisorsLoading && supervisors.length === 0 && (
+              <p className="text-[11px] text-warn mt-1">
+                Create a Supervisor account first before onboarding an employee.
+              </p>
+            )}
           </div>
 
           {/* Statutory 180-Day Calculation Banner */}

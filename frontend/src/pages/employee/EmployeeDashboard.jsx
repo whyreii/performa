@@ -15,6 +15,14 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
+const COMPETENCY_DESCRIPTIONS = {
+  task_completion: 'Job-specific deliverables and quota adherence',
+  quality_of_work: 'Attention to detail and SOP compliance',
+  attendance_and_punctuality: 'On-time shift arrival and schedule reliability',
+  communication_and_teamwork: 'Peer relations and transparent reporting',
+  initiative_and_adaptability: 'Problem solving and response to coaching',
+};
+
 export default function EmployeeDashboard() {
   const { user } = useAuth();
 
@@ -162,11 +170,11 @@ export default function EmployeeDashboard() {
             </p>
           </div>
 
-          {scorecard?.overall_score ? (
+          {scorecard?.latest_evaluation_date ? (
             <div className="text-right">
               <span className="text-xs text-ink-3 block font-mono">Current Standing</span>
               <span className="text-2xl font-bold font-mono text-ink">
-                {scorecard.overall_score.toFixed(1)} / 5.0
+                {Number(scorecard.overall_score).toFixed(1)} / 5.0
               </span>
             </div>
           ) : (
@@ -180,46 +188,26 @@ export default function EmployeeDashboard() {
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
           </div>
+        ) : !scorecard || !scorecard.competencies || scorecard.competencies.length === 0 ? (
+          <div className="py-8 text-center text-xs text-ink-3">
+            No evaluations have been submitted for you yet.
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              {
-                name: 'Task Completion & Work Output',
-                score: scorecard?.technical_score || 3.9,
-                desc: 'Job-specific deliverables and quota adherence',
-              },
-              {
-                name: 'Quality of Work & Accuracy',
-                score: scorecard?.quality_score || 4.2,
-                desc: 'Attention to detail and SOP compliance',
-              },
-              {
-                name: 'Attendance & Punctuality',
-                score: scorecard?.attendance_score || 4.5,
-                desc: 'On-time shift arrival and schedule reliability',
-              },
-              {
-                name: 'Communication & Teamwork',
-                score: scorecard?.culture_score || 4.0,
-                desc: 'Peer relations and transparent reporting',
-              },
-              {
-                name: 'Initiative & Adaptability',
-                score: scorecard?.productivity_score || 3.7,
-                desc: 'Problem solving and response to coaching',
-              },
-            ].map((c) => (
-              <div key={c.name} className="p-4 rounded-ctl bg-hover/60 border border-line space-y-2">
+            {scorecard.competencies.map((c) => (
+              <div key={c.key} className="p-4 rounded-ctl bg-hover/60 border border-line space-y-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="font-semibold text-sm text-ink block">{c.name}</span>
-                    <span className="text-xs text-ink-3 block">{c.desc}</span>
+                    <span className="font-semibold text-sm text-ink block">{c.label}</span>
+                    <span className="text-xs text-ink-3 block">
+                      {COMPETENCY_DESCRIPTIONS[c.key] || 'Statutory competency'}
+                    </span>
                   </div>
                   <span className="font-mono font-bold text-sm text-ink ml-2">
-                    {c.score.toFixed(1)}
+                    {Number(c.score).toFixed(1)}
                   </span>
                 </div>
-                <ScoreMeter score={c.score} target={4.0} />
+                <ScoreMeter score={c.score} target={c.target} />
               </div>
             ))}
           </div>
@@ -230,8 +218,8 @@ export default function EmployeeDashboard() {
       <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink">Supervisor Feedback & Remarks</h2>
-            <p className="text-xs text-ink-3">Evidentiary records entered by supervisors</p>
+            <h2 className="text-base font-semibold text-ink">Evaluation Audit Trail</h2>
+            <p className="text-xs text-ink-3">Append-only record of every competency score change</p>
           </div>
           <Badge variant="neutral">{auditLogs.length} Records</Badge>
         </div>
@@ -244,21 +232,32 @@ export default function EmployeeDashboard() {
           </div>
         ) : (
           <div className="divide-y divide-line">
-            {auditLogs.map((log) => (
-              <div key={log.id} className="py-3.5 space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-ink">
-                    {log.evaluator?.full_name || 'Supervisor'}
-                  </span>
-                  <span className="font-mono text-ink-3">{formatDate(log.created_at)}</span>
+            {auditLogs.map((log) => {
+              const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
+              return (
+                <div key={log.id} className="py-3.5 space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-ink">
+                        {log.evaluator_name || 'Evaluator'}
+                      </span>
+                      <Badge variant="accent">
+                        {log.competency?.replace(/_/g, ' ') || 'score'}
+                      </Badge>
+                    </div>
+                    <span className="font-mono text-ink-3">{formatDate(log.created_at)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs font-mono text-ink-2">
+                    <span className="text-ink-3">
+                      {hasPrior ? `${Number(log.prior_score).toFixed(1)} → ` : 'Initial → '}
+                    </span>
+                    <span className="font-bold text-ink">
+                      {Number(log.new_score).toFixed(1)}
+                    </span>
+                  </div>
                 </div>
-                {log.remarks && (
-                  <p className="text-xs text-ink-2 bg-hover/50 p-2.5 rounded-ctl border border-line">
-                    "{log.remarks}"
-                  </p>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
