@@ -1,11 +1,20 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { kpiApi } from '../../api';
 import { Target, ShieldCheck, Award, BookOpen, AlertCircle } from 'lucide-react';
 import { Badge } from '../../components/ui';
 
 export default function Rubrics() {
+  const { data: dbRubrics = [] } = useQuery({
+    queryKey: ['kpi-rubrics'],
+    queryFn: () => kpiApi.list(),
+  });
+  const rubricMap = Object.fromEntries(dbRubrics.map((r) => [r.competency, r]));
+
   const rubrics = [
     {
       id: 'task',
+      competency: 'task_completion',
       name: '1. Task Completion & Work Output',
       weight: '20%',
       target: '4.0',
@@ -19,6 +28,7 @@ export default function Rubrics() {
     },
     {
       id: 'quality',
+      competency: 'quality_of_work',
       name: '2. Quality of Work & Accuracy',
       weight: '20%',
       target: '4.0',
@@ -32,6 +42,7 @@ export default function Rubrics() {
     },
     {
       id: 'attendance',
+      competency: 'attendance_and_punctuality',
       name: '3. Attendance & Punctuality',
       weight: '20%',
       target: '4.0',
@@ -45,6 +56,7 @@ export default function Rubrics() {
     },
     {
       id: 'communication',
+      competency: 'communication_and_teamwork',
       name: '4. Communication & Teamwork',
       weight: '20%',
       target: '4.0',
@@ -58,6 +70,7 @@ export default function Rubrics() {
     },
     {
       id: 'initiative',
+      competency: 'initiative_and_adaptability',
       name: '5. Initiative & Adaptability',
       weight: '20%',
       target: '4.0',
@@ -108,8 +121,19 @@ export default function Rubrics() {
                 <p className="text-xs text-ink-3 mt-0.5">{rubric.desc}</p>
               </div>
               <div className="flex items-center gap-2 self-start sm:self-center font-mono text-xs">
-                <Badge variant="neutral">Weight: {rubric.weight}</Badge>
-                <Badge variant="ok">Target: {rubric.target} / 5.0</Badge>
+                <Badge variant="neutral">
+                  Weight:{' '}
+                  {rubricMap[rubric.competency]
+                    ? `${Math.round(rubricMap[rubric.competency].weight * 100)}%`
+                    : rubric.weight}
+                </Badge>
+                <Badge variant="ok">
+                  Target:{' '}
+                  {rubricMap[rubric.competency]
+                    ? rubricMap[rubric.competency].target_score.toFixed(1)
+                    : rubric.target}{' '}
+                  / 5.0
+                </Badge>
               </div>
             </div>
 

@@ -32,6 +32,15 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const userData = await authApi.getCurrentUser();
+    setUser(userData);
+    try {
+      localStorage.setItem('performa_user', JSON.stringify(userData));
+    } catch {}
+    return userData;
+  }, []);
+
   // Listen to 401 unauthorized events dispatched by api.js
   useEffect(() => {
     const handleUnauthorized = () => {
@@ -102,6 +111,7 @@ export function AuthProvider({ children }) {
         isLoading,
         login,
         logout,
+        refreshUser,
       }}
     >
       {children}

@@ -15,8 +15,41 @@ import {
 } from 'lucide-react';
 
 export default function Settings() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { palette, setPalette } = useTheme();
+
+  // Profile edit state
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileName, setProfileName] = useState(user?.full_name || '');
+  const [profileEmail, setProfileEmail] = useState(user?.email || '');
+  const [profileStatus, setProfileStatus] = useState({ type: '', message: '' });
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    setProfileStatus({ type: '', message: '' });
+    if (!profileName.trim() || !profileEmail.trim()) {
+      setProfileStatus({ type: 'error', message: 'Name and email are required.' });
+      return;
+    }
+    setIsSavingProfile(true);
+    try {
+      await authApi.updateProfile({
+        full_name: profileName.trim(),
+        email: profileEmail.trim().toLowerCase(),
+      });
+      await refreshUser();
+      setProfileStatus({ type: 'success', message: 'Profile updated successfully.' });
+      setIsEditingProfile(false);
+    } catch (err) {
+      setProfileStatus({
+        type: 'error',
+        message: getApiErrorMessage(err, 'Failed to update profile.'),
+      });
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   // Milestone Notification preferences
   const [notifications, setNotifications] = useState(() => {
@@ -158,14 +191,28 @@ export default function Settings() {
 
       {/* 1. Account Profile Card */}
       <section className="bg-surface border border-line rounded-float p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-line">
-          <div className="w-9 h-9 rounded-nav bg-accent/10 text-accent flex items-center justify-center">
-            <User className="w-5 h-5" />
+        <div className="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-line">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-nav bg-accent/10 text-accent flex items-center justify-center">
+              <User className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-ink">User Profile & Tenant</h2>
+              <p className="text-xs text-ink-3">Your credentials and organization context</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-semibold text-ink">User Profile & Tenant</h2>
-            <p className="text-xs text-ink-3">Your credentials and organization context</p>
-          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setProfileName(user?.full_name || '');
+              setProfileEmail(user?.email || '');
+              setProfileStatus({ type: '', message: '' });
+              setIsEditingProfile((prev) => !prev);
+            }}
+          >
+            {isEditingProfile ? 'Cancel' : 'Edit Profile'}
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -202,6 +249,50 @@ export default function Settings() {
             </span>
           </div>
         </div>
+
+        {isEditingProfile && (
+          <form
+            onSubmit={handleProfileSubmit}
+            className="mt-5 pt-5 border-t border-line space-y-4 max-w-md"
+          >
+            {profileStatus.message && (
+              <div
+                className={`p-3 rounded-ctl text-xs border border-line ${
+                  profileStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
+                }`}
+              >
+                {profileStatus.message}
+              </div>
+            )}
+            <div>
+              <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="p_name">
+                Full Name
+              </label>
+              <input
+                id="p_name"
+                type="text"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                className="w-full h-10 px-3 border border-line rounded-field bg-transparent text-ink text-sm focus:outline-none focus:border-accent transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="p_email">
+                Work Email
+              </label>
+              <input
+                id="p_email"
+                type="email"
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+                className="w-full h-10 px-3 border border-line rounded-field bg-transparent text-ink text-sm font-mono focus:outline-none focus:border-accent transition-colors"
+              />
+            </div>
+            <Button type="submit" variant="primary" isLoading={isSavingProfile}>
+              Save Changes
+            </Button>
+          </form>
+        )}
       </section>
 
       {/* 2. Theme & Palette Selection */}

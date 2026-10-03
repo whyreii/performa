@@ -75,6 +75,30 @@ export const authApi = {
     });
     return response.data;
   },
+  updateProfile: async (payload) => {
+    const response = await apiClient.patch('/api/auth/me', payload);
+    return response.data;
+  },
+};
+
+// KPI Rubric configuration API methods
+export const kpiApi = {
+  list: async () => {
+    const response = await apiClient.get('/api/kpi-rubrics');
+    return response.data;
+  },
+  update: async (competency, data) => {
+    const response = await apiClient.put(`/api/kpi-rubrics/${competency}`, data);
+    return response.data;
+  },
+  templates: async () => {
+    const response = await apiClient.get('/api/kpi-rubrics/templates');
+    return response.data;
+  },
+  reset: async () => {
+    const response = await apiClient.post('/api/kpi-rubrics/reset');
+    return response.data;
+  },
 };
 
 // Employee API methods
