@@ -48,8 +48,8 @@ export default {
         float: 'var(--r-float)',
       },
       fontFamily: {
-        sans: ['Geist Sans', 'Geist', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        mono: ['Geist Mono', 'ui-monospace', 'Menlo', 'monospace'],
+        sans: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'ui-monospace', 'Menlo', 'monospace'],
       },
       boxShadow: {
         side: 'var(--shadow)',

@@ -2,7 +2,7 @@
    Single source of truth for color, type, spacing, radius, motion.
    Palettes switch via <html data-theme="paper|midnight|dusk|mist|sage">.
    No attribute = follow the OS: paper (light) / midnight (dark).
-   Fonts: Geist (UI) + Geist Mono (numbers, dates, scores, IDs, hashes). */
+   Fonts: IBM Plex Sans (UI) + IBM Plex Mono (numbers, dates, scores, IDs, hashes). */
 
 :root {
   --t-12: 12px;
@@ -24,8 +24,8 @@
   --r-float: 14px;
   --m: 160ms;
   --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
-  --font: "Geist Sans", "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+  --font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
 }
 
 /* ========================================================
