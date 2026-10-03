@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, ScoreMeter, MilestonePill, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
@@ -26,6 +26,7 @@ const COMPETENCY_DESCRIPTIONS = {
 
 export default function EmployeeDashboard() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Fetch all employees to find current user's profile
   const { data: employees = [], isLoading: isEmpLoading } = useQuery({
@@ -49,6 +50,17 @@ export default function EmployeeDashboard() {
     queryKey: ['audit-trail', myProfile?.id],
     queryFn: () => evaluationApi.getAuditTrail(myProfile.id),
     enabled: !!myProfile?.id,
+  });
+
+  // Dispatched monthly summaries requiring acknowledgement
+  const { data: mySummaries = [] } = useQuery({
+    queryKey: ['my-summaries'],
+    queryFn: () => interventionApi.listMySummaries(),
+  });
+
+  const ackSummaryMutation = useMutation({
+    mutationFn: (id) => interventionApi.acknowledgeSummary(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-summaries'] }),
   });
 
   const daysElapsed = myProfile ? getDaysElapsed(myProfile.start_date) : 0;
@@ -255,6 +267,43 @@ export default function EmployeeDashboard() {
           </div>
         )}
       </section>
+      {/* Monthly Summaries requiring acknowledgement */}
+      {mySummaries.length > 0 && (
+        <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-line">
+            <div>
+              <h2 className="text-base font-semibold text-ink">Monthly Performance Summaries</h2>
+              <p className="text-xs text-ink-3">Please acknowledge receipt of shared summaries</p>
+            </div>
+            <Badge variant="neutral">{mySummaries.length}</Badge>
+          </div>
+          <div className="divide-y divide-line">
+            {mySummaries.map((s) => (
+              <div key={s.id} className="py-3.5 flex items-center justify-between gap-4">
+                <div className="text-xs">
+                  <span className="font-semibold text-ink">Month {s.month_number}</span>
+                  <span className="text-ink-3 font-mono ml-2">
+                    Avg {Number(s.overall_average).toFixed(2)}
+                  </span>
+                  <span className="text-ink-3 ml-2">{s.status_classification}</span>
+                </div>
+                {s.acknowledged_at ? (
+                  <Badge variant="ok">Acknowledged</Badge>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    isLoading={ackSummaryMutation.isPending}
+                    onClick={() => ackSummaryMutation.mutate(s.id)}
+                  >
+                    Acknowledge
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

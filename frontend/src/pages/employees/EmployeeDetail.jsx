@@ -18,6 +18,8 @@ import {
   History,
   UserCheck,
   UserX,
+  Download,
+  TrendingUp,
 } from 'lucide-react';
 
 const COMPETENCY_DESCRIPTIONS = {
@@ -85,6 +87,39 @@ export default function EmployeeDetail() {
       queryClient.invalidateQueries({ queryKey: ['employee', id] });
     },
   });
+
+  const { data: trend = [] } = useQuery({
+    queryKey: ['trend', id],
+    queryFn: () => evaluationApi.getTrend(id),
+    enabled: !!id,
+    retry: false,
+  });
+
+  const { data: regularization } = useQuery({
+    queryKey: ['regularization', id],
+    queryFn: () => evaluationApi.getRegularization(id),
+    enabled: !!id,
+    retry: false,
+  });
+
+  const regularizationMutation = useMutation({
+    mutationFn: () => evaluationApi.generateRegularization(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['regularization', id] }),
+  });
+
+  const [isExporting, setIsExporting] = useState(false);
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      const reportHtml = await evaluationApi.getReportHtml(id);
+      const blob = new Blob([reportHtml], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -206,6 +241,17 @@ export default function EmployeeDetail() {
                 }}
               >
                 Update Status
+              </Button>
+            )}
+
+            {user?.role !== 'probationary_employee' && (
+              <Button
+                variant="ghost"
+                leftIcon={Download}
+                isLoading={isExporting}
+                onClick={handleExport}
+              >
+                Export Report
               </Button>
             )}
           </div>
@@ -366,6 +412,82 @@ export default function EmployeeDetail() {
               </div>
             ))}
           </div>
+        )}
+      </section>
+
+      {/* 3b. Monthly KPI Trend */}
+      {trend.length > 0 && (
+        <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-line">
+            <h2 className="text-base font-semibold text-ink flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-accent" />
+              <span>Monthly KPI Trend</span>
+            </h2>
+            <Badge variant="neutral">{trend.length} months</Badge>
+          </div>
+          <div className="space-y-3">
+            {trend.map((point) => (
+              <div key={point.month_number} className="space-y-1">
+                <div className="flex justify-between text-xs font-mono text-ink-2">
+                  <span>Month {point.month_number}</span>
+                  <span className="text-ink font-semibold">
+                    {Number(point.overall_average).toFixed(2)} / 5.0
+                  </span>
+                </div>
+                <div className="h-2 w-full bg-hover border border-line rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-accent rounded-full transition-all"
+                    style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 3c. Regularization Recommendation */}
+      <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-line">
+          <div>
+            <h2 className="text-base font-semibold text-ink flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-accent" />
+              <span>Regularization Recommendation</span>
+            </h2>
+            <p className="text-xs text-ink-3 mt-0.5">
+              AI-assisted decision support at the mid-5th month
+            </p>
+          </div>
+          {canRate && (
+            <Button
+              variant="secondary"
+              size="sm"
+              isLoading={regularizationMutation.isPending}
+              onClick={() => regularizationMutation.mutate()}
+            >
+              {regularization ? 'Regenerate' : 'Generate'}
+            </Button>
+          )}
+        </div>
+        {regularization ? (
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={regularization.recommendation === 'Regularize' ? 'ok' : 'bad'}>
+                {regularization.recommendation}
+              </Badge>
+              <Badge variant="neutral">{regularization.status_classification}</Badge>
+              <span className="font-mono text-xs text-ink-3">
+                Avg {Number(regularization.overall_average).toFixed(2)}
+              </span>
+            </div>
+            {regularization.rationale && (
+              <p className="text-xs text-ink-2 bg-hover/50 p-2.5 rounded-ctl border border-line">
+                {regularization.rationale}
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-ink-3">No recommendation generated yet.</p>
         )}
       </section>
 

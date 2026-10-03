@@ -15,6 +15,8 @@ import {
   Palette,
   X,
   ShieldCheck,
+  Bell,
+  Activity,
 } from 'lucide-react';
 
 export default function CommandPalette({ isOpen, onClose }) {
@@ -34,6 +36,7 @@ export default function CommandPalette({ isOpen, onClose }) {
     if (role === 'admin') {
       list.push(
         { id: 'users', label: 'Manage User Accounts', category: 'Navigation', icon: ShieldCheck, action: () => navigate('/admin/users') },
+        { id: 'activity', label: 'System Activity Log', category: 'Navigation', icon: Activity, action: () => navigate('/admin/activity') },
         { id: 'emp', label: 'View Employee Records', category: 'Navigation', icon: Users, action: () => navigate('/employees') },
         { id: 'audit', label: 'Audit Trail & Compliance Logs', category: 'Navigation', icon: History, action: () => navigate('/audits') },
       );
@@ -59,6 +62,7 @@ export default function CommandPalette({ isOpen, onClose }) {
     }
 
     list.push(
+      { id: 'notifications', label: 'View Notifications', category: 'Navigation', icon: Bell, action: () => navigate('/notifications') },
       { id: 'settings', label: 'Platform & Profile Settings', category: 'Navigation', icon: Settings, action: () => navigate('/settings') },
       { id: 'th-paper', label: 'Switch theme to Paper (Warm Light)', category: 'Appearance', icon: Palette, action: () => setPalette('paper') },
       { id: 'th-midnight', label: 'Switch theme to Midnight (Obsidian Dark)', category: 'Appearance', icon: Palette, action: () => setPalette('midnight') },

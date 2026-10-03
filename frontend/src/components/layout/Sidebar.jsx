@@ -16,6 +16,8 @@ import {
   ChevronRight,
   Search,
   ShieldCheck,
+  Bell,
+  Activity,
 } from 'lucide-react';
 
 export default function Sidebar({ onOpenCommandPalette }) {
@@ -47,7 +49,9 @@ export default function Sidebar({ onOpenCommandPalette }) {
       return [
         { label: 'User Accounts', path: '/admin/users', icon: ShieldCheck },
         { label: 'Employee Records', path: '/employees', icon: Users },
+        { label: 'Activity Log', path: '/admin/activity', icon: Activity },
         { label: 'Audit Trail', path: '/audits', icon: History },
+        { label: 'Notifications', path: '/notifications', icon: Bell },
         { label: 'Settings', path: '/settings', icon: Settings },
       ];
     }
@@ -57,6 +61,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         { label: 'Employees', path: '/employees', icon: Users },
         { label: 'Rollups & AI Plans', path: '/rollups', icon: FileCheck2 },
         { label: 'Audit Trail', path: '/audits', icon: History },
+        { label: 'Notifications', path: '/notifications', icon: Bell },
         { label: 'Settings', path: '/settings', icon: Settings },
       ];
     }
@@ -66,6 +71,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         { label: 'Employees', path: '/employees', icon: Users },
         { label: 'Rate Employee', path: '/supervisor/rate', icon: Award },
         { label: 'KPI Rubrics', path: '/supervisor/rubrics', icon: Target },
+        { label: 'Notifications', path: '/notifications', icon: Bell },
         { label: 'Settings', path: '/settings', icon: Settings },
       ];
     }
@@ -73,6 +79,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
     return [
       { label: 'My Scorecard', path: '/employee/dashboard', icon: Award },
       { label: 'Training Plans', path: '/employee/training', icon: BookOpen },
+      { label: 'Notifications', path: '/notifications', icon: Bell },
       { label: 'Settings', path: '/settings', icon: Settings },
     ];
   };

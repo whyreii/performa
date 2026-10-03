@@ -14,9 +14,11 @@ import Rubrics from './pages/supervisor/Rubrics';
 import Dashboard from './pages/employer/Dashboard';
 import Rollups from './pages/employer/Rollups';
 import AuditTrail from './pages/admin/AuditTrail';
+import ActivityLog from './pages/admin/ActivityLog';
 import UserManagement from './pages/admin/UserManagement';
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import EmployeeTraining from './pages/employee/EmployeeTraining';
+import Notifications from './pages/notifications/Notifications';
 
 // Create TanStack Query client with sensible defaults
 const queryClient = new QueryClient({
@@ -111,6 +113,14 @@ export default function App() {
                   }
                 />
                 <Route path="/admin/dashboard" element={<Navigate to="/admin/users" replace />} />
+                <Route
+                  path="/admin/activity"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <ActivityLog />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Employer & Admin Routes */}
                 <Route
@@ -200,6 +210,7 @@ export default function App() {
 
                 {/* Common Settings Route */}
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/notifications" element={<Notifications />} />
               </Route>
 
               {/* Default fallback */}

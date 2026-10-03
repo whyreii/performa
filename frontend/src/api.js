@@ -153,6 +153,33 @@ export const evaluationApi = {
     const response = await apiClient.post(`/api/evaluations/${employeeId}/weekly`, data);
     return response.data;
   },
+  getRiskExplanation: async (employeeId) => {
+    const response = await apiClient.get(`/api/evaluations/${employeeId}/risk-explanation`);
+    return response.data;
+  },
+  getTrend: async (employeeId) => {
+    const response = await apiClient.get(`/api/evaluations/${employeeId}/trend`);
+    return response.data;
+  },
+  getRegularization: async (employeeId) => {
+    const response = await apiClient.get(
+      `/api/evaluations/${employeeId}/regularization-recommendation`
+    );
+    return response.data;
+  },
+  generateRegularization: async (employeeId) => {
+    const response = await apiClient.post(
+      `/api/evaluations/${employeeId}/regularization-recommendation`
+    );
+    return response.data;
+  },
+  getReportHtml: async (employeeId) => {
+    const response = await apiClient.get(`/api/evaluations/${employeeId}/report`, {
+      responseType: 'text',
+      headers: { Accept: 'text/html' },
+    });
+    return response.data;
+  },
 };
 
 // Interventions & Rollups API methods
@@ -175,6 +202,38 @@ export const interventionApi = {
     );
     return response.data;
   },
+  listSummaries: async () => {
+    const response = await apiClient.get('/api/interventions/summaries');
+    return response.data;
+  },
+  listMySummaries: async () => {
+    const response = await apiClient.get('/api/interventions/summaries/mine');
+    return response.data;
+  },
+  dispatchSummary: async (summaryId) => {
+    const response = await apiClient.post(`/api/interventions/summaries/${summaryId}/dispatch`);
+    return response.data;
+  },
+  acknowledgeSummary: async (summaryId) => {
+    const response = await apiClient.post(`/api/interventions/summaries/${summaryId}/acknowledge`);
+    return response.data;
+  },
+};
+
+// Notifications API methods
+export const notificationApi = {
+  list: async (params = {}) => {
+    const response = await apiClient.get('/api/notifications', { params });
+    return response.data;
+  },
+  markRead: async (id) => {
+    const response = await apiClient.post(`/api/notifications/${id}/read`);
+    return response.data;
+  },
+  markAllRead: async () => {
+    const response = await apiClient.post('/api/notifications/read-all');
+    return response.data;
+  },
 };
 
 // Admin User Management API methods
@@ -193,6 +252,18 @@ export const adminApi = {
   },
   resetPassword: async (userId, password) => {
     const response = await apiClient.post(`/api/admin/users/${userId}/reset-password`, { password });
+    return response.data;
+  },
+  listActivity: async (params = {}) => {
+    const response = await apiClient.get('/api/admin/activity', { params });
+    return response.data;
+  },
+  getSettings: async () => {
+    const response = await apiClient.get('/api/admin/settings');
+    return response.data;
+  },
+  getReportsOverview: async () => {
+    const response = await apiClient.get('/api/admin/reports/overview');
     return response.data;
   },
 };

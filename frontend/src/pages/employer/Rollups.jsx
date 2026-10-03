@@ -85,6 +85,27 @@ export default function Rollups() {
     },
   });
 
+  // Monthly summaries (dispatch to employees for acknowledgement)
+  const { data: summaries = [] } = useQuery({
+    queryKey: ['summaries'],
+    queryFn: () => interventionApi.listSummaries(),
+  });
+
+  const dispatchMutation = useMutation({
+    mutationFn: (id) => interventionApi.dispatchSummary(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['summaries'] });
+      setActionMessage({ type: 'success', text: 'Summary dispatched to employee.' });
+      setTimeout(() => setActionMessage({ type: '', text: '' }), 3000);
+    },
+    onError: (err) => {
+      setActionMessage({
+        type: 'error',
+        text: getApiErrorMessage(err, 'Failed to dispatch summary.'),
+      });
+    },
+  });
+
   const handleOpenGenerate = () => {
     if (activeProbationers.length > 0 && !selectedEmpId) {
       setSelectedEmpId(activeProbationers[0].id);
@@ -233,6 +254,47 @@ export default function Rollups() {
                     </span>
                     <p className="leading-relaxed">{plan.rationale}</p>
                   </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Monthly Summaries (dispatch for acknowledgement) */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-ink">Monthly Summaries</h2>
+          <span className="text-xs text-ink-3">Dispatch to employees for digital acknowledgement</span>
+        </div>
+        {summaries.length === 0 ? (
+          <div className="p-6 bg-surface border border-line rounded-float text-center text-xs text-ink-3">
+            No monthly summaries generated yet. Run a rollup above.
+          </div>
+        ) : (
+          <div className="bg-surface border border-line rounded-float divide-y divide-line shadow-sm">
+            {summaries.map((summary) => (
+              <div key={summary.id} className="p-4 flex items-center justify-between gap-4">
+                <div className="text-xs">
+                  <span className="font-semibold text-ink">Month {summary.month_number}</span>
+                  <span className="text-ink-3 font-mono ml-2">
+                    Avg {Number(summary.overall_average).toFixed(2)}
+                  </span>
+                  <span className="text-ink-3 ml-2">{summary.status_classification}</span>
+                </div>
+                {summary.acknowledged_at ? (
+                  <Badge variant="ok">Acknowledged</Badge>
+                ) : summary.dispatched_at ? (
+                  <Badge variant="accent">Dispatched</Badge>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={dispatchMutation.isPending}
+                    onClick={() => dispatchMutation.mutate(summary.id)}
+                  >
+                    Dispatch
+                  </Button>
                 )}
               </div>
             ))}
