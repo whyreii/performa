@@ -125,6 +125,6 @@ Clean. `backend/ml/predictor.py` validates all 5 competencies present/numeric/in
 | TEST | ✅ Fixed | Added RBAC + rollup-preservation regression tests; updated month-window tests. Suite: **38 passed**. |
 | RBAC-5 | ⏸ Won't-fix | Admin keeps view-only `/employees/supervisors` (per decision). |
 | UX (month selector) | ⏸ By design | Months 1–5 only (system scoped to mid-5th month). |
-| DOMAIN-1 | ⏳ Pending decision | Day-count convention (Day 1 vs Day 0) needs a legal call before changing statutory math. |
+| DOMAIN-1 | ✅ Resolved (label-only) | Kept the existing Day-0 statutory math (internally consistent across milestones/cap/rollups); relabeled the UI start marker to **"Start (Day 0)"** so the label matches the math. No statutory dates changed. |
 
 **Live RBAC verification (post-fix):** rollup / dispatch / sign-off / regularization → `admin=403, employer=404, supervisor=403`.
