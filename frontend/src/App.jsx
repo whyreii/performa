@@ -1,25 +1,35 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
-import Login from './pages/auth/Login';
-import AppShell from './components/layout/AppShell';
-import Settings from './pages/settings/Settings';
-import Employees from './pages/employees/Employees';
-import EmployeeDetail from './pages/employees/EmployeeDetail';
-import RateEmployee from './pages/supervisor/RateEmployee';
-import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
-import Rubrics from './pages/supervisor/Rubrics';
-import Dashboard from './pages/employer/Dashboard';
-import Rollups from './pages/employer/Rollups';
-import AuditTrail from './pages/admin/AuditTrail';
-import ActivityLog from './pages/admin/ActivityLog';
-import UserManagement from './pages/admin/UserManagement';
-import EmployeeDashboard from './pages/employee/EmployeeDashboard';
-import EmployeeTraining from './pages/employee/EmployeeTraining';
-import Notifications from './pages/notifications/Notifications';
+
+// Route-level code splitting: each page is loaded on demand.
+const Login = lazy(() => import('./pages/auth/Login'));
+const AppShell = lazy(() => import('./components/layout/AppShell'));
+const Settings = lazy(() => import('./pages/settings/Settings'));
+const Employees = lazy(() => import('./pages/employees/Employees'));
+const EmployeeDetail = lazy(() => import('./pages/employees/EmployeeDetail'));
+const RateEmployee = lazy(() => import('./pages/supervisor/RateEmployee'));
+const SupervisorDashboard = lazy(() => import('./pages/supervisor/SupervisorDashboard'));
+const Rubrics = lazy(() => import('./pages/supervisor/Rubrics'));
+const Dashboard = lazy(() => import('./pages/employer/Dashboard'));
+const Rollups = lazy(() => import('./pages/employer/Rollups'));
+const AuditTrail = lazy(() => import('./pages/admin/AuditTrail'));
+const ActivityLog = lazy(() => import('./pages/admin/ActivityLog'));
+const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
+const EmployeeDashboard = lazy(() => import('./pages/employee/EmployeeDashboard'));
+const EmployeeTraining = lazy(() => import('./pages/employee/EmployeeTraining'));
+const Notifications = lazy(() => import('./pages/notifications/Notifications'));
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen bg-bg flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-2 border-line border-t-accent animate-spin" />
+    </div>
+  );
+}
 
 // Create TanStack Query client with sensible defaults
 const queryClient = new QueryClient({
@@ -93,6 +103,7 @@ export default function App() {
         <AuthProvider>
           <ToastProvider>
             <BrowserRouter>
+              <Suspense fallback={<RouteFallback />}>
               <Routes>
               {/* Public route */}
               <Route path="/login" element={<Login />} />
@@ -220,6 +231,7 @@ export default function App() {
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
+              </Suspense>
           </BrowserRouter>
         </ToastProvider>
       </AuthProvider>
