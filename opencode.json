@@ -1,13 +1,15 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "small_model": "opencode-go/deepseek-v4.1-flash",
   "lsp": true,
-  "formatter": true,
+  "formatter": false,
   "watcher": {
     "ignore": [
       ".env",
+      "*.db",
       "**/*.db",
+      "*.sqlite",
       "**/*.sqlite",
+      "*.sqlite3",
       "**/*.sqlite3",
       ".playwright-mcp/*.log",
       ".playwright-mcp/*.yml",
@@ -21,8 +23,11 @@
     "read": {
       "*": "allow",
       ".env": "deny",
+      "*.db": "deny",
       "**/*.db": "deny",
+      "*.sqlite": "deny",
       "**/*.sqlite": "deny",
+      "*.sqlite3": "deny",
       "**/*.sqlite3": "deny",
       ".playwright-mcp/*.log": "deny",
       ".playwright-mcp/*.yml": "deny",
@@ -34,15 +39,19 @@
     "bash": {
       "*": "allow",
       "git push*": "ask",
+      "git -C * push*": "ask",
       "git reset --hard*": "ask",
       "rm -rf *": "deny",
-      "rmdir /s*": "deny"
+      "rmdir /s*": "deny",
+      "rd /s*": "deny",
+      "del /s*": "deny",
+      "Remove-Item -Recurse*": "deny"
     }
   },
   "mcp": {
     "playwright": {
       "type": "local",
-      "command": ["npx", "-y", "@playwright/mcp@latest", "--browser", "msedge"],
+      "command": ["npx", "-y", "@playwright/mcp@0.0.83", "--browser", "msedge"],
       "enabled": true
     }
   }

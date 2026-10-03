@@ -3,12 +3,12 @@ description: Audit the working/staged diff against Performa invariants before co
 ---
 
 Audit the current changes against Performa's immutable invariants (see AGENTS.md).
-Read-only: inspect with git/read/grep only — never edit.
+Read-only: inspect with git/read/grep only - never edit.
 
 1. Review `git diff` and `git diff --staged` for every changed file.
 2. Flag violations:
-   - Raw `#hex` colors in `frontend/src/**` — styling must use tokens from `src/tokens.css`.
-   - Non-global `String.replace('_', ' ')` in JS/JSX — must use `.replace(/_/g, ' ')` or `.replaceAll('_', ' ')`.
+   - Raw `#hex` colors in `frontend/src/**` components - styling must use tokens from `src/tokens.css`. (Exclude `frontend/src/tokens.css` itself, which defines the tokens as hex.)
+   - Non-global `String.replace('_', ' ')` in JS/JSX - must use `.replace(/_/g, ' ')` or `.replaceAll('_', ' ')`.
    - Any change to Article 296 math: Day 0 = start, milestones 150 / 165 / 178, 180-day cap, or the 4.0/5.0 benchmark.
    - Business dates built with `new Date().toISOString()` (must use `src/utils/datetime.js` on the frontend, `backend.timeutils.manila_today()` on the backend).
    - RBAC: writes that must stay Employer-only (employee create/edit/status, KPI definitions, monthly rollups, dispatch, sign-off, regularization).
