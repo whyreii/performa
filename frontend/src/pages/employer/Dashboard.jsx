@@ -212,9 +212,10 @@ export default function Dashboard() {
             <Button
               variant="primary"
               size="sm"
+              rightIcon={ArrowRight}
               onClick={() => navigate('/employees')}
             >
-              Review now →
+              Review now
             </Button>
           </div>
         </section>

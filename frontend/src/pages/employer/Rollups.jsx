@@ -18,6 +18,7 @@ import {
   Calendar,
   Plus,
   X,
+  ArrowRight,
 } from 'lucide-react';
 
 export default function Rollups() {
@@ -414,9 +415,10 @@ export default function Rollups() {
                   </span>
                   <Link
                     to={`/supervisor/rate?employee=${selectedEmp.id}`}
-                    className="text-accent font-semibold hover:underline shrink-0"
+                    className="inline-flex items-center gap-1 text-accent font-semibold hover:underline shrink-0"
                   >
-                    Rate first →
+                    Rate first
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               )}

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { Search, Settings, Palette, X, Bell } from 'lucide-react';
+import { Search, Settings, Palette, X, Bell, ArrowUp, ArrowDown } from 'lucide-react';
 import { commandNav } from '../../config/nav';
 
 export default function CommandPalette({ isOpen, onClose }) {
@@ -150,7 +150,12 @@ export default function CommandPalette({ isOpen, onClose }) {
 
         {/* Footer shortcuts hint */}
         <div className="px-4 py-2 border-t border-line flex items-center justify-between text-[11px] text-ink-3 font-mono bg-surface/30">
-          <span>Navigate with ↑ ↓ · Press Enter to execute</span>
+          <span className="inline-flex items-center gap-1">
+            Navigate with
+            <ArrowUp className="w-3 h-3" />
+            <ArrowDown className="w-3 h-3" />
+            · Press Enter to execute
+          </span>
           <span>Esc to close</span>
         </div>
       </div>

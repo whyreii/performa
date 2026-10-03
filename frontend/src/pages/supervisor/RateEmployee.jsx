@@ -313,14 +313,14 @@ export default function RateEmployee() {
                       {currentScore.toFixed(1)}
                     </span>
                     <Badge variant={isMeets ? 'ok' : isWarn ? 'warn' : 'bad'}>
-                      {isMeets ? 'Meets (≥ 4.0)' : isWarn ? 'Developing' : 'Critical Gap'}
+                      {isMeets ? 'Meets (>= 4.0)' : isWarn ? 'Developing' : 'Critical Gap'}
                     </Badge>
                   </div>
                 </div>
 
                 {/* Score Selector Scale (1.0 to 5.0) */}
                 <div className="pt-2">
-                  <div className="flex items-center justify-between gap-0.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                  <div className="flex items-center justify-between gap-0.5 sm:gap-2 overflow-x-auto pt-3 pb-1 sm:pb-0 scrollbar-none">
                     {[1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0].map((score) => {
                       const isSelected = currentScore === score;
                       const isTarget = score === 4.0;

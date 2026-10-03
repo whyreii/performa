@@ -203,7 +203,7 @@ export default function AuditTrail() {
                               <ArrowRight className="w-3 h-3 text-ink-3" />
                             </>
                           ) : (
-                            <span className="text-ink-3 text-[10px]">Initial →</span>
+                            <span className="text-ink-3 text-[10px]">Initial -&gt;</span>
                           )}
                           <span className="font-bold text-ink text-sm">
                             {log.new_score?.toFixed(1)}

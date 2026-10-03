@@ -255,7 +255,7 @@ export default function EmployeeDashboard() {
                   </div>
                   <div className="flex items-center gap-2 text-xs font-mono text-ink-2">
                     <span className="text-ink-3">
-                      {hasPrior ? `${Number(log.prior_score).toFixed(1)} → ` : 'Initial → '}
+                      {hasPrior ? `${Number(log.prior_score).toFixed(1)} -> ` : 'Initial -> '}
                     </span>
                     <span className="font-bold text-ink">
                       {Number(log.new_score).toFixed(1)}

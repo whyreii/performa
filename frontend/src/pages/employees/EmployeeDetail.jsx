@@ -24,6 +24,7 @@ import {
   Download,
   TrendingUp,
   FileText,
+  ArrowRight,
 } from 'lucide-react';
 
 const COMPETENCY_DESCRIPTIONS = {
@@ -566,7 +567,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <span>Monthly KPI Trend</span>
             </h2>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono text-ink-3">Target ≥ 4.00</span>
+              <span className="text-[11px] font-mono text-ink-3">Target &gt;= 4.00</span>
               <Badge variant="neutral">{trend.length} months</Badge>
             </div>
           </div>
@@ -639,7 +640,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 to={`/supervisor/rate?employee=${id}`}
                 className="inline-flex items-center gap-1 text-accent font-semibold hover:underline"
               >
-                Rate Employee →
+                Rate Employee
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             )}
           </div>
@@ -742,7 +744,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   </div>
                   <div className="flex items-center gap-2 text-xs font-mono text-ink-2">
                     <span className="text-ink-3">
-                      {hasPrior ? `${Number(log.prior_score).toFixed(1)} → ` : 'Initial → '}
+                      {hasPrior ? `${Number(log.prior_score).toFixed(1)} -> ` : 'Initial -> '}
                     </span>
                     <span className="font-bold text-ink">
                       {Number(log.new_score).toFixed(1)}
