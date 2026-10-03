@@ -9,6 +9,7 @@ python-dotenv>=1.0.0
 # Database & ORM
 SQLAlchemy[asyncio]>=2.0.30
 asyncpg>=0.29.0
+aiosqlite>=0.20.0
 alembic>=1.13.0
 
 # Validation & Schemas
