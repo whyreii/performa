@@ -63,7 +63,7 @@
 33. ✅ **Fixed** — Icon-only buttons have descriptive `aria-label`s.
 34. ✅ **Fixed** — Search inputs in UserManagement, AuditTrail, and Employees have `aria-label`s.
 35. ✅ **Fixed** — Global `@media (prefers-reduced-motion: reduce)` block in `index.css`.
-36. `AuditTrail.jsx:88` — "Print Compliance Log" calls `window.print()` with no print stylesheet. → add `@media print` styling.
+36. ✅ **Fixed** — `AuditTrail.jsx` now features dedicated `@media print` styling, formal DOLE headers, and physical signature lines (`Evaluator`, `Employee`, `HR Head`).
 37. Tables lack `<caption>` and `scope` on `<th>`.
 
 ---
@@ -81,7 +81,7 @@
     - `EmployeeDashboard.jsx` scorecard & summaries
     - `EmployeeDetail.jsx` trend, regularization, and risk queries
 42. `Notifications.jsx` mark-read mutations error feedback.
-43. Shared toast/notification banner system for inline actions.
+43. ✅ **Fixed** — Lightweight floating glassmorphism toast system implemented (`ToastContext.jsx`) and wired into rating, status transition, and copy actions.
 
 ---
 
@@ -113,8 +113,8 @@
 
 | Status | Count | Description |
 | :--- | :---: | :--- |
-| ✅ **Fixed** | **23** | Code, date, regex, pluralization, a11y, and manuscript-aligned RBAC write-lock resolved |
+| ✅ **Fixed** | **25** | Code, date, regex, pluralization, a11y, print styles, toasts, and manuscript RBAC write-lock resolved |
 | 🛡️ **Preserved** | **4** | Core thesis pillars (XAI Random Forest, 4.0 benchmark, dual audit trails) protected |
 | ◐ **Partial** | **1** | Modal focus trapping / dialog attributes across remaining pages |
-| 📋 **Open** | **27** | Remaining UX consistency, print styling, and responsive polish items |
+| 📋 **Open** | **25** | Remaining UX consistency and mobile responsive polish items |
 | **Total Items Audited** | **55** | Comprehensive static + dynamic coverage |
