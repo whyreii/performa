@@ -401,7 +401,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           {/* Milestone markers */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-[11px] font-mono">
             <div className="p-2.5 rounded-ctl bg-hover border border-line">
-              <span className="text-ink-3 block">Day 1 (Start)</span>
+              <span className="text-ink-3 block">Start (Day 0)</span>
               <span className="font-semibold text-ink">{formatDate(employee.start_date)}</span>
             </div>
 
