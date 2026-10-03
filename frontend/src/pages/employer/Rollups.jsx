@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
+import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { Button, Badge, Skeleton } from '../../components/ui';
 import {
   FileCheck2,
@@ -109,10 +110,18 @@ export default function Rollups() {
     },
   });
 
+  // Default the evaluation month to the employee's current 30-day cycle
+  // (clamped to the 5-month operating window) instead of always month 1.
+  const monthForEmployee = (empId) => {
+    const emp = activeProbationers.find((e) => e.id === empId);
+    if (!emp) return 1;
+    return Math.min(5, Math.max(1, Math.floor(getDaysElapsed(emp.start_date) / 30) + 1));
+  };
+
   const handleOpenGenerate = () => {
-    if (activeProbationers.length > 0 && !selectedEmpId) {
-      setSelectedEmpId(activeProbationers[0].id);
-    }
+    const empId = selectedEmpId || activeProbationers[0]?.id || '';
+    setSelectedEmpId(empId);
+    setMonthNumber(monthForEmployee(empId));
     setIsGenerateModalOpen(true);
   };
 
@@ -343,7 +352,11 @@ export default function Rollups() {
                 <select
                   id="r_emp"
                   value={selectedEmpId}
-                  onChange={(e) => setSelectedEmpId(e.target.value)}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setSelectedEmpId(id);
+                    setMonthNumber(monthForEmployee(id));
+                  }}
                   className="w-full h-10 px-3 rounded-ctl border border-line bg-surface text-ink text-sm focus:outline-none focus:border-accent transition-colors"
                 >
                   {activeProbationers.map((emp) => (
