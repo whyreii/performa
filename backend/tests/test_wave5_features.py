@@ -185,3 +185,33 @@ async def test_kpi_trend(client):
     assert len(points) >= 1
     assert points[0]["month_number"] == 1
     assert set(COMPETENCIES) <= set(points[0])
+
+
+async def test_notifications_created_on_dispatch(client):
+    employer = await _login(client, "employer@acme.com")
+    carlos_id = await _find_employee(client, employer, "Carlos Early")
+    await client.post(
+        f"/api/evaluations/{carlos_id}/weekly",
+        headers=employer,
+        json={competency: 3.5 for competency in COMPETENCIES},
+    )
+    rollup = await client.post(
+        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=1", headers=employer
+    )
+    assert rollup.status_code == 201, rollup.text
+    summary_id = rollup.json()["id"]
+    await client.post(
+        f"/api/interventions/summaries/{summary_id}/dispatch", headers=employer
+    )
+
+    employee = await _login(client, "emp1@acme.com")
+    notes = await client.get("/api/notifications", headers=employee)
+    assert notes.status_code == 200, notes.text
+    assert len(notes.json()) >= 1
+    notification_id = notes.json()[0]["id"]
+
+    read = await client.post(
+        f"/api/notifications/{notification_id}/read", headers=employee
+    )
+    assert read.status_code == 200, read.text
+    assert read.json()["is_read"] is True

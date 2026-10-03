@@ -23,6 +23,7 @@ from .routers.employees import router as employees_router
 from .routers.evaluations import router as evaluations_router
 from .routers.interventions import router as interventions_router
 from .routers.kpi import router as kpi_router
+from .routers.notifications import router as notifications_router
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
@@ -67,6 +68,7 @@ app.include_router(employees_router, prefix="/api/employees")
 app.include_router(evaluations_router, prefix="/api/evaluations")
 app.include_router(interventions_router)
 app.include_router(kpi_router)
+app.include_router(notifications_router)
 
 
 @app.get("/", tags=["System"], summary="API Root Information")

@@ -26,6 +26,7 @@ from sqlalchemy.orm import selectinload
 from ..auth import get_current_user, require_role
 from ..audit import record_activity
 from ..database import get_db
+from ..notifications import create_notification
 from ..gemini import generate_performance_rationales
 from ..ml.catalog import COMPETENCIES, recommend_courses
 from ..ml.predictor import predict_employee_risk
@@ -377,6 +378,24 @@ async def dispatch_monthly_summary(
             entity_type="monthly_summary",
             entity_id=summary.id,
         )
+        employee_user_id = (
+            await db.execute(
+                select(ProbationaryEmployee.user_id).where(
+                    ProbationaryEmployee.id == summary.employee_id
+                )
+            )
+        ).scalar_one()
+        create_notification(
+            db,
+            user_id=employee_user_id,
+            organization_id=current_user.organization_id,
+            title="Monthly performance summary available",
+            body=(
+                f"Your month {summary.month_number} performance summary has been "
+                "shared. Please review and acknowledge it."
+            ),
+            category="summary",
+        )
         await db.commit()
         await db.refresh(summary)
     return summary
@@ -510,6 +529,21 @@ async def sign_off_intervention(
         entity_type="training_plan",
         entity_id=plan.id,
         detail=f"approved={payload.approved}",
+    )
+    employee_user_id = (
+        await db.execute(
+            select(ProbationaryEmployee.user_id).where(
+                ProbationaryEmployee.id == plan.employee_id
+            )
+        )
+    ).scalar_one()
+    create_notification(
+        db,
+        user_id=employee_user_id,
+        organization_id=current_user.organization_id,
+        title=f"Training intervention {'approved' if payload.approved else 'not approved'}",
+        body=plan.intervention_title,
+        category="training",
     )
     await db.commit()
     await db.refresh(plan)

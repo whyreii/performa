@@ -457,6 +457,29 @@ class ActivityLog(Base):
     )
 
 
+class Notification(Base):
+    """An in-app notification for a single user."""
+
+    __tablename__ = "notifications"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("users.id"), nullable=False, index=True
+    )
+    organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    body: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    category: Mapped[str] = mapped_column(String(50), default="general", nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=_utcnow,
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+    )
+
+
 __all__ = [
     "UserRole",
     "ProbationStatus",
@@ -473,4 +496,5 @@ __all__ = [
     "EvaluationAuditLog",
     "RegularizationRecommendation",
     "ActivityLog",
+    "Notification",
 ]

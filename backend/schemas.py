@@ -430,6 +430,19 @@ class ActivityLogResponse(BaseModel):
     created_at: datetime
 
 
+class NotificationResponse(BaseModel):
+    """An in-app notification."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    title: str
+    body: Optional[str] = None
+    category: str
+    is_read: bool
+    created_at: datetime
+
+
 __all__ = [
     "UserBase",
     "UserCreate",
@@ -470,4 +483,5 @@ __all__ = [
     "TrainingPlanSignOff",
     "AuditLogItemResponse",
     "ActivityLogResponse",
+    "NotificationResponse",
 ]
