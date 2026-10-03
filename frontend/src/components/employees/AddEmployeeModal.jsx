@@ -20,10 +20,12 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
   const [supervisorId, setSupervisorId] = useState('');
   const [error, setError] = useState('');
 
-  // Load assignable supervisors for this tenant
+  // Load assignable supervisors for this tenant (only while the modal is open,
+  // so non-employer roles viewing the directory don't fire a forbidden request).
   const { data: supervisors = [], isLoading: isSupervisorsLoading } = useQuery({
     queryKey: ['supervisors'],
     queryFn: () => employeeApi.listSupervisors(),
+    enabled: isOpen,
   });
 
   useEffect(() => {
