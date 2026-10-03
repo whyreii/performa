@@ -73,8 +73,10 @@ export default function ActivityLog() {
                     <td className="py-3 px-4 text-ink-2 font-mono whitespace-nowrap">
                       {entry.created_at ? formatDate(entry.created_at, { withTime: true }) : ''}
                     </td>
-                    <td className="py-3 px-4 font-medium text-ink truncate max-w-[200px]" title={entry.actor_name || ''}>
-                      {entry.actor_name || '—'}
+                    <td className="py-3 px-4 font-medium text-ink">
+                      <span className="block truncate max-w-[200px]" title={entry.actor_name || ''}>
+                        {entry.actor_name || '—'}
+                      </span>
                     </td>
                     <td className="py-3 px-4">
                       <Badge variant="accent">{entry.action}</Badge>
@@ -82,8 +84,10 @@ export default function ActivityLog() {
                     <td className="py-3 px-4 text-ink-2 font-mono">
                       {entry.entity_type || '—'}
                     </td>
-                    <td className="py-3 px-4 text-ink-3 font-mono truncate max-w-[240px]">
-                      {entry.detail || '—'}
+                    <td className="py-3 px-4 text-ink-3 font-mono">
+                      <span className="block truncate max-w-[240px]" title={entry.detail || ''}>
+                        {entry.detail || '—'}
+                      </span>
                     </td>
                   </tr>
                 ))}
