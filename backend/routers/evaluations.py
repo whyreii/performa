@@ -163,7 +163,7 @@ async def submit_weekly_rating(
 
     overall_score = round(sum(new_scores.values()) / len(new_scores), 2)
 
-    evaluation_date_value = manila_today()
+    evaluation_date_value = payload.evaluation_date or manila_today()
     week_number = max(1, ((evaluation_date_value - employee.start_date).days // 7) + 1)
 
     evaluation = WeeklyEvaluation(
@@ -372,7 +372,13 @@ async def create_regularization_recommendation(
     """Aggregate the first 150 days of evaluations into a decision-support output."""
     employee = await _get_scoped_employee(db, employee_id, current_user)
 
-    horizon = employee.start_date + timedelta(days=REGULARIZATION_HORIZON_DAYS)
+    # Under Article 296 the mid-5th-month review targets the Day 150 milestone.
+    # For employees at or past Day 150 (Days 151-180), include all evaluations up
+    # to today so milestone reviews still incorporate late-entered ratings.
+    horizon = max(
+        employee.start_date + timedelta(days=REGULARIZATION_HORIZON_DAYS),
+        manila_today(),
+    )
     stmt = select(WeeklyEvaluation).where(
         WeeklyEvaluation.employee_id == employee.id,
         WeeklyEvaluation.organization_id == current_user.organization_id,
@@ -382,7 +388,11 @@ async def create_regularization_recommendation(
     if not evaluations:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No evaluations recorded within the first 150 days",
+            detail=(
+                "No weekly evaluations recorded for this employee. At least one "
+                "weekly rating is required before generating AI regularization "
+                "decision support."
+            ),
         )
 
     scores = {

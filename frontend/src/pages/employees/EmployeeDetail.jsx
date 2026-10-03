@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
@@ -122,7 +122,13 @@ export default function EmployeeDetail() {
 
   const regularizationMutation = useMutation({
     mutationFn: () => evaluationApi.generateRegularization(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['regularization', id] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['regularization', id] });
+      toast.success('AI regularization recommendation generated successfully.');
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, 'Failed to generate regularization recommendation.'));
+    },
   });
 
   const [isExporting, setIsExporting] = useState(false);
@@ -541,13 +547,32 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               variant="secondary"
               size="sm"
               isLoading={regularizationMutation.isPending}
+              disabled={!hasEvaluations}
+              title={!hasEvaluations ? 'Submit weekly ratings first' : undefined}
               onClick={() => regularizationMutation.mutate()}
             >
-              {regularization ? 'Regenerate' : 'Generate'}
+              {regularizationMutation.isPending
+                ? 'Generating...'
+                : regularization
+                ? 'Regenerate'
+                : 'Generate'}
             </Button>
           )}
         </div>
-        {regularization ? (
+        {!hasEvaluations ? (
+          <div className="text-xs text-ink-3 space-y-2">
+            <p>
+              No weekly evaluations recorded yet. A supervisor must submit at least one
+              weekly rating before generating AI decision support.
+            </p>
+            <Link
+              to={`/supervisor/rate?employee=${id}`}
+              className="inline-flex items-center gap-1 text-accent font-semibold hover:underline"
+            >
+              Rate Employee →
+            </Link>
+          </div>
+        ) : regularization ? (
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={regularization.recommendation === 'Regularize' ? 'ok' : 'bad'}>
@@ -565,7 +590,10 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             )}
           </div>
         ) : (
-          <p className="text-xs text-ink-3">No recommendation generated yet.</p>
+          <p className="text-xs text-ink-3">
+            Evaluations recorded. Click "Generate" to run the Random Forest classifier and
+            Gemini decision rationale.
+          </p>
         )}
       </section>
 

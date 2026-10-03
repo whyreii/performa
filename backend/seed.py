@@ -11,6 +11,7 @@ milestones (Day 150 / 165 / 178 / 180).
 """
 from __future__ import annotations
 
+import argparse
 import asyncio
 import logging
 from collections.abc import Sequence
@@ -165,7 +166,76 @@ async def _reset(session: AsyncSession) -> None:
     await session.flush()
 
 
-async def seed(session: AsyncSession) -> SeedResult:
+_DEMO_EVALUATION_SPECS: dict[str, tuple[float, int]] = {
+    "emp1@acme.com": (4.0, 4),   # Carlos Early: Month 1 complete
+    "emp2@acme.com": (4.3, 21),  # Maria Midterm: Months 1-5 complete
+    "emp4@acme.com": (2.8, 25),  # Ana Urgent: critical gaps justifying notice
+}
+
+_COMPETENCY_KEYS: tuple[str, ...] = (
+    "task_completion",
+    "attendance_and_punctuality",
+    "communication_and_teamwork",
+    "initiative_and_adaptability",
+    "quality_of_work",
+)
+
+
+async def _seed_evaluations(
+    session: AsyncSession,
+    employees_by_email: dict[str, ProbationaryEmployee],
+    evaluator_id,
+    organization_id: str,
+    today: date,
+) -> int:
+    """Create realistic demo weekly evaluations (and matching audit entries)."""
+    created = 0
+    for email, (base, weeks) in _DEMO_EVALUATION_SPECS.items():
+        employee = employees_by_email.get(email)
+        if employee is None:
+            continue
+        previous: dict[str, float] = {}
+        for week in range(1, weeks + 1):
+            evaluation_date = employee.start_date + timedelta(days=(week - 1) * 7)
+            if evaluation_date > today:
+                break
+            scores = {
+                key: round(min(5.0, max(1.0, base + ((week + index) % 3 - 1) * 0.2)), 1)
+                for index, key in enumerate(_COMPETENCY_KEYS)
+            }
+            overall = round(sum(scores.values()) / len(scores), 2)
+            session.add(
+                WeeklyEvaluation(
+                    employee_id=employee.id,
+                    evaluator_id=evaluator_id,
+                    organization_id=organization_id,
+                    evaluation_date=evaluation_date,
+                    week_number=week,
+                    overall_score=overall,
+                    remarks=f"Week {week} evaluation (demo data).",
+                    **scores,
+                )
+            )
+            for key in _COMPETENCY_KEYS:
+                session.add(
+                    EvaluationAuditLog(
+                        employee_id=employee.id,
+                        evaluator_id=evaluator_id,
+                        organization_id=organization_id,
+                        competency=key,
+                        prior_score=previous.get(key),
+                        new_score=scores[key],
+                    )
+                )
+            previous = scores
+            created += 1
+    await session.flush()
+    return created
+
+
+async def seed(
+    session: AsyncSession, with_evaluations: bool = True
+) -> SeedResult:
     """Seed the Acme Philippines Corp. tenant and return a result summary."""
     await _reset(session)
 
@@ -213,6 +283,7 @@ async def seed(session: AsyncSession) -> SeedResult:
         ),
     ]
     employees: list[SeededEmployee] = []
+    employees_by_email: dict[str, ProbationaryEmployee] = {}
 
     for spec in _EMPLOYEE_SPECS:
         start_date = today - timedelta(days=spec.days_elapsed)
@@ -242,6 +313,7 @@ async def seed(session: AsyncSession) -> SeedResult:
         )
         session.add(employee)
         await session.flush()
+        employees_by_email[spec.email] = employee
 
         accounts.append(
             SeededAccount(
@@ -263,6 +335,11 @@ async def seed(session: AsyncSession) -> SeedResult:
                 supervisor=supervisor.full_name if spec.assign_supervisor else "-",
                 scenario=spec.scenario,
             )
+        )
+
+    if with_evaluations:
+        await _seed_evaluations(
+            session, employees_by_email, supervisor.id, tenant_key, today
         )
 
     await session.commit()
@@ -341,6 +418,20 @@ def _log_result(result: SeedResult) -> None:
 
 async def main() -> None:
     """Create schema (if needed), seed the tenant, and always dispose."""
+    parser = argparse.ArgumentParser(description="Seed the Performa demo tenant.")
+    parser.add_argument(
+        "--demo",
+        action="store_true",
+        help="Seed demo weekly evaluations (default behavior).",
+    )
+    parser.add_argument(
+        "--no-evaluations",
+        action="store_true",
+        help="Skip demo weekly evaluations (empty ratings; for tests/CI).",
+    )
+    args = parser.parse_args()
+    with_evaluations = not args.no_evaluations
+
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     result: SeedResult | None = None
@@ -350,7 +441,7 @@ async def main() -> None:
 
         async with async_session_maker() as session:
             try:
-                result = await seed(session)
+                result = await seed(session, with_evaluations=with_evaluations)
             except Exception:
                 await session.rollback()
                 logger.exception("Seeding transaction failed; rolled back")

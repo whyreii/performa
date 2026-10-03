@@ -27,7 +27,7 @@ async def client():
     """Yield an httpx client bound to the app, with a freshly seeded tenant."""
     async with app.router.lifespan_context(app):
         async with async_session_maker() as session:
-            await seed(session)
+            await seed(session, with_evaluations=False)
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as http_client:
             yield http_client

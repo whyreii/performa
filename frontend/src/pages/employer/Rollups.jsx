@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
+import { Link } from 'react-router-dom';
+import { useToast } from '../../context/ToastContext';
 import { Button, Badge, Skeleton } from '../../components/ui';
 import {
   FileCheck2,
@@ -20,6 +22,7 @@ import {
 
 export default function Rollups() {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [selectedEmpId, setSelectedEmpId] = useState('');
@@ -47,6 +50,7 @@ export default function Rollups() {
   });
 
   const activeProbationers = employees.filter((e) => e.status === 'active');
+  const selectedEmp = activeProbationers.find((e) => e.id === selectedEmpId);
 
   // Sign-off mutation
   const signOffMutation = useMutation({
@@ -75,17 +79,10 @@ export default function Rollups() {
       queryClient.invalidateQueries({ queryKey: ['pending-interventions'] });
       queryClient.invalidateQueries({ queryKey: ['intervention-plans'] });
       setIsGenerateModalOpen(false);
-      setActionMessage({
-        type: 'success',
-        text: 'Monthly rollup and AI rationales generated successfully.',
-      });
-      setTimeout(() => setActionMessage({ type: '', text: '' }), 3500);
+      toast.success('Monthly rollup and AI rationales generated successfully.');
     },
     onError: (err) => {
-      setActionMessage({
-        type: 'error',
-        text: getApiErrorMessage(err, 'Failed to generate monthly rollup.'),
-      });
+      toast.error(getApiErrorMessage(err, 'Failed to generate monthly rollup.'));
     },
   });
 
@@ -115,7 +112,7 @@ export default function Rollups() {
   const monthForEmployee = (empId) => {
     const emp = activeProbationers.find((e) => e.id === empId);
     if (!emp) return 1;
-    return Math.min(5, Math.max(1, Math.floor(getDaysElapsed(emp.start_date) / 30) + 1));
+    return Math.min(5, Math.max(1, Math.ceil(getDaysElapsed(emp.start_date) / 30)));
   };
 
   const handleOpenGenerate = () => {
@@ -384,6 +381,20 @@ export default function Rollups() {
                   <option value={5}>Month 5 (Days 121 - 150 · Pre-Milestone)</option>
                 </select>
               </div>
+
+              {selectedEmp && (
+                <div className="flex items-center justify-between gap-2 text-[11px] text-ink-3">
+                  <span>
+                    {selectedEmp.user?.full_name} · Day {getDaysElapsed(selectedEmp.start_date)} of 180
+                  </span>
+                  <Link
+                    to={`/supervisor/rate?employee=${selectedEmp.id}`}
+                    className="text-accent font-semibold hover:underline shrink-0"
+                  >
+                    Rate first →
+                  </Link>
+                </div>
+              )}
 
               <div className="p-3 rounded-ctl bg-hover text-xs text-ink-3 leading-relaxed space-y-1">
                 <span className="font-semibold text-ink block">AI Execution Workflow:</span>

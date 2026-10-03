@@ -230,6 +230,7 @@ class WeeklyRatingSubmit(BaseModel):
     initiative_and_adaptability: float = Field(..., ge=1.0, le=5.0)
     quality_of_work: float = Field(..., ge=1.0, le=5.0)
     remarks: Optional[str] = Field(default=None, max_length=500)
+    evaluation_date: Optional[date] = Field(default=None)
 
 
 class WeeklyEvaluationResponse(BaseModel):
