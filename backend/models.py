@@ -119,7 +119,9 @@ class User(Base):
         SAEnum(UserRole, name="user_role", values_callable=_enum_values),
         nullable=False,
     )
-    organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    organization_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("organizations.slug"), index=True, nullable=False
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -255,6 +257,7 @@ class WeeklyEvaluation(Base):
     evaluation_date: Mapped[date] = mapped_column(
         Date, default=date.today, nullable=False, index=True
     )
+    week_number: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     task_completion: Mapped[float] = mapped_column(Float, nullable=False)
     attendance_and_punctuality: Mapped[float] = mapped_column(Float, nullable=False)
     communication_and_teamwork: Mapped[float] = mapped_column(Float, nullable=False)
@@ -321,7 +324,7 @@ class TrainingPlan(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     employee_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("probationary_employees.id"), nullable=False
+        Uuid, ForeignKey("probationary_employees.id"), nullable=False, index=True
     )
     monthly_summary_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         Uuid, ForeignKey("monthly_summaries.id"), nullable=True
@@ -336,6 +339,7 @@ class TrainingPlan(Base):
         SAEnum(TrainingStatusEnum, name="training_status_enum", values_callable=_enum_values),
         default=TrainingStatusEnum.PENDING_APPROVAL,
         nullable=False,
+        index=True,
     )
     employer_approved_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True

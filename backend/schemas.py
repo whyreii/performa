@@ -228,6 +228,7 @@ class WeeklyEvaluationResponse(BaseModel):
     evaluator_id: uuid.UUID
     organization_id: str
     evaluation_date: date
+    week_number: Optional[int] = None
     task_completion: float
     attendance_and_punctuality: float
     communication_and_teamwork: float

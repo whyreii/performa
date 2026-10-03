@@ -135,11 +135,15 @@ async def submit_weekly_rating(
 
     overall_score = round(sum(new_scores.values()) / len(new_scores), 2)
 
+    evaluation_date_value = manila_today()
+    week_number = max(1, ((evaluation_date_value - employee.start_date).days // 7) + 1)
+
     evaluation = WeeklyEvaluation(
         employee_id=employee.id,
         evaluator_id=current_user.id,
         organization_id=current_user.organization_id,
-        evaluation_date=manila_today(),
+        evaluation_date=evaluation_date_value,
+        week_number=week_number,
         overall_score=overall_score,
         remarks=payload.remarks,
         **new_scores,
