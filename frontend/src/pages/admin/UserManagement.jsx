@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, getApiErrorMessage } from '../../api';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -425,6 +426,8 @@ function CreateUserModal({ onClose, onSuccess }) {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEscapeKey(onClose);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!fullName.trim() || !email.trim() || !password) {
@@ -595,6 +598,8 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEscapeKey(onClose);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

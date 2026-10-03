@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { Button, Badge, Skeleton } from '../../components/ui';
 import {
   FileCheck2,
@@ -23,6 +24,8 @@ export default function Rollups() {
   const [selectedEmpId, setSelectedEmpId] = useState('');
   const [monthNumber, setMonthNumber] = useState(1);
   const [actionMessage, setActionMessage] = useState({ type: '', text: '' });
+
+  useEscapeKey(() => setIsGenerateModalOpen(false), isGenerateModalOpen);
 
   // Fetch pending interventions
   const {

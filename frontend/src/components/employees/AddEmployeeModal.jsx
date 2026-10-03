@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { manilaTodayISO } from '../../utils/datetime';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { Button } from '../ui';
 import { X, UserPlus, AlertCircle, Calendar, ShieldCheck, UserCog } from 'lucide-react';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
   const queryClient = useQueryClient();
+
+  useEscapeKey(onClose, isOpen);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');

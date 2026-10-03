@@ -5,6 +5,7 @@ import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, parseDateOnly } from '../../utils/datetime';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import {
   ArrowLeft,
   Calendar,
@@ -40,6 +41,8 @@ export default function EmployeeDetail() {
   const [selectedStatus, setSelectedStatus] = useState('regularized');
   const [statusReason, setStatusReason] = useState('');
   const [actionError, setActionError] = useState('');
+
+  useEscapeKey(() => setIsDeactivateModalOpen(false), isDeactivateModalOpen);
 
   // Fetch employee profile
   const {
