@@ -27,8 +27,26 @@ export default function Sidebar({ onOpenCommandPalette }) {
   };
 
   const role = user?.role;
-
   const navItems = sidebarNav(role);
+
+  // Live Philippine Standard Time (Asia/Manila)
+  const [manilaTime, setManilaTime] = useState('');
+  useEffect(() => {
+    const updateTime = () => {
+      setManilaTime(
+        new Date().toLocaleTimeString('en-US', {
+          timeZone: 'Asia/Manila',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        })
+      );
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <aside
@@ -38,7 +56,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
       aria-label="Main Navigation"
     >
       {/* Brand Header */}
-      <div className={`flex items-center ${collapsed ? 'flex-col gap-2.5 mb-3' : 'justify-between mb-4 h-10'}`}>
+      <div className={`flex items-center ${collapsed ? 'flex-col gap-2.5 mb-3' : 'justify-between mb-3 h-10'}`}>
         <div
           onClick={() => {
             if (role === 'admin') navigate('/admin/users');
@@ -77,6 +95,17 @@ export default function Sidebar({ onOpenCommandPalette }) {
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-3.5 h-3.5" />}
         </button>
       </div>
+
+      {/* Manila Time Clock (Article 296 Timezone Anchor) */}
+      {!collapsed && manilaTime && (
+        <div className="mb-3 px-2.5 py-1.5 rounded-ctl bg-hover/50 border border-line/60 flex items-center justify-between text-[11px] font-mono text-ink-3">
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-good animate-pulse" />
+            <span>Manila (UTC+8)</span>
+          </span>
+          <span className="text-ink font-semibold">{manilaTime}</span>
+        </div>
+      )}
 
       {/* Quick Search trigger */}
       {!collapsed ? (
@@ -153,7 +182,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
                 {user?.full_name || 'User'}
               </div>
               <div className="text-[11px] text-ink-3 truncate capitalize">
-                {user?.role?.replace('_', ' ')}
+                {user?.role?.replace(/_/g, ' ')}
               </div>
             </div>
           )}

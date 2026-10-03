@@ -41,21 +41,19 @@ export const NAV_BY_ROLE = {
       ['adminUsers', 'User Accounts'],
       ['employees', 'Employee Records'],
       ['adminActivity', 'Activity Log'],
-      ['audits', 'Audit Trail'],
       ['notifications', 'Notifications'],
       ['settings', 'Settings'],
     ],
     tabs: [
       ['adminUsers', 'Accounts'],
       ['employees', 'Directory'],
-      ['audits', 'Audits'],
+      ['adminActivity', 'Activity'],
       ['settings', 'Settings'],
     ],
     commands: [
       ['adminUsers', 'Manage User Accounts'],
       ['adminActivity', 'System Activity Log'],
       ['employees', 'View Employee Records'],
-      ['audits', 'Audit Trail & Compliance Logs'],
     ],
   },
   employer: {

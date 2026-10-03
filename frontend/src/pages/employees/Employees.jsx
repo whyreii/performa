@@ -17,6 +17,9 @@ import {
   AlertCircle,
   X,
   Filter,
+  Flame,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react';
 
 export default function Employees() {
@@ -27,6 +30,7 @@ export default function Employees() {
 
   // Filter and sort state
   const [activeTab, setActiveTab] = useState('all'); // 'all' | 'prob' | 'reg'
+  const [selectedMilestone, setSelectedMilestone] = useState('all'); // 'all' | 'critical178' | 'notice165' | 'appraisal150' | 'nominal'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('all');
   const [sortKey, setSortKey] = useState('day'); // 'name' | 'day'
@@ -65,7 +69,26 @@ export default function Employees() {
     return { all: employees.length, prob, reg };
   }, [employees]);
 
-  // Compute days elapsed in Manila (Asia/Manila)
+  // Article 296 milestone counts for active probationers
+  const milestoneCounts = useMemo(() => {
+    let critical178 = 0;
+    let notice165 = 0;
+    let appraisal150 = 0;
+    let nominal = 0;
+
+    employees.forEach((emp) => {
+      if (emp.status === 'active') {
+        const elapsed = getDaysElapsed(emp.start_date);
+        if (elapsed >= 178) critical178 += 1;
+        else if (elapsed >= 165) notice165 += 1;
+        else if (elapsed >= 150) appraisal150 += 1;
+        else nominal += 1;
+      }
+    });
+
+    return { critical178, notice165, appraisal150, nominal };
+  }, [employees]);
+
   // Filter and sort employees
   const filteredEmployees = useMemo(() => {
     return employees
@@ -73,6 +96,16 @@ export default function Employees() {
         // Tab filter
         if (activeTab === 'prob' && emp.status !== 'active') return false;
         if (activeTab === 'reg' && emp.status !== 'regularized') return false;
+
+        // Article 296 Milestone filter
+        if (selectedMilestone !== 'all') {
+          if (emp.status !== 'active') return false;
+          const elapsed = getDaysElapsed(emp.start_date);
+          if (selectedMilestone === 'critical178' && elapsed < 178) return false;
+          if (selectedMilestone === 'notice165' && (elapsed < 165 || elapsed >= 178)) return false;
+          if (selectedMilestone === 'appraisal150' && (elapsed < 150 || elapsed >= 165)) return false;
+          if (selectedMilestone === 'nominal' && elapsed >= 150) return false;
+        }
 
         // Dept filter
         if (selectedDept !== 'all' && emp.department !== selectedDept) return false;
@@ -110,7 +143,7 @@ export default function Employees() {
         if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
         return 0;
       });
-  }, [employees, activeTab, selectedDept, searchQuery, sortKey, sortDirection]);
+  }, [employees, activeTab, selectedMilestone, selectedDept, searchQuery, sortKey, sortDirection]);
 
   const handleSort = (key) => {
     if (sortKey === key) {
@@ -122,11 +155,12 @@ export default function Employees() {
   };
 
   const hasActiveFilters =
-    searchQuery.trim() !== '' || selectedDept !== 'all';
+    searchQuery.trim() !== '' || selectedDept !== 'all' || selectedMilestone !== 'all';
 
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedDept('all');
+    setSelectedMilestone('all');
   };
 
   return (
@@ -245,6 +279,78 @@ export default function Employees() {
             </button>
           )}
         </div>
+      </div>
+
+      {/* Article 296 Statutory Milestone Quick Filter Pills */}
+      <div className="flex flex-wrap items-center gap-2 pt-1 pb-1">
+        <span className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider flex items-center gap-1.5 mr-1">
+          <Clock className="w-3.5 h-3.5 text-accent" />
+          <span>Milestone Triage:</span>
+        </span>
+
+        <button
+          type="button"
+          onClick={() => setSelectedMilestone('all')}
+          className={`h-7 px-2.5 rounded-ctl text-xs font-medium transition-all inline-flex items-center gap-1.5 ${
+            selectedMilestone === 'all'
+              ? 'bg-ink text-surface shadow-xs font-semibold'
+              : 'bg-surface border border-line text-ink-2 hover:text-ink hover:bg-hover'
+          }`}
+        >
+          <span>All Statuses</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectedMilestone('critical178')}
+          className={`h-7 px-2.5 rounded-ctl text-xs font-medium transition-all inline-flex items-center gap-1.5 ${
+            selectedMilestone === 'critical178'
+              ? 'bg-bad text-white shadow-xs font-semibold'
+              : 'bg-bad/10 border border-bad/30 text-bad hover:bg-bad/20'
+          }`}
+        >
+          <Flame className="w-3.5 h-3.5" />
+          <span>Day 178 Critical ({milestoneCounts.critical178})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectedMilestone('notice165')}
+          className={`h-7 px-2.5 rounded-ctl text-xs font-medium transition-all inline-flex items-center gap-1.5 ${
+            selectedMilestone === 'notice165'
+              ? 'bg-warn text-white shadow-xs font-semibold'
+              : 'bg-warn/10 border border-warn/30 text-warn hover:bg-warn/20'
+          }`}
+        >
+          <AlertCircle className="w-3.5 h-3.5" />
+          <span>Day 165 Notice ({milestoneCounts.notice165})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectedMilestone('appraisal150')}
+          className={`h-7 px-2.5 rounded-ctl text-xs font-medium transition-all inline-flex items-center gap-1.5 ${
+            selectedMilestone === 'appraisal150'
+              ? 'bg-accent text-white shadow-xs font-semibold'
+              : 'bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20'
+          }`}
+        >
+          <Clock className="w-3.5 h-3.5" />
+          <span>Day 150 Review ({milestoneCounts.appraisal150})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectedMilestone('nominal')}
+          className={`h-7 px-2.5 rounded-ctl text-xs font-medium transition-all inline-flex items-center gap-1.5 ${
+            selectedMilestone === 'nominal'
+              ? 'bg-good text-white shadow-xs font-semibold'
+              : 'bg-good/10 border border-good/30 text-good hover:bg-good/20'
+          }`}
+        >
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          <span>On Track (&lt; Day 150) ({milestoneCounts.nominal})</span>
+        </button>
       </div>
 
       {/* Directory Table */}

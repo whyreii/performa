@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, parseDateOnly, formatDate } from '../../utils/datetime';
 import { getInitials } from '../../utils/format';
@@ -22,6 +23,7 @@ import {
   UserX,
   Download,
   TrendingUp,
+  FileText,
 } from 'lucide-react';
 
 const COMPETENCY_DESCRIPTIONS = {
@@ -36,6 +38,7 @@ export default function EmployeeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const toast = useToast();
   const queryClient = useQueryClient();
 
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
@@ -76,10 +79,11 @@ export default function EmployeeDetail() {
   // Status transition mutation (regularize or terminate)
   const statusMutation = useMutation({
     mutationFn: ({ status, reason }) => employeeApi.updateStatus(id, status, reason),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['employee', id] });
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       setIsDeactivateModalOpen(false);
+      toast.success(`Employee status transitioned to ${variables.status}.`);
     },
     onError: (err) => {
       setActionError(getApiErrorMessage(err, 'Failed to update employee status.'));
@@ -91,6 +95,7 @@ export default function EmployeeDetail() {
     mutationFn: () => employeeApi.acknowledgeStandards(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employee', id] });
+      toast.success('Initial Article 296 performance standards acknowledged.');
     },
   });
 
@@ -132,6 +137,65 @@ export default function EmployeeDetail() {
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const handleCopyLegalNotice = () => {
+    if (!employee) return;
+    const elapsed = getDaysElapsed(employee.start_date);
+    const overall = scorecard?.overall_score ?? 'Pending';
+    const competenciesText = (scorecard?.competencies || [])
+      .map(
+        (c) =>
+          `   • ${c.label}: ${c.score.toFixed(2)} / 5.00 [${
+            c.gap < 0 ? `GAP: ${c.gap.toFixed(2)}` : 'MET BENCHMARK'
+          }]`
+      )
+      .join('\n');
+
+    const noticeText = `========================================================================
+REPUBLIC OF THE PHILIPPINES | LABOR CODE ARTICLE 296
+STATUTORY PROBATIONARY EVALUATION NOTICE
+========================================================================
+Date Generated: ${formatDate(new Date())} (Asia/Manila Standard Time)
+Organization: Acme Philippines Corp.
+Employee: ${employee.user?.full_name || 'N/A'}
+Job Title / Department: ${employee.job_title} · ${employee.department}
+Start Date: ${formatDate(employee.start_date)} | Days Elapsed: Day ${elapsed} of 180
+Statutory Status: ${
+      elapsed >= 178
+        ? 'CRITICAL (Day 178+ Auto-Regularization Risk)'
+        : elapsed >= 165
+        ? 'DAY 165 NOTICE WINDOW (15-Day Buffer)'
+        : elapsed >= 150
+        ? 'DAY 150 PERFORMANCE REVIEW DUE'
+        : 'ON TRACK (< Day 150)'
+    }
+
+1. STATUTORY BENCHMARK (Article 296 Standard)
+   Mandatory Regularizing Benchmark: 4.00 / 5.00 across all 5 core competencies
+   Current Overall Rating: ${typeof overall === 'number' ? overall.toFixed(2) : overall} / 5.00 ${
+      typeof overall === 'number' && overall >= 4.0
+        ? '[MET STATUTORY BENCHMARK]'
+        : '[BELOW STATUTORY BENCHMARK]'
+    }
+
+2. COMPETENCY SCORE BREAKDOWN
+${competenciesText || '   • No weekly ratings submitted yet.'}
+
+3. STATUTORY NOTICE TIMELINE
+   Day 150 Review Date: ${formatDate(new Date(new Date(employee.start_date).getTime() + 150 * 86400000))}
+   Day 165 Written Notice Deadline: ${formatDate(new Date(new Date(employee.start_date).getTime() + 165 * 86400000))}
+   Day 180 Legal Ceiling: ${formatDate(employee.day_180_date)}
+========================================================================`;
+
+    navigator.clipboard
+      .writeText(noticeText)
+      .then(() => {
+        toast.success('DOLE Article 296 legal notice copied to clipboard.');
+      })
+      .catch(() => {
+        toast.error('Failed to copy notice to clipboard.');
+      });
   };
 
   if (isEmpLoading) {
@@ -239,14 +303,23 @@ export default function EmployeeDetail() {
             )}
 
             {user?.role !== 'probationary_employee' && (
-              <Button
-                variant="ghost"
-                leftIcon={Download}
-                isLoading={isExporting}
-                onClick={handleExport}
-              >
-                Export Report
-              </Button>
+              <>
+                <Button
+                  variant="secondary"
+                  leftIcon={FileText}
+                  onClick={handleCopyLegalNotice}
+                >
+                  Copy Legal Notice
+                </Button>
+                <Button
+                  variant="ghost"
+                  leftIcon={Download}
+                  isLoading={isExporting}
+                  onClick={handleExport}
+                >
+                  Export Report
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -417,21 +490,32 @@ export default function EmployeeDetail() {
               <TrendingUp className="w-4 h-4 text-accent" />
               <span>Monthly KPI Trend</span>
             </h2>
-            <Badge variant="neutral">{trend.length} months</Badge>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-mono text-ink-3">Target ≥ 4.00</span>
+              <Badge variant="neutral">{trend.length} months</Badge>
+            </div>
           </div>
           <div className="space-y-3">
             {trend.map((point) => (
               <div key={point.month_number} className="space-y-1">
                 <div className="flex justify-between text-xs font-mono text-ink-2">
                   <span>Month {point.month_number}</span>
-                  <span className="text-ink font-semibold">
+                  <span className={`font-semibold ${Number(point.overall_average) >= 4.0 ? 'text-good' : 'text-warn'}`}>
                     {Number(point.overall_average).toFixed(2)} / 5.0
                   </span>
                 </div>
-                <div className="h-2 w-full bg-hover border border-line rounded-full overflow-hidden">
+                <div className="relative h-2.5 w-full bg-hover border border-line rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-accent rounded-full transition-all"
+                    className={`h-full rounded-full transition-all ${
+                      Number(point.overall_average) >= 4.0 ? 'bg-good' : 'bg-warn'
+                    }`}
                     style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
+                  />
+                  {/* Statutory 4.0 Benchmark Marker (80%) */}
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-ink/60 z-10"
+                    style={{ left: '80%' }}
+                    title="Statutory 4.0 Regularizing Standard (80%)"
                   />
                 </div>
               </div>

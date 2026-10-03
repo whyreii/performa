@@ -4,16 +4,28 @@ import Sidebar from './Sidebar';
 import MobileBar from './MobileBar';
 import BottomTabBar from './BottomTabBar';
 import CommandPalette from './CommandPalette';
+import ShortcutModal from './ShortcutModal';
 
 export default function AppShell({ children }) {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
 
-  // Global Ctrl+K / Cmd+K shortcut
+  // Global hotkeys: Ctrl+K and ?
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsCommandPaletteOpen((prev) => !prev);
+        return;
+      }
+
+      if (
+        e.key === '?' &&
+        !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) &&
+        !document.activeElement?.isContentEditable
+      ) {
+        e.preventDefault();
+        setIsShortcutModalOpen((prev) => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -46,6 +58,12 @@ export default function AppShell({ children }) {
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
+      />
+
+      {/* Global Keyboard Shortcut Modal */}
+      <ShortcutModal
+        isOpen={isShortcutModalOpen}
+        onClose={() => setIsShortcutModalOpen(false)}
       />
     </div>
   );

@@ -45,8 +45,22 @@ export default function AuditTrail() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
+      {/* Print-Only Official DOLE Exhibit Header */}
+      <div className="print-only mb-6 pb-4 border-b-2 border-black text-black">
+        <div className="text-center space-y-1">
+          <p className="text-xs uppercase tracking-widest font-semibold">Republic of the Philippines</p>
+          <p className="text-xs font-semibold">DEPARTMENT OF LABOR AND EMPLOYMENT</p>
+          <h1 className="text-base font-bold uppercase tracking-tight mt-1">
+            Article 296 Statutory Evaluation Audit Exhibit
+          </h1>
+          <p className="text-[10px] text-gray-600">
+            Tenant: Acme Philippines Corp. (acme-ph) · Generated: {formatDate(new Date())} (Asia/Manila)
+          </p>
+        </div>
+      </div>
+
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line no-print">
         <div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
             Audit Trail & Compliance
@@ -68,7 +82,7 @@ export default function AuditTrail() {
       </header>
 
       {/* DOLE Evidentiary Standards Banner */}
-      <section className="bg-surface border border-line rounded-float p-5 shadow-sm space-y-2">
+      <section className="bg-surface border border-line rounded-float p-5 shadow-sm space-y-2 no-print">
         <div className="flex items-center gap-2.5 text-accent font-semibold text-xs">
           <ShieldCheck className="w-4 h-4" />
           <span className="uppercase tracking-wider font-mono text-[11px]">
@@ -81,7 +95,7 @@ export default function AuditTrail() {
       </section>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 no-print">
         <div className="flex items-center gap-2 flex-1 max-w-sm">
           <div className="relative w-full">
             <Search className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -196,11 +210,39 @@ export default function AuditTrail() {
           </div>
         )}
 
-        <footer className="p-3 border-t border-line text-xs text-ink-3 font-mono flex items-center justify-between">
+        <footer className="p-3 border-t border-line text-xs text-ink-3 font-mono flex items-center justify-between no-print">
           <span>Showing {filteredLogs.length} verified audit records</span>
           <span>Acme Philippines Corp. · Legal Archive</span>
         </footer>
       </section>
+
+      {/* Print-Only Official Certification & Signatures */}
+      <div className="print-only mt-8 pt-6 border-t-2 border-black text-black space-y-6">
+        <p className="text-[10px] italic leading-relaxed text-gray-700">
+          Official Attestation: This evidentiary exhibit is generated directly from the immutable, append-only
+          audit log of the Performa Capstone Platform pursuant to Article 296 of the Philippine Labor Code.
+          Every weekly competency rating, score delta, and rater identity is permanently preserved for DOLE/NLRC
+          compliance verification.
+        </p>
+
+        <div className="grid grid-cols-3 gap-8 pt-6 text-center text-xs">
+          <div>
+            <div className="border-b border-black mb-1 w-full h-10" />
+            <p className="font-semibold text-xs">Evaluator Signature</p>
+            <p className="text-[10px] text-gray-600">Supervisor / Designated Rater</p>
+          </div>
+          <div>
+            <div className="border-b border-black mb-1 w-full h-10" />
+            <p className="font-semibold text-xs">Employee Acknowledgment</p>
+            <p className="text-[10px] text-gray-600">Probationary Staff</p>
+          </div>
+          <div>
+            <div className="border-b border-black mb-1 w-full h-10" />
+            <p className="font-semibold text-xs">Employer / HR Attestation</p>
+            <p className="text-[10px] text-gray-600">Managing Authority</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

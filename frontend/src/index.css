@@ -59,3 +59,60 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Print optimization for official legal and audit documentation */
+@media print {
+  /* Hide interactive web UI controls */
+  nav,
+  aside,
+  header button,
+  .no-print,
+  [role="tablist"],
+  button,
+  input,
+  select {
+    display: none !important;
+  }
+
+  /* Full width document styling */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+    line-height: 1.3 !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Force borders and tables to print clearly */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th,
+  td {
+    border: 1px solid #cccccc !important;
+    padding: 6px 8px !important;
+    color: #000000 !important;
+  }
+
+  th {
+    background-color: #f3f4f6 !important;
+    font-weight: bold !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+.print-only {
+  display: none;
+}

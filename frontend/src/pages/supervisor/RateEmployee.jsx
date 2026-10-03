@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
+import { useToast } from '../../context/ToastContext';
 import { Button, Badge, ScoreMeter, StatusDot, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import {
@@ -20,6 +21,7 @@ export default function RateEmployee() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const preselectedEmpId = searchParams.get('employee');
 
@@ -80,10 +82,13 @@ export default function RateEmployee() {
       queryClient.invalidateQueries({ queryKey: ['milestones'] });
       setIsConfirmModalOpen(false);
       setSubmittedEvaluation(data);
+      toast.success('Weekly evaluation recorded to immutable DOLE audit trail.');
     },
     onError: (err) => {
       setIsConfirmModalOpen(false);
-      setError(getApiErrorMessage(err, 'Failed to submit evaluation.'));
+      const errMsg = getApiErrorMessage(err, 'Failed to submit evaluation.');
+      setError(errMsg);
+      toast.error(errMsg);
     },
   });
 
