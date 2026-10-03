@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
@@ -35,6 +35,11 @@ export default function Employees() {
   const [selectedDept, setSelectedDept] = useState('all');
   const [sortKey, setSortKey] = useState('day'); // 'name' | 'day'
   const [sortDirection, setSortDirection] = useState('asc'); // 'asc' | 'desc'
+
+  // Article 296 milestone triage only applies to active probationers.
+  useEffect(() => {
+    if (activeTab !== 'prob') setSelectedMilestone('all');
+  }, [activeTab]);
 
   // Fetch employees list
   const {
@@ -281,7 +286,8 @@ export default function Employees() {
         </div>
       </div>
 
-      {/* Article 296 Statutory Milestone Quick Filter Pills */}
+      {/* Article 296 Statutory Milestone Quick Filter Pills (active probationers only) */}
+      {activeTab === 'prob' && (
       <div className="flex flex-wrap items-center gap-2 pt-1 pb-1">
         <span className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider flex items-center gap-1.5 mr-1">
           <Clock className="w-3.5 h-3.5 text-accent" />
@@ -352,6 +358,7 @@ export default function Employees() {
           <span>On Track (&lt; Day 150) ({milestoneCounts.nominal})</span>
         </button>
       </div>
+      )}
 
       {/* Directory Table */}
       <div className="bg-surface border border-line rounded-float shadow-sm overflow-hidden">

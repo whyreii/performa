@@ -283,7 +283,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </div>
 
           {/* Quick Actions */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2 md:justify-end">
             {canRate && employee.status === 'active' && (
               <Button
                 variant="primary"
@@ -297,6 +297,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             {canManageStatus && employee.status === 'active' && (
               <Button
                 variant="secondary"
+                size="sm"
                 onClick={() => {
                   setSelectedStatus('regularized');
                   setStatusReason('');
@@ -312,6 +313,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <>
                 <Button
                   variant="secondary"
+                  size="sm"
                   leftIcon={FileText}
                   onClick={handleCopyLegalNotice}
                 >
@@ -319,6 +321,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 </Button>
                 <Button
                   variant="ghost"
+                  size="sm"
                   leftIcon={Download}
                   isLoading={isExporting}
                   onClick={handleExport}

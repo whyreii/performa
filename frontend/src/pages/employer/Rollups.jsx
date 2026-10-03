@@ -282,33 +282,44 @@ export default function Rollups() {
           </div>
         ) : (
           <div className="bg-surface border border-line rounded-float divide-y divide-line shadow-sm">
-            {summaries.map((summary) => (
-              <div key={summary.id} className="p-4 flex items-center justify-between gap-4">
-                <div className="text-xs">
-                  <span className="font-semibold text-ink">Month {summary.month_number}</span>
-                  <span className="text-ink-3 font-mono ml-2">
-                    Avg {Number(summary.overall_average).toFixed(2)}
-                  </span>
-                  <span className="text-ink-3 ml-2 capitalize">
-                    {summary.status_classification?.replace(/_/g, ' ')}
-                  </span>
+            {summaries.map((summary) => {
+              const emp = employees.find((e) => e.id === summary.employee_id);
+              return (
+                <div key={summary.id} className="p-4 flex items-center justify-between gap-4">
+                  <div className="text-xs">
+                    <span className="font-semibold text-ink">
+                      {emp?.user?.full_name || 'Unknown employee'}
+                    </span>
+                    {emp?.department && (
+                      <span className="text-ink-3 ml-2">{emp.department}</span>
+                    )}
+                    <span className="text-ink-3 font-mono ml-2">
+                      Month {summary.month_number}
+                    </span>
+                    <span className="text-ink-3 font-mono ml-2">
+                      Avg {Number(summary.overall_average).toFixed(2)}
+                    </span>
+                    <span className="text-ink-3 ml-2 capitalize">
+                      {summary.status_classification?.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  {summary.acknowledged_at ? (
+                    <Badge variant="ok">Acknowledged</Badge>
+                  ) : summary.dispatched_at ? (
+                    <Badge variant="accent">Dispatched</Badge>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={dispatchMutation.isPending}
+                      onClick={() => dispatchMutation.mutate(summary.id)}
+                    >
+                      Dispatch
+                    </Button>
+                  )}
                 </div>
-                {summary.acknowledged_at ? (
-                  <Badge variant="ok">Acknowledged</Badge>
-                ) : summary.dispatched_at ? (
-                  <Badge variant="accent">Dispatched</Badge>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    disabled={dispatchMutation.isPending}
-                    onClick={() => dispatchMutation.mutate(summary.id)}
-                  >
-                    Dispatch
-                  </Button>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

@@ -164,26 +164,40 @@ export default function Dashboard() {
           <p className="text-[11px] text-ink-2">Across 5 legal competencies</p>
         </div>
 
-        {/* Pending AI Plans */}
+        {/* AI Training Plans */}
         <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-2">
           <div className="flex items-center justify-between text-xs text-ink-3">
             <span className="font-medium">AI Training Plans</span>
-            <FileCheck2 className="w-4 h-4 text-accent" />
+            <FileCheck2
+              className={`w-4 h-4 ${(stats.pendingPlans ?? plans.length) === 0 ? 'text-ok' : 'text-accent'}`}
+            />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-bold font-mono text-ink">
+            <span
+              className={`text-2xl sm:text-3xl font-bold font-mono ${
+                (stats.pendingPlans ?? plans.length) === 0 ? 'text-ok' : 'text-ink'
+              }`}
+            >
               {stats.pendingPlans ?? plans.length}
             </span>
-            <span className="text-xs text-ink-3">courses recommended</span>
+            <span className="text-xs text-ink-3">
+              {(stats.pendingPlans ?? plans.length) === 0
+                ? 'all meeting benchmarks'
+                : 'courses recommended'}
+            </span>
           </div>
-          <p className="text-[11px] text-ink-2">ML Random Forest gap classifier</p>
+          <p className="text-[11px] text-ink-2">
+            {(stats.pendingPlans ?? plans.length) === 0
+              ? 'No interventions required'
+              : 'ML Random Forest gap classifier'}
+          </p>
         </div>
       </div>
 
       {/* 2. Critical Milestones Banner (If any probationers >= Day 150) */}
       {urgentProbationers.length > 0 && (
-        <section className="bg-warn/6 border border-line rounded-float p-5 space-y-3">
-          <div className="flex items-center justify-between flex-wrap gap-2">
+        <section className="bg-warn/6 border border-line rounded-float p-5">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2.5">
               <ShieldAlert className="w-5 h-5 text-warn shrink-0" />
               <div>
@@ -191,44 +205,17 @@ export default function Dashboard() {
                   Article 296 Statutory Milestone Action Required
                 </h3>
                 <p className="text-xs text-ink-2">
-                  {urgentProbationers.length} probationary {urgentProbationers.length === 1 ? 'employee' : 'employees'} have reached or passed statutory review deadlines.
+                  {urgentProbationers.length} probationary {urgentProbationers.length === 1 ? 'employee requires' : 'employees require'} statutory review decisions — see the pipeline below.
                 </p>
               </div>
             </div>
             <Button
-              variant="secondary"
+              variant="primary"
               size="sm"
               onClick={() => navigate('/employees')}
             >
-              Review All
+              Review now →
             </Button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-            {urgentProbationers.map((emp) => {
-              const daysLeft = Math.max(0, 180 - emp.daysElapsed);
-              return (
-                <div
-                  key={emp.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => navigate(`/employees/${emp.id}`)}
-                  onKeyDown={activateOnKey(() => navigate(`/employees/${emp.id}`))}
-                  className="p-3 rounded-ctl bg-surface border border-line hover:border-ink-3/40 cursor-pointer transition-all space-y-1.5 shadow-xs"
-                >
-                  <div className="flex justify-between items-start">
-                    <span className="font-semibold text-xs text-ink truncate block">
-                      {emp.user?.full_name}
-                    </span>
-                    <MilestonePill daysElapsed={emp.daysElapsed} status={emp.status} />
-                  </div>
-                  <div className="flex justify-between text-[11px] text-ink-3 font-mono">
-                    <span>{emp.department}</span>
-                    <span>{daysLeft} {daysLeft === 1 ? 'day' : 'days'} to Day 180</span>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </section>
       )}

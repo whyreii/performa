@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { evaluationApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
@@ -19,6 +19,8 @@ import {
 export default function AuditTrail() {
   const [competencyFilter, setCompetencyFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 25;
 
   const {
     data: auditLogs = [],
@@ -42,6 +44,18 @@ export default function AuditTrail() {
     }
     return true;
   });
+
+  // Reset to the first page whenever the filters change.
+  useEffect(() => {
+    setPage(1);
+  }, [competencyFilter, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageLogs = filteredLogs.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
@@ -166,7 +180,7 @@ export default function AuditTrail() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {filteredLogs.map((log) => {
+                {pageLogs.map((log) => {
                   const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
                   return (
                     <tr key={log.id} className="hover:bg-hover transition-colors font-mono">
@@ -177,7 +191,7 @@ export default function AuditTrail() {
                         {log.evaluator_name}
                       </td>
                       <td className="py-3 px-4 font-sans">
-                        <Badge variant="neutral">
+                        <Badge variant="neutral" className="capitalize">
                           {log.competency?.replace(/_/g, ' ')}
                         </Badge>
                       </td>
@@ -210,9 +224,35 @@ export default function AuditTrail() {
           </div>
         )}
 
-        <footer className="p-3 border-t border-line text-xs text-ink-3 font-mono flex items-center justify-between no-print">
-          <span>Showing {filteredLogs.length} verified audit records</span>
-          <span>Acme Philippines Corp. · Legal Archive</span>
+        <footer className="p-3 border-t border-line text-xs text-ink-3 font-mono flex flex-wrap items-center justify-between gap-2 no-print">
+          <span>
+            Showing {filteredLogs.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
+            {Math.min(currentPage * PAGE_SIZE, filteredLogs.length)} of {filteredLogs.length} verified audit records
+          </span>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={currentPage <= 1}
+                onClick={() => setPage(currentPage - 1)}
+              >
+                Previous
+              </Button>
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage(currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+          <span className="hidden sm:inline">Acme Philippines Corp. · Legal Archive</span>
         </footer>
       </section>
 
