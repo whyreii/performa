@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..auth import get_current_user, require_role
+from ..audit import record_activity
 from ..database import get_db
 from ..gemini import generate_performance_rationales
 from ..ml.catalog import COMPETENCIES, recommend_courses
@@ -235,6 +236,15 @@ async def monthly_rollup(
             )
         )
 
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="rollup.generate",
+        entity_type="monthly_summary",
+        entity_id=summary.id,
+        detail=f"month={month_number}",
+    )
     await db.commit()
     await db.refresh(summary)
     return summary
@@ -359,6 +369,14 @@ async def dispatch_monthly_summary(
 
     if summary.dispatched_at is None:
         summary.dispatched_at = datetime.now(timezone.utc)
+        record_activity(
+            db,
+            organization_id=current_user.organization_id,
+            actor=current_user,
+            action="summary.dispatch",
+            entity_type="monthly_summary",
+            entity_id=summary.id,
+        )
         await db.commit()
         await db.refresh(summary)
     return summary
@@ -410,6 +428,14 @@ async def acknowledge_monthly_summary(
 
     if summary.acknowledged_at is None:
         summary.acknowledged_at = datetime.now(timezone.utc)
+        record_activity(
+            db,
+            organization_id=current_user.organization_id,
+            actor=current_user,
+            action="summary.acknowledge",
+            entity_type="monthly_summary",
+            entity_id=summary.id,
+        )
         await db.commit()
         await db.refresh(summary)
     return summary
@@ -476,6 +502,15 @@ async def sign_off_intervention(
         plan.status = TrainingStatusEnum.REJECTED
         plan.employer_approved_at = None
 
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="plan.sign_off",
+        entity_type="training_plan",
+        entity_id=plan.id,
+        detail=f"approved={payload.approved}",
+    )
     await db.commit()
     await db.refresh(plan)
     return plan

@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Load, selectinload
 
 from ..auth import get_current_user, get_password_hash, require_role
+from ..audit import record_activity
 from ..database import get_db
 from ..models import ProbationaryEmployee, ProbationStatus, User, UserRole
 from ..schemas import (
@@ -197,6 +198,15 @@ async def create_employee(
         status=payload.status,
     )
     db.add(employee)
+    record_activity(
+        db,
+        organization_id=organization_id,
+        actor=current_user,
+        action="employee.create",
+        entity_type="employee",
+        entity_id=employee.id,
+        detail=f"{employee.department}:{employee.job_title}",
+    )
     try:
         await db.commit()
     except IntegrityError:
@@ -376,6 +386,14 @@ async def acknowledge_standards(
 
     if employee.standards_acknowledged_at is None:
         employee.standards_acknowledged_at = datetime.now(timezone.utc)
+        record_activity(
+            db,
+            organization_id=current_user.organization_id,
+            actor=current_user,
+            action="employee.acknowledge_standards",
+            entity_type="employee",
+            entity_id=employee.id,
+        )
         await db.commit()
         await db.refresh(employee)
 
@@ -409,6 +427,15 @@ async def update_status(
     employee.status = payload.status
     if payload.reason is not None:
         employee.status_reason = payload.reason
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="employee.status",
+        entity_type="employee",
+        entity_id=employee.id,
+        detail=f"status={payload.status.value}",
+    )
     await db.commit()
 
     return await _fetch_employee(db, employee_id, current_user.organization_id)

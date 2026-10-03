@@ -400,6 +400,22 @@ class AuditLogItemResponse(BaseModel):
     created_at: datetime
 
 
+class ActivityLogResponse(BaseModel):
+    """A general system activity-log entry."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    organization_id: str
+    actor_id: Optional[uuid.UUID] = None
+    actor_name: Optional[str] = None
+    action: str
+    entity_type: Optional[str] = None
+    entity_id: Optional[str] = None
+    detail: Optional[str] = None
+    created_at: datetime
+
+
 __all__ = [
     "UserBase",
     "UserCreate",
@@ -438,4 +454,5 @@ __all__ = [
     "TrainingPlanResponse",
     "TrainingPlanSignOff",
     "AuditLogItemResponse",
+    "ActivityLogResponse",
 ]

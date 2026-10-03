@@ -4,15 +4,16 @@ from __future__ import annotations
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth import get_password_hash, require_role
+from ..audit import record_activity
 from ..database import get_db
-from ..models import User, UserRole
-from ..schemas import UserResponse
+from ..models import ActivityLog, User, UserRole
+from ..schemas import ActivityLogResponse, UserResponse
 
 router = APIRouter(prefix="/api/admin", tags=["Admin User Management"])
 
@@ -79,6 +80,15 @@ async def create_user(
         is_active=True,
     )
     db.add(new_user)
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="user.create",
+        entity_type="user",
+        entity_id=new_user.id,
+        detail=f"{new_user.role.value}:{new_user.email}",
+    )
     await db.commit()
     await db.refresh(new_user)
     return new_user
@@ -129,6 +139,15 @@ async def update_user_status(
             )
 
     target_user.is_active = payload.is_active
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="user.status",
+        entity_type="user",
+        entity_id=target_user.id,
+        detail=f"is_active={payload.is_active}",
+    )
     await db.commit()
     await db.refresh(target_user)
     return target_user
@@ -153,5 +172,36 @@ async def reset_user_password(
         )
 
     target_user.hashed_password = get_password_hash(payload.password)
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="user.reset_password",
+        entity_type="user",
+        entity_id=target_user.id,
+        detail=target_user.email,
+    )
     await db.commit()
     return {"status": "success", "message": f"Password reset successfully for {target_user.email}."}
+
+
+@router.get(
+    "/activity",
+    response_model=list[ActivityLogResponse],
+    summary="List the tenant activity log (Admin only)",
+)
+async def list_activity(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.ADMIN)),
+) -> list[ActivityLog]:
+    """Return general system activity entries for the administrator's tenant."""
+    stmt = (
+        select(ActivityLog)
+        .where(ActivityLog.organization_id == current_user.organization_id)
+        .order_by(ActivityLog.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+    return list((await db.execute(stmt)).scalars().all())

@@ -15,6 +15,7 @@ from ..auth import (
     get_password_hash,
     verify_password,
 )
+from ..audit import record_activity
 from ..database import get_db
 from ..models import User
 from ..schemas import PasswordChange, ProfileUpdate, Token, UserResponse
@@ -69,6 +70,16 @@ async def login(
         )
 
     _clear_failures(attempt_key)
+    record_activity(
+        db,
+        organization_id=user.organization_id,
+        actor=user,
+        action="auth.login",
+        entity_type="user",
+        entity_id=user.id,
+        detail=user.email,
+    )
+    await db.commit()
     access_token = create_access_token(
         data={
             "sub": str(user.id),

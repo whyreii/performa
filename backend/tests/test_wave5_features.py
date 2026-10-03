@@ -141,3 +141,28 @@ async def test_monthly_summary_dispatch_and_acknowledge(client):
     )
     assert ack.status_code == 200, ack.text
     assert ack.json()["acknowledged_at"]
+
+
+async def test_activity_log_records_and_is_admin_only(client):
+    admin = await _login(client, "admin@acme.com")
+    created = await client.post(
+        "/api/admin/users",
+        headers=admin,
+        json={
+            "email": "activity@acme.com",
+            "full_name": "Activity User",
+            "password": DEFAULT_PASSWORD,
+            "role": "supervisor",
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    response = await client.get("/api/admin/activity", headers=admin)
+    assert response.status_code == 200, response.text
+    actions = {entry["action"] for entry in response.json()}
+    assert "auth.login" in actions
+    assert "user.create" in actions
+
+    employee = await _login(client, "emp1@acme.com")
+    forbidden = await client.get("/api/admin/activity", headers=employee)
+    assert forbidden.status_code == 403

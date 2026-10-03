@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..auth import get_current_user, require_role
+from ..audit import record_activity
 from ..database import get_db
 from ..gemini import generate_performance_rationales
 from ..ml.predictor import predict_employee_risk
@@ -190,6 +191,15 @@ async def submit_weekly_rating(
                 )
             )
 
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="evaluation.submit",
+        entity_type="evaluation",
+        entity_id=evaluation.id,
+        detail=f"overall={overall_score}",
+    )
     await db.commit()
     await db.refresh(evaluation)
     return evaluation

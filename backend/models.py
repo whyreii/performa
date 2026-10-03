@@ -433,6 +433,30 @@ class EvaluationAuditLog(Base):
     )
 
 
+class ActivityLog(Base):
+    """General system activity log for oversight and compliance."""
+
+    __tablename__ = "activity_logs"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    actor_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        Uuid, ForeignKey("users.id"), nullable=True
+    )
+    actor_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    action: Mapped[str] = mapped_column(String(100), nullable=False)
+    entity_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    entity_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    detail: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=_utcnow,
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+    )
+
+
 __all__ = [
     "UserRole",
     "ProbationStatus",
@@ -448,4 +472,5 @@ __all__ = [
     "TrainingPlan",
     "EvaluationAuditLog",
     "RegularizationRecommendation",
+    "ActivityLog",
 ]
