@@ -310,6 +310,12 @@ class MonthlySummary(Base):
         nullable=False,
     )
     performance_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    dispatched_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    acknowledged_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

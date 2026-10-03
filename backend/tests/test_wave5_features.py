@@ -107,3 +107,37 @@ async def test_regularization_recommendation_requires_evaluations(client):
         f"/api/evaluations/{maria_id}/regularization-recommendation", headers=employer
     )
     assert response.status_code == 404, response.text
+
+
+async def test_monthly_summary_dispatch_and_acknowledge(client):
+    employer = await _login(client, "employer@acme.com")
+    carlos_id = await _find_employee(client, employer, "Carlos Early")
+    await client.post(
+        f"/api/evaluations/{carlos_id}/weekly",
+        headers=employer,
+        json={competency: 3.5 for competency in COMPETENCIES},
+    )
+    rollup = await client.post(
+        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=1", headers=employer
+    )
+    assert rollup.status_code == 201, rollup.text
+    summary_id = rollup.json()["id"]
+
+    employee = await _login(client, "emp1@acme.com")
+    before = await client.get("/api/interventions/summaries/mine", headers=employee)
+    assert before.status_code == 200 and before.json() == []
+
+    dispatch = await client.post(
+        f"/api/interventions/summaries/{summary_id}/dispatch", headers=employer
+    )
+    assert dispatch.status_code == 200, dispatch.text
+    assert dispatch.json()["dispatched_at"]
+
+    mine = await client.get("/api/interventions/summaries/mine", headers=employee)
+    assert mine.status_code == 200 and len(mine.json()) == 1
+
+    ack = await client.post(
+        f"/api/interventions/summaries/{summary_id}/acknowledge", headers=employee
+    )
+    assert ack.status_code == 200, ack.text
+    assert ack.json()["acknowledged_at"]

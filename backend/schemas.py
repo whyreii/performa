@@ -336,6 +336,8 @@ class MonthlySummaryResponse(MonthlySummaryBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+    dispatched_at: Optional[datetime] = None
+    acknowledged_at: Optional[datetime] = None
     created_at: datetime
 
 

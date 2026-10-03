@@ -277,6 +277,145 @@ async def list_my_interventions(
 
 
 @router.get(
+    "/summaries",
+    response_model=list[MonthlySummaryResponse],
+    summary="List monthly summaries for the tenant",
+)
+async def list_monthly_summaries(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+) -> list[MonthlySummary]:
+    """Return all monthly summaries for employees in the tenant, newest first."""
+    stmt = (
+        select(MonthlySummary)
+        .join(ProbationaryEmployee, MonthlySummary.employee_id == ProbationaryEmployee.id)
+        .where(ProbationaryEmployee.organization_id == current_user.organization_id)
+        .order_by(MonthlySummary.created_at.desc())
+    )
+    return list((await db.execute(stmt)).scalars().all())
+
+
+@router.get(
+    "/summaries/mine",
+    response_model=list[MonthlySummaryResponse],
+    summary="List the current employee's dispatched monthly summaries",
+)
+async def list_my_summaries(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[MonthlySummary]:
+    """Return monthly summaries dispatched to the caller's own employee profile."""
+    employee = (
+        await db.execute(
+            select(ProbationaryEmployee).where(
+                ProbationaryEmployee.user_id == current_user.id,
+                ProbationaryEmployee.organization_id == current_user.organization_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if employee is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No probationary employee profile is linked to this account",
+        )
+
+    stmt = (
+        select(MonthlySummary)
+        .where(
+            MonthlySummary.employee_id == employee.id,
+            MonthlySummary.dispatched_at.isnot(None),
+        )
+        .order_by(MonthlySummary.created_at.desc())
+    )
+    return list((await db.execute(stmt)).scalars().all())
+
+
+@router.post(
+    "/summaries/{summary_id}/dispatch",
+    response_model=MonthlySummaryResponse,
+    summary="Dispatch a monthly summary to the employee for acknowledgement",
+)
+async def dispatch_monthly_summary(
+    summary_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+) -> MonthlySummary:
+    """Mark a monthly summary as dispatched to the employee."""
+    summary = (
+        await db.execute(
+            select(MonthlySummary)
+            .join(ProbationaryEmployee, MonthlySummary.employee_id == ProbationaryEmployee.id)
+            .where(
+                MonthlySummary.id == summary_id,
+                ProbationaryEmployee.organization_id == current_user.organization_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if summary is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Monthly summary not found",
+        )
+
+    if summary.dispatched_at is None:
+        summary.dispatched_at = datetime.now(timezone.utc)
+        await db.commit()
+        await db.refresh(summary)
+    return summary
+
+
+@router.post(
+    "/summaries/{summary_id}/acknowledge",
+    response_model=MonthlySummaryResponse,
+    summary="Employee acknowledges receipt of a monthly summary",
+)
+async def acknowledge_monthly_summary(
+    summary_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> MonthlySummary:
+    """Record the employee's digital acknowledgement of a dispatched summary."""
+    employee = (
+        await db.execute(
+            select(ProbationaryEmployee).where(
+                ProbationaryEmployee.user_id == current_user.id,
+                ProbationaryEmployee.organization_id == current_user.organization_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if employee is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No probationary employee profile is linked to this account",
+        )
+
+    summary = (
+        await db.execute(
+            select(MonthlySummary).where(
+                MonthlySummary.id == summary_id,
+                MonthlySummary.employee_id == employee.id,
+            )
+        )
+    ).scalar_one_or_none()
+    if summary is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Monthly summary not found",
+        )
+    if summary.dispatched_at is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This summary has not been dispatched yet",
+        )
+
+    if summary.acknowledged_at is None:
+        summary.acknowledged_at = datetime.now(timezone.utc)
+        await db.commit()
+        await db.refresh(summary)
+    return summary
+
+
+@router.get(
     "/pending",
     response_model=list[TrainingPlanResponse],
     summary="List pending training interventions for the tenant",
