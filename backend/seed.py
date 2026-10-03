@@ -302,7 +302,7 @@ async def seed(
 
         employee = ProbationaryEmployee(
             user_id=user.id,
-            employer_id=admin.id,
+            employer_id=employer.id,
             supervisor_id=supervisor.id if spec.assign_supervisor else None,
             organization_id=tenant_key,
             job_title=spec.job_title,

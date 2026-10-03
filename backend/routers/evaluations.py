@@ -174,6 +174,16 @@ async def submit_weekly_rating(
             ),
         )
 
+    today = manila_today()
+    if evaluation_date_value > min(today, employee.day_180_date):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "evaluation_date cannot be in the future "
+                f"(latest allowed is {today.isoformat()})."
+            ),
+        )
+
     previous = await _latest_evaluation(db, employee.id, current_user.organization_id)
     prior_scores = _scores_from_evaluation(previous) if previous is not None else {}
     new_scores = _scores_from_payload(payload)
@@ -276,8 +286,15 @@ async def get_scorecard(
             weight_map.get(attribute, 0.0) * target_map.get(attribute, TARGET_SCORE)
             for attribute, _ in COMPETENCIES
         ) / total_weight
+        # Compare like-for-like: a weighted target must be measured against a
+        # weighted score, not the unweighted mean.
+        weighted_score = sum(
+            weight_map.get(attribute, 0.0) * scores[attribute]
+            for attribute, _ in COMPETENCIES
+        ) / total_weight
     else:
         overall_target = TARGET_SCORE
+        weighted_score = float(latest.overall_score)
 
     overall_score = round(float(latest.overall_score), 2)
 
@@ -285,7 +302,7 @@ async def get_scorecard(
         employee_id=employee.id,
         overall_score=overall_score,
         target_score=round(overall_target, 2),
-        gap=round(overall_score - overall_target, 2),
+        gap=round(weighted_score - overall_target, 2),
         competencies=competencies,
         latest_evaluation_date=latest.evaluation_date,
     )
@@ -388,6 +405,16 @@ async def create_regularization_recommendation(
 ) -> RegularizationRecommendation:
     """Aggregate the first 150 days of evaluations into a decision-support output."""
     employee = await _get_scoped_employee(db, employee_id, current_user)
+
+    days_elapsed = (manila_today() - employee.start_date).days
+    if days_elapsed < REGULARIZATION_HORIZON_DAYS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Regularization recommendations require at least 150 days of "
+                "probation elapsed under Article 296."
+            ),
+        )
 
     # Under Article 296 the mid-5th-month review targets the Day 150 milestone.
     # For employees at or past Day 150 (Days 151-180), include all evaluations up

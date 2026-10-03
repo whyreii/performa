@@ -152,17 +152,18 @@ async def test_risk_explanation_includes_feature_importances(client):
 
 @pytest.mark.asyncio
 async def test_regularization_recommendation(client):
-    """Regularization decision support generates statutory recommendation at the mid-5th month."""
+    """Regularization decision support generates a recommendation once Day 150 is reached."""
     employer = await login_user(client, EMPLOYER_EMAIL)
-    carlos_id = await find_employee_id(client, employer, "Carlos Early")
+    # Maria Midterm is seeded at Day 152, past the Day 150 statutory horizon.
+    maria_id = await find_employee_id(client, employer, "Maria Midterm")
     await client.post(
-        f"/api/evaluations/{carlos_id}/weekly",
+        f"/api/evaluations/{maria_id}/weekly",
         headers=employer,
         json={competency: 4.5 for competency in COMPETENCIES},
     )
 
     created = await client.post(
-        f"/api/evaluations/{carlos_id}/regularization-recommendation", headers=employer
+        f"/api/evaluations/{maria_id}/regularization-recommendation", headers=employer
     )
     assert created.status_code == 201, created.text
     body = created.json()
@@ -170,10 +171,48 @@ async def test_regularization_recommendation(client):
     assert body["recommendation"] in ("Regularize", "Do Not Regularize")
 
     fetched = await client.get(
-        f"/api/evaluations/{carlos_id}/regularization-recommendation", headers=employer
+        f"/api/evaluations/{maria_id}/regularization-recommendation", headers=employer
     )
     assert fetched.status_code == 200
     assert fetched.json()["id"] == body["id"]
+
+
+@pytest.mark.asyncio
+async def test_regularization_recommendation_requires_day_150(client):
+    """Before Day 150 the mid-5th-month recommendation is refused (400)."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    carlos_id = await find_employee_id(client, employer, "Carlos Early")  # seeded at Day 30
+    await client.post(
+        f"/api/evaluations/{carlos_id}/weekly",
+        headers=employer,
+        json={competency: 4.5 for competency in COMPETENCIES},
+    )
+
+    response = await client.post(
+        f"/api/evaluations/{carlos_id}/regularization-recommendation", headers=employer
+    )
+    assert response.status_code == 400, response.text
+    assert "150 days" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_rollup_requires_active_employee(client):
+    """Monthly rollups are refused for non-active (terminated) employees (400)."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    carlos_id = await find_employee_id(client, employer, "Carlos Early")
+
+    terminated = await client.patch(
+        f"/api/employees/{carlos_id}/status",
+        headers=employer,
+        json={"status": "terminated", "reason": "Article 296 non-regularization."},
+    )
+    assert terminated.status_code == 200, terminated.text
+
+    response = await client.post(
+        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=1", headers=employer
+    )
+    assert response.status_code == 400, response.text
+    assert "active" in response.json()["detail"]
 
 
 @pytest.mark.asyncio

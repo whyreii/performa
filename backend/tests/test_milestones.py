@@ -87,6 +87,28 @@ async def test_terminate_requires_reason(client):
 
 
 @pytest.mark.asyncio
+async def test_terminal_status_cannot_be_changed(client):
+    """An employee in a terminal state (regularized/terminated) cannot be re-transitioned (400)."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, employer, "Carlos Early")
+
+    first = await client.patch(
+        f"/api/employees/{emp_id}/status",
+        headers=employer,
+        json={"status": "regularized"},
+    )
+    assert first.status_code == 200, first.text
+
+    second = await client.patch(
+        f"/api/employees/{emp_id}/status",
+        headers=employer,
+        json={"status": "terminated", "reason": "Attempted change after regularizing."},
+    )
+    assert second.status_code == 400, second.text
+    assert "terminal state" in second.json()["detail"]
+
+
+@pytest.mark.asyncio
 async def test_milestones_report_statutory_thresholds(client):
     """The milestones endpoint correctly reports employees approaching or past Days 150, 165, and 178."""
     employer = await login_user(client, EMPLOYER_EMAIL)

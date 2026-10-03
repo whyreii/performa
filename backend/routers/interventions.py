@@ -34,6 +34,7 @@ from ..models import (
     MonthlySummary,
     PerformanceRatingEnum,
     ProbationaryEmployee,
+    ProbationStatus,
     TrainingPlan,
     TrainingStatusEnum,
     User,
@@ -131,6 +132,12 @@ async def monthly_rollup(
 ) -> MonthlySummary:
     """Aggregate evaluations and produce a MonthlySummary plus training plans."""
     employee = await _get_scoped_employee(db, employee_id, current_user)
+
+    if employee.status != ProbationStatus.ACTIVE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Monthly rollups can only be generated for active probationary employees.",
+        )
 
     month_start = employee.start_date + timedelta(
         days=(month_number - 1) * PROBATION_MONTH_DAYS

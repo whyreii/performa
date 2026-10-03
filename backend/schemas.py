@@ -190,7 +190,7 @@ class MilestoneReport(BaseModel):
 class KpiRubricBase(BaseModel):
     organization_id: str = Field(..., max_length=100)
     competency: CompetencyEnum
-    target_score: float = Field(default=3.0, ge=1.0, le=5.0)
+    target_score: float = Field(default=4.0, ge=4.0, le=5.0)
     weight: float = Field(default=0.20, ge=0.0, le=1.0)
 
 
@@ -201,14 +201,14 @@ class KpiRubricCreate(KpiRubricBase):
 class KpiRubricUpdate(BaseModel):
     organization_id: Optional[str] = Field(default=None, max_length=100)
     competency: Optional[CompetencyEnum] = None
-    target_score: Optional[float] = Field(default=None, ge=1.0, le=5.0)
+    target_score: Optional[float] = Field(default=None, ge=4.0, le=5.0)
     weight: Optional[float] = Field(default=None, ge=0.0, le=1.0)
 
 
 class KpiRubricUpsert(BaseModel):
     """Employer-configurable target and weight for a single competency."""
 
-    target_score: float = Field(default=4.0, ge=1.0, le=5.0)
+    target_score: float = Field(default=4.0, ge=4.0, le=5.0)
     weight: float = Field(default=0.20, ge=0.0, le=1.0)
 
 

@@ -1,6 +1,8 @@
 """Weekly KPI evaluations, scorecard gap calculations, and immutable audit trail tests."""
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 import pytest
 
 from backend.ml.catalog import COMPETENCIES
@@ -152,3 +154,20 @@ async def test_kpi_trend(client):
     assert len(points) >= 1
     assert points[0]["month_number"] == 2
     assert set(COMPETENCIES) <= set(points[0])
+
+
+@pytest.mark.asyncio
+async def test_weekly_rating_rejects_future_date(client):
+    """A weekly rating dated in the future is refused (400)."""
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    emp_id = await find_employee_id(client, supervisor, "Carlos Early")
+
+    future = (date.today() + timedelta(days=5)).isoformat()
+    payload = {competency: 4.0 for competency in COMPETENCIES}
+    payload["evaluation_date"] = future
+
+    response = await client.post(
+        f"/api/evaluations/{emp_id}/weekly", headers=supervisor, json=payload
+    )
+    assert response.status_code == 400, response.text
+    assert "future" in response.json()["detail"]

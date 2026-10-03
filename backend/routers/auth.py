@@ -75,7 +75,7 @@ async def login(
             detail="Too many failed login attempts. Please try again later.",
         )
 
-    result = await db.execute(select(User).where(User.email == form_data.username))
+    result = await db.execute(select(User).where(User.email == attempt_key))
     user = result.scalar_one_or_none()
 
     if user is None or not user.is_active or not verify_password(form_data.password, user.hashed_password):
