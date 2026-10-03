@@ -102,6 +102,13 @@ export default function EmployeeDetail() {
     retry: false,
   });
 
+  const { data: riskExplanation } = useQuery({
+    queryKey: ['risk-explanation', id],
+    queryFn: () => evaluationApi.getRiskExplanation(id),
+    enabled: !!id,
+    retry: false,
+  });
+
   const regularizationMutation = useMutation({
     mutationFn: () => evaluationApi.generateRegularization(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['regularization', id] }),
@@ -490,6 +497,40 @@ export default function EmployeeDetail() {
           <p className="text-xs text-ink-3">No recommendation generated yet.</p>
         )}
       </section>
+
+      {/* 3d. ML Risk Explanation (feature importances) */}
+      {riskExplanation && (
+        <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-3">
+          <div className="flex items-center justify-between pb-3 border-b border-line">
+            <div>
+              <h2 className="text-base font-semibold text-ink">ML Risk Explanation</h2>
+              <p className="text-xs text-ink-3 mt-0.5">
+                Feature importance for legal defensibility
+              </p>
+            </div>
+            <Badge variant="accent">
+              {riskExplanation.predicted_tier} ·{' '}
+              {(Number(riskExplanation.confidence) * 100).toFixed(0)}%
+            </Badge>
+          </div>
+          <div className="space-y-2">
+            {Object.entries(riskExplanation.feature_importances || {}).map(([key, value]) => (
+              <div key={key} className="space-y-1">
+                <div className="flex justify-between text-xs font-mono text-ink-2">
+                  <span>{key.replace(/_/g, ' ')}</span>
+                  <span>{(Number(value) * 100).toFixed(1)}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-hover rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-accent rounded-full"
+                    style={{ width: `${Number(value) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 4. Immutable Evaluation History Audit Trail */}
       <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">

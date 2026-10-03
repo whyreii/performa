@@ -15,6 +15,7 @@ import Dashboard from './pages/employer/Dashboard';
 import Rollups from './pages/employer/Rollups';
 import AuditTrail from './pages/admin/AuditTrail';
 import ActivityLog from './pages/admin/ActivityLog';
+import AdminOverview from './pages/admin/AdminOverview';
 import UserManagement from './pages/admin/UserManagement';
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import EmployeeTraining from './pages/employee/EmployeeTraining';
@@ -38,7 +39,7 @@ const queryClient = new QueryClient({
 });
 
 const ROLE_HOME = {
-  admin: '/admin/users',
+  admin: '/admin/overview',
   employer: '/dashboard',
   supervisor: '/supervisor/dashboard',
   probationary_employee: '/employee/dashboard',
@@ -112,7 +113,15 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/admin/dashboard" element={<Navigate to="/admin/users" replace />} />
+                <Route path="/admin/dashboard" element={<Navigate to="/admin/overview" replace />} />
+                <Route
+                  path="/admin/overview"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <AdminOverview />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/admin/activity"
                   element={

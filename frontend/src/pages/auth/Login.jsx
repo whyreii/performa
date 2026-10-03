@@ -31,7 +31,7 @@ export default function Login() {
     if (result.success) {
       const role = result.user?.role;
       if (role === 'admin') {
-        navigate('/admin/users');
+        navigate('/admin/overview');
       } else if (role === 'probationary_employee') {
         navigate('/employee/dashboard');
       } else if (role === 'supervisor') {

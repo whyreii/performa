@@ -35,6 +35,7 @@ export default function CommandPalette({ isOpen, onClose }) {
 
     if (role === 'admin') {
       list.push(
+        { id: 'overview', label: 'System Overview', category: 'Navigation', icon: LayoutDashboard, action: () => navigate('/admin/overview') },
         { id: 'users', label: 'Manage User Accounts', category: 'Navigation', icon: ShieldCheck, action: () => navigate('/admin/users') },
         { id: 'activity', label: 'System Activity Log', category: 'Navigation', icon: Activity, action: () => navigate('/admin/activity') },
         { id: 'emp', label: 'View Employee Records', category: 'Navigation', icon: Users, action: () => navigate('/employees') },

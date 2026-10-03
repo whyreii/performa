@@ -26,6 +26,7 @@ export default function BottomTabBar() {
   const getTabs = () => {
     if (role === 'admin') {
       return [
+        { label: 'Overview', path: '/admin/overview', icon: LayoutDashboard },
         { label: 'Accounts', path: '/admin/users', icon: ShieldCheck },
         { label: 'Directory', path: '/employees', icon: Users },
         { label: 'Audits', path: '/audits', icon: History },
