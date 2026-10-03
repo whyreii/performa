@@ -542,7 +542,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               AI-assisted decision support at the mid-5th month
             </p>
           </div>
-          {canRate && (
+          {user?.role === 'employer' && (
             <Button
               variant="secondary"
               size="sm"

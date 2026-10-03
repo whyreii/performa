@@ -1,9 +1,12 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { authApi, getApiErrorMessage } from '../api';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const queryClient = useQueryClient();
+
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('performa_user');
@@ -33,8 +36,9 @@ export function AuthProvider({ children }) {
     try {
       localStorage.removeItem('performa_token');
     } catch {}
+    queryClient.clear();
     persistUser(null);
-  }, [persistUser]);
+  }, [persistUser, queryClient]);
 
   const refreshUser = useCallback(async () => {
     const userData = await authApi.getCurrentUser();
@@ -44,10 +48,13 @@ export function AuthProvider({ children }) {
 
   // Listen to 401 unauthorized events dispatched by api.js
   useEffect(() => {
-    const handleUnauthorized = () => persistUser(null);
+    const handleUnauthorized = () => {
+      queryClient.clear();
+      persistUser(null);
+    };
     window.addEventListener('performa:unauthorized', handleUnauthorized);
     return () => window.removeEventListener('performa:unauthorized', handleUnauthorized);
-  }, [persistUser]);
+  }, [persistUser, queryClient]);
 
   // Validate the httpOnly auth cookie on mount and hydrate the user.
   useEffect(() => {

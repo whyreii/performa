@@ -24,7 +24,7 @@
   --r-float: 14px;
   --m: 160ms;
   --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
-  --font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font: "Geist Sans", "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "Geist Mono", ui-monospace, Menlo, monospace;
 }
 

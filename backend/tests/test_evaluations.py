@@ -150,5 +150,5 @@ async def test_kpi_trend(client):
     assert response.status_code == 200, response.text
     points = response.json()
     assert len(points) >= 1
-    assert points[0]["month_number"] == 1
+    assert points[0]["month_number"] == 2
     assert set(COMPETENCIES) <= set(points[0])

@@ -336,7 +336,8 @@ async def get_kpi_trend(
     buckets: dict[int, list[WeeklyEvaluation]] = {}
     for evaluation in evaluations:
         days = (evaluation.evaluation_date - employee.start_date).days
-        month = max(1, ((days - 1) // 30) + 1)
+        # Align with the monthly-rollup window: month n = [start+(n-1)*30, start+n*30-1].
+        month = max(1, (days // 30) + 1)
         buckets.setdefault(month, []).append(evaluation)
 
     points: list[TrendPoint] = []
@@ -350,7 +351,7 @@ async def get_kpi_trend(
             TrendPoint(
                 month_number=month,
                 period_start=employee.start_date + timedelta(days=(month - 1) * 30),
-                period_end=employee.start_date + timedelta(days=month * 30),
+                period_end=employee.start_date + timedelta(days=month * 30 - 1),
                 overall_average=fmean(scores.values()),
                 **scores,
             )

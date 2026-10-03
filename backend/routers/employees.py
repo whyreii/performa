@@ -198,6 +198,7 @@ async def create_employee(
         status=payload.status,
     )
     db.add(employee)
+    await db.flush()
     record_activity(
         db,
         organization_id=organization_id,

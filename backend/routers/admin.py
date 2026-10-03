@@ -91,6 +91,7 @@ async def create_user(
         is_active=True,
     )
     db.add(new_user)
+    await db.flush()
     record_activity(
         db,
         organization_id=current_user.organization_id,

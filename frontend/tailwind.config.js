@@ -48,7 +48,7 @@ export default {
         float: 'var(--r-float)',
       },
       fontFamily: {
-        sans: ['Geist', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        sans: ['Geist Sans', 'Geist', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
         mono: ['Geist Mono', 'ui-monospace', 'Menlo', 'monospace'],
       },
       boxShadow: {

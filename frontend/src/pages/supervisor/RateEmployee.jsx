@@ -38,13 +38,18 @@ export default function RateEmployee() {
   // Selected employee ID state
   const [selectedId, setSelectedId] = useState(preselectedEmpId || '');
 
+  // Apply the URL ?employee= pre-selection (on mount / when the param changes)
+  // without locking the dropdown against the user's own selection.
   useEffect(() => {
     if (preselectedEmpId) {
       setSelectedId(preselectedEmpId);
-    } else if (activeProbationers.length > 0 && !selectedId) {
-      setSelectedId(activeProbationers[0].id);
     }
-  }, [preselectedEmpId, activeProbationers, selectedId]);
+  }, [preselectedEmpId]);
+
+  // Default to the first assigned employee once the list loads.
+  useEffect(() => {
+    setSelectedId((prev) => prev || activeProbationers[0]?.id || '');
+  }, [activeProbationers]);
 
   const selectedEmployee = activeProbationers.find((e) => e.id === selectedId);
 
