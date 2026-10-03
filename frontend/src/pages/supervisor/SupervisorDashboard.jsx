@@ -48,7 +48,7 @@ export default function SupervisorDashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <Button
             variant="secondary"
             onClick={() => navigate('/supervisor/rubrics')}
@@ -67,7 +67,7 @@ export default function SupervisorDashboard() {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-1.5">
+        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-2">
           <div className="flex items-center justify-between text-xs text-ink-3">
             <span>Direct Reports</span>
             <Users className="w-4 h-4 text-accent" />
@@ -78,7 +78,7 @@ export default function SupervisorDashboard() {
           <p className="text-[11px] text-ink-2">Assigned probationary staff</p>
         </div>
 
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-1.5">
+        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-2">
           <div className="flex items-center justify-between text-xs text-ink-3">
             <span>Passing Target</span>
             <Target className="w-4 h-4 text-ok" />
@@ -87,7 +87,7 @@ export default function SupervisorDashboard() {
           <p className="text-[11px] text-ink-2">Statutory regularizing standard</p>
         </div>
 
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-1.5">
+        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-2">
           <div className="flex items-center justify-between text-xs text-ink-3">
             <span>Review Frequency</span>
             <Calendar className="w-4 h-4 text-accent" />
@@ -134,21 +134,21 @@ export default function SupervisorDashboard() {
                   key={emp.id}
                   className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-hover/50 px-2 rounded-ctl transition-colors"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="w-9 h-9 rounded-full bg-accent/15 text-accent font-semibold text-xs flex items-center justify-center shrink-0">
                       {getInitials(emp.user?.full_name)}
                     </div>
-                    <div>
-                      <span className="font-semibold text-sm text-ink block">
+                    <div className="min-w-0 flex-1">
+                      <span className="font-semibold text-sm text-ink block truncate">
                         {emp.user?.full_name}
                       </span>
-                      <span className="text-xs text-ink-3 block">
+                      <span className="text-xs text-ink-3 block truncate">
                         {emp.job_title} · {emp.department}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap">
+                  <div className="flex items-center gap-3 sm:gap-4 flex-wrap sm:flex-nowrap shrink-0">
                     <div className="min-w-[130px] space-y-1">
                       <div className="flex justify-between font-mono text-[11px] text-ink-2">
                         <span>Day {days}</span>

@@ -241,7 +241,7 @@ export default function EmployeeDashboard() {
             {auditLogs.map((log) => {
               const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
               return (
-                <div key={log.id} className="py-3.5 space-y-1">
+                <div key={log.id} className="py-3 space-y-1">
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-ink">
@@ -279,7 +279,7 @@ export default function EmployeeDashboard() {
           </div>
           <div className="divide-y divide-line">
             {mySummaries.map((s) => (
-              <div key={s.id} className="py-3.5 flex items-center justify-between gap-4">
+              <div key={s.id} className="py-3 flex items-center justify-between gap-4">
                 <div className="text-xs">
                   <span className="font-semibold text-ink">Month {s.month_number}</span>
                   <span className="text-ink-3 font-mono ml-2">

@@ -130,7 +130,7 @@ export default function UserManagement() {
       {/* Action feedback toast */}
       {actionFeedback && (
         <div
-          className={`p-3.5 rounded-ctl text-xs flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
+          className={`p-3 rounded-ctl text-xs flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
             actionFeedback.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
           }`}
         >
@@ -164,9 +164,9 @@ export default function UserManagement() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
         {/* Role Filters */}
-        <div role="tablist" aria-label="Filter by role" className="inline-flex p-1 rounded-nav bg-hover border border-line">
+        <div role="tablist" aria-label="Filter by role" className="inline-flex flex-wrap p-1 rounded-nav bg-hover border border-line">
           <button
             type="button"
             role="tab"
@@ -222,7 +222,7 @@ export default function UserManagement() {
         </div>
 
         {/* Search Input */}
-        <div className="relative min-w-[220px]">
+        <div className="relative w-full sm:w-64 min-w-0">
           <Search className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
@@ -237,7 +237,110 @@ export default function UserManagement() {
 
       {/* Accounts Table */}
       <section className="bg-surface border border-line rounded-float overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+        {/* Mobile & Tablet stacked cards (< lg) */}
+        <div className="lg:hidden divide-y divide-line">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="p-4 space-y-3 animate-pulse">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-3 w-28" />
+              </div>
+            ))
+          ) : isError ? (
+            <div className="p-6 text-center text-bad text-xs">
+              {getApiErrorMessage(error, 'Failed to load user accounts.')}
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="p-8 text-center text-ink-3 text-xs">
+              No accounts found matching your filters.
+            </div>
+          ) : (
+            filteredUsers.map((u) => {
+              const isCurrent = u.id === currentUser?.id;
+              return (
+                <div key={u.id} className="p-4 flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 text-accent font-semibold text-xs flex items-center justify-center shrink-0"
+                        title={u.full_name}
+                      >
+                        {getInitials(u.full_name)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-xs text-ink flex items-center gap-1.5 truncate">
+                          <span className="truncate">{u.full_name}</span>
+                          {isCurrent && (
+                            <span className="font-mono text-[10px] text-accent font-normal shrink-0">
+                              (You)
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-ink-3 font-mono truncate block">
+                          {u.email}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      {getRoleBadge(u.role)}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-line/60">
+                    <div className="flex items-center gap-1.5 font-medium">
+                      <StatusDot
+                        status={u.is_active ? 'active' : 'terminated'}
+                        size="sm"
+                      />
+                      <span className={u.is_active ? 'text-ink-2' : 'text-ink-3'}>
+                        {u.is_active ? 'Active' : 'Deactivated'}
+                      </span>
+                      <span className="text-ink-3 font-mono text-[11px] ml-1">
+                        · {u.created_at ? formatDate(u.created_at) : '—'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        leftIcon={KeyRound}
+                        onClick={() => setResetPasswordUser(u)}
+                        className="h-7 px-2 text-[11px]"
+                        title="Reset password"
+                      >
+                        Reset
+                      </Button>
+                      {!isCurrent && (
+                        <Button
+                          variant={u.is_active ? 'ghost' : 'secondary'}
+                          size="sm"
+                          leftIcon={u.is_active ? UserX : UserCheck}
+                          onClick={() =>
+                            statusMutation.mutate({
+                              userId: u.id,
+                              isActive: !u.is_active,
+                            })
+                          }
+                          isLoading={statusMutation.isPending}
+                          className={`h-7 px-2 text-[11px] ${
+                            u.is_active ? 'text-bad hover:bg-bad/10' : 'text-good hover:bg-good/10'
+                          }`}
+                          title={u.is_active ? 'Deactivate account' : 'Reactivate account'}
+                        >
+                          {u.is_active ? 'Deactivate' : 'Reactivate'}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop: table (>= lg) */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-line bg-hover/40 text-ink-3 font-mono uppercase text-[11px] tracking-wider">
@@ -252,11 +355,11 @@ export default function UserManagement() {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-40" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-5 w-20 rounded-full" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-16" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-24" /></td>
-                    <td className="py-3.5 px-4 text-right"><Skeleton className="h-7 w-28 ml-auto" /></td>
+                    <td className="py-3 px-4"><Skeleton className="h-4 w-40" /></td>
+                    <td className="py-3 px-4"><Skeleton className="h-5 w-20 rounded-full" /></td>
+                    <td className="py-3 px-4"><Skeleton className="h-4 w-16" /></td>
+                    <td className="py-3 px-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="py-3 px-4 text-right"><Skeleton className="h-7 w-28 ml-auto" /></td>
                   </tr>
                 ))
               ) : isError ? (
@@ -281,7 +384,7 @@ export default function UserManagement() {
                     >
                       {/* User Info */}
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2">
                           <div
                             className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 text-accent font-semibold text-xs flex items-center justify-center shrink-0"
                             title={u.full_name}
@@ -532,7 +635,7 @@ function CreateUserModal({ onClose, onSuccess }) {
               <button
                 type="button"
                 onClick={() => setRole('employer')}
-                className={`p-2.5 rounded-ctl border text-center transition-all ${
+                className={`p-3 rounded-ctl border text-center transition-all ${
                   role === 'employer'
                     ? 'border-accent bg-accent/8 text-accent font-semibold shadow-xs'
                     : 'border-line text-ink-2 hover:bg-hover'
@@ -545,7 +648,7 @@ function CreateUserModal({ onClose, onSuccess }) {
               <button
                 type="button"
                 onClick={() => setRole('supervisor')}
-                className={`p-2.5 rounded-ctl border text-center transition-all ${
+                className={`p-3 rounded-ctl border text-center transition-all ${
                   role === 'supervisor'
                     ? 'border-good bg-good/8 text-good font-semibold shadow-xs'
                     : 'border-line text-ink-2 hover:bg-hover'
@@ -558,7 +661,7 @@ function CreateUserModal({ onClose, onSuccess }) {
               <button
                 type="button"
                 onClick={() => setRole('probationary_employee')}
-                className={`p-2.5 rounded-ctl border text-center transition-all ${
+                className={`p-3 rounded-ctl border text-center transition-all ${
                   role === 'probationary_employee'
                     ? 'border-ink text-ink font-semibold bg-hover shadow-xs'
                     : 'border-line text-ink-2 hover:bg-hover'

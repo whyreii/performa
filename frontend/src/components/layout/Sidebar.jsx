@@ -50,13 +50,13 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
   return (
     <aside
-      className={`hidden md:flex flex-col sticky top-0 h-screen bg-side border-r border-line shadow-side z-20 transition-all duration-performa ${
-        collapsed ? 'w-[72px] px-2.5 py-3.5' : 'w-[250px] p-4'
+      className={`hidden lg:flex flex-col sticky top-0 h-screen bg-side border-r border-line shadow-side z-20 transition-all duration-performa ${
+        collapsed ? 'w-[72px] px-2 py-4' : 'w-[250px] p-4'
       }`}
       aria-label="Main Navigation"
     >
       {/* Brand Header */}
-      <div className={`flex items-center ${collapsed ? 'flex-col gap-2.5 mb-3' : 'justify-between mb-3 h-10'}`}>
+      <div className={`flex items-center ${collapsed ? 'flex-col gap-2 mb-3' : 'justify-between mb-3 h-10'}`}>
         <div
           onClick={() => {
             if (role === 'admin') navigate('/admin/users');
@@ -168,7 +168,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
       {/* User Footer Card */}
       <div className="pt-3 mt-auto border-t border-line">
-        <div className={`flex items-center gap-2.5 ${collapsed ? 'flex-col justify-center' : ''}`}>
+        <div className={`flex items-center gap-2 ${collapsed ? 'flex-col justify-center' : ''}`}>
           <div
             className="w-8 h-8 rounded-full bg-accent/15 border border-accent/30 text-accent font-semibold text-xs flex items-center justify-center shrink-0"
             title={`${user?.full_name} (${user?.email})`}

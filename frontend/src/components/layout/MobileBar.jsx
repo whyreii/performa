@@ -23,7 +23,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
   };
 
   return (
-    <header className="md:hidden sticky top-0 z-30 h-14 w-full bg-side/90 backdrop-blur-md border-b border-line px-4 flex items-center justify-between">
+    <header className="lg:hidden sticky top-0 z-30 h-14 w-full bg-side/90 backdrop-blur-md border-b border-line px-4 flex items-center justify-between">
       {/* Left side: Back button or Brand */}
       {isSubPage ? (
         <button
@@ -35,7 +35,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
           <span>Back</span>
         </button>
       ) : (
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-nav bg-accent text-accent-foreground flex items-center justify-center shadow-sm">
             <BarChart3 className="w-3.5 h-3.5" />
           </div>

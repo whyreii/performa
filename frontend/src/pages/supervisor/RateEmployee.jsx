@@ -233,7 +233,7 @@ export default function RateEmployee() {
       </header>
 
       {error && (
-        <div className="p-3.5 rounded-ctl bg-bad/8 border border-line text-bad text-xs flex items-center gap-2">
+        <div className="p-3 rounded-ctl bg-bad/8 border border-line text-bad text-xs flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -320,7 +320,7 @@ export default function RateEmployee() {
 
                 {/* Score Selector Scale (1.0 to 5.0) */}
                 <div className="pt-2">
-                  <div className="flex items-center justify-between gap-1 sm:gap-2">
+                  <div className="flex items-center justify-between gap-0.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                     {[1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0].map((score) => {
                       const isSelected = currentScore === score;
                       const isTarget = score === 4.0;
@@ -329,7 +329,7 @@ export default function RateEmployee() {
                           key={score}
                           type="button"
                           onClick={() => handleRatingChange(comp.key, score)}
-                          className={`flex-1 h-9 rounded-ctl border text-xs font-mono font-medium transition-all relative ${
+                          className={`min-w-[30px] sm:min-w-0 flex-1 h-9 px-0 text-[11px] sm:text-xs rounded-ctl border font-mono font-medium transition-all relative shrink-0 sm:shrink ${
                             isSelected
                               ? 'bg-accent text-accent-foreground border-accent shadow-xs scale-105 z-10'
                               : 'bg-hover/80 text-ink border-line hover:border-ink-3'
@@ -452,14 +452,14 @@ export default function RateEmployee() {
               <b className="text-ink">{selectedEmployee?.user?.full_name}</b>.
             </p>
 
-            <div className="p-3.5 rounded-ctl bg-hover border border-line text-xs text-ink-3 space-y-1">
+            <div className="p-4 rounded-ctl bg-hover border border-line text-xs text-ink-3 space-y-1">
               <span className="font-semibold text-ink block">Legal Notice on Audit Trail:</span>
               <p className="leading-relaxed">
                 Under Philippine labor jurisprudence, evaluations once entered into the platform are permanently recorded in the append-only audit trail. They cannot be retracted, edited, or deleted.
               </p>
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-line">
+            <div className="flex justify-end gap-3 pt-3 border-t border-line">
               <Button
                 type="button"
                 variant="ghost"

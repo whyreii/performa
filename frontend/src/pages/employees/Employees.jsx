@@ -393,8 +393,8 @@ export default function Employees() {
           </div>
         ) : (
           <>
-            {/* Mobile: stacked cards (table columns clip below md) */}
-            <div className="md:hidden divide-y divide-line">
+            {/* Mobile: stacked cards (table columns clip below lg) */}
+            <div className="lg:hidden divide-y divide-line">
               {filteredEmployees.map((emp) => {
                 const daysElapsed = getDaysElapsed(emp.start_date);
                 const daysRemaining = Math.max(0, 180 - daysElapsed);
@@ -462,7 +462,7 @@ export default function Employees() {
             </div>
 
             {/* Desktop: table */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-line text-[11px] font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
@@ -506,7 +506,7 @@ export default function Employees() {
                       className="hover:bg-hover cursor-pointer transition-colors group"
                     >
                       {/* Name & Avatar */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-accent/15 text-accent font-semibold text-xs flex items-center justify-center shrink-0 border border-accent/20">
                             {getInitials(emp.user?.full_name)}
@@ -523,13 +523,13 @@ export default function Employees() {
                       </td>
 
                       {/* Department & Job Title */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-4">
                         <span className="font-medium text-ink block">{emp.job_title}</span>
                         <span className="text-xs text-ink-3 block">{emp.department}</span>
                       </td>
 
                       {/* Probation 180-Day Timeline Bar */}
-                      <td className="py-3.5 px-4 min-w-[180px]">
+                      <td className="py-3 px-4 min-w-[150px]">
                         {emp.status === 'regularized' ? (
                           <span className="text-xs font-medium text-ok flex items-center gap-1">
                             <StatusDot status="active" />
@@ -560,7 +560,7 @@ export default function Employees() {
                       </td>
 
                       {/* Statutory Milestone Pill */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-4">
                         <MilestonePill
                           daysElapsed={daysElapsed}
                           status={emp.status}
@@ -568,7 +568,7 @@ export default function Employees() {
                       </td>
 
                       {/* Action Chevron */}
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3 px-4 text-right">
                         <ChevronRight className="w-4 h-4 text-ink-3 group-hover:text-accent group-hover:translate-x-0.5 transition-all inline-block" />
                       </td>
                     </tr>

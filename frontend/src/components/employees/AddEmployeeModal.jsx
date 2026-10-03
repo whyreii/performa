@@ -119,7 +119,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between pb-4 mb-5 border-b border-line">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-nav bg-accent/10 text-accent flex items-center justify-center">
               <UserPlus className="w-4 h-4" />
             </div>
@@ -266,7 +266,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           </div>
 
           {/* Statutory 180-Day Calculation Banner */}
-          <div className="p-3 rounded-ctl bg-hover border border-line text-xs space-y-1.5">
+          <div className="p-3 rounded-ctl bg-hover border border-line text-xs space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-ink-3 flex items-center gap-1 font-mono text-[11px]">
                 <Calendar className="w-3.5 h-3.5 text-accent" />
@@ -288,7 +288,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
             <span className="font-mono font-medium text-ink">Password123!</span>
           </div>
 
-          <div className="flex justify-end items-center gap-2.5 pt-4 border-t border-line">
+          <div className="flex justify-end items-center gap-3 pt-4 border-t border-line">
             <Button type="button" variant="ghost" onClick={onClose}>
               Cancel
             </Button>

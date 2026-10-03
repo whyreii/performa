@@ -73,7 +73,7 @@ export default function ActivityLog() {
                     <td className="py-3 px-4 text-ink-2 font-mono whitespace-nowrap">
                       {entry.created_at ? formatDate(entry.created_at, { withTime: true }) : ''}
                     </td>
-                    <td className="py-3 px-4 font-medium text-ink">
+                    <td className="py-3 px-4 font-medium text-ink truncate max-w-[200px]" title={entry.actor_name || ''}>
                       {entry.actor_name || '—'}
                     </td>
                     <td className="py-3 px-4">

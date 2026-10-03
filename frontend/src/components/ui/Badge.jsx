@@ -8,7 +8,7 @@ export default function Badge({
   ...props
 }) {
   const baseStyles =
-    'inline-flex items-center justify-center font-medium rounded-full transition-colors select-none';
+    'inline-flex items-center justify-center font-medium rounded-full transition-colors select-none align-middle';
 
   const variants = {
     neutral: 'bg-hover text-ink-2 border border-line',
@@ -21,8 +21,8 @@ export default function Badge({
   };
 
   const sizes = {
-    sm: 'text-[11px] leading-tight px-2 py-0.5 font-mono',
-    md: 'text-xs px-2.5 py-1',
+    sm: 'text-[11px] leading-none px-2 py-0.5 font-mono',
+    md: 'text-xs leading-none px-2.5 py-1',
   };
 
   return (

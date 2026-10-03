@@ -312,14 +312,14 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
       {/* 1. Header Profile Banner */}
       <section className="bg-surface border border-line rounded-float p-6 sm:p-7 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-line">
-          <div className="flex items-start gap-4">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-line">
+          <div className="flex items-start gap-4 shrink-0">
             <div className="w-14 h-14 rounded-full bg-accent/15 border border-accent/25 text-accent font-semibold text-lg flex items-center justify-center shrink-0">
               {getInitials(employee.user?.full_name)}
             </div>
 
             <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-bold tracking-tight text-ink">
                   {employee.user?.full_name}
                 </h1>
@@ -343,7 +343,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </div>
 
           {/* Quick Actions */}
-          <div className="flex flex-wrap items-center gap-2 md:justify-end">
+          <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-start xl:justify-end">
             {canRate && employee.status === 'active' && (
               <Button
                 variant="primary"
@@ -465,12 +465,12 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
           {/* Milestone markers */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-[11px] font-mono">
-            <div className="p-2.5 rounded-ctl bg-hover border border-line">
+            <div className="p-3 rounded-ctl bg-hover border border-line">
               <span className="text-ink-3 block">Start (Day 0)</span>
               <span className="font-semibold text-ink">{formatDate(employee.start_date)}</span>
             </div>
 
-            <div className="p-2.5 rounded-ctl bg-hover border border-line">
+            <div className="p-3 rounded-ctl bg-hover border border-line">
               <span className="text-warn block">Day 150 (Review Due)</span>
               <span className="font-semibold text-ink">
                 {formatDate(
@@ -479,7 +479,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </span>
             </div>
 
-            <div className="p-2.5 rounded-ctl bg-hover border border-line">
+            <div className="p-3 rounded-ctl bg-hover border border-line">
               <span className="text-notice block">Day 165 (Notice Due)</span>
               <span className="font-semibold text-ink">
                 {formatDate(
@@ -488,7 +488,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </span>
             </div>
 
-            <div className="p-2.5 rounded-ctl bg-hover border border-line">
+            <div className="p-3 rounded-ctl bg-hover border border-line">
               <span className="text-bad block">Day 180 (Deadline)</span>
               <span className="font-semibold text-ink">{formatDate(employee.day_180_date)}</span>
             </div>
@@ -655,7 +655,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </span>
             </div>
             {regularization.rationale && (
-              <p className="text-xs text-ink-2 bg-hover/50 p-2.5 rounded-ctl border border-line">
+              <p className="text-xs text-ink-2 bg-hover/50 p-3 rounded-ctl border border-line">
                 {regularization.rationale}
               </p>
             )}
@@ -728,7 +728,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             {auditLogs.map((log) => {
               const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
               return (
-                <div key={log.id} className="py-3.5 space-y-1.5">
+                <div key={log.id} className="py-3 space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-ink">
@@ -883,7 +883,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </div>
             )}
 
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-line">
+            <div className="flex justify-end gap-3 pt-3 border-t border-line">
               <Button
                 variant="ghost"
                 onClick={() => setIsDeactivateModalOpen(false)}

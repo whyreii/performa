@@ -97,7 +97,7 @@ export default function AuditTrail() {
 
       {/* DOLE Evidentiary Standards Banner */}
       <section className="bg-surface border border-line rounded-float p-5 shadow-sm space-y-2 no-print">
-        <div className="flex items-center gap-2.5 text-accent font-semibold text-xs">
+        <div className="flex items-center gap-2 text-accent font-semibold text-xs">
           <ShieldCheck className="w-4 h-4" />
           <span className="uppercase tracking-wider font-mono text-[11px]">
             Statutory Legal Standard · Republic of the Philippines

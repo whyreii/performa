@@ -217,21 +217,21 @@ export default function Settings() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-3.5 rounded-ctl bg-hover border border-line">
+          <div className="p-4 rounded-ctl bg-hover border border-line">
             <span className="text-[11px] text-ink-3 uppercase tracking-wider font-mono block mb-1">
               Full Name
             </span>
             <span className="text-sm font-semibold text-ink">{user?.full_name || 'User'}</span>
           </div>
 
-          <div className="p-3.5 rounded-ctl bg-hover border border-line">
+          <div className="p-4 rounded-ctl bg-hover border border-line">
             <span className="text-[11px] text-ink-3 uppercase tracking-wider font-mono block mb-1">
               Work Email
             </span>
             <span className="text-sm font-mono text-ink truncate block">{user?.email}</span>
           </div>
 
-          <div className="p-3.5 rounded-ctl bg-hover border border-line">
+          <div className="p-4 rounded-ctl bg-hover border border-line">
             <span className="text-[11px] text-ink-3 uppercase tracking-wider font-mono block mb-1">
               Platform Role
             </span>
@@ -240,7 +240,7 @@ export default function Settings() {
             </span>
           </div>
 
-          <div className="p-3.5 rounded-ctl bg-hover border border-line">
+          <div className="p-4 rounded-ctl bg-hover border border-line">
             <span className="text-[11px] text-ink-3 uppercase tracking-wider font-mono block mb-1">
               Organization
             </span>
@@ -328,13 +328,13 @@ export default function Settings() {
                 className={`p-4 rounded-ctl border cursor-pointer transition-all duration-performa ${
                   isSelected
                     ? 'border-accent bg-accent/5 ring-1 ring-accent shadow-sm'
-                    : 'border-line bg-surface hover:bg-hover hover:border-ink-3'
+                    : 'border-ink-3/40 bg-bg hover:bg-hover hover:border-ink-3'
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span
-                      className="w-5 h-5 rounded-full border border-line shrink-0 shadow-xs"
+                      className="w-5 h-5 rounded-full border border-line ring-1 ring-ink/15 shrink-0 shadow-xs"
                       style={{ backgroundColor: p.bg }}
                     />
                     <span
@@ -343,15 +343,14 @@ export default function Settings() {
                     />
                     <span className="font-semibold text-sm text-ink">{p.name}</span>
                   </div>
-                  <Badge variant={p.type === 'Dark' ? 'accent' : 'neutral'}>{p.type}</Badge>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {isSelected && (
+                      <Badge variant="accent" size="sm">Active</Badge>
+                    )}
+                    <Badge variant={p.type === 'Dark' ? 'accent' : 'neutral'}>{p.type}</Badge>
+                  </div>
                 </div>
                 <p className="text-xs text-ink-2 leading-relaxed">{p.desc}</p>
-                {isSelected && (
-                  <div className="mt-3 pt-2.5 border-t border-line flex items-center gap-1.5 text-xs font-semibold text-accent">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Active Palette</span>
-                  </div>
-                )}
               </div>
             );
           })}
@@ -383,7 +382,7 @@ export default function Settings() {
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-start justify-between gap-4 p-3.5 rounded-ctl bg-hover border border-line">
+          <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm text-ink">Day 150 Review Due Notice</span>
@@ -404,7 +403,7 @@ export default function Settings() {
             </label>
           </div>
 
-          <div className="flex items-start justify-between gap-4 p-3.5 rounded-ctl bg-hover border border-line">
+          <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm text-ink">
@@ -427,7 +426,7 @@ export default function Settings() {
             </label>
           </div>
 
-          <div className="flex items-start justify-between gap-4 p-3.5 rounded-ctl bg-hover border border-line">
+          <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm text-ink">

@@ -158,7 +158,7 @@ export default function Rollups() {
       {/* Action Notification */}
       {actionMessage.text && (
         <div
-          className={`p-3.5 rounded-ctl text-xs flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
+          className={`p-3 rounded-ctl text-xs flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
             actionMessage.type === 'error'
               ? 'bg-bad/8 text-bad'
               : 'bg-ok/8 text-ok'
@@ -261,7 +261,7 @@ export default function Rollups() {
 
                 {/* AI Rationale by Gemini */}
                 {plan.rationale && (
-                  <div className="p-3.5 rounded-ctl bg-hover/70 border border-line text-xs text-ink-2 space-y-1">
+                  <div className="p-4 rounded-ctl bg-hover/70 border border-line text-xs text-ink-2 space-y-1">
                     <span className="font-semibold text-accent flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-mono">
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>Gemini Performance Rationale</span>
@@ -430,7 +430,7 @@ export default function Rollups() {
                 </p>
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-line">
+              <div className="flex justify-end gap-3 pt-3 border-t border-line">
                 <Button
                   type="button"
                   variant="ghost"

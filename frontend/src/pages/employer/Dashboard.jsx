@@ -198,7 +198,7 @@ export default function Dashboard() {
       {urgentProbationers.length > 0 && (
         <section className="bg-warn/6 border border-line rounded-float p-5">
           <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <ShieldAlert className="w-5 h-5 text-warn shrink-0" />
               <div>
                 <h3 className="text-sm font-semibold text-ink">
@@ -272,7 +272,7 @@ export default function Dashboard() {
                       className="hover:bg-hover cursor-pointer transition-colors"
                     >
                       <td className="py-3 px-3">
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-accent/15 text-accent font-semibold text-[11px] flex items-center justify-center shrink-0">
                             {getInitials(emp.user?.full_name)}
                           </div>
@@ -364,7 +364,7 @@ export default function Dashboard() {
             {plans.slice(0, 3).map((plan) => (
               <div
                 key={plan.id}
-                className="p-3.5 rounded-ctl bg-hover/60 border border-line space-y-2"
+                className="p-4 rounded-ctl bg-hover/60 border border-line space-y-2"
               >
                 <div className="flex items-center justify-between gap-2">
                   <Badge

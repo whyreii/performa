@@ -50,7 +50,7 @@ export default function ShortcutModal({ isOpen, onClose }) {
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-line">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <div className="p-2 rounded-ctl bg-accent/10 text-accent">
               <Keyboard className="w-5 h-5" />
             </div>

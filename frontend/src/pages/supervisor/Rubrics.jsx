@@ -96,7 +96,7 @@ export default function Rubrics() {
       </header>
 
       {isRubricsError && (
-        <div className="p-3.5 rounded-ctl bg-warn/8 border border-line text-warn text-xs flex items-center gap-2">
+        <div className="p-3 rounded-ctl bg-warn/8 border border-line text-warn text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>
             Could not load your configured targets/weights right now — showing platform defaults.
@@ -150,7 +150,7 @@ export default function Rubrics() {
               {rubric.levels.map((lvl) => (
                 <div
                   key={lvl.score}
-                  className={`p-3.5 rounded-ctl border text-xs space-y-1.5 ${
+                  className={`p-3 rounded-ctl border text-xs space-y-2 ${
                     lvl.title.includes('Target')
                       ? 'bg-ok/5 border-line'
                       : 'bg-hover/60 border-line'

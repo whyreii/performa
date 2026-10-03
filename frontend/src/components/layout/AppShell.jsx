@@ -33,17 +33,17 @@ export default function AppShell({ children }) {
   }, []);
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-bg text-ink transition-colors duration-performa selection:bg-accent/20 selection:text-accent">
-      {/* Desktop Persistent Sidebar */}
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-bg text-ink transition-colors duration-performa selection:bg-accent/20 selection:text-accent">
+      {/* Desktop Persistent Sidebar (>= lg) */}
       <Sidebar onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
 
-      {/* Mobile Top App Bar */}
+      {/* Mobile & Tablet Top App Bar (< lg) */}
       <MobileBar onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
 
       {/* Main Content Area */}
       <main
         id="main"
-        className="flex-1 min-w-0 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 pb-20 md:pb-8 focus:outline-none"
+        className="flex-1 min-w-0 overflow-y-auto [scrollbar-gutter:stable] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 pb-20 lg:pb-8 focus:outline-none"
         tabIndex={-1}
       >
         <div className="max-w-[1120px] mx-auto w-full">
