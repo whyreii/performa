@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import logging
 import uuid
+from datetime import timedelta
+from statistics import fmean
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -20,11 +22,14 @@ from sqlalchemy.orm import selectinload
 
 from ..auth import get_current_user, require_role
 from ..database import get_db
+from ..gemini import generate_performance_rationales
 from ..ml.predictor import predict_employee_risk
 from ..models import (
     EvaluationAuditLog,
     KpiRubric,
+    PerformanceRatingEnum,
     ProbationaryEmployee,
+    RegularizationRecommendation,
     User,
     UserRole,
     WeeklyEvaluation,
@@ -33,6 +38,7 @@ from ..schemas import (
     AuditLogItemResponse,
     CompetencyScoreItem,
     EmployeeScorecardResponse,
+    RegularizationRecommendationResponse,
     RiskExplanationResponse,
     WeeklyEvaluationResponse,
     WeeklyRatingSubmit,
@@ -42,6 +48,8 @@ from ..timeutils import manila_today
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Evaluations"])
+
+REGULARIZATION_HORIZON_DAYS = 150
 
 TARGET_SCORE = 4.0
 
@@ -65,15 +73,28 @@ def _scores_from_evaluation(evaluation: WeeklyEvaluation) -> dict[str, float]:
     return {attribute: float(getattr(evaluation, attribute)) for attribute, _ in COMPETENCIES}
 
 
+def _rating_from_tier(value: str) -> PerformanceRatingEnum:
+    """Coerce a predicted tier label to the stored enum, with a safe default."""
+    try:
+        return PerformanceRatingEnum(value)
+    except ValueError:
+        logger.warning("Unknown predicted tier %r; defaulting to Needs Improvement", value)
+        return PerformanceRatingEnum.NEEDS_IMPROVEMENT
+
+
 async def _get_scoped_employee(
     db: AsyncSession,
     employee_id: uuid.UUID,
     current_user: User,
 ) -> ProbationaryEmployee:
     """Fetch an employee within the caller's tenant, enforcing self-access."""
-    stmt = select(ProbationaryEmployee).where(
-        ProbationaryEmployee.id == employee_id,
-        ProbationaryEmployee.organization_id == current_user.organization_id,
+    stmt = (
+        select(ProbationaryEmployee)
+        .options(selectinload(ProbationaryEmployee.user))
+        .where(
+            ProbationaryEmployee.id == employee_id,
+            ProbationaryEmployee.organization_id == current_user.organization_id,
+        )
     )
     result = await db.execute(stmt)
     employee = result.scalar_one_or_none()
@@ -269,6 +290,105 @@ async def get_risk_explanation(
         )
 
     return RiskExplanationResponse(**result)
+
+
+@router.post(
+    "/{employee_id}/regularization-recommendation",
+    response_model=RegularizationRecommendationResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Generate an AI-assisted regularization recommendation (mid-5th month)",
+)
+async def create_regularization_recommendation(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER, UserRole.SUPERVISOR)),
+) -> RegularizationRecommendation:
+    """Aggregate the first 150 days of evaluations into a decision-support output."""
+    employee = await _get_scoped_employee(db, employee_id, current_user)
+
+    horizon = employee.start_date + timedelta(days=REGULARIZATION_HORIZON_DAYS)
+    stmt = select(WeeklyEvaluation).where(
+        WeeklyEvaluation.employee_id == employee.id,
+        WeeklyEvaluation.organization_id == current_user.organization_id,
+        WeeklyEvaluation.evaluation_date <= horizon,
+    )
+    evaluations = list((await db.execute(stmt)).scalars().all())
+    if not evaluations:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No evaluations recorded within the first 150 days",
+        )
+
+    scores = {
+        attribute: fmean(float(getattr(evaluation, attribute)) for evaluation in evaluations)
+        for attribute, _ in COMPETENCIES
+    }
+    try:
+        prediction = predict_employee_risk(scores)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        )
+
+    tier = str(prediction["predicted_tier"])
+    recommendation = (
+        "Regularize"
+        if tier == PerformanceRatingEnum.MEETS_EXPECTATIONS.value
+        else "Do Not Regularize"
+    )
+
+    rationale, _ = await generate_performance_rationales(
+        employee_name=employee.user.full_name if employee.user else "",
+        month_number=5,
+        status_classification=tier,
+        competency_scores=scores,
+        recommended_courses=[],
+    )
+
+    record = RegularizationRecommendation(
+        employee_id=employee.id,
+        organization_id=current_user.organization_id,
+        month_number=5,
+        status_classification=_rating_from_tier(tier),
+        overall_average=fmean(scores.values()),
+        recommendation=recommendation,
+        rationale=rationale,
+    )
+    db.add(record)
+    await db.commit()
+    await db.refresh(record)
+    return record
+
+
+@router.get(
+    "/{employee_id}/regularization-recommendation",
+    response_model=RegularizationRecommendationResponse,
+    summary="Latest regularization recommendation for an employee",
+)
+async def get_regularization_recommendation(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> RegularizationRecommendation:
+    """Return the most recent regularization recommendation, if any."""
+    employee = await _get_scoped_employee(db, employee_id, current_user)
+    stmt = (
+        select(RegularizationRecommendation)
+        .where(
+            RegularizationRecommendation.employee_id == employee.id,
+            RegularizationRecommendation.organization_id == current_user.organization_id,
+        )
+        .order_by(RegularizationRecommendation.created_at.desc())
+        .limit(1)
+    )
+    record = (await db.execute(stmt)).scalar_one_or_none()
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No regularization recommendation has been generated",
+        )
+    return record
 
 
 @router.get(

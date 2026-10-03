@@ -284,6 +284,22 @@ class RiskExplanationResponse(BaseModel):
     flagged_competencies: list[str]
 
 
+class RegularizationRecommendationResponse(BaseModel):
+    """AI-assisted regularization decision support for the mid-5th month."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    employee_id: uuid.UUID
+    organization_id: str
+    month_number: int
+    status_classification: PerformanceRatingEnum
+    overall_average: float
+    recommendation: str
+    rationale: Optional[str] = None
+    created_at: datetime
+
+
 # ---------------------------------------------------------------------------
 # MonthlySummary
 # ---------------------------------------------------------------------------
@@ -409,6 +425,7 @@ __all__ = [
     "CompetencyScoreItem",
     "EmployeeScorecardResponse",
     "RiskExplanationResponse",
+    "RegularizationRecommendationResponse",
     "MonthlySummaryBase",
     "MonthlySummaryCreate",
     "MonthlySummaryUpdate",

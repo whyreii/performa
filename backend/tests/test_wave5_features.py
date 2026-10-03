@@ -74,3 +74,36 @@ async def test_kpi_rubrics_defaults_and_update(client):
     templates = await client.get("/api/kpi-rubrics/templates", headers=employer)
     assert templates.status_code == 200
     assert "retail" in templates.json()
+
+
+async def test_regularization_recommendation(client):
+    employer = await _login(client, "employer@acme.com")
+    carlos_id = await _find_employee(client, employer, "Carlos Early")
+    await client.post(
+        f"/api/evaluations/{carlos_id}/weekly",
+        headers=employer,
+        json={competency: 4.5 for competency in COMPETENCIES},
+    )
+
+    created = await client.post(
+        f"/api/evaluations/{carlos_id}/regularization-recommendation", headers=employer
+    )
+    assert created.status_code == 201, created.text
+    body = created.json()
+    assert body["month_number"] == 5
+    assert body["recommendation"] in ("Regularize", "Do Not Regularize")
+
+    fetched = await client.get(
+        f"/api/evaluations/{carlos_id}/regularization-recommendation", headers=employer
+    )
+    assert fetched.status_code == 200
+    assert fetched.json()["id"] == body["id"]
+
+
+async def test_regularization_recommendation_requires_evaluations(client):
+    employer = await _login(client, "employer@acme.com")
+    maria_id = await _find_employee(client, employer, "Maria Midterm")
+    response = await client.post(
+        f"/api/evaluations/{maria_id}/regularization-recommendation", headers=employer
+    )
+    assert response.status_code == 404, response.text

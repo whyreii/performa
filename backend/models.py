@@ -224,6 +224,11 @@ class ProbationaryEmployee(Base):
         back_populates="employee",
         cascade="all, delete-orphan",
     )
+    regularization_recommendations: Mapped[list["RegularizationRecommendation"]] = relationship(
+        "RegularizationRecommendation",
+        back_populates="employee",
+        cascade="all, delete-orphan",
+    )
 
 
 class KpiRubric(Base):
@@ -356,6 +361,40 @@ class TrainingPlan(Base):
     )
 
 
+class RegularizationRecommendation(Base):
+    """AI-assisted regularization decision support at the mid-5th month."""
+
+    __tablename__ = "regularization_recommendations"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    employee_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("probationary_employees.id"), nullable=False, index=True
+    )
+    organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    month_number: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
+    status_classification: Mapped[PerformanceRatingEnum] = mapped_column(
+        SAEnum(
+            PerformanceRatingEnum,
+            name="performance_rating_enum",
+            values_callable=_enum_values,
+        ),
+        nullable=False,
+    )
+    overall_average: Mapped[float] = mapped_column(Float, nullable=False)
+    recommendation: Mapped[str] = mapped_column(String(50), nullable=False)
+    rationale: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=_utcnow,
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    employee: Mapped["ProbationaryEmployee"] = relationship(
+        "ProbationaryEmployee", back_populates="regularization_recommendations"
+    )
+
+
 class EvaluationAuditLog(Base):
     """Append-only audit record for a competency score change."""
 
@@ -402,4 +441,5 @@ __all__ = [
     "MonthlySummary",
     "TrainingPlan",
     "EvaluationAuditLog",
+    "RegularizationRecommendation",
 ]
