@@ -47,7 +47,6 @@ export default function Sidebar({ onOpenCommandPalette }) {
   const getNavItems = () => {
     if (role === 'admin') {
       return [
-        { label: 'System Overview', path: '/admin/overview', icon: LayoutDashboard },
         { label: 'User Accounts', path: '/admin/users', icon: ShieldCheck },
         { label: 'Employee Records', path: '/employees', icon: Users },
         { label: 'Activity Log', path: '/admin/activity', icon: Activity },
@@ -104,7 +103,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
       <div className={`flex items-center ${collapsed ? 'flex-col gap-2.5 mb-3' : 'justify-between mb-4 h-10'}`}>
         <div
           onClick={() => {
-            if (role === 'admin') navigate('/admin/overview');
+            if (role === 'admin') navigate('/admin/users');
             else if (role === 'probationary_employee') navigate('/employee/dashboard');
             else if (role === 'supervisor') navigate('/supervisor/dashboard');
             else navigate('/dashboard');

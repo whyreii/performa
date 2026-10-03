@@ -30,6 +30,9 @@ export function AuthProvider({ children }) {
     try {
       await authApi.logout();
     } catch {}
+    try {
+      localStorage.removeItem('performa_token');
+    } catch {}
     persistUser(null);
   }, [persistUser]);
 
@@ -70,7 +73,12 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     setIsLoading(true);
     try {
-      await authApi.login(email, password);
+      const tokenData = await authApi.login(email, password);
+      try {
+        if (tokenData?.access_token) {
+          localStorage.setItem('performa_token', tokenData.access_token);
+        }
+      } catch {}
       const userData = await authApi.getCurrentUser();
       persistUser(userData);
       return { success: true, user: userData };

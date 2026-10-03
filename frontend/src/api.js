@@ -10,6 +10,17 @@ export const apiClient = axios.create({
   },
 });
 
+// Request interceptor: attach Bearer token if present (dual-mode auth for dev)
+apiClient.interceptors.request.use((config) => {
+  try {
+    const token = localStorage.getItem('performa_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch {}
+  return config;
+});
+
 // Response interceptor: handle 401 Unauthorized
 apiClient.interceptors.response.use(
   (response) => response,
@@ -17,6 +28,7 @@ apiClient.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       try {
         localStorage.removeItem('performa_user');
+        localStorage.removeItem('performa_token');
       } catch {}
       window.dispatchEvent(new CustomEvent('performa:unauthorized'));
     }
