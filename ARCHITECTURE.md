@@ -117,3 +117,15 @@ Agents: do not guess on anything in this section.
 - How `training_catalog.json` is keyed (competency + status to items)
 - Schema change method (Alembic or manual SQL)
 - Where the `/audits` and `/admin/activity` records are written
+
+---
+
+## 7. Generated snapshot
+
+`docs/generated/architecture-snapshot.md` is generated from the code (schema, routes, environment variables, key paths) — never hand-edit it. Regenerate with:
+
+```
+python scripts/gen_architecture_snapshot.py
+```
+
+`backend/tests/guardrails/test_snapshot.py` fails if the committed snapshot is stale.

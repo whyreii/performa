@@ -97,3 +97,18 @@ Include only the sections that apply. Keep it short for small tasks.
 5. UNVERIFIED items
 6. Migration statements
 7. How to test: exact commands and expected result
+
+---
+
+## 6. Guardrail tests
+
+The invariants in §1 and the facts in `ARCHITECTURE.md` are enforced by tests and lint, not just prose:
+
+- **Tests**: `backend/tests/guardrails/` (competencies, RBAC matrix, audit, time, Gemini scope, human-in-the-loop, ML order, docs consistency, snapshot).
+- **Backend lint**: `python -m ruff check backend` (flake8-datetimez `DTZ` — no naive `datetime.now()`/`datetime.utcnow()` in business code). Config: `ruff.toml`.
+- **Frontend lint**: `cd frontend && npm run lint` (no `.toISOString()` outside `src/utils/datetime.js`; no `.replace('_', ' ')`). Config: `frontend/eslint.config.js`.
+
+Rules:
+- Never edit, skip, weaken, or delete a guardrail test to get a pass.
+- A failing guardrail test means the code is wrong — unless the owner first changed the invariant in the docs. If a test exposes a real violation, mark it `xfail(strict=True)` with a reason and report it; do not silently fix the invariant.
+- Anything depending on an open item in `ARCHITECTURE.md` §6a/§6b must be `skip`ped with `pending decision: <item>`, never asserted as a guess.

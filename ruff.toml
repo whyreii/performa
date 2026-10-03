@@ -1,0 +1,16 @@
+# Ruff configuration — Phase 2 static checks (see AGENTS.md §6, ARCHITECTURE.md §7).
+#
+# flake8-datetimez (DTZ) bans naive datetime/date construction. Business logic
+# must use Asia/Manila via backend/timeutils.py, never naive now()/utcnow().
+# Run: python -m ruff check backend
+target-version = "py310"
+line-length = 100
+
+[lint]
+select = ["DTZ"]
+
+[lint.per-file-ignores]
+# Tests may use local-date baselines to build expectations; not business logic.
+"backend/tests/**" = ["DTZ"]
+# Alembic's generated revision scaffolding is not business logic.
+"backend/migrations/**" = ["DTZ"]
