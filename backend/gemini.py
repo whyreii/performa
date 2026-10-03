@@ -29,8 +29,8 @@ except ImportError:  # pragma: no cover - exercised only when the SDK is absent
 logger = logging.getLogger(__name__)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-PRIMARY_MODEL = "gemini-2.5-flash"
-FALLBACK_MODEL = "gemini-1.5-flash"
+PRIMARY_MODEL = "gemini-3.5-flash-lite"
+FALLBACK_MODEL = "gemini-flash-latest"
 TEMPERATURE = 0.0
 REQUEST_TIMEOUT_SECONDS = 10.0
 

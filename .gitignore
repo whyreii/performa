@@ -17,3 +17,6 @@ dist-ssr/
 .DS_Store
 .vscode/
 .idea/
+*.db
+*.sqlite
+*.sqlite3

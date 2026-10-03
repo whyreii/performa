@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/performa_db"
+        "sqlite+aiosqlite:///./performa.db"
     )
     secret_key: str = DEFAULT_SECRET_KEY
     algorithm: str = "HS256"
