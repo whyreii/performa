@@ -81,6 +81,11 @@ def predict_employee_risk(scores: dict) -> dict:
     }
     confidence = round(float(raw_probabilities[classes.index(predicted_tier)]), 4)
 
+    feature_importances = {
+        name: round(float(importance), 4)
+        for name, importance in zip(COMPETENCIES, model.feature_importances_)
+    }
+
     flagged_competencies = [
         name for name in COMPETENCIES if float(scores[name]) < 3.0
     ]
@@ -89,6 +94,7 @@ def predict_employee_risk(scores: dict) -> dict:
         "predicted_tier": predicted_tier,
         "confidence": confidence,
         "probabilities": probabilities,
+        "feature_importances": feature_importances,
         "flagged_competencies": flagged_competencies,
     }
 

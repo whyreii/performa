@@ -17,7 +17,7 @@ from ..auth import (
 )
 from ..database import get_db
 from ..models import User
-from ..schemas import PasswordChange, Token, UserResponse
+from ..schemas import PasswordChange, ProfileUpdate, Token, UserResponse
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -83,6 +83,30 @@ async def login(
 @router.get("/me", response_model=UserResponse, summary="Return the authenticated user")
 async def read_current_user(current_user: User = Depends(get_current_user)) -> User:
     """Return the profile of the currently authenticated user."""
+    return current_user
+
+
+@router.patch("/me", response_model=UserResponse, summary="Update the authenticated user's profile")
+async def update_current_user(
+    payload: ProfileUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Allow a user to update their own full name and email."""
+    if payload.email is not None and payload.email != current_user.email:
+        existing = await db.execute(select(User.id).where(User.email == payload.email))
+        if existing.scalar_one_or_none() is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="That email address is already in use.",
+            )
+        current_user.email = payload.email
+
+    if payload.full_name is not None:
+        current_user.full_name = payload.full_name
+
+    await db.commit()
+    await db.refresh(current_user)
     return current_user
 
 

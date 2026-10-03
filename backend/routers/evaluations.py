@@ -20,8 +20,10 @@ from sqlalchemy.orm import selectinload
 
 from ..auth import get_current_user, require_role
 from ..database import get_db
+from ..ml.predictor import predict_employee_risk
 from ..models import (
     EvaluationAuditLog,
+    KpiRubric,
     ProbationaryEmployee,
     User,
     UserRole,
@@ -31,6 +33,7 @@ from ..schemas import (
     AuditLogItemResponse,
     CompetencyScoreItem,
     EmployeeScorecardResponse,
+    RiskExplanationResponse,
     WeeklyEvaluationResponse,
     WeeklyRatingSubmit,
 )
@@ -192,27 +195,80 @@ async def get_scorecard(
 
     scores = _scores_from_evaluation(latest)
 
+    rubrics = list(
+        (
+            await db.execute(
+                select(KpiRubric).where(
+                    KpiRubric.organization_id == current_user.organization_id
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    target_map = {rubric.competency.value: float(rubric.target_score) for rubric in rubrics}
+    weight_map = {rubric.competency.value: float(rubric.weight) for rubric in rubrics}
+
     competencies = [
         CompetencyScoreItem(
             key=attribute,
             label=label,
             score=scores[attribute],
-            target=TARGET_SCORE,
-            gap=round(scores[attribute] - TARGET_SCORE, 2),
+            target=target_map.get(attribute, TARGET_SCORE),
+            gap=round(scores[attribute] - target_map.get(attribute, TARGET_SCORE), 2),
         )
         for attribute, label in COMPETENCIES
     ]
+
+    total_weight = sum(weight_map.values())
+    if total_weight > 0:
+        overall_target = sum(
+            weight_map.get(attribute, 0.0) * target_map.get(attribute, TARGET_SCORE)
+            for attribute, _ in COMPETENCIES
+        ) / total_weight
+    else:
+        overall_target = TARGET_SCORE
 
     overall_score = round(float(latest.overall_score), 2)
 
     return EmployeeScorecardResponse(
         employee_id=employee.id,
         overall_score=overall_score,
-        target_score=TARGET_SCORE,
-        gap=round(overall_score - TARGET_SCORE, 2),
+        target_score=round(overall_target, 2),
+        gap=round(overall_score - overall_target, 2),
         competencies=competencies,
         latest_evaluation_date=latest.evaluation_date,
     )
+
+
+@router.get(
+    "/{employee_id}/risk-explanation",
+    response_model=RiskExplanationResponse,
+    summary="ML risk explanation with feature importances",
+)
+async def get_risk_explanation(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> RiskExplanationResponse:
+    """Explain the latest classification, including per-competency importance."""
+    employee = await _get_scoped_employee(db, employee_id, current_user)
+    latest = await _latest_evaluation(db, employee.id, current_user.organization_id)
+    if latest is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No evaluations recorded for this employee",
+        )
+
+    try:
+        result = predict_employee_risk(_scores_from_evaluation(latest))
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        )
+
+    return RiskExplanationResponse(**result)
 
 
 @router.get(

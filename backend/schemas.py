@@ -76,6 +76,13 @@ class PasswordChange(BaseModel):
     new_password: str = Field(..., min_length=8, max_length=128)
 
 
+class ProfileUpdate(BaseModel):
+    """Self-service profile update payload."""
+
+    full_name: Optional[str] = Field(default=None, max_length=255)
+    email: Optional[str] = Field(default=None, max_length=255)
+
+
 # ---------------------------------------------------------------------------
 # ProbationaryEmployee
 # ---------------------------------------------------------------------------
@@ -198,6 +205,13 @@ class KpiRubricUpdate(BaseModel):
     weight: Optional[float] = Field(default=None, ge=0.0, le=1.0)
 
 
+class KpiRubricUpsert(BaseModel):
+    """Employer-configurable target and weight for a single competency."""
+
+    target_score: float = Field(default=4.0, ge=1.0, le=5.0)
+    weight: float = Field(default=0.20, ge=0.0, le=1.0)
+
+
 class KpiRubricResponse(KpiRubricBase):
     model_config = ConfigDict(from_attributes=True)
 
@@ -258,6 +272,16 @@ class EmployeeScorecardResponse(BaseModel):
     gap: float
     competencies: list[CompetencyScoreItem]
     latest_evaluation_date: Optional[date] = None
+
+
+class RiskExplanationResponse(BaseModel):
+    """ML classification result with feature importances for legal defensibility."""
+
+    predicted_tier: str
+    confidence: float
+    probabilities: dict[str, float]
+    feature_importances: dict[str, float]
+    flagged_competencies: list[str]
 
 
 # ---------------------------------------------------------------------------
@@ -366,6 +390,7 @@ __all__ = [
     "Token",
     "TokenPayload",
     "PasswordChange",
+    "ProfileUpdate",
     "ProbationaryEmployeeBase",
     "ProbationaryEmployeeUpdate",
     "ProbationaryEmployeeResponse",
@@ -378,10 +403,12 @@ __all__ = [
     "KpiRubricCreate",
     "KpiRubricUpdate",
     "KpiRubricResponse",
+    "KpiRubricUpsert",
     "WeeklyRatingSubmit",
     "WeeklyEvaluationResponse",
     "CompetencyScoreItem",
     "EmployeeScorecardResponse",
+    "RiskExplanationResponse",
     "MonthlySummaryBase",
     "MonthlySummaryCreate",
     "MonthlySummaryUpdate",
