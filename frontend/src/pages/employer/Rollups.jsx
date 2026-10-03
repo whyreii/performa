@@ -374,7 +374,7 @@ export default function Rollups() {
                 <p>
                   1. Aggregates weekly evaluation scores.<br />
                   2. Random Forest predicts risk tier (`Meets Expectations`, `Needs Improvement`, `Critical Gap`).<br />
-                  3. Gemini 2.5 Flash generates tailored executive rationale.
+                  3. Gemini generates tailored executive rationale.
                 </p>
               </div>
 

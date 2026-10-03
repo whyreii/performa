@@ -1,0 +1,154 @@
+"""Weekly KPI evaluations, scorecard gap calculations, and immutable audit trail tests."""
+from __future__ import annotations
+
+import pytest
+
+from backend.ml.catalog import COMPETENCIES
+from backend.tests.helpers import (
+    EMPLOYER_EMAIL,
+    SUPERVISOR_EMAIL,
+    find_employee_id,
+    login_user,
+)
+
+
+@pytest.mark.asyncio
+async def test_scorecard_contract(client):
+    """Scorecard returns competencies as an array of structured items with targets and gaps."""
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    emp_id = await find_employee_id(client, supervisor, "Carlos Early")
+
+    scores = {competency: 4.0 for competency in COMPETENCIES}
+    created = await client.post(
+        f"/api/evaluations/{emp_id}/weekly", headers=supervisor, json=scores
+    )
+    assert created.status_code == 201, created.text
+
+    response = await client.get(f"/api/evaluations/{emp_id}/scorecard", headers=supervisor)
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert "competencies" in data
+    assert isinstance(data["competencies"], list)
+    assert len(data["competencies"]) == 5
+    for comp in data["competencies"]:
+        assert "key" in comp
+        assert "label" in comp
+        assert "score" in comp
+        assert "target" in comp
+        assert "gap" in comp
+        assert comp["target"] == 4.0
+
+
+@pytest.mark.asyncio
+async def test_scorecard_404_when_no_evaluations(client):
+    """An employee with zero weekly evaluations yields 404 on the scorecard endpoint."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    maria_id = await find_employee_id(client, employer, "Maria Midterm")
+
+    response = await client.get(
+        f"/api/evaluations/{maria_id}/scorecard", headers=employer
+    )
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_audit_trail_contract(client):
+    """Audit trail items contain evaluator_name, competency, prior_score, and new_score."""
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    emp_id = await find_employee_id(client, supervisor, "Carlos Early")
+
+    await client.post(
+        f"/api/evaluations/{emp_id}/weekly",
+        headers=supervisor,
+        json={competency: 3.5 for competency in COMPETENCIES},
+    )
+
+    response = await client.get(f"/api/evaluations/{emp_id}/audit-trail", headers=supervisor)
+    assert response.status_code == 200, response.text
+    logs = response.json()
+    assert isinstance(logs, list)
+    assert len(logs) >= 1
+    sample = logs[0]
+    assert "evaluator_name" in sample
+    assert "competency" in sample
+    assert "prior_score" in sample
+    assert "new_score" in sample
+    assert sample["evaluator_name"] != "Unknown"
+
+
+@pytest.mark.asyncio
+async def test_tenant_audit_trail_pagination(client):
+    """Tenant-wide audit trail endpoint supports skip and limit pagination parameters."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, employer, "Carlos Early")
+
+    await client.post(
+        f"/api/evaluations/{emp_id}/weekly",
+        headers=employer,
+        json={competency: 4.0 for competency in COMPETENCIES},
+    )
+
+    limited = await client.get(
+        "/api/evaluations/audit-trail?skip=0&limit=1", headers=employer
+    )
+    assert limited.status_code == 200, limited.text
+    assert len(limited.json()) == 1
+
+
+@pytest.mark.asyncio
+async def test_supervisor_cannot_rate_unassigned_employee(client):
+    """A supervisor cannot rate an employee assigned to someone else (yields 403)."""
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    unassigned_id = await find_employee_id(client, employer, "Pedro Notice")
+
+    response = await client.post(
+        f"/api/evaluations/{unassigned_id}/weekly",
+        headers=supervisor,
+        json={competency: 3.5 for competency in COMPETENCIES},
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_kpi_rubrics_defaults_and_update(client):
+    """Customizable KPI rubric targets and weights can be updated and reset."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    rubrics = await client.get("/api/kpi-rubrics", headers=employer)
+    assert rubrics.status_code == 200, rubrics.text
+    items = rubrics.json()
+    assert len(items) == 5
+
+    update = await client.put(
+        "/api/kpi-rubrics/task_completion",
+        headers=employer,
+        json={"target_score": 4.5, "weight": 0.25},
+    )
+    assert update.status_code == 200, update.text
+    assert update.json()["target_score"] == 4.5
+
+    reset = await client.post("/api/kpi-rubrics/reset", headers=employer)
+    assert reset.status_code == 200, reset.text
+    first = reset.json()[0]
+    assert first["target_score"] == 4.0
+
+
+@pytest.mark.asyncio
+async def test_kpi_trend(client):
+    """The trend endpoint returns chronological monthly competency averages."""
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    carlos_id = await find_employee_id(client, supervisor, "Carlos Early")
+    await client.post(
+        f"/api/evaluations/{carlos_id}/weekly",
+        headers=supervisor,
+        json={competency: 4.0 for competency in COMPETENCIES},
+    )
+
+    response = await client.get(
+        f"/api/evaluations/{carlos_id}/trend", headers=supervisor
+    )
+    assert response.status_code == 200, response.text
+    points = response.json()
+    assert len(points) >= 1
+    assert points[0]["month_number"] == 1
+    assert set(COMPETENCIES) <= set(points[0])
