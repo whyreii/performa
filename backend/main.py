@@ -52,7 +52,19 @@ CORS_ORIGINS = [
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Create tables on startup and dispose of the engine on shutdown."""
+    """Create tables on startup and dispose of the engine on shutdown.
+
+    ``create_all`` is idempotent and only creates missing tables, so it is safe
+    for local development against a fresh or existing SQLite ``performa.db``.
+
+    Schema migrations are owned by Alembic (``backend/migrations``):
+    ``0001_baseline`` materialises the ORM schema and ``0002_unique_constraints``
+    adds the per-employee/month and per-org/competency uniqueness guarantees.
+    Run ``alembic upgrade head`` to apply them — verified clean against both
+    fresh and existing SQLite databases; the migrations use batch mode so they
+    are portable to PostgreSQL. For a pre-existing database created by
+    ``create_all``, ``0001`` is a no-op and ``0002`` applies the constraints.
+    """
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield

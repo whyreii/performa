@@ -79,6 +79,12 @@ def load_dataset() -> tuple[np.ndarray, np.ndarray]:
         if path.exists():
             with path.open(newline="", encoding="utf-8") as handle:
                 reader = csv.DictReader(handle)
+                fieldnames = reader.fieldnames or []
+                missing = [column for column in COMPETENCIES if column not in fieldnames]
+                if missing:
+                    raise ValueError(
+                        f"Dataset missing required competency columns: {missing}"
+                    )
                 rows = [[float(row[column]) for column in COMPETENCIES] for row in reader]
             features = np.asarray(rows, dtype=float)
             labels = np.asarray([_label_row(row) for row in features])

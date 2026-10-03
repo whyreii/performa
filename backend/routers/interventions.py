@@ -110,11 +110,6 @@ async def _get_scoped_employee(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Probationary employee not found",
         )
-    if current_user.role == UserRole.SUPERVISOR and employee.supervisor_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Supervisors may only access employees assigned to them",
-        )
     return employee
 
 
