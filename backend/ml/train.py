@@ -11,6 +11,8 @@ Run with::
 """
 from __future__ import annotations
 
+import csv
+import os
 from pathlib import Path
 
 import joblib
@@ -30,6 +32,9 @@ NEEDS_IMPROVEMENT = "Needs Improvement"
 MEETS_EXPECTATIONS = "Meets Expectations"
 
 MODEL_PATH: Path = Path(__file__).resolve().parent / "models" / "rf_model.joblib"
+
+# Optional path to a real dataset (CSV with one column per competency).
+DATASET_PATH = os.getenv("TRAINING_DATASET")
 
 
 def _label_row(scores: np.ndarray) -> str:
@@ -63,6 +68,25 @@ def build_dataset(
     return features, labels
 
 
+def load_dataset() -> tuple[np.ndarray, np.ndarray]:
+    """Load a real CSV dataset when ``TRAINING_DATASET`` is set, else synthetic.
+
+    The CSV must contain one column per competency (values in [1.0, 5.0]).
+    Labels are derived with the same priority cascade.
+    """
+    if DATASET_PATH:
+        path = Path(DATASET_PATH)
+        if path.exists():
+            with path.open(newline="", encoding="utf-8") as handle:
+                reader = csv.DictReader(handle)
+                rows = [[float(row[column]) for column in COMPETENCIES] for row in reader]
+            features = np.asarray(rows, dtype=float)
+            labels = np.asarray([_label_row(row) for row in features])
+            return features, labels
+        print(f"TRAINING_DATASET set to {path} but not found; using synthetic data.")
+    return build_dataset()
+
+
 def train_model() -> tuple[RandomForestClassifier, float, str]:
     """Train, evaluate, and persist the classifier.
 
@@ -70,7 +94,7 @@ def train_model() -> tuple[RandomForestClassifier, float, str]:
         A tuple of the fitted model, test accuracy, and the classification
         report text.
     """
-    features, labels = build_dataset()
+    features, labels = load_dataset()
 
     x_train, x_test, y_train, y_test = train_test_split(
         features,
@@ -99,7 +123,7 @@ def train_model() -> tuple[RandomForestClassifier, float, str]:
 
 def main() -> None:
     """Entrypoint: train the model and print split metrics."""
-    features, labels = build_dataset()
+    features, labels = load_dataset()
     unique, counts = np.unique(labels, return_counts=True)
     distribution = ", ".join(f"{label}={count}" for label, count in zip(unique, counts))
 

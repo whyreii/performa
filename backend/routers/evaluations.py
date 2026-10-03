@@ -9,6 +9,7 @@ written per competency whose score changed or was set for the first time.
 """
 from __future__ import annotations
 
+import html
 import logging
 import uuid
 from datetime import timedelta
@@ -16,6 +17,7 @@ from statistics import fmean
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -453,6 +455,70 @@ async def get_regularization_recommendation(
             detail="No regularization recommendation has been generated",
         )
     return record
+
+
+@router.get(
+    "/{employee_id}/report",
+    response_class=HTMLResponse,
+    summary="Printable performance report (HTML)",
+)
+async def get_employee_report(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Render a print-ready HTML performance report for an employee."""
+    employee = await _get_scoped_employee(db, employee_id, current_user)
+    latest = await _latest_evaluation(db, employee.id, current_user.organization_id)
+
+    name = html.escape(employee.user.full_name if employee.user else "Employee")
+
+    if latest is not None:
+        rows = "".join(
+            f"<tr><td>{label}</td>"
+            f"<td style='text-align:right'>{float(getattr(latest, attribute)):.1f}</td></tr>"
+            for attribute, label in COMPETENCIES
+        )
+        overall_row = (
+            "<tr class='total'><td>Overall Average</td>"
+            f"<td style='text-align:right'>{float(latest.overall_score):.2f}</td></tr>"
+        )
+        latest_date = latest.evaluation_date.isoformat()
+    else:
+        rows = "<tr><td colspan='2'>No evaluations recorded.</td></tr>"
+        overall_row = ""
+        latest_date = "—"
+
+    document = f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Performa Report — {name}</title>
+<style>
+  body {{ font-family: system-ui, -apple-system, sans-serif; margin: 40px; color: #1a1714; }}
+  h1 {{ font-size: 22px; margin-bottom: 4px; }}
+  .meta {{ color: #57524d; font-size: 13px; margin: 12px 0 20px; line-height: 1.6; }}
+  table {{ border-collapse: collapse; width: 100%; max-width: 640px; }}
+  th, td {{ border: 1px solid #ddd; padding: 8px 10px; font-size: 14px; }}
+  th {{ background: #f6f3ed; text-align: left; }}
+  .total td {{ font-weight: 700; }}
+  @media print {{ .no-print {{ display: none; }} }}
+</style></head>
+<body>
+  <h1>Performa — Probationary Performance Report</h1>
+  <div class="meta">
+    <div><strong>{name}</strong></div>
+    <div>{html.escape(employee.job_title)} · {html.escape(employee.department)}</div>
+    <div>Start: {employee.start_date.isoformat()} · Day 180: {employee.day_180_date.isoformat()} · Status: {employee.status.value}</div>
+    <div>Latest evaluation: {latest_date}</div>
+  </div>
+  <table>
+    <thead><tr><th>Competency</th><th style="text-align:right">Score (1–5)</th></tr></thead>
+    <tbody>{rows}{overall_row}</tbody>
+  </table>
+  <p class="no-print" style="margin-top:24px">
+    <button onclick="window.print()">Print / Save as PDF</button>
+  </p>
+</body></html>"""
+    return HTMLResponse(content=document)
 
 
 @router.get(

@@ -12,10 +12,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..auth import get_password_hash, require_role
 from ..audit import record_activity
 from ..database import get_db
-from ..models import ActivityLog, User, UserRole
+from ..models import (
+    ActivityLog,
+    MonthlySummary,
+    ProbationaryEmployee,
+    TrainingPlan,
+    TrainingStatusEnum,
+    User,
+    UserRole,
+)
 from ..schemas import ActivityLogResponse, UserResponse
+from .kpi import INDUSTRY_TEMPLATES
 
 router = APIRouter(prefix="/api/admin", tags=["Admin User Management"])
+
+DEADLINE_THRESHOLDS = {"day_150": 150, "day_165": 165, "day_178": 178, "day_180": 180}
 
 
 class AdminCreateUserRequest(BaseModel):
@@ -205,3 +216,69 @@ async def list_activity(
         .limit(limit)
     )
     return list((await db.execute(stmt)).scalars().all())
+
+
+@router.get("/settings", summary="System settings (Admin only)")
+async def get_system_settings(
+    current_user: User = Depends(require_role(UserRole.ADMIN)),
+) -> dict:
+    """Return the statutory deadline thresholds and the KPI template library."""
+    return {
+        "deadline_thresholds": DEADLINE_THRESHOLDS,
+        "kpi_templates": INDUSTRY_TEMPLATES,
+    }
+
+
+@router.get("/reports/overview", summary="Tenant performance overview (Admin only)")
+async def reports_overview(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.ADMIN)),
+) -> dict:
+    """Aggregate probationary and intervention metrics for the tenant."""
+    organization_id = current_user.organization_id
+
+    total = (
+        await db.execute(
+            select(func.count())
+            .select_from(ProbationaryEmployee)
+            .where(ProbationaryEmployee.organization_id == organization_id)
+        )
+    ).scalar_one()
+
+    status_rows = (
+        await db.execute(
+            select(ProbationaryEmployee.status, func.count())
+            .where(ProbationaryEmployee.organization_id == organization_id)
+            .group_by(ProbationaryEmployee.status)
+        )
+    ).all()
+    by_status = {status.value: count for status, count in status_rows}
+
+    pending_interventions = (
+        await db.execute(
+            select(func.count())
+            .select_from(TrainingPlan)
+            .join(ProbationaryEmployee, TrainingPlan.employee_id == ProbationaryEmployee.id)
+            .where(
+                ProbationaryEmployee.organization_id == organization_id,
+                TrainingPlan.status == TrainingStatusEnum.PENDING_APPROVAL,
+            )
+        )
+    ).scalar_one()
+
+    average_overall = (
+        await db.execute(
+            select(func.avg(MonthlySummary.overall_average))
+            .join(ProbationaryEmployee, MonthlySummary.employee_id == ProbationaryEmployee.id)
+            .where(ProbationaryEmployee.organization_id == organization_id)
+        )
+    ).scalar_one()
+
+    return {
+        "total_employees": total,
+        "by_status": by_status,
+        "pending_interventions": pending_interventions,
+        "average_overall_score": (
+            round(float(average_overall), 2) if average_overall is not None else None
+        ),
+    }

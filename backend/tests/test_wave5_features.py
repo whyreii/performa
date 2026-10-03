@@ -215,3 +215,30 @@ async def test_notifications_created_on_dispatch(client):
     )
     assert read.status_code == 200, read.text
     assert read.json()["is_read"] is True
+
+
+async def test_printable_report(client):
+    supervisor = await _login(client, "supervisor@acme.com")
+    carlos_id = await _find_employee(client, supervisor, "Carlos Early")
+    await client.post(
+        f"/api/evaluations/{carlos_id}/weekly",
+        headers=supervisor,
+        json={competency: 4.0 for competency in COMPETENCIES},
+    )
+    response = await client.get(f"/api/evaluations/{carlos_id}/report", headers=supervisor)
+    assert response.status_code == 200, response.text
+    assert "text/html" in response.headers["content-type"]
+    assert "Carlos Early" in response.text
+
+
+async def test_admin_settings_and_reports(client):
+    admin = await _login(client, "admin@acme.com")
+
+    settings = await client.get("/api/admin/settings", headers=admin)
+    assert settings.status_code == 200, settings.text
+    assert settings.json()["deadline_thresholds"]["day_180"] == 180
+    assert "retail" in settings.json()["kpi_templates"]
+
+    overview = await client.get("/api/admin/reports/overview", headers=admin)
+    assert overview.status_code == 200, overview.text
+    assert overview.json()["total_employees"] == 4
