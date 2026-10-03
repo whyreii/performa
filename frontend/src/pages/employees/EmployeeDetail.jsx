@@ -145,8 +145,19 @@ export default function EmployeeDetail() {
       const reportHtml = await evaluationApi.getReportHtml(id);
       const blob = new Blob([reportHtml], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
+      const win = window.open(url, '_blank');
+      if (!win) {
+        // Popup blocked — fall back to a download.
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'performa-performance-report.html';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
       setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to export report.'));
     } finally {
       setIsExporting(false);
     }

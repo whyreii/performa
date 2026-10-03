@@ -315,7 +315,7 @@ async def get_risk_explanation(
     except FileNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=str(exc),
+            detail="AI risk model is unavailable. Please contact the administrator.",
         )
 
     return RiskExplanationResponse(**result)
@@ -421,7 +421,7 @@ async def create_regularization_recommendation(
     except FileNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=str(exc),
+            detail="AI risk model is unavailable. Please contact the administrator.",
         )
 
     tier = str(prediction["predicted_tier"])

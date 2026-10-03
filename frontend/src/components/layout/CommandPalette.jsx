@@ -56,10 +56,14 @@ export default function CommandPalette({ isOpen, onClose }) {
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev + 1) % filtered.length);
+      if (filtered.length > 0) {
+        setSelectedIndex((prev) => (prev + 1) % filtered.length);
+      }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev - 1 + filtered.length) % filtered.length);
+      if (filtered.length > 0) {
+        setSelectedIndex((prev) => (prev - 1 + filtered.length) % filtered.length);
+      }
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (filtered[selectedIndex]) {

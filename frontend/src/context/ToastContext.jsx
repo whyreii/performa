@@ -1,12 +1,27 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { CheckCircle2, AlertTriangle, Info, XCircle, X } from 'lucide-react';
 
 const ToastContext = createContext(null);
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
+  const timersRef = useRef(new Map());
+
+  // Clear any pending auto-dismiss timers on unmount.
+  useEffect(
+    () => () => {
+      timersRef.current.forEach((timer) => clearTimeout(timer));
+      timersRef.current.clear();
+    },
+    []
+  );
 
   const removeToast = useCallback((id) => {
+    const timer = timersRef.current.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      timersRef.current.delete(id);
+    }
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
@@ -23,9 +38,10 @@ export function ToastProvider({ children }) {
     setToasts((prev) => [...prev.slice(-4), toast]); // Keep at most 5 toasts stacked
 
     if (toast.duration > 0) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         removeToast(id);
       }, toast.duration);
+      timersRef.current.set(id, timer);
     }
 
     return id;

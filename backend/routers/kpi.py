@@ -94,7 +94,9 @@ async def _ensure_defaults(db: AsyncSession, organization_id: str) -> list[KpiRu
 @router.get("", response_model=list[KpiRubricResponse], summary="List KPI rubrics")
 async def list_rubrics(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_role(UserRole.ADMIN, UserRole.EMPLOYER, UserRole.SUPERVISOR)
+    ),
 ) -> list[KpiRubric]:
     """Return the tenant's competency targets and weights."""
     return await _ensure_defaults(db, current_user.organization_id)

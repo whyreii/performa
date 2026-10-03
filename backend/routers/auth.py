@@ -31,17 +31,29 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 _FAILED_ATTEMPTS: dict[str, deque[float]] = defaultdict(deque)
 _MAX_FAILED_ATTEMPTS = 5
 _FAILED_WINDOW_SECONDS = 300
+_MAX_TRACKED_KEYS = 5000
 
 
 def _is_rate_limited(key: str) -> bool:
     now = time.monotonic()
-    attempts = _FAILED_ATTEMPTS[key]
+    # .get() (not defaultdict access) so probing unknown usernames never
+    # creates unbounded entries in the throttle store.
+    attempts = _FAILED_ATTEMPTS.get(key)
+    if not attempts:
+        return False
     while attempts and now - attempts[0] > _FAILED_WINDOW_SECONDS:
         attempts.popleft()
+    if not attempts:
+        _FAILED_ATTEMPTS.pop(key, None)
+        return False
     return len(attempts) >= _MAX_FAILED_ATTEMPTS
 
 
 def _record_failure(key: str) -> None:
+    # Bound the store so a flood of distinct failing usernames cannot grow it
+    # without limit (coarse eviction; use a shared store in production).
+    if len(_FAILED_ATTEMPTS) >= _MAX_TRACKED_KEYS and key not in _FAILED_ATTEMPTS:
+        _FAILED_ATTEMPTS.clear()
     _FAILED_ATTEMPTS[key].append(time.monotonic())
 
 

@@ -125,7 +125,7 @@ async def _get_scoped_employee(
 )
 async def monthly_rollup(
     employee_id: uuid.UUID,
-    month_number: int = Query(..., ge=1, description="Probation month number"),
+    month_number: int = Query(..., ge=1, le=12, description="Probation month number"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> MonthlySummary:
@@ -178,7 +178,7 @@ async def monthly_rollup(
     except FileNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=str(exc),
+            detail="AI risk model is unavailable. Please contact the administrator.",
         )
 
     predicted_tier = str(prediction["predicted_tier"])
