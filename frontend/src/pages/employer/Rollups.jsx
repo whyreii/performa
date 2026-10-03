@@ -211,7 +211,7 @@ export default function Rollups() {
                       <span className="font-semibold text-base text-ink">
                         {plan.intervention_title}
                       </span>
-                      <Badge variant="accent">{plan.competency?.replace('_', ' ')}</Badge>
+                      <Badge variant="accent">{plan.competency?.replace(/_/g, ' ')}</Badge>
                       <Badge variant="neutral">{plan.intervention_type}</Badge>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-ink-3 font-mono">
@@ -283,7 +283,9 @@ export default function Rollups() {
                   <span className="text-ink-3 font-mono ml-2">
                     Avg {Number(summary.overall_average).toFixed(2)}
                   </span>
-                  <span className="text-ink-3 ml-2">{summary.status_classification}</span>
+                  <span className="text-ink-3 ml-2 capitalize">
+                    {summary.status_classification?.replace(/_/g, ' ')}
+                  </span>
                 </div>
                 {summary.acknowledged_at ? (
                   <Badge variant="ok">Acknowledged</Badge>
@@ -327,6 +329,7 @@ export default function Rollups() {
                 type="button"
                 onClick={() => setIsGenerateModalOpen(false)}
                 className="text-ink-3 hover:text-ink"
+                aria-label="Close"
               >
                 <X className="w-4 h-4" />
               </button>

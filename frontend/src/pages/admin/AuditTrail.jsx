@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { evaluationApi, getApiErrorMessage } from '../../api';
+import { formatDate } from '../../utils/datetime';
+import { COMPETENCIES } from '../../config/domain';
 import { Button, Badge, Skeleton } from '../../components/ui';
 import {
   History,
@@ -29,25 +31,6 @@ export default function AuditTrail() {
     queryFn: () => evaluationApi.getTenantAuditTrail(),
   });
 
-  const formatDate = (isoStr) => {
-    if (!isoStr) return 'N/A';
-    try {
-      const d = new Date(isoStr);
-      return d.toLocaleString('en-PH', {
-        timeZone: 'Asia/Manila',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true,
-      });
-    } catch {
-      return isoStr;
-    }
-  };
-
   const filteredLogs = auditLogs.filter((log) => {
     if (competencyFilter !== 'all' && log.competency !== competencyFilter) return false;
     if (searchQuery.trim()) {
@@ -59,14 +42,6 @@ export default function AuditTrail() {
     }
     return true;
   });
-
-  const competencies = [
-    { id: 'task_completion', label: 'Task Completion' },
-    { id: 'quality_of_work', label: 'Quality of Work' },
-    { id: 'attendance_and_punctuality', label: 'Attendance & Punctuality' },
-    { id: 'communication_and_teamwork', label: 'Communication & Teamwork' },
-    { id: 'initiative_and_adaptability', label: 'Initiative & Adaptability' },
-  ];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
@@ -115,6 +90,7 @@ export default function AuditTrail() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search evaluator or competency..."
+              aria-label="Search audit trail"
               className="w-full h-8 pl-9 pr-3 rounded-ctl border border-line bg-surface text-ink text-xs focus:outline-none focus:border-accent transition-colors shadow-xs"
             />
           </div>
@@ -127,8 +103,8 @@ export default function AuditTrail() {
             className="h-8 px-2.5 rounded-ctl border border-line bg-surface text-ink text-xs focus:outline-none focus:border-accent transition-colors shadow-xs cursor-pointer"
           >
             <option value="all">All Competencies</option>
-            {competencies.map((c) => (
-              <option key={c.id} value={c.id}>
+            {COMPETENCIES.map((c) => (
+              <option key={c.key} value={c.key}>
                 {c.label}
               </option>
             ))}
@@ -181,7 +157,7 @@ export default function AuditTrail() {
                   return (
                     <tr key={log.id} className="hover:bg-hover transition-colors font-mono">
                       <td className="py-3 px-4 text-ink-2 whitespace-nowrap">
-                        {formatDate(log.created_at)}
+                        {formatDate(log.created_at, { withTime: true })}
                       </td>
                       <td className="py-3 px-4 font-sans font-medium text-ink">
                         {log.evaluator_name}

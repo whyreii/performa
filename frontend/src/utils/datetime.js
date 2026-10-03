@@ -27,7 +27,7 @@ export function daysElapsed(startDate) {
   return Math.max(0, Math.round((now.getTime() - start.getTime()) / 86400000));
 }
 
-export function formatDate(value, { withTime = false } = {}) {
+export function formatDate(value, { withTime = false, seconds = true } = {}) {
   if (!value) return 'N/A';
   try {
     const date = withTime ? new Date(value) : parseDateOnly(value) || new Date(value);
@@ -38,7 +38,7 @@ export function formatDate(value, { withTime = false } = {}) {
         ...options,
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit',
+        ...(seconds ? { second: '2-digit' } : {}),
         hour12: true,
       });
     }

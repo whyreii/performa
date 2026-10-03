@@ -5,6 +5,7 @@ import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, MilestonePill, StatusDot, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
+import { getInitials } from '../../utils/format';
 import {
   Users,
   Award,
@@ -33,12 +34,6 @@ export default function SupervisorDashboard() {
   const activeProbationers = useMemo(() => {
     return employees.filter((e) => e.status === 'active');
   }, [employees]);
-
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.trim().split(/\s+/);
-    return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
-  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">

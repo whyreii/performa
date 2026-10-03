@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { authApi, getApiErrorMessage } from '../../api';
+import { activateOnKey } from '../../utils/a11y';
 import { Button, Badge } from '../../components/ui';
 import {
   User,
@@ -245,7 +246,11 @@ export default function Settings() {
             </span>
             <span className="text-sm font-semibold text-ink flex items-center gap-1.5 truncate">
               <Building className="w-3.5 h-3.5 text-ink-3 shrink-0" />
-              <span>{user?.organization_id || '—'}</span>
+              <span>
+                {user?.organization_id === 'acme-ph'
+                  ? 'Acme Philippines Corp.'
+                  : user?.organization_id || '—'}
+              </span>
             </span>
           </div>
         </div>
@@ -315,7 +320,11 @@ export default function Settings() {
             return (
               <div
                 key={p.id}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
                 onClick={() => setPalette(p.id)}
+                onKeyDown={activateOnKey(() => setPalette(p.id))}
                 className={`p-4 rounded-ctl border cursor-pointer transition-all duration-performa ${
                   isSelected
                     ? 'border-accent bg-accent/5 ring-1 ring-accent shadow-sm'
@@ -391,7 +400,7 @@ export default function Settings() {
                 onChange={() => handleToggleNotification('day150')}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent" />
+              <div className="w-11 h-6 bg-line peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent" />
             </label>
           </div>
 
@@ -414,7 +423,7 @@ export default function Settings() {
                 onChange={() => handleToggleNotification('day165')}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent" />
+              <div className="w-11 h-6 bg-line peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent" />
             </label>
           </div>
 
@@ -437,7 +446,7 @@ export default function Settings() {
                 onChange={() => handleToggleNotification('day178')}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-bad" />
+              <div className="w-11 h-6 bg-line peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-bad" />
             </label>
           </div>
         </div>

@@ -3,7 +3,9 @@
 **Scope:** `frontend/src/**` (15 pages, 7 UI primitives, 5 layout components, contexts/utils).
 **Method:** static source review only. No browser/visual/responsive/contrast verification performed.
 **Severity:** P0 broken/incorrect · P1 clear defect · P2 UX/consistency · P3 polish/dead code.
-**Note:** The backend AI model is `gemini-3.5-flash-lite`. Item 5 (stale "Gemini 2.5 Flash" UI copy) has been **fixed** — the version was dropped, keeping the vendor name.
+**Note:** The backend AI model is `gemini-3.5-flash-lite`. A **Tier 1 engineering pass** has since been applied (see "Remediation log" at the bottom): 8 findings resolved, 2 partial. Findings below are marked ✅ Fixed / ◐ Partial / (unmarked = open).
+
+**Status legend:** ✅ Fixed · ◐ Partial · (no marker) = open
 
 ---
 
@@ -45,19 +47,13 @@
 28. Two overlapping audit surfaces: `/audits` (score changes) vs `/admin/activity` (user actions); Admin sidebar shows both "Activity Log" and "Audit Trail" without explaining the difference.
 
 ## E. Accessibility (P1)
-29. **Keyboard-inaccessible click targets** (mouse-only navigation):
-   - `Dashboard.jsx:278` `<tr onClick>`, `Dashboard.jsx:213` card `<div onClick>`
-   - `Employees.jsx:315` `<tr onClick>`
-   - `Settings.jsx:316` palette card `<div onClick>`
-   → use real `<button>`/`<Link>`, or add `role`/`tabIndex`/key handlers.
-30. **Focus indicator removed on inputs:** every input/select/textarea uses `focus:outline-none focus:border-accent`, overriding the global `:focus-visible` outline (`index.css:38`); focus is conveyed by border color alone. → keep a visible ring.
+29. ✅ **Fixed** — keyboard-inaccessible click targets. `Dashboard.jsx` rows/cards, `Employees.jsx` rows, and `Settings.jsx` palette cards now set `tabIndex` plus `role`/`aria-pressed` where appropriate, with an `onKeyDown` handler (`utils/a11y.js` `activateOnKey`) so Enter/Space activates them.
+30. ✅ **Fixed** — focus indicator. `index.css` `:focus-visible` now uses `outline: 2px solid var(--accent) !important`, so the ring stays visible even on inputs that set `focus:outline-none`.
 31. **Toggle focus removed:** `Settings.jsx:394,417,440` use `peer-focus:outline-none` on the switch track → no keyboard focus indicator.
-32. **Modals lack focus management / labels:**
-   - `RateEmployee.jsx:412` confirm modal has **no** `role="dialog"`/`aria-modal`/label (others do).
-   - `UserManagement.jsx` Create/Reset modals have `role`/`aria-modal` but no `aria-labelledby` and no focus trap/initial focus.
-33. **Icon-only buttons without `aria-label`:** `UserManagement.jsx:471,635`, `Rollups.jsx:326`, `EmployeeDetail.jsx:606`.
-34. **Search inputs with placeholder-only labels:** `UserManagement.jsx:236`, `AuditTrail.jsx:113`, `Employees.jsx:211`.
-35. **Animations ignore `prefers-reduced-motion`:** `StatusDot` `animate-ping`, `MilestonePill` `animate-pulse`, skeletons, `animate-in` across pages.
+32. ◐ **Partial** — close buttons in `UserManagement`, `Rollups`, and `EmployeeDetail` now have `aria-label="Close"`. Still open: no focus trap / initial focus in any modal, and the `RateEmployee.jsx` confirm modal still lacks `role="dialog"`/`aria-modal`/label.
+33. ✅ **Fixed** — icon-only buttons. `aria-label="Close"` added to the close buttons in `UserManagement.jsx`, `Rollups.jsx`, and `EmployeeDetail.jsx`.
+34. ✅ **Fixed** — search inputs. `aria-label` added: `UserManagement.jsx` ("Search users"), `AuditTrail.jsx` ("Search audit trail"), `Employees.jsx` ("Search employees").
+35. ✅ **Fixed** — `prefers-reduced-motion`. Global `@media (prefers-reduced-motion: reduce)` block in `index.css` neutralizes animations/transitions.
 36. `AuditTrail.jsx:88` "Print Compliance Log" calls `window.print()` with no print stylesheet → printed output likely poor.
 37. Tables lack `<caption>` and `scope` on `<th>` (minor).
 
@@ -80,7 +76,7 @@
 44. Same action, four names: "Rate Staff" (`Dashboard`, `SupervisorDashboard`), "Rate Employee" (nav, `EmployeeDetail`), "Rate Probationary Employee" (`RateEmployee`).
 45. Same target, many names: "Regularizing Target", "Passing Target", "Threshold Target", "Regularizing Benchmark", "Statutory regularizing standard".
 46. Same feature, many names: "AI Training Plans", "AI Training Recommendations", "Training Interventions", "Assigned Training Interventions", "Rollups & AI Plans", "Monthly Rollups & AI Sign-Off".
-47. `getInitials()` duplicated in **7+ files**; `formatDate()` reimplemented in **6+ files** despite `utils/datetime.js` exporting `formatDate`. → centralize.
+47. ✅ **Fixed** — `getInitials()` centralized in `utils/format.js` (7+ → 1); all local `formatDate()` copies removed in favor of `utils/datetime.js` (which gained a `seconds` option to keep each screen's output byte-identical).
 48. `Badge` `sm` size forces `font-mono` on role badges ("Admin", "Employer") — mono for words is unusual.
 49. `ScoreMeter.jsx:52-57` target marker conveys meaning only via `title` (hover) — not accessible/keyboard-reachable.
 
@@ -91,32 +87,55 @@
 53. `UserManagement.jsx` reset-password modal has no confirm field (Settings does) — inconsistent credential UX.
 
 ## J. Dead code / unused imports (P3)
-54. Unused imports: `Dashboard.jsx` (`ScoreMeter`, `StatusDot`, `Calendar`, `Clock`, `ArrowRight`); `EmployeeDashboard.jsx` (`Calendar`, `Clock`, `BookOpen`, `Building`, `TrendingUp`, `ShieldCheck`, `AlertCircle`, `CheckCircle2`); `AuditTrail.jsx` (`Filter`, `Clock`, `FileText`); `UserManagement.jsx` (`Users`, `Lock`, `Building2`); `Rollups.jsx` (`Clock`, `BookOpen`, `Building`, `Calendar`, `Plus`); `Settings.jsx` (`ShieldAlert`); `EmployeeDetail.jsx` (`Clock`, `UserCheck`, `UserX`); `RateEmployee.jsx` (`StatusDot`, `ArrowRight`, `Calendar`, `Building`, `User`); `SupervisorDashboard.jsx` (`CheckCircle2`); `Employees.jsx` (`Filter`).
-55. Duplicate local `formatDate`/`getInitials` helpers (see 47).
+54. ◐ **Partial** — cleaned during nav centralization: `Sidebar.jsx`, `BottomTabBar.jsx`, `CommandPalette.jsx`. Still unused: `Dashboard.jsx` (`ScoreMeter`, `StatusDot`, `Calendar`, `Clock`, `ArrowRight`); `EmployeeDashboard.jsx` (`Calendar`, `Clock`, `BookOpen`, `Building`, `TrendingUp`, `ShieldCheck`, `AlertCircle`, `CheckCircle2`); `AuditTrail.jsx` (`Filter`, `Clock`, `FileText`); `UserManagement.jsx` (`Users`, `Lock`, `Building2`); `Rollups.jsx` (`Clock`, `BookOpen`, `Building`, `Calendar`, `Plus`); `Settings.jsx` (`ShieldAlert`); `EmployeeDetail.jsx` (`Clock`, `UserCheck`, `UserX`); `RateEmployee.jsx` (`StatusDot`, `ArrowRight`, `Calendar`, `Building`, `User`); `SupervisorDashboard.jsx` (`CheckCircle2`); `Employees.jsx` (`Filter`).
+55. ✅ **Fixed** — duplicate local `formatDate`/`getInitials` helpers removed (see 47).
 
 ---
 
 ## Summary counts
-| Category | Items | Highest severity |
-|---|---|---|
-| Copy/correctness | 12 | P1 |
-| Jargon | 3 | P2 |
-| Logic/data | 9 | P1 |
-| Redundancy/IA | 4 | P2 |
-| Accessibility | 9 | P1 |
-| Responsive | 3 | P2 |
-| State handling | 3 | P2 |
-| Consistency | 6 | P2 |
-| Role/security | 4 | P1 |
-| Dead code | 2 | P3 |
-| **Total** | **55** | — |
+| Category | Items | Highest severity | Resolved |
+|---|---|---|---|
+| Copy/correctness | 12 | P1 | 1 (item 5) |
+| Jargon | 3 | P2 | 0 |
+| Logic/data | 9 | P1 | 0 |
+| Redundancy/IA | 4 | P2 | 0 |
+| Accessibility | 9 | P1 | 5 (29, 30, 33, 34, 35) + 1 partial (32) |
+| Responsive | 3 | P2 | 0 |
+| State handling | 3 | P2 | 0 |
+| Consistency | 6 | P2 | 1 (47) |
+| Role/security | 4 | P1 | 0 |
+| Dead code | 2 | P3 | 1 (55) + 1 partial (54) |
+| **Total** | **55** | — | **8 resolved · 2 partial · 45 open** |
 
 ## Not verifiable statically (needs browser pass)
 - Actual color contrast (many `text-[10px]/[11px]` + `ink-3` usages).
 - Real responsive behavior/breakpoints and mobile table cramping.
 - Focus/hover feel, modal focus trapping, print output rendering.
 
-## Suggested priority for remediation
-- **P0/P1 first:** items 16, 17, 18, 19 (data correctness), 29–33 (keyboard a11y), 50–52 (role guards).
-- **P2:** 1–4, 6, 9, 25, 38, 41–48.
-- **P3:** 54, 55.
+## Suggested priority for remediation (remaining)
+- **P0/P1 first:** 16, 17, 18, 19 (data correctness); 31, 32 (remaining keyboard/modal a11y); 50–52 (role guards / manuscript alignment).
+- **P2:** 1–4, 6, 9, 25, 38, 41–46, 48.
+- **P3:** 36, 37, 54.
+
+---
+
+## Remediation log — Tier 1 engineering pass
+
+Applied to the **current `frontend/`** (not the external `performa-ui-kit`). Engineering-only; no visual redesign.
+
+**New files**
+- `src/utils/format.js` — shared `getInitials`.
+- `src/utils/a11y.js` — `activateOnKey` (Enter/Space activation).
+- `src/config/nav.js` — single role→nav source (paths/icons + per-surface labels) consumed by `Sidebar`, `BottomTabBar`, `CommandPalette` (removes 3× duplication; the drift that caused the Admin "System Overview" bug).
+- `src/config/domain.js` — `PROBATION_DAYS`, milestone constants, `COMPETENCIES`.
+
+**Modified**
+- `src/index.css` — `:focus-visible` `!important` ring; `prefers-reduced-motion` guard.
+- `components/layout/{Sidebar,BottomTabBar,CommandPalette,MobileBar}.jsx` — consume `config/nav.js`; shared `getInitials`; removed unused imports.
+- `components/ui/MilestonePill.jsx` — thresholds from `config/domain.js`.
+- Pages (`Dashboard`, `Employees`, `EmployeeDetail`, `SupervisorDashboard`, `UserManagement`, `AuditTrail`, `ActivityLog`, `Notifications`, `EmployeeDashboard`, `Rollups`, `Settings`) — shared `getInitials`/`formatDate`, domain constants, keyboard-activatable rows/cards, `aria-label`s, and `role="tablist"` segmented controls.
+- `src/utils/datetime.js` — `formatDate` gained a `seconds` option.
+
+**Verification:** `npm run build` ✅ · `python -m pytest -q` ✅ 30 passed.
+
+**Explicitly deferred (would be visual/design changes, not engineering):** container queries, 44px touch targets, `VITE_USE_MOCK` role preview, pre-render theme anti-flash.

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi, getApiErrorMessage } from '../../api';
+import { formatDate } from '../../utils/datetime';
 import { Button, Badge, Skeleton } from '../../components/ui';
 import { Bell, CheckCheck, AlertCircle } from 'lucide-react';
 
@@ -26,23 +27,6 @@ export default function Notifications() {
     mutationFn: () => notificationApi.markAllRead(),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   });
-
-  const formatDate = (iso) => {
-    if (!iso) return '';
-    try {
-      return new Date(iso).toLocaleString('en-PH', {
-        timeZone: 'Asia/Manila',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      });
-    } catch {
-      return iso;
-    }
-  };
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
@@ -115,7 +99,7 @@ export default function Notifications() {
                     </div>
                     {n.body && <p className="text-xs text-ink-2 mt-0.5">{n.body}</p>}
                     <span className="text-[11px] text-ink-3 font-mono mt-1 block">
-                      {formatDate(n.created_at)}
+                      {n.created_at ? formatDate(n.created_at, { withTime: true, seconds: false }) : ''}
                     </span>
                   </div>
                 </div>

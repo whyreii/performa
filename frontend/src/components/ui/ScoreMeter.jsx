@@ -41,7 +41,14 @@ export default function ScoreMeter({
       )}
 
       {/* Meter track */}
-      <div className="relative h-2 w-full bg-hover border border-line rounded-full overflow-hidden">
+      <div
+        role="meter"
+        aria-valuenow={clampedScore}
+        aria-valuemin={0}
+        aria-valuemax={max}
+        aria-label="Competency score"
+        className="relative h-2 w-full bg-hover border border-line rounded-full overflow-hidden"
+      >
         {/* Progress fill */}
         <div
           className={`h-full ${fillColor} rounded-full transition-all duration-performa`}

@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, getApiErrorMessage } from '../../api';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useAuth } from '../../context/AuthContext';
+import { formatDate } from '../../utils/datetime';
+import { getInitials } from '../../utils/format';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import StatusDot from '../../components/ui/StatusDot';
@@ -83,19 +85,6 @@ export default function UserManagement() {
     };
   }, [users]);
 
-  const formatDate = (isoStr) => {
-    if (!isoStr) return '—';
-    try {
-      return new Date(isoStr).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    } catch {
-      return isoStr;
-    }
-  };
-
   const getRoleBadge = (role) => {
     switch (role) {
       case 'admin':
@@ -109,12 +98,6 @@ export default function UserManagement() {
       default:
         return <Badge variant="neutral">{role}</Badge>;
     }
-  };
-
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.trim().split(/\s+/);
-    return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
   };
 
   return (
@@ -183,9 +166,11 @@ export default function UserManagement() {
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
         {/* Role Filters */}
-        <div className="inline-flex p-1 rounded-nav bg-hover border border-line">
+        <div role="tablist" aria-label="Filter by role" className="inline-flex p-1 rounded-nav bg-hover border border-line">
           <button
             type="button"
+            role="tab"
+            aria-selected={selectedRole === 'all'}
             onClick={() => setSelectedRole('all')}
             className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
               selectedRole === 'all'
@@ -197,6 +182,8 @@ export default function UserManagement() {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={selectedRole === 'employer'}
             onClick={() => setSelectedRole('employer')}
             className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
               selectedRole === 'employer'
@@ -208,6 +195,8 @@ export default function UserManagement() {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={selectedRole === 'supervisor'}
             onClick={() => setSelectedRole('supervisor')}
             className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
               selectedRole === 'supervisor'
@@ -219,6 +208,8 @@ export default function UserManagement() {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={selectedRole === 'probationary_employee'}
             onClick={() => setSelectedRole('probationary_employee')}
             className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
               selectedRole === 'probationary_employee'
@@ -238,6 +229,7 @@ export default function UserManagement() {
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search users"
             className="w-full h-8 pl-9 pr-3 rounded-ctl border border-line bg-surface text-ink placeholder:text-ink-3 text-xs focus:outline-none focus:border-accent transition-colors shadow-xs"
           />
         </div>
@@ -332,7 +324,7 @@ export default function UserManagement() {
 
                       {/* Created At */}
                       <td className="py-3 px-4 text-ink-3 font-mono text-[11px]">
-                        {formatDate(u.created_at)}
+                        {u.created_at ? formatDate(u.created_at) : '—'}
                       </td>
 
                       {/* Actions */}
@@ -472,6 +464,7 @@ function CreateUserModal({ onClose, onSuccess }) {
             type="button"
             onClick={onClose}
             className="p-1 rounded-ctl text-ink-3 hover:text-ink hover:bg-hover transition-colors"
+            aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>
@@ -636,6 +629,7 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
             type="button"
             onClick={onClose}
             className="p-1 rounded-ctl text-ink-3 hover:text-ink hover:bg-hover transition-colors"
+            aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>

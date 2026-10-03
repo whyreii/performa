@@ -35,8 +35,10 @@
     cursor: pointer;
   }
 
+  /* !important so keyboard focus stays visible even where components set
+     `focus:outline-none` (which would otherwise suppress the ring). */
   :focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--accent) !important;
     outline-offset: 2px;
     border-radius: var(--r-ctl);
   }
@@ -44,5 +46,16 @@
   .mono {
     font-family: var(--mono);
     font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

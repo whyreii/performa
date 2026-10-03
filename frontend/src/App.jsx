@@ -151,7 +151,7 @@ export default function App() {
                 <Route
                   path="/rollups"
                   element={
-                    <ProtectedRoute allowedRoles={['employer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['employer']}>
                       <Rollups />
                     </ProtectedRoute>
                   }
@@ -159,7 +159,7 @@ export default function App() {
                 <Route
                   path="/audits"
                   element={
-                    <ProtectedRoute allowedRoles={['employer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['employer']}>
                       <AuditTrail />
                     </ProtectedRoute>
                   }
@@ -169,7 +169,7 @@ export default function App() {
                 <Route
                   path="/supervisor/dashboard"
                   element={
-                    <ProtectedRoute allowedRoles={['supervisor', 'employer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['supervisor', 'employer']}>
                       <SupervisorDashboard />
                     </ProtectedRoute>
                   }
@@ -177,7 +177,7 @@ export default function App() {
                 <Route
                   path="/supervisor/rate"
                   element={
-                    <ProtectedRoute allowedRoles={['supervisor', 'employer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['supervisor', 'employer']}>
                       <RateEmployee />
                     </ProtectedRoute>
                   }
@@ -185,7 +185,7 @@ export default function App() {
                 <Route
                   path="/supervisor/rubrics"
                   element={
-                    <ProtectedRoute allowedRoles={['supervisor', 'employer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['supervisor', 'employer']}>
                       <Rubrics />
                     </ProtectedRoute>
                   }

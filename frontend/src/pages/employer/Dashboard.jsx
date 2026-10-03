@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
+import { getInitials } from '../../utils/format';
+import { activateOnKey } from '../../utils/a11y';
 import {
   Users,
   AlertTriangle,
@@ -82,12 +84,6 @@ export default function Dashboard() {
       .filter((emp) => emp.daysElapsed >= 150)
       .sort((a, b) => b.daysElapsed - a.daysElapsed);
   }, [activeProbationers]);
-
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.trim().split(/\s+/);
-    return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
-  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
@@ -176,7 +172,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-bold font-mono text-ink">
-              {stats.pendingPlans || plans.length}
+              {stats.pendingPlans ?? plans.length}
             </span>
             <span className="text-xs text-ink-3">courses recommended</span>
           </div>
@@ -195,7 +191,7 @@ export default function Dashboard() {
                   Article 296 Statutory Milestone Action Required
                 </h3>
                 <p className="text-xs text-ink-2">
-                  {urgentProbationers.length} probationary employee(s) have reached or passed statutory review deadlines.
+                  {urgentProbationers.length} probationary {urgentProbationers.length === 1 ? 'employee' : 'employees'} have reached or passed statutory review deadlines.
                 </p>
               </div>
             </div>
@@ -209,24 +205,30 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-            {urgentProbationers.map((emp) => (
-              <div
-                key={emp.id}
-                onClick={() => navigate(`/employees/${emp.id}`)}
-                className="p-3 rounded-ctl bg-surface border border-line hover:border-ink-3/40 cursor-pointer transition-all space-y-1.5 shadow-xs"
-              >
-                <div className="flex justify-between items-start">
-                  <span className="font-semibold text-xs text-ink truncate block">
-                    {emp.user?.full_name}
-                  </span>
-                  <MilestonePill daysElapsed={emp.daysElapsed} status={emp.status} />
+            {urgentProbationers.map((emp) => {
+              const daysLeft = Math.max(0, 180 - emp.daysElapsed);
+              return (
+                <div
+                  key={emp.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/employees/${emp.id}`)}
+                  onKeyDown={activateOnKey(() => navigate(`/employees/${emp.id}`))}
+                  className="p-3 rounded-ctl bg-surface border border-line hover:border-ink-3/40 cursor-pointer transition-all space-y-1.5 shadow-xs"
+                >
+                  <div className="flex justify-between items-start">
+                    <span className="font-semibold text-xs text-ink truncate block">
+                      {emp.user?.full_name}
+                    </span>
+                    <MilestonePill daysElapsed={emp.daysElapsed} status={emp.status} />
+                  </div>
+                  <div className="flex justify-between text-[11px] text-ink-3 font-mono">
+                    <span>{emp.department}</span>
+                    <span>{daysLeft} {daysLeft === 1 ? 'day' : 'days'} to Day 180</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-[11px] text-ink-3 font-mono">
-                  <span>{emp.department}</span>
-                  <span>{Math.max(0, 180 - emp.daysElapsed)} days to Day 180</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
@@ -277,7 +279,9 @@ export default function Dashboard() {
                   return (
                     <tr
                       key={emp.id}
+                      tabIndex={0}
                       onClick={() => navigate(`/employees/${emp.id}`)}
+                      onKeyDown={activateOnKey(() => navigate(`/employees/${emp.id}`))}
                       className="hover:bg-hover cursor-pointer transition-colors"
                     >
                       <td className="py-3 px-3">

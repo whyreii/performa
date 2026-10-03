@@ -5,6 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
+import { getInitials } from '../../utils/format';
+import { activateOnKey } from '../../utils/a11y';
 import AddEmployeeModal from '../../components/employees/AddEmployeeModal';
 import {
   Users,
@@ -119,12 +121,6 @@ export default function Employees() {
     }
   };
 
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.trim().split(/\s+/);
-    return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
-  };
-
   const hasActiveFilters =
     searchQuery.trim() !== '' || selectedDept !== 'all';
 
@@ -162,9 +158,11 @@ export default function Employees() {
       {/* Tabs and Search Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
         {/* Segmented Control Tabs */}
-        <div className="inline-flex p-1 rounded-nav bg-hover border border-line">
+        <div role="tablist" aria-label="Employee filters" className="inline-flex p-1 rounded-nav bg-hover border border-line">
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'all'}
             onClick={() => setActiveTab('all')}
             className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
               activeTab === 'all'
@@ -178,6 +176,8 @@ export default function Employees() {
 
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'prob'}
             onClick={() => setActiveTab('prob')}
             className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
               activeTab === 'prob'
@@ -191,6 +191,8 @@ export default function Employees() {
 
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'reg'}
             onClick={() => setActiveTab('reg')}
             className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
               activeTab === 'reg'
@@ -213,6 +215,7 @@ export default function Employees() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search name or title..."
+              aria-label="Search employees"
               className="w-full h-8 pl-9 pr-3 rounded-ctl border border-line bg-surface text-ink placeholder:text-ink-3 text-xs focus:outline-none focus:border-accent transition-colors shadow-xs"
             />
           </div>
@@ -314,7 +317,9 @@ export default function Employees() {
                   return (
                     <tr
                       key={emp.id}
+                      tabIndex={0}
                       onClick={() => navigate(`/employees/${emp.id}`)}
+                      onKeyDown={activateOnKey(() => navigate(`/employees/${emp.id}`))}
                       className="hover:bg-hover cursor-pointer transition-colors group"
                     >
                       {/* Name & Avatar */}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi, getApiErrorMessage } from '../../api';
+import { formatDate } from '../../utils/datetime';
 import { Button, Badge, Skeleton } from '../../components/ui';
 import { History, AlertCircle } from 'lucide-react';
 
@@ -15,24 +16,6 @@ export default function ActivityLog() {
     queryKey: ['admin-activity'],
     queryFn: () => adminApi.listActivity({ limit: 200 }),
   });
-
-  const formatDate = (iso) => {
-    if (!iso) return '';
-    try {
-      return new Date(iso).toLocaleString('en-PH', {
-        timeZone: 'Asia/Manila',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true,
-      });
-    } catch {
-      return iso;
-    }
-  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
@@ -88,7 +71,7 @@ export default function ActivityLog() {
                 {entries.map((entry) => (
                   <tr key={entry.id} className="hover:bg-hover transition-colors">
                     <td className="py-3 px-4 text-ink-2 font-mono whitespace-nowrap">
-                      {formatDate(entry.created_at)}
+                      {entry.created_at ? formatDate(entry.created_at, { withTime: true }) : ''}
                     </td>
                     <td className="py-3 px-4 font-medium text-ink">
                       {entry.actor_name || '—'}

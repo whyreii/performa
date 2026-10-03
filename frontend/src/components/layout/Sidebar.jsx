@@ -1,24 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import {
-  BarChart3,
-  Users,
-  LayoutDashboard,
-  FileCheck2,
-  History,
-  Settings,
-  Target,
-  Award,
-  BookOpen,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  Search,
-  ShieldCheck,
-  Bell,
-  Activity,
-} from 'lucide-react';
+import { BarChart3, LogOut, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { sidebarNav } from '../../config/nav';
+import { getInitials } from '../../utils/format';
 
 export default function Sidebar({ onOpenCommandPalette }) {
   const { user, logout } = useAuth();
@@ -43,54 +28,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
   const role = user?.role;
 
-  // Role-specific navigation items
-  const getNavItems = () => {
-    if (role === 'admin') {
-      return [
-        { label: 'User Accounts', path: '/admin/users', icon: ShieldCheck },
-        { label: 'Employee Records', path: '/employees', icon: Users },
-        { label: 'Activity Log', path: '/admin/activity', icon: Activity },
-        { label: 'Audit Trail', path: '/audits', icon: History },
-        { label: 'Notifications', path: '/notifications', icon: Bell },
-        { label: 'Settings', path: '/settings', icon: Settings },
-      ];
-    }
-    if (role === 'employer') {
-      return [
-        { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-        { label: 'Employees', path: '/employees', icon: Users },
-        { label: 'Rollups & AI Plans', path: '/rollups', icon: FileCheck2 },
-        { label: 'Audit Trail', path: '/audits', icon: History },
-        { label: 'Notifications', path: '/notifications', icon: Bell },
-        { label: 'Settings', path: '/settings', icon: Settings },
-      ];
-    }
-    if (role === 'supervisor') {
-      return [
-        { label: 'Supervisor Dashboard', path: '/supervisor/dashboard', icon: LayoutDashboard },
-        { label: 'Employees', path: '/employees', icon: Users },
-        { label: 'Rate Employee', path: '/supervisor/rate', icon: Award },
-        { label: 'KPI Rubrics', path: '/supervisor/rubrics', icon: Target },
-        { label: 'Notifications', path: '/notifications', icon: Bell },
-        { label: 'Settings', path: '/settings', icon: Settings },
-      ];
-    }
-    // Probationary Employee
-    return [
-      { label: 'My Scorecard', path: '/employee/dashboard', icon: Award },
-      { label: 'Training Plans', path: '/employee/training', icon: BookOpen },
-      { label: 'Notifications', path: '/notifications', icon: Bell },
-      { label: 'Settings', path: '/settings', icon: Settings },
-    ];
-  };
-
-  const navItems = getNavItems();
-
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.trim().split(/\s+/);
-    return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
-  };
+  const navItems = sidebarNav(role);
 
   return (
     <aside

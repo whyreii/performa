@@ -1,17 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import {
-  LayoutDashboard,
-  Users,
-  FileCheck2,
-  History,
-  Settings,
-  Target,
-  Award,
-  BookOpen,
-  ShieldCheck,
-} from 'lucide-react';
+import { tabNav } from '../../config/nav';
 
 const TAB_GRID = {
   3: 'grid-cols-3',
@@ -23,42 +13,7 @@ export default function BottomTabBar() {
   const { user } = useAuth();
   const role = user?.role;
 
-  const getTabs = () => {
-    if (role === 'admin') {
-      return [
-        { label: 'Accounts', path: '/admin/users', icon: ShieldCheck },
-        { label: 'Directory', path: '/employees', icon: Users },
-        { label: 'Audits', path: '/audits', icon: History },
-        { label: 'Settings', path: '/settings', icon: Settings },
-      ];
-    }
-    if (role === 'employer') {
-      return [
-        { label: 'Overview', path: '/dashboard', icon: LayoutDashboard },
-        { label: 'Directory', path: '/employees', icon: Users },
-        { label: 'Rollups', path: '/rollups', icon: FileCheck2 },
-        { label: 'Audits', path: '/audits', icon: History },
-        { label: 'Settings', path: '/settings', icon: Settings },
-      ];
-    }
-    if (role === 'supervisor') {
-      return [
-        { label: 'Overview', path: '/supervisor/dashboard', icon: LayoutDashboard },
-        { label: 'Team', path: '/employees', icon: Users },
-        { label: 'Rate', path: '/supervisor/rate', icon: Award },
-        { label: 'Rubrics', path: '/supervisor/rubrics', icon: Target },
-        { label: 'Settings', path: '/settings', icon: Settings },
-      ];
-    }
-    // Employee
-    return [
-      { label: 'Scorecard', path: '/employee/dashboard', icon: Award },
-      { label: 'Training', path: '/employee/training', icon: BookOpen },
-      { label: 'Settings', path: '/settings', icon: Settings },
-    ];
-  };
-
-  const tabs = getTabs();
+  const tabs = tabNav(role);
 
   return (
     <nav

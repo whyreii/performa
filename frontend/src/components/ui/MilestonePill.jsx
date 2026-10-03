@@ -1,9 +1,15 @@
 import React from 'react';
 import Badge from './Badge';
+import {
+  PROBATION_DAYS,
+  MILESTONE_CRITICAL,
+  MILESTONE_NOTICE,
+  MILESTONE_REVIEW,
+} from '../../config/domain';
 
 export default function MilestonePill({
   daysElapsed = 0,
-  totalDays = 180,
+  totalDays = PROBATION_DAYS,
   status = 'active',
   className = '',
 }) {
@@ -26,7 +32,7 @@ export default function MilestonePill({
   }
 
   // Article 296 statutory milestone thresholds
-  if (daysElapsed > 180) {
+  if (daysElapsed > PROBATION_DAYS) {
     return (
       <Badge variant="bad" className={`animate-pulse ${className}`}>
         Passed 180-Day Cap (Auto-Reg)
@@ -34,26 +40,26 @@ export default function MilestonePill({
     );
   }
 
-  if (daysElapsed >= 178) {
+  if (daysElapsed >= MILESTONE_CRITICAL) {
     return (
       <Badge variant="bad" className={`animate-pulse ${className}`}>
-        Day {daysElapsed} · Day 178 Critical Action
+        Day {daysElapsed} · Day {MILESTONE_CRITICAL} Critical Action
       </Badge>
     );
   }
 
-  if (daysElapsed >= 165) {
+  if (daysElapsed >= MILESTONE_NOTICE) {
     return (
       <Badge variant="warn" className={className}>
-        Day {daysElapsed} · Day 165 Notice Window
+        Day {daysElapsed} · Day {MILESTONE_NOTICE} Notice Window
       </Badge>
     );
   }
 
-  if (daysElapsed >= 150) {
+  if (daysElapsed >= MILESTONE_REVIEW) {
     return (
       <Badge variant="warn" className={className}>
-        Day {daysElapsed} · Day 150 Review Due
+        Day {daysElapsed} · Day {MILESTONE_REVIEW} Review Due
       </Badge>
     );
   }

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { BarChart3, ChevronLeft, Search, LogOut } from 'lucide-react';
+import { getInitials } from '../../utils/format';
 
 export default function MobileBar({ onOpenCommandPalette }) {
   const { user, logout } = useAuth();
@@ -14,12 +15,6 @@ export default function MobileBar({ onOpenCommandPalette }) {
     location.pathname.startsWith('/employees/') ||
     location.pathname.includes('/rate') ||
     location.pathname.includes('/rubrics');
-
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.trim().split(/\s+/);
-    return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
-  };
 
   const palettes = ['paper', 'midnight', 'dusk', 'mist', 'sage'];
   const nextPalette = () => {

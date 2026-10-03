@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, ScoreMeter, StatusDot, Skeleton } from '../../components/ui';
-import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
+import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import {
   Award,
   AlertTriangle,
@@ -50,9 +50,9 @@ export default function RateEmployee() {
   const [ratings, setRatings] = useState({
     task_completion: 4.0,
     quality_of_work: 4.0,
-    attendance_and_punctuality: 4.5,
+    attendance_and_punctuality: 4.0,
     communication_and_teamwork: 4.0,
-    initiative_and_adaptability: 3.5,
+    initiative_and_adaptability: 4.0,
   });
 
   const [remarks, setRemarks] = useState('');
@@ -173,7 +173,7 @@ export default function RateEmployee() {
           <div className="flex justify-between border-b border-line pb-2">
             <span className="text-ink-3">Evaluation Date</span>
             <span className="text-ink">
-              {submittedEvaluation.evaluation_date || new Date().toISOString().split('T')[0]}
+              {submittedEvaluation.evaluation_date || formatDate(new Date())}
             </span>
           </div>
           <div className="flex justify-between">
@@ -300,7 +300,7 @@ export default function RateEmployee() {
                       {currentScore.toFixed(1)}
                     </span>
                     <Badge variant={isMeets ? 'ok' : isWarn ? 'warn' : 'bad'}>
-                      {isMeets ? 'Meets (>= 4.0)' : isWarn ? 'Developing' : 'Critical Gap'}
+                      {isMeets ? 'Meets (≥ 4.0)' : isWarn ? 'Developing' : 'Critical Gap'}
                     </Badge>
                   </div>
                 </div>
@@ -415,6 +415,9 @@ export default function RateEmployee() {
           onClick={() => setIsConfirmModalOpen(false)}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-eval-title"
             className="w-full max-w-lg bg-surface border border-line rounded-float shadow-pop p-6 sm:p-7 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
@@ -423,7 +426,7 @@ export default function RateEmployee() {
                 <ShieldAlert className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-ink">
+                <h3 id="confirm-eval-title" className="text-base font-semibold text-ink">
                   Confirm Immutable Evaluation Submission
                 </h3>
                 <p className="text-xs text-ink-3">Article 296 Evidentiary Logging</p>

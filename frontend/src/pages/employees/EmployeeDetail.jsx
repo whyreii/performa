@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
-import { daysElapsed as getDaysElapsed, parseDateOnly } from '../../utils/datetime';
+import { daysElapsed as getDaysElapsed, parseDateOnly, formatDate } from '../../utils/datetime';
+import { getInitials } from '../../utils/format';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import {
   ArrowLeft,
@@ -128,25 +129,6 @@ export default function EmployeeDetail() {
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     } finally {
       setIsExporting(false);
-    }
-  };
-
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.trim().split(/\s+/);
-    return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return 'N/A';
-    try {
-      return new Date(dateStr).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    } catch {
-      return dateStr;
     }
   };
 
@@ -316,7 +298,7 @@ export default function EmployeeDetail() {
           </div>
 
           <div className="font-mono text-xs text-ink">
-            <b>Day {daysElapsed}</b> / 180 ({daysRemaining} days remaining)
+            <b>Day {daysElapsed}</b> / 180 ({daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining)
           </div>
         </div>
 
@@ -607,6 +589,7 @@ export default function EmployeeDetail() {
                 type="button"
                 onClick={() => setIsDeactivateModalOpen(false)}
                 className="text-ink-3 hover:text-ink"
+                aria-label="Close"
               >
                 ✕
               </button>

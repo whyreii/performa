@@ -2,22 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import {
-  Search,
-  LayoutDashboard,
-  Users,
-  FileCheck2,
-  History,
-  Settings,
-  Target,
-  Award,
-  BookOpen,
-  Palette,
-  X,
-  ShieldCheck,
-  Bell,
-  Activity,
-} from 'lucide-react';
+import { Search, Settings, Palette, X, Bell } from 'lucide-react';
+import { commandNav } from '../../config/nav';
 
 export default function CommandPalette({ isOpen, onClose }) {
   const [query, setQuery] = useState('');
@@ -31,35 +17,13 @@ export default function CommandPalette({ isOpen, onClose }) {
 
   // Base navigation commands based on role
   const getCommands = () => {
-    const list = [];
-
-    if (role === 'admin') {
-      list.push(
-        { id: 'users', label: 'Manage User Accounts', category: 'Navigation', icon: ShieldCheck, action: () => navigate('/admin/users') },
-        { id: 'activity', label: 'System Activity Log', category: 'Navigation', icon: Activity, action: () => navigate('/admin/activity') },
-        { id: 'emp', label: 'View Employee Records', category: 'Navigation', icon: Users, action: () => navigate('/employees') },
-        { id: 'audit', label: 'Audit Trail & Compliance Logs', category: 'Navigation', icon: History, action: () => navigate('/audits') },
-      );
-    } else if (role === 'employer') {
-      list.push(
-        { id: 'dash', label: 'Go to Employer Dashboard', category: 'Navigation', icon: LayoutDashboard, action: () => navigate('/dashboard') },
-        { id: 'emp', label: 'View Employee Directory', category: 'Navigation', icon: Users, action: () => navigate('/employees') },
-        { id: 'roll', label: 'Monthly Rollups & AI Plans', category: 'Navigation', icon: FileCheck2, action: () => navigate('/rollups') },
-        { id: 'audit', label: 'Audit Trail & Compliance Logs', category: 'Navigation', icon: History, action: () => navigate('/audits') },
-      );
-    } else if (role === 'supervisor') {
-      list.push(
-        { id: 'sdash', label: 'Supervisor Dashboard', category: 'Navigation', icon: LayoutDashboard, action: () => navigate('/supervisor/dashboard') },
-        { id: 'team', label: 'Team Directory', category: 'Navigation', icon: Users, action: () => navigate('/employees') },
-        { id: 'rate', label: 'Rate Probationary Employee', category: 'Navigation', icon: Award, action: () => navigate('/supervisor/rate') },
-        { id: 'rubrics', label: 'View KPI Rubrics', category: 'Navigation', icon: Target, action: () => navigate('/supervisor/rubrics') },
-      );
-    } else {
-      list.push(
-        { id: 'edash', label: 'My Scorecard & Evaluations', category: 'Navigation', icon: Award, action: () => navigate('/employee/dashboard') },
-        { id: 'train', label: 'My Training Interventions', category: 'Navigation', icon: BookOpen, action: () => navigate('/employee/training') },
-      );
-    }
+    const list = commandNav(role).map((item) => ({
+      id: item.path,
+      label: item.label,
+      category: 'Navigation',
+      icon: item.icon,
+      action: () => navigate(item.path),
+    }));
 
     list.push(
       { id: 'notifications', label: 'View Notifications', category: 'Navigation', icon: Bell, action: () => navigate('/notifications') },

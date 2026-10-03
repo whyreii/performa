@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, ScoreMeter, MilestonePill, Skeleton } from '../../components/ui';
-import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
+import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import {
   Award,
   Calendar,
@@ -67,19 +67,6 @@ export default function EmployeeDashboard() {
   const daysRemaining = Math.max(0, 180 - daysElapsed);
   const progressPct = Math.min(100, Math.round((daysElapsed / 180) * 100));
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return 'N/A';
-    try {
-      return new Date(dateStr).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
       {/* Header */}
@@ -125,7 +112,9 @@ export default function EmployeeDashboard() {
             <span>
               <b>Day {daysElapsed}</b> elapsed
             </span>
-            <span className="text-ink-3">{daysRemaining} days remaining until regularization review</span>
+            <span className="text-ink-3">
+              {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining until regularization review
+            </span>
           </div>
 
           <div className="relative h-3 w-full bg-hover border border-line rounded-full overflow-hidden">
@@ -285,7 +274,9 @@ export default function EmployeeDashboard() {
                   <span className="text-ink-3 font-mono ml-2">
                     Avg {Number(s.overall_average).toFixed(2)}
                   </span>
-                  <span className="text-ink-3 ml-2">{s.status_classification}</span>
+                  <span className="text-ink-3 ml-2 capitalize">
+                    {s.status_classification?.replace(/_/g, ' ')}
+                  </span>
                 </div>
                 {s.acknowledged_at ? (
                   <Badge variant="ok">Acknowledged</Badge>
