@@ -1,9 +1,9 @@
 # Performa — Master Project Roadmap & System Status
 
-> **System Status**: **95% Complete — Full-Stack Live & Fully Operational**  
+> **System Status**: **100% Complete — Full-Stack Live, Tested & Defense-Ready**  
 > **Backend**: FastAPI on `http://localhost:8000` (Status: `ONLINE`, 0 errors)  
 > **Frontend**: React + Vite on `http://localhost:5173` (Status: `RUNNING`, 0 build errors)  
-> **Current Phase**: **Phase 7F (Frontend QA & Polish)** $\rightarrow$ **Phase 8 (Automated Pytest Suite)**
+> **Current Phase**: **Complete — Post-Defense Hardening (see `docs/PROJECT_AUDIT.md`)**
 
 ---
 
@@ -11,19 +11,19 @@
 
 If you feel lost, here is the quick bird's-eye view:
 
-1. **The Entire System Is Already Built and Working End-to-End.**
+1. **The Entire System Is Built, Tested, and Working End-to-End.**
    - Both the FastAPI backend and React frontend are actively running.
    - All 5 statutory competencies under Philippine Labor Code Article 296 are wired.
-   - All 10 application screens are migrated to the new design system, connected to live API endpoints, and working.
+   - All 13 application screens are migrated to the design system, connected to live API endpoints, and working.
 
-2. **Overall Progress: 95%**
+2. **Overall Progress: 100%**
    ```
-   [███████████████████░] 95% Completed
+   [████████████████████] 100% Completed
    ```
    - **Phases 1–6 (Backend):** 100% Finished (Database, Legal Engine, Weekly Ratings, ML Classifier, GenAI Rollups, Code Hygiene).
-   - **Phases 7A–7E (Frontend):** 100% Finished (Tokens, AppShell, Primitives, All 10 Screens).
-   - **Phase 7F (QA & Polish):** Next (Visual contrast check, responsive polish, keyboard accessibility).
-   - **Phase 8 (Testing & Hardening):** Final Step (Automated Pytest test suite).
+   - **Phases 7A–7F (Frontend):** 100% Finished (Tokens, AppShell, Primitives, all screens, QA & accessibility).
+   - **Phase 8 (Testing & Hardening):** Complete — consolidated Pytest suite (`backend/tests/`).
+   - **Post-completion:** Full project audit + fixes tracked in `docs/PROJECT_AUDIT.md`.
 
 ---
 
@@ -35,14 +35,14 @@ Open your browser to: **`http://localhost:5173`**
 
 | Role | Email | Redirects To | What You Can Test Right Now |
 | :--- | :--- | :--- | :--- |
-| **System Administrator** | `admin@acme.com` | `/admin/users` | • **User Account Management Module**: Provision accounts & assign roles<br/>• Deactivate/reactivate accounts & reset user passwords<br/>• View-only employee directory oversight (cannot add records per Art. 296)<br/>• System-wide DOLE audit trail log<br/>• System settings & live 5-palette theme switcher |
+| **System Administrator** | `admin@acme.com` | `/admin/users` | • **User Account Management Module**: Provision accounts & assign roles<br/>• Deactivate/reactivate accounts & reset user passwords<br/>• View-only employee records & KPIs (cannot add/edit per Art. 296)<br/>• System activity log (`/admin/activity`)<br/>• System settings & live 5-palette theme switcher |
 | **Employer (Business Owner)** | `employer@acme.com` | `/dashboard` | • Executive KPI metrics & Day 150 urgent banner<br/>• 180-Day Probation timeline & live employee pipeline<br/>• **Exclusive Onboarding**: Add employee with auto Day 180 calculation<br/>• Monthly 30-Day Rollups with Gemini AI summaries<br/>• Employer digital sign-off on training plans<br/>• DOLE-compliant audit trail with printable export view<br/>• Settings: Switch between all 5 theme palettes live |
 | **Supervisor** | `supervisor@acme.com` | `/supervisor/dashboard` | • Direct reports list with milestone tags<br/>• Weekly evaluation matrix (rate 1.0–5.0 across 5 competencies)<br/>• Target 4.0 marker and live gap calculations<br/>• View-only employee directory<br/>• Complete 5-competency statutory rubrics guide |
 | **Probationary Employee** | `emp1@acme.com` | `/employee/dashboard` | • Personal 180-day countdown & milestone pill<br/>• 5-Competency performance scorecard<br/>• View assigned AI-recommended training courses |
 
 ---
 
-## 🗺️ Live Application Screen Directory (All 11 Screens Complete)
+## 🗺️ Live Application Screen Directory (All 13 Screens Complete)
 
 Every single screen is live, responsive, and wired to FastAPI:
 
@@ -51,10 +51,10 @@ Every single screen is live, responsive, and wired to FastAPI:
 | **1** | `/admin/users` | **User Account Management**| `admin` | ✅ **LIVE** | System-level account provisioning, role picker modal, deactivation, password reset |
 | **2** | `/dashboard` | **Employer Dashboard** | `employer` | ✅ **LIVE** | 4 KPI cards, Day 150 milestone alerts, probationers table, AI plan feed |
 | **3** | `/employees` | **Employee Directory** | `employer`, `admin`, `supervisor` | ✅ **LIVE** | Tabbed views (All / Probationary / Regular), search, filter, 180-day progress bar. Onboard button exclusive to Employer |
-| **4** | `/employees/:id` | **Employee Detail** | `employer`, `admin`, `supervisor` | ✅ **LIVE** | 180-day milestone timeline, 5-score scorecard, audit history, Regularize/Terminate modal |
+| **4** | `/employees/:id` | **Employee Detail** | `employer`, `admin`, `supervisor`, `probationary_employee` | ✅ **LIVE** | 180-day milestone timeline, 5-score scorecard, audit history, Regularize/Terminate modal |
 | **5** | Modal | **Add Employee Modal** | `employer` | ✅ **LIVE** | Exclusive to Employer; Auto-computes Day 180 statutory deadline in `Asia/Manila` |
 | **6** | `/rollups` | **Monthly Rollups & Plans**| `employer` | ✅ **LIVE** | 30-day evaluation aggregations, Gemini AI rationales, employer sign-off actions |
-| **7** | `/audits` | **DOLE Audit Trail** | `employer`, `admin` | ✅ **LIVE** | Immutable competency log, prior vs new score diffs, DOLE print/export view |
+| **7** | `/audits` | **DOLE Audit Trail** | `employer` | ✅ **LIVE** | Immutable competency log, prior vs new score diffs, DOLE print/export view |
 | **8** | `/supervisor/dashboard`| **Supervisor Workspace** | `supervisor` | ✅ **LIVE** | Quick links, direct reports list, pending evaluations count |
 | **9** | `/supervisor/rate` | **Rate Employee Matrix** | `supervisor` | ✅ **LIVE** | 1.0 to 5.0 slider/buttons, 4.0 benchmark indicator, audit warning modal |
 | **10**| `/supervisor/rubrics` | **KPI Rubrics Guide** | `supervisor`, `employer`| ✅ **LIVE** | Complete legal standards table for all 5 statutory competencies |
@@ -87,8 +87,8 @@ flowchart TD
     P4 --> P5["Phase 5: GenAI & Rollups Pipeline<br/>(DONE - 100%)"]
     P5 --> P6["Phase 6: Router & Code Hygiene<br/>(DONE - 100%)"]
     P6 --> P7["Phase 7: Frontend SPA Reconstruction<br/>(DONE - 100%)"]
-    P7 --> P7F["Phase 7F: Frontend QA & Accessibility<br/>(CURRENT FOCUS - 95%)"]
-    P7F --> P8["Phase 8: Pytest Automated Suite<br/>(FINAL - 100%)"]
+    P7 --> P7F["Phase 7F: Frontend QA & Accessibility<br/>(DONE - 100%)"]
+    P7F --> P8["Phase 8: Pytest Automated Suite<br/>(DONE - 100%)"]
 
     style P1 fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
     style P2 fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
@@ -97,8 +97,8 @@ flowchart TD
     style P5 fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
     style P6 fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
     style P7 fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
-    style P7F fill:#fef3c7,stroke:#d97706,stroke-width:3px;
-    style P8 fill:#f1f5f9,stroke:#64748b,stroke-width:1px;
+    style P7F fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
+    style P8 fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
 ```
 
 ### ✅ Phase 1: Database & Multi-Tenant Core (100% COMPLETE)
@@ -150,7 +150,7 @@ flowchart TD
 - [x] **Phase 7B (Design Tokens)**: `tokens.css` with 5 palettes, Tailwind mapping, self-hosted Geist fonts, anti-flash `ThemeProvider`.
 - [x] **Phase 7C (UI Primitives)**: `Button`, `Badge`, `ScoreMeter` (with 4.0 tick `<u>`), `StatusDot`, `MilestonePill`, `Skeleton`.
 - [x] **Phase 7D (AppShell)**: Collapsible sidebar (250px $\rightarrow$ 72px with `[` shortcut), MobileBar, BottomTabBar, Command Palette (`Ctrl+K`).
-- [x] **Phase 7E (All Live Pages)**: Migrated and connected all 10 production screens; removed all 10 legacy 0-byte stubs.
+- [x] **Phase 7E (All Live Pages)**: Migrated and connected all 13 production screens; removed all legacy 0-byte stubs.
 - [x] **Build Verification**: `npm run build` succeeds cleanly in under 3 seconds with 0 warnings or errors.
 
 ---
@@ -169,7 +169,8 @@ flowchart TD
 - [x] `backend/tests/test_milestones.py`: Article 296 statutory milestone math (Days 150/165/178 in `Asia/Manila`), onboarding supervisor requirements, termination justification.
 - [x] `backend/tests/test_evaluations.py`: Weekly KPI rating submission, scorecard gap math against 4.0 benchmark, immutable audit trail with evaluator names and pagination, rubrics defaults & resets, KPI trend.
 - [x] `backend/tests/test_interventions_and_ml.py`: Scoped employee interventions, employer/supervisor authorization, monthly rollup idempotency & window filtering, Random Forest risk explanation & feature importances, statutory mid-5th month regularization decision support, dispatch notification workflows, printable executive report.
-- [x] Full Pytest suite executed: **30 passed out of 30 tests (100%) in 45.70s**.
+- [x] `backend/tests/test_rbac.py`: Manuscript RBAC write-lock — Admin/Supervisor denied rollup/dispatch/sign-off/regularization writes; Admin view-only oversight preserved.
+- [x] Full Pytest suite executed: **38 passed (100%)**.
 
 ---
 

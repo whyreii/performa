@@ -14,7 +14,7 @@
 - **Design System & Aesthetics**: Follow `src/tokens.css` (the 5 curated themes). Adhere to WCAG 2.1 Level AA for color contrast and keyboard navigation.
 
 ## 3. Strict Manuscript RBAC Boundaries
-- **Admin (`admin@acme.com`)**: System Administrator manages user accounts and tenant operations (`/admin/*`, `/settings`, `/notifications`). Admins MUST NOT have access to employee performance scorecards, evaluations, or regularization/termination actions.
+- **Admin (`admin@acme.com`)**: System/IT-level access for platform oversight. **MAY:** manage user accounts (create/deactivate/reset); **view** KPIs, employee records, scorecards, evaluations, and performance/activity reports across the system (view-only); manage system settings; view the system-wide activity log. **MUST NOT:** add/edit employee records, create/edit KPI definitions, enter ratings, or take regularization/termination actions (Employer-exclusive; ratings also permitted to the Supervisor for assigned reports only).
 - **Employer (`employer@acme.com`)**: Full operational oversight over employee performance, weekly ratings, monthly rollups, and exclusive regularization sign-offs.
 - **Supervisor (`supervisor@acme.com`)**: Weekly ratings and scorecards for assigned direct reports only.
 - **Probationary Employee (`emp1@acme.com`)**: Self-scoped personal dashboard, notifications, and monthly summary digital acknowledgments.
