@@ -96,8 +96,8 @@
 ---
 
 ## I. Role & Security Alignment (P1 — Manuscript Integrity)
-50. ✅ **Fixed** — `App.jsx` route guards tightened: removed `'admin'` from `/rollups`, `/audits`, and `/supervisor/*`. Admins are strictly scoped to `/admin/*`.
-51. `Dashboard.jsx:113-118` — Employer's primary CTA "Rate Staff" navigates to `/supervisor/rate`. Confirm if employer should rate staff directly or delegate to supervisors.
+50. ✅ **Fixed (Manuscript-aligned)** — Admin RBAC corrected to the Scope of the Study. Admin retains **view-only** access to employee records, scorecards, evaluations, and performance/activity reports; **write** actions are now Employer-only: employee onboarding (`POST /api/employees/`), status change (`PATCH /api/employees/{id}/status`), and KPI upsert/reset (`/api/kpi-rubrics`) require `EMPLOYER`, and `EmployeeDetail` hides the status button from Admin. (Supersedes the earlier route-only change that over-restricted Admin relative to the manuscript.)
+51. ✅ **Resolved (Manuscript)** — `Dashboard.jsx:113-118` — Employer rating is in scope: the Scope of the Study grants the Employer "Performance Rating Entry," and the Delimitations state ratings are recorded exclusively by the Employer or Supervisor. Code and UI are correct.
 52. `AddEmployeeModal.jsx` — Default temporary demo password UX.
 53. `UserManagement.jsx` — Password reset modal UX.
 
@@ -113,8 +113,8 @@
 
 | Status | Count | Description |
 | :--- | :---: | :--- |
-| ✅ **Fixed** | **22** | Code, date, regex, pluralization, route guard, and a11y bugs resolved |
+| ✅ **Fixed** | **23** | Code, date, regex, pluralization, a11y, and manuscript-aligned RBAC write-lock resolved |
 | 🛡️ **Preserved** | **4** | Core thesis pillars (XAI Random Forest, 4.0 benchmark, dual audit trails) protected |
 | ◐ **Partial** | **1** | Modal focus trapping / dialog attributes across remaining pages |
-| 📋 **Open** | **28** | Remaining UX consistency, print styling, and responsive polish items |
+| 📋 **Open** | **27** | Remaining UX consistency, print styling, and responsive polish items |
 | **Total Items Audited** | **55** | Comprehensive static + dynamic coverage |

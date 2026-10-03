@@ -29,7 +29,7 @@ All AI agents (Antigravity/Gemini, OpenCode/DeepSeek, etc.) operating on this co
 ---
 
 ## 3. Strict Manuscript RBAC Boundaries
-1. **System Administrator (`admin@acme.com`)**: Manages user accounts and platform operations (`/admin/*`, `/settings`, `/notifications`). Admins MUST NOT have access to employee performance scorecards, evaluations, or regularization/termination actions.
+1. **System Administrator (`admin@acme.com`)**: System/IT-level access for platform oversight (Manuscript Scope of the Study). **MAY:** manage user accounts (create/deactivate/reset); **view** KPIs across the system (view-only); **view** probationary employee records, scorecards, evaluations, and performance/activity reports across the system (view-only); manage global system settings (deadline thresholds, KPI template library); view the system-wide audit log. **MUST NOT:** add/edit employee records, create/edit KPI definitions, enter ratings, or take regularization/termination actions — those remain exclusive to the Employer (ratings also permitted to the Supervisor for assigned reports only).
 2. **Employer (`employer@acme.com`)**: Full operational oversight over employee performance, weekly ratings, monthly rollups, and exclusive regularization sign-offs.
 3. **Supervisor (`supervisor@acme.com`)**: Weekly ratings and scorecards for assigned direct reports only.
 4. **Probationary Employee (`emp1@acme.com`)**: Self-scoped personal dashboard, notifications, and monthly summary digital acknowledgments.

@@ -117,7 +117,7 @@ async def upsert_rubric(
     competency: CompetencyEnum,
     payload: KpiRubricUpsert,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> KpiRubric:
     """Create or update the rubric for a single competency."""
     rubric = (
@@ -153,7 +153,7 @@ async def upsert_rubric(
 )
 async def reset_rubrics(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> list[KpiRubric]:
     """Delete the tenant's rubrics and re-provision the defaults."""
     await db.execute(

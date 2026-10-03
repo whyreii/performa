@@ -108,7 +108,7 @@ def _is_approaching_or_past(threshold_date: date, as_of: date) -> bool:
 async def create_employee(
     payload: ProbationaryEmployeeCreateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> ProbationaryEmployee:
     """Create a probationary profile, creating or linking its user account."""
     organization_id = current_user.organization_id
@@ -409,7 +409,7 @@ async def update_status(
     employee_id: uuid.UUID,
     payload: ProbationaryEmployeeStatusUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> ProbationaryEmployee:
     """Transition status to regularized or terminated, recording the reason."""
     if payload.status not in (ProbationStatus.REGULARIZED, ProbationStatus.TERMINATED):

@@ -161,7 +161,7 @@ export default function EmployeeDetail() {
   const daysRemaining = Math.max(0, 180 - daysElapsed);
   const progressPct = Math.min(100, Math.round((daysElapsed / 180) * 100));
 
-  const canManageStatus = user?.role === 'admin' || user?.role === 'employer';
+  const canManageStatus = user?.role === 'employer';
   const canRate = user?.role === 'supervisor' || user?.role === 'employer';
 
   return (
