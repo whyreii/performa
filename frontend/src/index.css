@@ -41,12 +41,14 @@
     cursor: pointer;
   }
 
-  /* !important so keyboard focus stays visible even where components set
-     `focus:outline-none` (which would otherwise suppress the ring). */
+  /* Keyboard focus ring. Deliberately NOT `!important`: components that opt out
+     with `focus:outline-none` provide their own focus style (e.g.
+     `focus:border-accent`, `focus-visible:ring`), so forcing the ring here would
+     paint a second, offset indicator on top of theirs. Elements that do not opt
+     out still receive this ring. */
   :focus-visible {
-    outline: 2px solid var(--accent) !important;
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
-    border-radius: var(--r-ctl);
   }
 
   .mono {

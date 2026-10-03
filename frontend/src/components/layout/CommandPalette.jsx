@@ -91,7 +91,7 @@ export default function CommandPalette({ isOpen, onClose }) {
         onKeyDown={handleKeyDown}
       >
         {/* Search Input Bar */}
-        <div className="relative flex items-center border-b border-line px-4">
+        <div className="relative flex items-center border-b border-line px-4 transition-colors focus-within:border-accent">
           <Search className="w-5 h-5 text-ink-3 shrink-0" />
           <input
             ref={inputRef}

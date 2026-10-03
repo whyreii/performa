@@ -43,7 +43,7 @@ export default function AppShell({ children }) {
       {/* Main Content Area */}
       <main
         id="main"
-        className="flex-1 min-w-0 overflow-y-auto [scrollbar-gutter:stable] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 pb-20 lg:pb-8 focus:outline-none"
+        className="flex-1 min-w-0 overflow-y-auto [scrollbar-gutter:stable] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 pb-20 lg:pb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
         tabIndex={-1}
       >
         <div className="max-w-[1120px] mx-auto w-full">

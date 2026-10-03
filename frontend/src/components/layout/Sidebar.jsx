@@ -88,7 +88,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
           onClick={toggleCollapsed}
           className={`${
             collapsed ? 'w-8 h-8' : 'w-7 h-7'
-          } shrink-0 rounded-ctl border border-line bg-surface/50 text-ink-3 hover:text-ink hover:bg-hover flex items-center justify-center transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-accent`}
+          } shrink-0 rounded-ctl border border-line bg-surface/50 text-ink-3 hover:text-ink hover:bg-hover flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent`}
           title={collapsed ? 'Expand sidebar ([)' : 'Collapse sidebar ([)'}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
@@ -112,7 +112,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="w-full h-9 mb-4 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-between text-xs transition-colors shadow-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+          className="w-full h-9 mb-4 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-between text-xs transition-colors shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <div className="flex items-center gap-2">
             <Search className="w-3.5 h-3.5" />
@@ -126,7 +126,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="w-8 h-8 mx-auto mb-3 shrink-0 rounded-ctl border border-line bg-surface/50 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+          className="w-8 h-8 mx-auto mb-3 shrink-0 rounded-ctl border border-line bg-surface/50 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           title="Command Palette (Ctrl+K)"
         >
           <Search className="w-4 h-4" />
@@ -190,7 +190,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
           <button
             type="button"
             onClick={logout}
-            className="p-1.5 text-ink-3 hover:text-bad rounded-ctl hover:bg-bad/10 transition-colors shrink-0 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+            className="p-1.5 text-ink-3 hover:text-bad rounded-ctl hover:bg-bad/10 transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             title="Sign out"
             aria-label="Sign out"
           >

@@ -327,7 +327,7 @@ export default function Settings() {
                 onKeyDown={activateOnKey(() => setPalette(p.id))}
                 className={`p-4 rounded-ctl border cursor-pointer transition-all duration-performa ${
                   isSelected
-                    ? 'border-accent bg-accent/5 ring-1 ring-accent shadow-sm'
+                    ? 'border-accent bg-accent/5 shadow-sm'
                     : 'border-ink-3 bg-bg hover:bg-hover hover:border-ink-3'
                 }`}
               >
