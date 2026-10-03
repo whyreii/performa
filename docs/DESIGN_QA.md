@@ -451,6 +451,20 @@ the first pass. Both were corrected in `35026cb`:
   **Actor** and **Detail** cells (`ActivityLog.jsx:76,85`). Re-probe: **0 overflowing
   cells** at 1280.
 
+### Final regression re-probe (post-`35026cb`)
+
+Full sweep re-run on the corrected tree: **15 routes × 4 roles × 3 breakpoints**
+(375/768/1280) plus `/login` — **61 page loads** measured via Playwright.
+
+- **`mainScrollX = 0` and `docOverflowX = 0` on every route/breakpoint** — no
+  page-level horizontal overflow anywhere.
+- Sidebar correctly hidden at 375/768 and visible at 1280 on all roles.
+- Every flagged element is **intended**: table `overflow-x-auto` containers
+  (`/dashboard`, `/audits`, `/admin/activity`), the 375 px score-scale scroll row
+  (`/supervisor/rate`), and the active `truncate` ellipsis on the supervisor
+  name/title span (F11). **No unintended overflow and no regressions** from the
+  F8/F9 correction.
+
 ### First-pass implementation notes (commit d8e08af)
 - **Systemic Root Cause (Sidebar Breakpoint):** Moved sidebar collapse from md (768px) to lg (1024px) across AppShell.jsx, Sidebar.jsx, MobileBar.jsx, and BottomTabBar.jsx. Tablet viewports (768-1023px) now gain the full container width (~720px) and use MobileBar + BottomTabBar, curing systemic horizontal squishing across tablet views.
 - **F1 (Employee Detail Actions Wrapping):** Changed container to xl:flex-row, added shrink-0 to the profile block, and updated action group to flex-wrap gap-2 w-full xl:w-auto justify-start xl:justify-end. Buttons wrap as a cohesive unit and the profile title and milestone pill remain inline.
