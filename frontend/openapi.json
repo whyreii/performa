@@ -1,0 +1,3637 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Performa API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Authenticate and issue a JWT",
+        "description": "Validate credentials and return a bearer access token.",
+        "operationId": "login_api_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_login_api_auth_login_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Return the authenticated user",
+        "description": "Return the profile of the currently authenticated user.",
+        "operationId": "read_current_user_api_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Update the authenticated user's profile",
+        "description": "Allow a user to update their own full name and email.",
+        "operationId": "update_current_user_api_auth_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Clear the authentication cookie",
+        "description": "Clear the httpOnly authentication cookie.",
+        "operationId": "logout_api_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Logout Api Auth Logout Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Change the current user's password",
+        "description": "Verify the current password and replace it with the new one.",
+        "operationId": "change_password_api_auth_change_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Change Password Api Auth Change Password Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "tags": [
+          "Admin User Management"
+        ],
+        "summary": "List all tenant user accounts (Admin only)",
+        "description": "Retrieve all user accounts within the administrator's organization.",
+        "operationId": "list_users_api_admin_users_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Users Api Admin Users Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Admin User Management"
+        ],
+        "summary": "Create a new user account with specified role (Admin only)",
+        "description": "Create a new user account and assign their role (Employer, Supervisor, or Probationary Employee).",
+        "operationId": "create_user_api_admin_users_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminCreateUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/admin/users/{user_id}/status": {
+      "patch": {
+        "tags": [
+          "Admin User Management"
+        ],
+        "summary": "Activate or deactivate a user account (Admin only)",
+        "description": "Toggle a user's active status.",
+        "operationId": "update_user_status_api_admin_users__user_id__status_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{user_id}/reset-password": {
+      "post": {
+        "tags": [
+          "Admin User Management"
+        ],
+        "summary": "Reset a user's password (Admin only)",
+        "description": "Admin resets the password of an account.",
+        "operationId": "reset_user_password_api_admin_users__user_id__reset_password_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminResetPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Reset User Password Api Admin Users  User Id  Reset Password Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/activity": {
+      "get": {
+        "tags": [
+          "Admin User Management"
+        ],
+        "summary": "List the tenant activity log (Admin only)",
+        "description": "Return general system activity entries for the administrator's tenant.",
+        "operationId": "list_activity_api_admin_activity_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActivityLogResponse"
+                  },
+                  "title": "Response List Activity Api Admin Activity Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/settings": {
+      "get": {
+        "tags": [
+          "Admin User Management"
+        ],
+        "summary": "System settings (Admin only)",
+        "description": "Return the statutory deadline thresholds and the KPI template library.",
+        "operationId": "get_system_settings_api_admin_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get System Settings Api Admin Settings Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/admin/reports/overview": {
+      "get": {
+        "tags": [
+          "Admin User Management"
+        ],
+        "summary": "Tenant performance overview (Admin only)",
+        "description": "Aggregate probationary and intervention metrics for the tenant.",
+        "operationId": "reports_overview_api_admin_reports_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Reports Overview Api Admin Reports Overview Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/employees/": {
+      "post": {
+        "tags": [
+          "Employees"
+        ],
+        "summary": "Onboard a probationary employee",
+        "description": "Create a probationary profile, creating or linking its user account.",
+        "operationId": "create_employee_api_employees__post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProbationaryEmployeeCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbationaryEmployeeDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Employees"
+        ],
+        "summary": "List probationary employees in the tenant",
+        "description": "List employees, scoped by tenant and, for supervisors, by assignment.",
+        "operationId": "list_employees_api_employees__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ProbationStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department"
+            }
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProbationaryEmployeeDetailResponse"
+                  },
+                  "title": "Response List Employees Api Employees  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/employees/milestones": {
+      "get": {
+        "tags": [
+          "Employees"
+        ],
+        "summary": "Article 296 milestone report (Day 150 / 165 / 178)",
+        "description": "Return active employees approaching or past each statutory threshold.",
+        "operationId": "list_milestones_api_employees_milestones_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneReport"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/employees/supervisors": {
+      "get": {
+        "tags": [
+          "Employees"
+        ],
+        "summary": "List supervisors in the tenant",
+        "description": "Return active supervisors in the caller's organization for assignment.",
+        "operationId": "list_supervisors_api_employees_supervisors_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Supervisors Api Employees Supervisors Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/employees/{employee_id}": {
+      "get": {
+        "tags": [
+          "Employees"
+        ],
+        "summary": "Retrieve a probationary employee profile",
+        "description": "Return a full profile for an admin/employer, assigned supervisor, or self.",
+        "operationId": "get_employee_api_employees__employee_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbationaryEmployeeDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/employees/{employee_id}/acknowledge-standards": {
+      "post": {
+        "tags": [
+          "Employees"
+        ],
+        "summary": "Acknowledge initial performance standards",
+        "description": "Stamp standards acknowledgement for the employee's own profile only.",
+        "operationId": "acknowledge_standards_api_employees__employee_id__acknowledge_standards_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbationaryEmployeeDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/employees/{employee_id}/status": {
+      "patch": {
+        "tags": [
+          "Employees"
+        ],
+        "summary": "Update probationary status (regularized / terminated)",
+        "description": "Transition status to regularized or terminated, recording the reason.",
+        "operationId": "update_status_api_employees__employee_id__status_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProbationaryEmployeeStatusUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbationaryEmployeeDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluations/{employee_id}/weekly": {
+      "post": {
+        "tags": [
+          "Evaluations"
+        ],
+        "summary": "Submit a weekly rating for a probationary employee",
+        "description": "Persist a weekly evaluation and append audit entries for changed scores.",
+        "operationId": "submit_weekly_rating_api_evaluations__employee_id__weekly_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WeeklyRatingSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyEvaluationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluations/{employee_id}/scorecard": {
+      "get": {
+        "tags": [
+          "Evaluations"
+        ],
+        "summary": "Current competency scorecard for a probationary employee",
+        "description": "Return the latest competency scores, target, and gaps.",
+        "operationId": "get_scorecard_api_evaluations__employee_id__scorecard_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeScorecardResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluations/{employee_id}/risk-explanation": {
+      "get": {
+        "tags": [
+          "Evaluations"
+        ],
+        "summary": "ML risk explanation with feature importances",
+        "description": "Explain the latest classification, including per-competency importance.",
+        "operationId": "get_risk_explanation_api_evaluations__employee_id__risk_explanation_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskExplanationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluations/{employee_id}/trend": {
+      "get": {
+        "tags": [
+          "Evaluations"
+        ],
+        "summary": "Monthly KPI trend for a probationary employee",
+        "description": "Aggregate weekly evaluations into monthly competency trend points.",
+        "operationId": "get_kpi_trend_api_evaluations__employee_id__trend_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrendPoint"
+                  },
+                  "title": "Response Get Kpi Trend Api Evaluations  Employee Id  Trend Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluations/{employee_id}/regularization-recommendation": {
+      "post": {
+        "tags": [
+          "Evaluations"
+        ],
+        "summary": "Generate an AI-assisted regularization recommendation (mid-5th month)",
+        "description": "Aggregate the first 150 days of evaluations into a decision-support output.",
+        "operationId": "create_regularization_recommendation_api_evaluations__employee_id__regularization_recommendation_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegularizationRecommendationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Evaluations"
+        ],
+        "summary": "Latest regularization recommendation for an employee",
+        "description": "Return the most recent regularization recommendation, if any.",
+        "operationId": "get_regularization_recommendation_api_evaluations__employee_id__regularization_recommendation_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegularizationRecommendationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluations/{employee_id}/report": {
+      "get": {
+        "tags": [
+          "Evaluations"
+        ],
+        "summary": "Printable performance report (HTML)",
+        "description": "Render a print-ready HTML performance report for an employee.",
+        "operationId": "get_employee_report_api_evaluations__employee_id__report_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluations/audit-trail": {
+      "get": {
+        "tags": [
+          "Evaluations"
+        ],
+        "summary": "Tenant-wide competency audit trail (newest first)",
+        "description": "Return immutable competency audit entries in the tenant, newest first.",
+        "operationId": "get_tenant_audit_trail_api_evaluations_audit_trail_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditLogItemResponse"
+                  },
+                  "title": "Response Get Tenant Audit Trail Api Evaluations Audit Trail Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluations/{employee_id}/audit-trail": {
+      "get": {
+        "tags": [
+          "Evaluations"
+        ],
+        "summary": "Append-only competency audit trail (newest first)",
+        "description": "Return every immutable competency audit entry, newest first.",
+        "operationId": "get_audit_trail_api_evaluations__employee_id__audit_trail_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditLogItemResponse"
+                  },
+                  "title": "Response Get Audit Trail Api Evaluations  Employee Id  Audit Trail Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/interventions/{employee_id}/monthly-rollup": {
+      "post": {
+        "tags": [
+          "Interventions"
+        ],
+        "summary": "Roll up weekly scores, classify risk, and generate interventions",
+        "description": "Aggregate evaluations and produce a MonthlySummary plus training plans.",
+        "operationId": "monthly_rollup_api_interventions__employee_id__monthly_rollup_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Employee Id"
+            }
+          },
+          {
+            "name": "month_number",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Probation month number",
+              "title": "Month Number"
+            },
+            "description": "Probation month number"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthlySummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/interventions/mine": {
+      "get": {
+        "tags": [
+          "Interventions"
+        ],
+        "summary": "List the current employee's own training interventions",
+        "description": "Return all training plans attached to the caller's own employee profile.",
+        "operationId": "list_my_interventions_api_interventions_mine_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingPlanResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List My Interventions Api Interventions Mine Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/interventions/summaries": {
+      "get": {
+        "tags": [
+          "Interventions"
+        ],
+        "summary": "List monthly summaries for the tenant",
+        "description": "Return all monthly summaries for employees in the tenant, newest first.",
+        "operationId": "list_monthly_summaries_api_interventions_summaries_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MonthlySummaryResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Monthly Summaries Api Interventions Summaries Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/interventions/summaries/mine": {
+      "get": {
+        "tags": [
+          "Interventions"
+        ],
+        "summary": "List the current employee's dispatched monthly summaries",
+        "description": "Return monthly summaries dispatched to the caller's own employee profile.",
+        "operationId": "list_my_summaries_api_interventions_summaries_mine_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MonthlySummaryResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List My Summaries Api Interventions Summaries Mine Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/interventions/summaries/{summary_id}/dispatch": {
+      "post": {
+        "tags": [
+          "Interventions"
+        ],
+        "summary": "Dispatch a monthly summary to the employee for acknowledgement",
+        "description": "Mark a monthly summary as dispatched to the employee.",
+        "operationId": "dispatch_monthly_summary_api_interventions_summaries__summary_id__dispatch_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "summary_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Summary Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthlySummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/interventions/summaries/{summary_id}/acknowledge": {
+      "post": {
+        "tags": [
+          "Interventions"
+        ],
+        "summary": "Employee acknowledges receipt of a monthly summary",
+        "description": "Record the employee's digital acknowledgement of a dispatched summary.",
+        "operationId": "acknowledge_monthly_summary_api_interventions_summaries__summary_id__acknowledge_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "summary_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Summary Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthlySummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/interventions/pending": {
+      "get": {
+        "tags": [
+          "Interventions"
+        ],
+        "summary": "List pending training interventions for the tenant",
+        "description": "Return pending interventions, scoped to the tenant (and to a supervisor's team).",
+        "operationId": "list_pending_interventions_api_interventions_pending_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingPlanResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Pending Interventions Api Interventions Pending Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/interventions/{plan_id}/sign-off": {
+      "post": {
+        "tags": [
+          "Interventions"
+        ],
+        "summary": "Employer sign-off for a pending training intervention",
+        "description": "Approve or reject a pending intervention within the caller's tenant.",
+        "operationId": "sign_off_intervention_api_interventions__plan_id__sign_off_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingPlanSignOff"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingPlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/kpi-rubrics": {
+      "get": {
+        "tags": [
+          "KPI Rubrics"
+        ],
+        "summary": "List KPI rubrics",
+        "description": "Return the tenant's competency targets and weights.",
+        "operationId": "list_rubrics_api_kpi_rubrics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/KpiRubricResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Rubrics Api Kpi Rubrics Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/kpi-rubrics/templates": {
+      "get": {
+        "tags": [
+          "KPI Rubrics"
+        ],
+        "summary": "Industry KPI template library",
+        "description": "Return the pre-built KPI templates by industry.",
+        "operationId": "list_templates_api_kpi_rubrics_templates_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Templates Api Kpi Rubrics Templates Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/kpi-rubrics/{competency}": {
+      "put": {
+        "tags": [
+          "KPI Rubrics"
+        ],
+        "summary": "Set a competency's target and weight",
+        "description": "Create or update the rubric for a single competency.",
+        "operationId": "upsert_rubric_api_kpi_rubrics__competency__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "competency",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CompetencyEnum"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KpiRubricUpsert"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KpiRubricResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/kpi-rubrics/reset": {
+      "post": {
+        "tags": [
+          "KPI Rubrics"
+        ],
+        "summary": "Reset rubrics to platform defaults",
+        "description": "Delete the tenant's rubrics and re-provision the defaults.",
+        "operationId": "reset_rubrics_api_kpi_rubrics_reset_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/KpiRubricResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Reset Rubrics Api Kpi Rubrics Reset Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "List my notifications",
+        "description": "Return the current user's notifications, newest first.",
+        "operationId": "list_notifications_api_notifications_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "unread_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Unread Only"
+            }
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationResponse"
+                  },
+                  "title": "Response List Notifications Api Notifications Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/{notification_id}/read": {
+      "post": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Mark a notification read",
+        "description": "Mark one of the current user's notifications as read.",
+        "operationId": "mark_notification_read_api_notifications__notification_id__read_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "notification_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Notification Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/read-all": {
+      "post": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Mark all my notifications read",
+        "description": "Mark every notification for the current user as read.",
+        "operationId": "mark_all_read_api_notifications_read_all_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Mark All Read Api Notifications Read All Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "API Root Information",
+        "description": "Root endpoint welcoming clients and referencing documentation.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Service health check",
+        "description": "Readiness probe that verifies the database is reachable.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActivityLogResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "organization_id": {
+            "type": "string",
+            "title": "Organization Id"
+          },
+          "actor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Id"
+          },
+          "actor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Name"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organization_id",
+          "action",
+          "created_at"
+        ],
+        "title": "ActivityLogResponse",
+        "description": "A general system activity-log entry."
+      },
+      "AdminCreateUserRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Email"
+          },
+          "full_name": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Full Name"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "full_name",
+          "password",
+          "role"
+        ],
+        "title": "AdminCreateUserRequest"
+      },
+      "AdminResetPasswordRequest": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "AdminResetPasswordRequest"
+      },
+      "AdminUpdateStatusRequest": {
+        "properties": {
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_active"
+        ],
+        "title": "AdminUpdateStatusRequest"
+      },
+      "AuditLogItemResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "competency": {
+            "type": "string",
+            "title": "Competency"
+          },
+          "evaluator_name": {
+            "type": "string",
+            "title": "Evaluator Name"
+          },
+          "prior_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prior Score"
+          },
+          "new_score": {
+            "type": "number",
+            "title": "New Score"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "competency",
+          "evaluator_name",
+          "new_score",
+          "created_at"
+        ],
+        "title": "AuditLogItemResponse",
+        "description": "A single immutable competency audit entry for display."
+      },
+      "Body_login_api_auth_login_post": {
+        "properties": {
+          "grant_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^password$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Type"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "title": "Password"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "default": ""
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "password",
+            "title": "Client Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_login_api_auth_login_post"
+      },
+      "CompetencyEnum": {
+        "type": "string",
+        "enum": [
+          "task_completion",
+          "attendance_and_punctuality",
+          "communication_and_teamwork",
+          "initiative_and_adaptability",
+          "quality_of_work"
+        ],
+        "title": "CompetencyEnum",
+        "description": "The five competency categories permitted by Article 296."
+      },
+      "CompetencyScoreItem": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "target": {
+            "type": "number",
+            "title": "Target",
+            "default": 4.0
+          },
+          "gap": {
+            "type": "number",
+            "title": "Gap"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "score",
+          "gap"
+        ],
+        "title": "CompetencyScoreItem",
+        "description": "A single competency's current score relative to its target."
+      },
+      "EmployeeScorecardResponse": {
+        "properties": {
+          "employee_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Employee Id"
+          },
+          "overall_score": {
+            "type": "number",
+            "title": "Overall Score"
+          },
+          "target_score": {
+            "type": "number",
+            "title": "Target Score",
+            "default": 4.0
+          },
+          "gap": {
+            "type": "number",
+            "title": "Gap"
+          },
+          "competencies": {
+            "items": {
+              "$ref": "#/components/schemas/CompetencyScoreItem"
+            },
+            "type": "array",
+            "title": "Competencies"
+          },
+          "latest_evaluation_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Evaluation Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "employee_id",
+          "overall_score",
+          "gap",
+          "competencies"
+        ],
+        "title": "EmployeeScorecardResponse",
+        "description": "Current competency standing for a probationary employee."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "KpiRubricResponse": {
+        "properties": {
+          "organization_id": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Organization Id"
+          },
+          "competency": {
+            "$ref": "#/components/schemas/CompetencyEnum"
+          },
+          "target_score": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Target Score",
+            "default": 3.0
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Weight",
+            "default": 0.2
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organization_id",
+          "competency",
+          "id"
+        ],
+        "title": "KpiRubricResponse"
+      },
+      "KpiRubricUpsert": {
+        "properties": {
+          "target_score": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Target Score",
+            "default": 4.0
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Weight",
+            "default": 0.2
+          }
+        },
+        "type": "object",
+        "title": "KpiRubricUpsert",
+        "description": "Employer-configurable target and weight for a single competency."
+      },
+      "MilestoneEmployee": {
+        "properties": {
+          "employee": {
+            "$ref": "#/components/schemas/ProbationaryEmployeeDetailResponse"
+          },
+          "days_elapsed": {
+            "type": "integer",
+            "title": "Days Elapsed"
+          },
+          "days_remaining": {
+            "type": "integer",
+            "title": "Days Remaining"
+          },
+          "day_150_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Day 150 Date"
+          },
+          "day_165_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Day 165 Date"
+          },
+          "day_178_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Day 178 Date"
+          },
+          "day_150_reached": {
+            "type": "boolean",
+            "title": "Day 150 Reached"
+          },
+          "day_165_reached": {
+            "type": "boolean",
+            "title": "Day 165 Reached"
+          },
+          "day_178_reached": {
+            "type": "boolean",
+            "title": "Day 178 Reached"
+          },
+          "overdue": {
+            "type": "boolean",
+            "title": "Overdue"
+          }
+        },
+        "type": "object",
+        "required": [
+          "employee",
+          "days_elapsed",
+          "days_remaining",
+          "day_150_date",
+          "day_165_date",
+          "day_178_date",
+          "day_150_reached",
+          "day_165_reached",
+          "day_178_reached",
+          "overdue"
+        ],
+        "title": "MilestoneEmployee",
+        "description": "An active employee positioned relative to the statutory milestones."
+      },
+      "MilestoneReport": {
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "day_150": {
+            "items": {
+              "$ref": "#/components/schemas/MilestoneEmployee"
+            },
+            "type": "array",
+            "title": "Day 150"
+          },
+          "day_165": {
+            "items": {
+              "$ref": "#/components/schemas/MilestoneEmployee"
+            },
+            "type": "array",
+            "title": "Day 165"
+          },
+          "day_178": {
+            "items": {
+              "$ref": "#/components/schemas/MilestoneEmployee"
+            },
+            "type": "array",
+            "title": "Day 178"
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "day_150",
+          "day_165",
+          "day_178"
+        ],
+        "title": "MilestoneReport",
+        "description": "Active employees approaching or past each Article 296 threshold."
+      },
+      "MonthlySummaryResponse": {
+        "properties": {
+          "employee_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Employee Id"
+          },
+          "month_number": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Month Number"
+          },
+          "avg_task_completion": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Avg Task Completion"
+          },
+          "avg_attendance": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Avg Attendance"
+          },
+          "avg_communication": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Avg Communication"
+          },
+          "avg_initiative": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Avg Initiative"
+          },
+          "avg_quality": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Avg Quality"
+          },
+          "overall_average": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Overall Average"
+          },
+          "status_classification": {
+            "$ref": "#/components/schemas/PerformanceRatingEnum"
+          },
+          "performance_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Performance Summary"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "dispatched_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dispatched At"
+          },
+          "acknowledged_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "employee_id",
+          "month_number",
+          "avg_task_completion",
+          "avg_attendance",
+          "avg_communication",
+          "avg_initiative",
+          "avg_quality",
+          "overall_average",
+          "status_classification",
+          "id",
+          "created_at"
+        ],
+        "title": "MonthlySummaryResponse"
+      },
+      "NotificationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "is_read": {
+            "type": "boolean",
+            "title": "Is Read"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "category",
+          "is_read",
+          "created_at"
+        ],
+        "title": "NotificationResponse",
+        "description": "An in-app notification."
+      },
+      "PasswordChange": {
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Current Password"
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "title": "PasswordChange",
+        "description": "Self-service password change payload."
+      },
+      "PerformanceRatingEnum": {
+        "type": "string",
+        "enum": [
+          "Meets Expectations",
+          "Needs Improvement",
+          "Critical Gap"
+        ],
+        "title": "PerformanceRatingEnum",
+        "description": "Random Forest competency classifications produced by the ML pipeline."
+      },
+      "ProbationStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "regularized",
+          "terminated"
+        ],
+        "title": "ProbationStatus",
+        "description": "Lifecycle status of a probationary employee."
+      },
+      "ProbationaryEmployeeCreateRequest": {
+        "properties": {
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "employer_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employer Id"
+          },
+          "supervisor_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Supervisor Id"
+          },
+          "job_title": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Job Title"
+          },
+          "department": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Department"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "day_180_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day 180 Date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProbationStatus",
+            "default": "active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "supervisor_id",
+          "job_title",
+          "department",
+          "start_date"
+        ],
+        "title": "ProbationaryEmployeeCreateRequest",
+        "description": "Onboarding payload: link an existing user or create a new account."
+      },
+      "ProbationaryEmployeeDetailResponse": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Employer Id"
+          },
+          "supervisor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supervisor Id"
+          },
+          "organization_id": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Organization Id"
+          },
+          "job_title": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Job Title"
+          },
+          "department": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Department"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "day_180_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Day 180 Date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProbationStatus",
+            "default": "active"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "milestone_150_alerted": {
+            "type": "boolean",
+            "title": "Milestone 150 Alerted",
+            "default": false
+          },
+          "milestone_165_alerted": {
+            "type": "boolean",
+            "title": "Milestone 165 Alerted",
+            "default": false
+          },
+          "milestone_178_alerted": {
+            "type": "boolean",
+            "title": "Milestone 178 Alerted",
+            "default": false
+          },
+          "standards_acknowledged_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Standards Acknowledged At"
+          },
+          "status_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          },
+          "employer": {
+            "$ref": "#/components/schemas/UserResponse"
+          },
+          "supervisor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "employer_id",
+          "organization_id",
+          "job_title",
+          "department",
+          "start_date",
+          "day_180_date",
+          "id",
+          "updated_at",
+          "user",
+          "employer"
+        ],
+        "title": "ProbationaryEmployeeDetailResponse",
+        "description": "Employee profile enriched with its linked account relationships."
+      },
+      "ProbationaryEmployeeStatusUpdate": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ProbationStatus"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ProbationaryEmployeeStatusUpdate",
+        "description": "Status transition payload for regularizing or terminating an employee."
+      },
+      "ProfileUpdate": {
+        "properties": {
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "title": "ProfileUpdate",
+        "description": "Self-service profile update payload."
+      },
+      "RegularizationRecommendationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "employee_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Employee Id"
+          },
+          "organization_id": {
+            "type": "string",
+            "title": "Organization Id"
+          },
+          "month_number": {
+            "type": "integer",
+            "title": "Month Number"
+          },
+          "status_classification": {
+            "$ref": "#/components/schemas/PerformanceRatingEnum"
+          },
+          "overall_average": {
+            "type": "number",
+            "title": "Overall Average"
+          },
+          "recommendation": {
+            "type": "string",
+            "title": "Recommendation"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "employee_id",
+          "organization_id",
+          "month_number",
+          "status_classification",
+          "overall_average",
+          "recommendation",
+          "created_at"
+        ],
+        "title": "RegularizationRecommendationResponse",
+        "description": "AI-assisted regularization decision support for the mid-5th month."
+      },
+      "RiskExplanationResponse": {
+        "properties": {
+          "predicted_tier": {
+            "type": "string",
+            "title": "Predicted Tier"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "probabilities": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Probabilities"
+          },
+          "feature_importances": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Feature Importances"
+          },
+          "flagged_competencies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flagged Competencies"
+          }
+        },
+        "type": "object",
+        "required": [
+          "predicted_tier",
+          "confidence",
+          "probabilities",
+          "feature_importances",
+          "flagged_competencies"
+        ],
+        "title": "RiskExplanationResponse",
+        "description": "ML classification result with feature importances for legal defensibility."
+      },
+      "Token": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token"
+        ],
+        "title": "Token"
+      },
+      "TrainingPlanResponse": {
+        "properties": {
+          "employee_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Employee Id"
+          },
+          "monthly_summary_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Summary Id"
+          },
+          "competency": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Competency"
+          },
+          "catalog_id": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Catalog Id"
+          },
+          "intervention_title": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Intervention Title"
+          },
+          "intervention_type": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Intervention Type"
+          },
+          "default_timeline": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Default Timeline"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TrainingStatusEnum",
+            "default": "pending_approval"
+          },
+          "employer_approved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employer Approved At"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "employee_id",
+          "competency",
+          "catalog_id",
+          "intervention_title",
+          "intervention_type",
+          "default_timeline",
+          "id",
+          "created_at"
+        ],
+        "title": "TrainingPlanResponse"
+      },
+      "TrainingPlanSignOff": {
+        "properties": {
+          "approved": {
+            "type": "boolean",
+            "title": "Approved",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "TrainingPlanSignOff",
+        "description": "Employer decision payload for a pending training intervention."
+      },
+      "TrainingStatusEnum": {
+        "type": "string",
+        "enum": [
+          "pending_approval",
+          "approved",
+          "rejected"
+        ],
+        "title": "TrainingStatusEnum",
+        "description": "Human-in-the-loop approval state for training interventions."
+      },
+      "TrendPoint": {
+        "properties": {
+          "month_number": {
+            "type": "integer",
+            "title": "Month Number"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          },
+          "overall_average": {
+            "type": "number",
+            "title": "Overall Average"
+          },
+          "task_completion": {
+            "type": "number",
+            "title": "Task Completion"
+          },
+          "attendance_and_punctuality": {
+            "type": "number",
+            "title": "Attendance And Punctuality"
+          },
+          "communication_and_teamwork": {
+            "type": "number",
+            "title": "Communication And Teamwork"
+          },
+          "initiative_and_adaptability": {
+            "type": "number",
+            "title": "Initiative And Adaptability"
+          },
+          "quality_of_work": {
+            "type": "number",
+            "title": "Quality Of Work"
+          }
+        },
+        "type": "object",
+        "required": [
+          "month_number",
+          "period_start",
+          "period_end",
+          "overall_average",
+          "task_completion",
+          "attendance_and_punctuality",
+          "communication_and_teamwork",
+          "initiative_and_adaptability",
+          "quality_of_work"
+        ],
+        "title": "TrendPoint",
+        "description": "One monthly bucket of aggregated competency scores."
+      },
+      "UserResponse": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Email"
+          },
+          "full_name": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Full Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "organization_id": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Organization Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "full_name",
+          "role",
+          "organization_id",
+          "id",
+          "created_at"
+        ],
+        "title": "UserResponse"
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "employer",
+          "supervisor",
+          "probationary_employee"
+        ],
+        "title": "UserRole",
+        "description": "The four distinct roles enforced by JWT bearer authentication."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WeeklyEvaluationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "employee_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Employee Id"
+          },
+          "evaluator_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Evaluator Id"
+          },
+          "organization_id": {
+            "type": "string",
+            "title": "Organization Id"
+          },
+          "evaluation_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Evaluation Date"
+          },
+          "week_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Week Number"
+          },
+          "task_completion": {
+            "type": "number",
+            "title": "Task Completion"
+          },
+          "attendance_and_punctuality": {
+            "type": "number",
+            "title": "Attendance And Punctuality"
+          },
+          "communication_and_teamwork": {
+            "type": "number",
+            "title": "Communication And Teamwork"
+          },
+          "initiative_and_adaptability": {
+            "type": "number",
+            "title": "Initiative And Adaptability"
+          },
+          "quality_of_work": {
+            "type": "number",
+            "title": "Quality Of Work"
+          },
+          "overall_score": {
+            "type": "number",
+            "title": "Overall Score"
+          },
+          "remarks": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remarks"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "employee_id",
+          "evaluator_id",
+          "organization_id",
+          "evaluation_date",
+          "task_completion",
+          "attendance_and_punctuality",
+          "communication_and_teamwork",
+          "initiative_and_adaptability",
+          "quality_of_work",
+          "overall_score",
+          "created_at"
+        ],
+        "title": "WeeklyEvaluationResponse",
+        "description": "A persisted weekly evaluation."
+      },
+      "WeeklyRatingSubmit": {
+        "properties": {
+          "task_completion": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Task Completion"
+          },
+          "attendance_and_punctuality": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Attendance And Punctuality"
+          },
+          "communication_and_teamwork": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Communication And Teamwork"
+          },
+          "initiative_and_adaptability": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Initiative And Adaptability"
+          },
+          "quality_of_work": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Quality Of Work"
+          },
+          "remarks": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remarks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_completion",
+          "attendance_and_punctuality",
+          "communication_and_teamwork",
+          "initiative_and_adaptability",
+          "quality_of_work"
+        ],
+        "title": "WeeklyRatingSubmit",
+        "description": "Evaluator payload for a weekly rating across the five competencies."
+      }
+    },
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "scopes": {},
+            "tokenUrl": "/api/auth/login"
+          }
+        }
+      }
+    }
+  }
+}
