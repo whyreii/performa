@@ -12,10 +12,11 @@ export default function Badge({
 
   const variants = {
     neutral: 'bg-hover text-ink-2 border border-line',
-    accent: 'bg-accent/15 text-accent border border-transparent',
-    ok: 'bg-ok/15 text-ok border border-transparent',
-    warn: 'bg-warn/15 text-warn border border-transparent',
-    bad: 'bg-bad/15 text-bad border border-transparent',
+    accent: 'bg-accent/8 text-accent border border-transparent',
+    ok: 'bg-ok/8 text-ok border border-transparent',
+    warn: 'bg-warn/8 text-warn border border-transparent',
+    notice: 'bg-notice/8 text-notice border border-transparent',
+    bad: 'bg-bad/8 text-bad border border-transparent',
     hot: 'bg-accent text-accent-foreground font-semibold shadow-xs',
   };
 

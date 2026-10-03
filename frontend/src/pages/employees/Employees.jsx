@@ -446,6 +446,8 @@ export default function Employees() {
                           className={`h-full rounded-full transition-all ${
                             daysElapsed >= 178
                               ? 'bg-bad'
+                              : daysElapsed >= 165
+                              ? 'bg-notice'
                               : daysElapsed >= 150
                               ? 'bg-warn'
                               : 'bg-accent'
@@ -544,6 +546,8 @@ export default function Employees() {
                                 className={`h-full rounded-full transition-all ${
                                   daysElapsed >= 178
                                     ? 'bg-bad'
+                                    : daysElapsed >= 165
+                                    ? 'bg-notice'
                                     : daysElapsed >= 150
                                     ? 'bg-warn'
                                     : 'bg-accent'

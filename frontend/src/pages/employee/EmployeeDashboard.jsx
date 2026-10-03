@@ -131,6 +131,8 @@ export default function EmployeeDashboard() {
               className={`h-full rounded-full transition-all duration-performa ${
                 daysElapsed >= 178
                   ? 'bg-bad'
+                  : daysElapsed >= 165
+                  ? 'bg-notice'
                   : daysElapsed >= 150
                   ? 'bg-warn'
                   : 'bg-accent'

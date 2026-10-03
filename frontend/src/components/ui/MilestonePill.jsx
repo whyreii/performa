@@ -50,7 +50,7 @@ export default function MilestonePill({
 
   if (daysElapsed >= MILESTONE_NOTICE) {
     return (
-      <Badge variant="warn" className={className}>
+      <Badge variant="notice" className={className}>
         Day {daysElapsed} · Day {MILESTONE_NOTICE} Notice Window
       </Badge>
     );

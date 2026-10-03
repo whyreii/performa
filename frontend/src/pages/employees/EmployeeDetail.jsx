@@ -262,7 +262,34 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
   const canRate = user?.role === 'supervisor' || user?.role === 'employer';
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-150">
+    <div className="space-y-8 animate-in fade-in duration-150 print-sheet">
+      {/* Print-only official document header */}
+      <div className="print-only mb-6 pb-4 border-b-2 border-black">
+        <p className="text-center text-[11px] font-semibold tracking-widest uppercase">
+          Republic of the Philippines
+        </p>
+        <h1 className="text-center text-lg font-bold mt-1">
+          Probationary Performance Evaluation Report
+        </h1>
+        <p className="text-center text-[11px] mt-1">
+          Labor Code of the Philippines · Article 296 · Acme Philippines Corp.
+        </p>
+        <div className="mt-3 text-[11px] leading-relaxed">
+          <p>
+            <b>Employee:</b> {employee.user?.full_name}
+          </p>
+          <p>
+            <b>Job Title / Department:</b> {employee.job_title} · {employee.department}
+          </p>
+          <p>
+            <b>Start Date:</b> {formatDate(employee.start_date)} · <b>Day:</b> {daysElapsed} of 180
+          </p>
+          <p>
+            <b>Generated:</b> {formatDate(new Date())} (Asia/Manila Standard Time)
+          </p>
+        </div>
+      </div>
+
       {/* Top Back Navigation */}
       <div>
         <button
@@ -426,6 +453,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               className={`h-full rounded-full transition-all ${
                 daysElapsed >= 178
                   ? 'bg-bad'
+                  : daysElapsed >= 165
+                  ? 'bg-notice'
                   : daysElapsed >= 150
                   ? 'bg-warn'
                   : 'bg-accent'
@@ -451,7 +480,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             </div>
 
             <div className="p-2.5 rounded-ctl bg-hover border border-line">
-              <span className="text-warn block">Day 165 (Notice Due)</span>
+              <span className="text-notice block">Day 165 (Notice Due)</span>
               <span className="font-semibold text-ink">
                 {formatDate(
                   new Date(parseDateOnly(employee.start_date).getTime() + 165 * 86400000)
@@ -725,6 +754,32 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </div>
         )}
       </section>
+
+      {/* Print-only signature block */}
+      <div className="print-only mt-10 pt-6 border-t-2 border-black">
+        <p className="text-[11px] mb-8 leading-relaxed">
+          This report is generated from the Performa evidentiary audit trail and is valid for
+          Article 296 due-process documentation when printed directly from the system.
+        </p>
+        <div className="grid grid-cols-2 gap-x-12 gap-y-12 text-[11px]">
+          <div className="border-t border-black pt-1">
+            <b>Immediate Supervisor / Evaluator</b>
+            <span className="block">Signature over printed name</span>
+          </div>
+          <div className="border-t border-black pt-1">
+            <b>Authorized Employer / HR Representative</b>
+            <span className="block">Regularization decision authority</span>
+          </div>
+          <div className="border-t border-black pt-1">
+            <b>{employee.user?.full_name}</b>
+            <span className="block">Probationary employee — received &amp; acknowledged</span>
+          </div>
+          <div className="border-t border-black pt-1">
+            <b>Date</b>
+            <span className="block">Asia/Manila (UTC+8)</span>
+          </div>
+        </div>
+      </div>
 
       {/* Status Transition Modal */}
       {isDeactivateModalOpen && (

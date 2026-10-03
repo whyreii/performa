@@ -117,6 +117,32 @@
   .print-only {
     display: block !important;
   }
+
+  /* Employee scorecard sheet — force an ink-on-paper look regardless of the
+     active theme (dark themes would otherwise print light text on dark cards). */
+  .print-sheet {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .print-sheet .bg-surface,
+  .print-sheet .bg-bg,
+  .print-sheet .bg-side,
+  .print-sheet [class*="bg-hover"] {
+    background-color: #ffffff !important;
+  }
+
+  .print-sheet .text-ink,
+  .print-sheet .text-ink-2,
+  .print-sheet .text-ink-3 {
+    color: #000000 !important;
+  }
+
+  .print-sheet .shadow-sm,
+  .print-sheet .shadow-pop,
+  .print-sheet .shadow-xs {
+    box-shadow: none !important;
+  }
 }
 
 .print-only {

@@ -39,6 +39,7 @@ export default {
         ok: withOpacity('--good'),
         bad: withOpacity('--bad'),
         warn: withOpacity('--warn'),
+        notice: withOpacity('--notice'),
         off: 'var(--off)',
       },
       borderRadius: {
@@ -54,6 +55,9 @@ export default {
       boxShadow: {
         side: 'var(--shadow)',
         pop: 'var(--pop)',
+      },
+      opacity: {
+        8: '0.08',
       },
       transitionTimingFunction: {
         performa: 'cubic-bezier(0.2, 0.6, 0.2, 1)',

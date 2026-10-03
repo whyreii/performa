@@ -157,7 +157,7 @@ export default function SupervisorDashboard() {
                       <div className="h-1.5 w-full bg-line rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${
-                            days >= 178 ? 'bg-bad' : days >= 150 ? 'bg-warn' : 'bg-accent'
+                            days >= 178 ? 'bg-bad' : days >= 165 ? 'bg-notice' : days >= 150 ? 'bg-warn' : 'bg-accent'
                           }`}
                           style={{ width: `${progressPct}%` }}
                         />

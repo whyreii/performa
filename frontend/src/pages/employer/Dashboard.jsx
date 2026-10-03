@@ -300,6 +300,8 @@ export default function Dashboard() {
                               className={`h-full rounded-full transition-all ${
                                 days >= 178
                                   ? 'bg-bad'
+                                  : days >= 165
+                                  ? 'bg-notice'
                                   : days >= 150
                                   ? 'bg-warn'
                                   : 'bg-accent'
