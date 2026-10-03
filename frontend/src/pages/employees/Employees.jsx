@@ -49,7 +49,7 @@ export default function Employees() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['employees'],
+    queryKey: ['employees', { limit: 200 }],
     // SMEs operate within 5-30 employees; request the API max so the directory is complete.
     queryFn: () => employeeApi.list({ limit: 200 }),
   });

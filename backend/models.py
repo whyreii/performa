@@ -26,6 +26,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     Uuid,
     func,
 )
@@ -33,6 +34,7 @@ from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
+from .timeutils import manila_today
 
 
 class UserRole(enum.Enum):
@@ -235,6 +237,11 @@ class KpiRubric(Base):
     """Organization-scoped weighting and targets for each competency."""
 
     __tablename__ = "kpi_rubrics"
+    __table_args__ = (
+        UniqueConstraint(
+            "organization_id", "competency", name="uq_kpi_rubric_org_competency"
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
@@ -242,7 +249,7 @@ class KpiRubric(Base):
         SAEnum(CompetencyEnum, name="competency_enum", values_callable=_enum_values),
         nullable=False,
     )
-    target_score: Mapped[float] = mapped_column(Float, default=3.0, nullable=False)
+    target_score: Mapped[float] = mapped_column(Float, default=4.0, nullable=False)
     weight: Mapped[float] = mapped_column(Float, default=0.20, nullable=False)
 
 
@@ -260,7 +267,7 @@ class WeeklyEvaluation(Base):
     )
     organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
     evaluation_date: Mapped[date] = mapped_column(
-        Date, default=date.today, nullable=False, index=True
+        Date, default=manila_today, nullable=False, index=True
     )
     week_number: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     task_completion: Mapped[float] = mapped_column(Float, nullable=False)
@@ -289,6 +296,11 @@ class MonthlySummary(Base):
     """Monthly roll-up of weekly scores plus the ML classification."""
 
     __tablename__ = "monthly_summaries"
+    __table_args__ = (
+        UniqueConstraint(
+            "employee_id", "month_number", name="uq_monthly_summary_employee_month"
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     employee_id: Mapped[uuid.UUID] = mapped_column(

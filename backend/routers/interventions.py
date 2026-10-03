@@ -259,11 +259,12 @@ async def monthly_rollup(
                         **fields,
                     )
                 )
-        # Drop no-longer-recommended plans, but keep approved ones for the audit trail.
+        # Drop no-longer-recommended plans, but keep APPROVED and REJECTED ones
+        # for the audit trail (only un-decided PENDING plans are removed).
         for catalog_id, plan in plans_by_catalog.items():
-            if (
-                catalog_id not in desired_catalog_ids
-                and plan.status != TrainingStatusEnum.APPROVED
+            if catalog_id not in desired_catalog_ids and plan.status not in (
+                TrainingStatusEnum.APPROVED,
+                TrainingStatusEnum.REJECTED,
             ):
                 await db.delete(plan)
     else:
@@ -565,6 +566,12 @@ async def sign_off_intervention(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Training plan not found",
+        )
+
+    if plan.status != TrainingStatusEnum.PENDING_APPROVAL:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This intervention has already been decided and cannot be changed.",
         )
 
     if payload.approved:

@@ -32,6 +32,7 @@ from ..models import (
     KpiRubric,
     PerformanceRatingEnum,
     ProbationaryEmployee,
+    ProbationStatus,
     RegularizationRecommendation,
     User,
     UserRole,
@@ -157,13 +158,28 @@ async def submit_weekly_rating(
     """Persist a weekly evaluation and append audit entries for changed scores."""
     employee = await _get_scoped_employee(db, employee_id, current_user)
 
+    if employee.status != ProbationStatus.ACTIVE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Weekly ratings can only be recorded for active probationary employees.",
+        )
+
+    evaluation_date_value = payload.evaluation_date or manila_today()
+    if not (employee.start_date <= evaluation_date_value <= employee.day_180_date):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "evaluation_date must fall within the employee's probationary period "
+                f"({employee.start_date.isoformat()} to {employee.day_180_date.isoformat()})."
+            ),
+        )
+
     previous = await _latest_evaluation(db, employee.id, current_user.organization_id)
     prior_scores = _scores_from_evaluation(previous) if previous is not None else {}
     new_scores = _scores_from_payload(payload)
 
     overall_score = round(sum(new_scores.values()) / len(new_scores), 2)
 
-    evaluation_date_value = payload.evaluation_date or manila_today()
     week_number = max(1, ((evaluation_date_value - employee.start_date).days // 7) + 1)
 
     evaluation = WeeklyEvaluation(
@@ -423,16 +439,34 @@ async def create_regularization_recommendation(
         recommended_courses=[],
     )
 
-    record = RegularizationRecommendation(
-        employee_id=employee.id,
-        organization_id=current_user.organization_id,
-        month_number=5,
-        status_classification=_rating_from_tier(tier),
-        overall_average=fmean(scores.values()),
-        recommendation=recommendation,
-        rationale=rationale,
-    )
-    db.add(record)
+    # Idempotent: one recommendation per employee (regenerate in place).
+    existing = (
+        await db.execute(
+            select(RegularizationRecommendation).where(
+                RegularizationRecommendation.employee_id == employee.id,
+                RegularizationRecommendation.organization_id == current_user.organization_id,
+            )
+        )
+    ).scalars().first()
+
+    if existing is not None:
+        existing.month_number = 5
+        existing.status_classification = _rating_from_tier(tier)
+        existing.overall_average = fmean(scores.values())
+        existing.recommendation = recommendation
+        existing.rationale = rationale
+        record = existing
+    else:
+        record = RegularizationRecommendation(
+            employee_id=employee.id,
+            organization_id=current_user.organization_id,
+            month_number=5,
+            status_classification=_rating_from_tier(tier),
+            overall_average=fmean(scores.values()),
+            recommendation=recommendation,
+            rationale=rationale,
+        )
+        db.add(record)
     await db.commit()
     await db.refresh(record)
     return record

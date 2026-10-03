@@ -70,7 +70,11 @@ export default function EmployeeDetail() {
   // Fetch scorecard & competencies only once evaluations exist
   // (scorecard/trend/risk/regularization intentionally return 404 when there are none)
   const hasEvaluations = auditLogs.length > 0;
-  const { data: scorecard, isLoading: isScoreLoading } = useQuery({
+  const {
+    data: scorecard,
+    isLoading: isScoreLoading,
+    isError: isScoreError,
+  } = useQuery({
     queryKey: ['scorecard', id],
     queryFn: () => evaluationApi.getScorecard(id),
     enabled: !!id && hasEvaluations,
@@ -95,7 +99,10 @@ export default function EmployeeDetail() {
     mutationFn: () => employeeApi.acknowledgeStandards(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employee', id] });
-      toast.success('Initial Article 296 performance standards acknowledged.');
+      toast.success('Standards acknowledgement recorded.');
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, 'Failed to acknowledge standards.'));
     },
   });
 
@@ -222,8 +229,15 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         <p className="text-xs text-ink-3">
           {getApiErrorMessage(empError, 'The requested probationary profile does not exist.')}
         </p>
-        <Button variant="secondary" onClick={() => navigate('/employees')}>
-          Back to Directory
+        <Button
+          variant="secondary"
+          onClick={() =>
+            navigate(
+              user?.role === 'probationary_employee' ? '/employee/dashboard' : '/employees'
+            )
+          }
+        >
+          {user?.role === 'probationary_employee' ? 'Back to My Scorecard' : 'Back to Directory'}
         </Button>
       </div>
     );
@@ -242,11 +256,19 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       <div>
         <button
           type="button"
-          onClick={() => navigate('/employees')}
+          onClick={() =>
+            navigate(
+              user?.role === 'probationary_employee' ? '/employee/dashboard' : '/employees'
+            )
+          }
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-2 hover:text-accent transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Employee Directory</span>
+          <span>
+            {user?.role === 'probationary_employee'
+              ? 'Back to My Scorecard'
+              : 'Back to Employee Directory'}
+          </span>
         </button>
       </div>
 
@@ -465,6 +487,10 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
+        ) : isScoreError ? (
+          <div className="py-8 text-center text-xs text-bad">
+            Unable to load the scorecard right now. Please retry.
+          </div>
         ) : !scorecard || !scorecard.competencies || scorecard.competencies.length === 0 ? (
           <div className="py-8 text-center text-xs text-ink-3">
             No evaluations have been submitted for this employee yet.
@@ -568,12 +594,14 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               No weekly evaluations recorded yet. A supervisor must submit at least one
               weekly rating before generating AI decision support.
             </p>
-            <Link
-              to={`/supervisor/rate?employee=${id}`}
-              className="inline-flex items-center gap-1 text-accent font-semibold hover:underline"
-            >
-              Rate Employee →
-            </Link>
+            {user?.role !== 'probationary_employee' && (
+              <Link
+                to={`/supervisor/rate?employee=${id}`}
+                className="inline-flex items-center gap-1 text-accent font-semibold hover:underline"
+              >
+                Rate Employee →
+              </Link>
+            )}
           </div>
         ) : regularization ? (
           <div className="space-y-2">

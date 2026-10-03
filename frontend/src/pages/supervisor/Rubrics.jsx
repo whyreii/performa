@@ -5,7 +5,7 @@ import { Target, ShieldCheck, Award, BookOpen, AlertCircle } from 'lucide-react'
 import { Badge } from '../../components/ui';
 
 export default function Rubrics() {
-  const { data: dbRubrics = [] } = useQuery({
+  const { data: dbRubrics = [], isError: isRubricsError } = useQuery({
     queryKey: ['kpi-rubrics'],
     queryFn: () => kpiApi.list(),
   });
@@ -94,6 +94,15 @@ export default function Rubrics() {
           The 5 Statutory Competencies & Regularizing Benchmarks · Philippine Labor Code Art. 296
         </p>
       </header>
+
+      {isRubricsError && (
+        <div className="p-3.5 rounded-ctl bg-warn/8 border border-line text-warn text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>
+            Could not load your configured targets/weights right now — showing platform defaults.
+          </span>
+        </div>
+      )}
 
       {/* Legal Banner */}
       <section className="bg-surface border border-line rounded-float p-5 space-y-2 shadow-sm">

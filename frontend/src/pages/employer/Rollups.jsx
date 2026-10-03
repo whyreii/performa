@@ -78,6 +78,7 @@ export default function Rollups() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-interventions'] });
       queryClient.invalidateQueries({ queryKey: ['intervention-plans'] });
+      queryClient.invalidateQueries({ queryKey: ['summaries'] });
       setIsGenerateModalOpen(false);
       toast.success('Monthly rollup and AI rationales generated successfully.');
     },
@@ -87,7 +88,11 @@ export default function Rollups() {
   });
 
   // Monthly summaries (dispatch to employees for acknowledgement)
-  const { data: summaries = [] } = useQuery({
+  const {
+    data: summaries = [],
+    isLoading: isSummariesLoading,
+    isError: isSummariesError,
+  } = useQuery({
     queryKey: ['summaries'],
     queryFn: () => interventionApi.listSummaries(),
   });
@@ -276,7 +281,16 @@ export default function Rollups() {
           <h2 className="text-base font-semibold text-ink">Monthly Summaries</h2>
           <span className="text-xs text-ink-3">Dispatch to employees for digital acknowledgement</span>
         </div>
-        {summaries.length === 0 ? (
+        {isSummariesLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-full" />
+          </div>
+        ) : isSummariesError ? (
+          <div className="p-6 bg-surface border border-line rounded-float text-center text-xs text-bad">
+            Unable to load monthly summaries right now. Please retry.
+          </div>
+        ) : summaries.length === 0 ? (
           <div className="p-6 bg-surface border border-line rounded-float text-center text-xs text-ink-3">
             No monthly summaries generated yet. Run a rollup above.
           </div>

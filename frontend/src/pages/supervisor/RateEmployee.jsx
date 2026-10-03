@@ -46,9 +46,12 @@ export default function RateEmployee() {
     }
   }, [preselectedEmpId]);
 
-  // Default to the first assigned employee once the list loads.
+  // Default to the first assigned employee once the list loads, and correct a
+  // stale/invalid preselected id that isn't in the assigned list.
   useEffect(() => {
-    setSelectedId((prev) => prev || activeProbationers[0]?.id || '');
+    setSelectedId((prev) =>
+      activeProbationers.some((e) => e.id === prev) ? prev : activeProbationers[0]?.id || ''
+    );
   }, [activeProbationers]);
 
   const selectedEmployee = activeProbationers.find((e) => e.id === selectedId);

@@ -7,6 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth import get_password_hash, require_role
@@ -101,7 +102,14 @@ async def create_user(
         entity_id=new_user.id,
         detail=f"{new_user.role.value}:{new_user.email}",
     )
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"An account with email '{payload.email}' already exists.",
+        )
     await db.refresh(new_user)
     return new_user
 

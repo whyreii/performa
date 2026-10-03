@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { Button, Badge, ScoreMeter, MilestonePill, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import {
@@ -27,6 +28,7 @@ const COMPETENCY_DESCRIPTIONS = {
 export default function EmployeeDashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   // Fetch all employees to find current user's profile
   const { data: employees = [], isLoading: isEmpLoading } = useQuery({
@@ -61,7 +63,13 @@ export default function EmployeeDashboard() {
 
   const ackSummaryMutation = useMutation({
     mutationFn: (id) => interventionApi.acknowledgeSummary(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-summaries'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-summaries'] });
+      toast.success('Summary acknowledged.');
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, 'Failed to acknowledge summary.'));
+    },
   });
 
   const daysElapsed = myProfile ? getDaysElapsed(myProfile.start_date) : 0;

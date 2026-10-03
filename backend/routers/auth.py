@@ -7,6 +7,7 @@ from collections import defaultdict, deque
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth import (
@@ -136,7 +137,14 @@ async def update_current_user(
     if payload.full_name is not None:
         current_user.full_name = payload.full_name
 
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That email address is already in use.",
+        )
     await db.refresh(current_user)
     return current_user
 

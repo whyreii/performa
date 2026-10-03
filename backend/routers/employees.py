@@ -154,7 +154,14 @@ async def create_employee(
             is_active=True,
         )
         db.add(user)
-        await db.flush()
+        try:
+            await db.flush()
+        except IntegrityError:
+            await db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="A user with this email already exists",
+            )
 
     employer_id = payload.employer_id or current_user.id
     employer = await db.get(User, employer_id)

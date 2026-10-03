@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
 import { Button, Badge, Skeleton } from '../../components/ui';
+import { useToast } from '../../context/ToastContext';
 import { Bell, CheckCheck, AlertCircle } from 'lucide-react';
 
 export default function Notifications() {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const {
     data: notifications = [],
@@ -21,11 +23,13 @@ export default function Notifications() {
   const readMutation = useMutation({
     mutationFn: (id) => notificationApi.markRead(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to mark notification as read.')),
   });
 
   const readAllMutation = useMutation({
     mutationFn: () => notificationApi.markAllRead(),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to mark all as read.')),
   });
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;

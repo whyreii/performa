@@ -236,7 +236,7 @@ export default function Settings() {
               Platform Role
             </span>
             <span className="text-sm font-semibold text-accent capitalize">
-              {user?.role?.replace('_', ' ')}
+              {user?.role?.replace(/_/g, ' ')}
             </span>
           </div>
 
