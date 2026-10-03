@@ -18,13 +18,38 @@ apiClient.interceptors.request.use((config) => {
       config.headers.Authorization = `Bearer ${token}`;
     }
   } catch {}
+
+  if (import.meta.env.DEV) {
+    config.metadata = { start: performance.now() };
+    console.debug(`[api] -> ${config.method?.toUpperCase()} ${config.url}`);
+  }
+
   return config;
 });
 
-// Response interceptor: handle 401 Unauthorized
+// Response interceptor: dev logging + handle 401 Unauthorized
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (import.meta.env.DEV) {
+      const start = response.config?.metadata?.start;
+      const ms = start ? (performance.now() - start).toFixed(1) : '?';
+      console.debug(
+        `[api] <- ${response.status} ${response.config?.method?.toUpperCase()} ${response.config?.url} (${ms}ms)`
+      );
+    }
+    return response;
+  },
   (error) => {
+    if (import.meta.env.DEV) {
+      const config = error.config || {};
+      const start = config.metadata?.start;
+      const ms = start ? (performance.now() - start).toFixed(1) : '?';
+      console.warn(
+        `[api] !! ${error.response?.status ?? 'ERR'} ${config.method?.toUpperCase()} ${config.url} (${ms}ms)`,
+        error.message
+      );
+    }
+
     if (error.response && error.response.status === 401) {
       try {
         localStorage.removeItem('performa_user');

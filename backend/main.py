@@ -7,11 +7,14 @@ employees, evaluations, and interventions routers.
 from __future__ import annotations
 
 import logging
+import time
+import uuid
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from . import models  # noqa: F401  (registers ORM metadata before create_all)
@@ -31,6 +34,8 @@ logging.basicConfig(
     level=_settings.log_level,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
+
+logger = logging.getLogger("performa.request")
 
 DEFAULT_CORS_ORIGINS = [
     "http://localhost:3000",
@@ -63,6 +68,62 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def request_logging_middleware(request: Request, call_next):
+    """Attach a per-request id, time the request, and emit one log line."""
+    request_id = uuid.uuid4()
+    request.state.request_id = request_id
+    start = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception:
+        # The 500 is produced by the global exception handler above; log the
+        # access line here (the response header is set by that handler) and
+        # re-raise so the handler can render the safe body.
+        duration_ms = (time.perf_counter() - start) * 1000.0
+        logger.info(
+            "%s %s -> 500 (%.2fms) [req_id=%s]",
+            request.method,
+            request.url.path,
+            duration_ms,
+            request_id,
+        )
+        raise
+    duration_ms = (time.perf_counter() - start) * 1000.0
+    response.headers["X-Request-ID"] = str(request_id)
+    logger.info(
+        "%s %s -> %s (%.2fms) [req_id=%s]",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_ms,
+        request_id,
+    )
+    return response
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Log unhandled errors with their request id and return a safe 500 body."""
+    request_id = getattr(request.state, "request_id", None)
+    logger.error(
+        "Unhandled exception [req_id=%s] on %s %s",
+        request_id,
+        request.method,
+        request.url.path,
+        exc_info=exc,
+    )
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": "An internal server error occurred.",
+            "request_id": str(request_id),
+        },
+        headers={"X-Request-ID": str(request_id)},
+    )
+
 
 app.include_router(auth_router)
 app.include_router(admin_router)

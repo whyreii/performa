@@ -9,6 +9,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Optional
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_SECRET_KEY = "performa-dev-secret-key-32charsmin"
@@ -27,6 +28,7 @@ class Settings(BaseSettings):
     cors_origins: str = ""
     log_level: str = "INFO"
     cookie_secure: bool = False
+    sql_echo: bool = Field(default=False, alias="SQL_ECHO")
 
 
 @lru_cache

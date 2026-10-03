@@ -20,7 +20,7 @@ DEFAULT_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/pe
 
 DATABASE_URL: str = get_settings().database_url
 
-engine = create_async_engine(DATABASE_URL, echo=False)
+engine = create_async_engine(DATABASE_URL, echo=get_settings().sql_echo)
 
 AsyncSessionLocal: async_sessionmaker[AsyncSession] = async_sessionmaker(
     bind=engine,
