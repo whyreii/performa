@@ -1,37 +1,119 @@
-﻿# ARCHITECTURE DIRECTIVES: PERFORMA
+# ARCHITECTURE.md: Performa
 
-## 1. Technical Stack
-- Frontend: React 18 (Vite SPA), Tailwind CSS, Lucide React icons, TanStack Query.
-- Backend: Python 3.10+, FastAPI (async endpoints), SQLAlchemy 2.0 (asyncpg), Pydantic v2.
-- Database: PostgreSQL (tables initialized via Base.metadata.create_all on startup).
-- ML & GenAI: scikit-learn (Random Forest loaded in-memory), Google Gemini API (async, temp 0.0).
-- Auth: JWT Bearer tokens enforcing 4 distinct roles: admin, employer, supervisor, probationary_employee.
+What the system is, and the single source of truth for its values (model IDs, competency IDs, milestone days, the 4.0 standard). Rules about these values, RBAC, and how to work live in `AGENTS.md`. If a rule here conflicts with `AGENTS.md`, `AGENTS.md` wins and you report it.
 
-## 2. Legal Constraints (Philippine Labor Code Article 296)
-- Timeline Cap: Strict 180 calendar days computed in Asia/Manila timezone.
-- Statutory Milestones: Automated alerts triggered at Day 150, Day 165, and Day 178.
-- 5 Competency Categories Only:
-  1. task_completion
-  2. attendance_and_punctuality (evaluator rating score only; no biometric punch clocks or leave requests)
-  3. communication_and_teamwork
-  4. initiative_and_adaptability
-  5. quality_of_work
+---
 
-## 3. Intervention & Decision Pipeline
-- Weekly scores roll up into monthly averages across the 5 competencies.
-- Random Forest classifies competency status: Meets Expectations, Needs Improvement, or Critical Gap.
-- Deficiencies (Needs Improvement, Critical Gap) map deterministically to backend/ml/training_catalog.json.
-- The Gemini API generates ONLY:
-  - A 2-sentence performance summary.
-  - A 1-sentence rationale per catalog intervention.
-- Fallback: If Gemini times out, catalog items are saved with empty rationales.
-- Human-in-the-Loop: Interventions remain pending_approval until an Employer explicitly signs off.
-- Audit Trail: Any score update writes an immutable audit record containing evaluator ID, employee ID, prior score, new score, and timestamp.
+## 1. Stack
 
-## Agent Pre-Execution Audit & Gap Protocol
-1. Source of Truth First: Read all referenced files before writing code. Verify actual exported names, variable naming (e.g., AsyncSessionLocal vs. async_session_maker), and database constraints.
-2. Gap Handling & Alignment: If a prompt references a model, column, relationship, or import that does not exist or conflicts with current code:
-   - Do NOT fail silently or blindly assume the prompt is 100% correct.
-   - Apply necessary additive modifications (e.g., declare missing models, make restrictive columns nullable if business logic requires it, add clean aliases) without breaking existing functionality.
-   - List every discrepancy, gap, or assumption you reconciled in your final report.
-3. Zero Breaking Changes: Do not remove existing columns, alter passing routes, or bypass multi-tenancy rules.
+| Layer | Choice |
+|---|---|
+| Frontend | React 18 (Vite SPA), Tailwind CSS, Lucide React, TanStack Query. Design tokens in `src/tokens.css` |
+| Backend | Python 3.10+, FastAPI (async endpoints), SQLAlchemy 2.0 (async), Pydantic v2 |
+| Database | SQLite (`aiosqlite`) for local dev; PostgreSQL (`asyncpg`) for production/staging via `DATABASE_URL` |
+| Schema creation | `Base.metadata.create_all` on startup. Creates missing tables only; never alters existing ones |
+| ML | scikit-learn Random Forest, loaded in memory |
+| GenAI | Google Gemini API, async, temperature 0.0. Primary `gemini-3.5-flash-lite`, fallback `gemini-flash-latest`, configured in `backend/gemini.py` |
+| Auth | JWT Bearer tokens, 4 roles: `admin`, `employer`, `supervisor`, `probationary_employee` |
+
+---
+
+## 2. Domain values (Philippine Labor Code Art. 296, per the manuscript)
+
+- **Probation cap**: 180 calendar days from the start date, computed in `Asia/Manila`.
+- **Review milestones**: Day 150 (Performance Appraisal), Day 165 (15-Day Written Notice Buffer), Day 178 (Critical 48h to Auto-Regularization). Each triggers an automated alert.
+- **Regularizing standard**: 4.0 / 5.0 across the 5 core competencies.
+- **Competencies (exactly 5)**:
+
+| Identifier | Notes |
+|---|---|
+| `task_completion` | |
+| `attendance_and_punctuality` | Evaluator rating score only. No biometric punch clocks, no leave requests |
+| `communication_and_teamwork` | |
+| `initiative_and_adaptability` | |
+| `quality_of_work` | |
+
+- **Competency status** (from the Random Forest): Meets Expectations, Needs Improvement, Critical Gap.
+
+---
+
+## 3. Roles and tenancy
+
+- Four roles (permission matrix in `AGENTS.md` §2). JWT Bearer on every protected endpoint; role and tenant checks happen server-side.
+- The Admin manages tenant operations, so every query touching tenant data must be tenant-scoped. The tenant key and scoping mechanism are read from the code (§6c).
+
+---
+
+## 4. Intervention and decision pipeline
+
+1. **Weekly ratings** per competency, entered by the Employer, or by a Supervisor for assigned direct reports only.
+2. **Monthly rollup**: weekly scores average into one score per competency per month.
+3. **Classification**: the Random Forest labels each competency Meets Expectations / Needs Improvement / Critical Gap.
+4. **Catalog mapping**: Needs Improvement and Critical Gap map deterministically to `backend/ml/training_catalog.json`. No model decides which interventions apply.
+5. **Gemini generates ONLY**:
+   - a 2-sentence performance summary, and
+   - a 1-sentence rationale per catalog intervention.
+   Gemini never selects, adds, removes, or reorders interventions.
+6. **Fallback**: if Gemini times out, catalog items are saved with empty rationales. Saving is never blocked by Gemini.
+7. **Human in the loop**: interventions stay `pending_approval` until an Employer explicitly signs off.
+
+---
+
+## 5. Audit
+
+Two separate logs. Never merge or remove either.
+
+- **`/audits`: Evidentiary Labor Score Audit Trail.** Any score update writes an immutable record: evaluator ID, employee ID, prior score, new score, timestamp.
+- **`/admin/activity`: IT System Activity Log.** Security and system activity for the Admin.
+
+---
+
+## 6. Open items
+
+Agents: do not guess on anything in this section.
+
+### 6a. Owner decisions (RESOLVED)
+
+1. **Day-count convention**: the start date is **Day 0**; `days_elapsed = (manila_today() - start_date).days`.
+   **Day 180** is the statutory cap (`day_180_date = start_date + 180`) and is still a valid probation day.
+2. **The 4.0 standard**: the **capstone's immutable regularizing benchmark** — a hard floor of **4.0 / 5.0
+   across all 5 competencies** (`default=4.0, ge=4.0, le=5.0` in `backend/schemas.py`). Employers may set
+   **higher** targets (e.g. 4.5) but never lower.
+3. **Admin access to performance data**: **view-only** (Manuscript Scope of the Study). Admin may view
+   records, scorecards, KPIs, and reports across the tenant, but must not write. Enforced in
+   `backend/tests/test_rbac.py`; see `AGENTS.md` §2.
+4. **Deadline thresholds**: **Days 150, 165, and 178 are fixed statutory Article 296 milestones** and are
+   **not configurable**. `GET /api/admin/settings` (`backend/routers/admin.py`) exposes `DEADLINE_THRESHOLDS`
+   to the Admin for **oversight only** (non-configurable cutoffs).
+5. **KPIs vs competencies**: exactly the **5 statutory competencies**. "KPI configuration" = setting the
+   **weight** and **target (≥ 4.0)** for those 5, plus industry **template presets** (`docs/DECISIONS.md` J2).
+   Arbitrary per-role KPIs are out of scope.
+6. **Score corrections / audit**: any score change appends an **immutable** `EvaluationAuditLog` record
+   (one per changed competency; no edit/delete path); monthly rollups **lock (HTTP 409)** once dispatched
+   or acknowledged.
+
+**Still open (owner to confirm):**
+
+7. **Leftover code from earlier stack iterations**: list paths, or "none".
+8. **Gemini temperature**: currently 0.0. Google's docs recommend leaving Gemini 3.x models at the default
+   1.0, because lower values can cause looping or degraded output. Keep 0.0, or switch to the default and
+   rely on code-side validation and stored outputs for reproducibility? Test on real prompts first. Do not
+   change it unasked.
+
+### 6b. Proposed defaults (NOT confirmed): ask before implementing
+
+1. Audit record also stores competency and period; `prior score` is nullable for a first entry.
+2. The audit row is written in the same DB transaction as the score update (both commit or neither).
+3. No update/delete path for audit rows in app code, plus a DB-level block (permissions or trigger on PostgreSQL).
+4. Every transition out of `pending_approval` has a server-side Employer role check.
+5. Gemini output is validated in code (sentence count, non-empty). Invalid output is treated as a failure: save empty rationales and log it. Evaluator free text is untrusted input to the prompt.
+6. Each generated summary records which model answered (primary vs fallback), since `gemini-flash-latest` is a moving alias.
+
+### 6c. Facts to read from the code (report what you found; ask only if the code is ambiguous or contradicts itself)
+
+- Tenant key and scoping mechanism
+- Intervention status values beyond `pending_approval`
+- Random Forest artifact path, feature column order, label encoding
+- How `training_catalog.json` is keyed (competency + status to items)
+- Schema change method (Alembic or manual SQL)
+- Where the `/audits` and `/admin/activity` records are written
