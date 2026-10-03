@@ -17,6 +17,8 @@ import logging
 import os
 from typing import Any, Optional
 
+from .config import get_settings
+
 try:  # The SDK is optional at import time so the API can still boot without it.
     from google import genai
     from google.genai import types
@@ -48,7 +50,7 @@ def _get_client() -> Any:
     if genai is None:
         logger.warning("google-genai SDK is not installed; returning fallback rationales.")
         return None
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY") or get_settings().gemini_api_key
     if not api_key:
         logger.warning("GEMINI_API_KEY is not configured; returning fallback rationales.")
         return None

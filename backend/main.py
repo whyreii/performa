@@ -7,7 +7,6 @@ employees, evaluations, and interventions routers.
 from __future__ import annotations
 
 import logging
-import os
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
@@ -16,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from . import models  # noqa: F401  (registers ORM metadata before create_all)
+from .config import get_settings
 from .database import Base, engine
 from .routers.admin import router as admin_router
 from .routers.auth import router as auth_router
@@ -25,8 +25,10 @@ from .routers.interventions import router as interventions_router
 from .routers.kpi import router as kpi_router
 from .routers.notifications import router as notifications_router
 
+_settings = get_settings()
+
 logging.basicConfig(
-    level=os.getenv("LOG_LEVEL", "INFO"),
+    level=_settings.log_level,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
 
@@ -38,7 +40,7 @@ DEFAULT_CORS_ORIGINS = [
 ]
 CORS_ORIGINS = [
     origin.strip()
-    for origin in os.getenv("CORS_ORIGINS", "").split(",")
+    for origin in _settings.cors_origins.split(",")
     if origin.strip()
 ] or DEFAULT_CORS_ORIGINS
 

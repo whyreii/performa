@@ -11,7 +11,6 @@ a single source of truth:
 from __future__ import annotations
 
 import logging
-import os
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -24,15 +23,16 @@ from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .config import DEFAULT_SECRET_KEY, get_settings
 from .database import get_db
 from .models import User, UserRole
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_SECRET_KEY = "performa-dev-secret-key-32charsmin"
-SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "480"))
+_settings = get_settings()
+SECRET_KEY = _settings.secret_key
+ALGORITHM = _settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = _settings.access_token_expire_minutes
 
 if SECRET_KEY == DEFAULT_SECRET_KEY:
     logger.warning(

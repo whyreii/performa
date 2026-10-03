@@ -5,7 +5,6 @@ against PostgreSQL. Tables are created from ``Base.metadata`` on startup.
 """
 from __future__ import annotations
 
-import os
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
@@ -15,9 +14,11 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase
 
+from .config import get_settings
+
 DEFAULT_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/performa_db"
 
-DATABASE_URL: str = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
+DATABASE_URL: str = get_settings().database_url
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 
