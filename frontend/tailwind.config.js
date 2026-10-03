@@ -68,5 +68,6 @@ export default {
       strategy: 'class',
     }),
     require('@tailwindcss/container-queries'),
+    require('tailwindcss-animate'),
   ],
 };
