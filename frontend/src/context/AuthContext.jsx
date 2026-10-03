@@ -4,14 +4,6 @@ import { authApi, getApiErrorMessage } from '../api';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => {
-    try {
-      return localStorage.getItem('performa_token') || null;
-    } catch {
-      return null;
-    }
-  });
-
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('performa_user');
@@ -23,52 +15,47 @@ export function AuthProvider({ children }) {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const logout = useCallback(() => {
+  const persistUser = useCallback((userData) => {
+    setUser(userData);
     try {
-      localStorage.removeItem('performa_token');
-      localStorage.removeItem('performa_user');
+      if (userData) {
+        localStorage.setItem('performa_user', JSON.stringify(userData));
+      } else {
+        localStorage.removeItem('performa_user');
+      }
     } catch {}
-    setToken(null);
-    setUser(null);
   }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout();
+    } catch {}
+    persistUser(null);
+  }, [persistUser]);
 
   const refreshUser = useCallback(async () => {
     const userData = await authApi.getCurrentUser();
-    setUser(userData);
-    try {
-      localStorage.setItem('performa_user', JSON.stringify(userData));
-    } catch {}
+    persistUser(userData);
     return userData;
-  }, []);
+  }, [persistUser]);
 
   // Listen to 401 unauthorized events dispatched by api.js
   useEffect(() => {
-    const handleUnauthorized = () => {
-      logout();
-    };
+    const handleUnauthorized = () => persistUser(null);
     window.addEventListener('performa:unauthorized', handleUnauthorized);
     return () => window.removeEventListener('performa:unauthorized', handleUnauthorized);
-  }, [logout]);
+  }, [persistUser]);
 
-  // Load current user profile if token is present
+  // Validate the httpOnly auth cookie on mount and hydrate the user.
   useEffect(() => {
     let isMounted = true;
 
     async function checkAuth() {
-      if (!token) {
-        if (isMounted) setIsLoading(false);
-        return;
-      }
       try {
         const userData = await authApi.getCurrentUser();
-        if (isMounted) {
-          setUser(userData);
-          localStorage.setItem('performa_user', JSON.stringify(userData));
-        }
-      } catch (err) {
-        if (isMounted) {
-          logout();
-        }
+        if (isMounted) persistUser(userData);
+      } catch {
+        if (isMounted) persistUser(null);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -78,23 +65,17 @@ export function AuthProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [token, logout]);
+  }, [persistUser]);
 
   const login = async (email, password) => {
     setIsLoading(true);
     try {
-      const data = await authApi.login(email, password);
-      const accessToken = data.access_token;
-      localStorage.setItem('performa_token', accessToken);
-      setToken(accessToken);
-
-      // Fetch user profile immediately
+      await authApi.login(email, password);
       const userData = await authApi.getCurrentUser();
-      setUser(userData);
-      localStorage.setItem('performa_user', JSON.stringify(userData));
+      persistUser(userData);
       return { success: true, user: userData };
     } catch (err) {
-      logout();
+      persistUser(null);
       const message = getApiErrorMessage(err, 'Failed to sign in. Please verify your credentials.');
       return { success: false, error: message };
     } finally {
@@ -105,9 +86,8 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider
       value={{
-        token,
         user,
-        isAuthenticated: !!token && !!user,
+        isAuthenticated: !!user,
         isLoading,
         login,
         logout,

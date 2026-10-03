@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     gemini_api_key: Optional[str] = None
     cors_origins: str = ""
     log_level: str = "INFO"
+    cookie_secure: bool = False
 
 
 @lru_cache

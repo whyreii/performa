@@ -4,24 +4,11 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Accept': 'application/json',
   },
 });
-
-// Request interceptor: attach JWT bearer token
-apiClient.interceptors.request.use(
-  (config) => {
-    try {
-      const token = localStorage.getItem('performa_token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch {}
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
 // Response interceptor: handle 401 Unauthorized
 apiClient.interceptors.response.use(
@@ -29,7 +16,6 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       try {
-        localStorage.removeItem('performa_token');
         localStorage.removeItem('performa_user');
       } catch {}
       window.dispatchEvent(new CustomEvent('performa:unauthorized'));
@@ -67,6 +53,10 @@ export const authApi = {
   getCurrentUser: async () => {
     const response = await apiClient.get('/api/auth/me');
     return response.data; // UserResponse: { id, email, full_name, role, organization_id, is_active }
+  },
+  logout: async () => {
+    const response = await apiClient.post('/api/auth/logout');
+    return response.data;
   },
   changePassword: async (currentPassword, newPassword) => {
     const response = await apiClient.post('/api/auth/change-password', {

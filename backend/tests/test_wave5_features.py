@@ -242,3 +242,23 @@ async def test_admin_settings_and_reports(client):
     overview = await client.get("/api/admin/reports/overview", headers=admin)
     assert overview.status_code == 200, overview.text
     assert overview.json()["total_employees"] == 4
+
+
+async def test_cookie_auth_and_logout(client):
+    response = await client.post(
+        "/api/auth/login",
+        data={"username": "admin@acme.com", "password": DEFAULT_PASSWORD},
+    )
+    assert response.status_code == 200, response.text
+    assert "access_token" in response.cookies or "set-cookie" in response.headers
+
+    # /me with no Authorization header — authenticated purely via the cookie.
+    me = await client.get("/api/auth/me")
+    assert me.status_code == 200, me.text
+    assert me.json()["email"] == "admin@acme.com"
+
+    logout = await client.post("/api/auth/logout")
+    assert logout.status_code == 200, logout.text
+
+    after = await client.get("/api/auth/me")
+    assert after.status_code == 401, after.text

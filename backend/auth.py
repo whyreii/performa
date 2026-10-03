@@ -17,7 +17,7 @@ from typing import Optional
 
 import bcrypt as _bcrypt
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from sqlalchemy import select
@@ -68,7 +68,9 @@ _bcrypt.hashpw = _hashpw_truncating  # type: ignore[assignment]
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
+
+ACCESS_TOKEN_COOKIE = "access_token"
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -104,15 +106,21 @@ def _credentials_exception() -> HTTPException:
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    request: Request,
+    token: Optional[str] = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Decode the bearer token and return the active ``User`` it identifies.
+    """Decode the bearer token (or auth cookie) and return the active user.
 
-    The token ``sub`` is primarily the user UUID; an email ``sub`` is also
-    accepted for compatibility. Any missing, malformed, expired, unknown, or
-    inactive user raises ``401``.
+    The token is accepted from the ``Authorization: Bearer`` header or, for
+    browser clients, from the httpOnly ``access_token`` cookie. Any missing,
+    malformed, expired, unknown, or inactive user raises ``401``.
     """
+    if not token:
+        token = request.cookies.get(ACCESS_TOKEN_COOKIE)
+    if not token:
+        raise _credentials_exception()
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except jwt.PyJWTError:

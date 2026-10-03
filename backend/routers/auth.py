@@ -4,18 +4,21 @@ from __future__ import annotations
 import time
 from collections import defaultdict, deque
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth import (
+    ACCESS_TOKEN_COOKIE,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
     create_access_token,
     get_current_user,
     get_password_hash,
     verify_password,
 )
 from ..audit import record_activity
+from ..config import get_settings
 from ..database import get_db
 from ..models import User
 from ..schemas import PasswordChange, ProfileUpdate, Token, UserResponse
@@ -47,6 +50,7 @@ def _clear_failures(key: str) -> None:
 
 @router.post("/login", response_model=Token, summary="Authenticate and issue a JWT")
 async def login(
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ) -> Token:
@@ -88,6 +92,15 @@ async def login(
             "organization_id": user.organization_id,
         }
     )
+    response.set_cookie(
+        key=ACCESS_TOKEN_COOKIE,
+        value=access_token,
+        httponly=True,
+        samesite="lax",
+        secure=get_settings().cookie_secure,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+    )
     return Token(access_token=access_token, token_type="bearer")
 
 
@@ -95,6 +108,13 @@ async def login(
 async def read_current_user(current_user: User = Depends(get_current_user)) -> User:
     """Return the profile of the currently authenticated user."""
     return current_user
+
+
+@router.post("/logout", summary="Clear the authentication cookie")
+async def logout(response: Response) -> dict[str, str]:
+    """Clear the httpOnly authentication cookie."""
+    response.delete_cookie(ACCESS_TOKEN_COOKIE, path="/")
+    return {"status": "success", "message": "Signed out"}
 
 
 @router.patch("/me", response_model=UserResponse, summary="Update the authenticated user's profile")
