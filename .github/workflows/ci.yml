@@ -24,6 +24,39 @@ jobs:
           DATABASE_URL: sqlite+aiosqlite:///./ci.db
         run: python -m pytest -q
 
+  backend-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: performa_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/performa_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Train ML model (rf_model.joblib is generated, not committed)
+        run: python -m backend.ml.train
+      - name: Apply migrations (Alembic → PostgreSQL portability)
+        run: python -m alembic upgrade head
+      - name: Run tests (PostgreSQL)
+        run: python -m pytest -q
+
   frontend:
     runs-on: ubuntu-latest
     steps:

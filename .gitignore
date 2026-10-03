@@ -24,3 +24,8 @@ dist-ssr/
 # Playwright MCP test artifacts
 .playwright-mcp/
 /smoke-admin.png
+
+# Coverage artifacts
+.coverage
+htmlcov/
+coverage.xml

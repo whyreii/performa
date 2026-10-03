@@ -13,15 +13,30 @@ from pathlib import Path
 import pytest
 
 _TMP_DIR = Path(tempfile.mkdtemp(prefix="performa-tests-"))
-os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{(_TMP_DIR / 'test.db').as_posix()}"
+# Honor a pre-set DATABASE_URL (e.g. the PostgreSQL CI job); fall back to a
+# throwaway SQLite file for local runs. Must be set before any backend import.
+os.environ.setdefault(
+    "DATABASE_URL", f"sqlite+aiosqlite:///{(_TMP_DIR / 'test.db').as_posix()}"
+)
 os.environ.pop("GEMINI_API_KEY", None)
 
 import httpx  # noqa: E402
 import pytest_asyncio  # noqa: E402
 
-from backend.database import async_session_maker  # noqa: E402
+from sqlalchemy import event  # noqa: E402
+
+from backend.database import async_session_maker, engine  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.seed import seed  # noqa: E402
+
+
+@event.listens_for(engine.sync_engine, "connect")
+def _enable_sqlite_foreign_keys(dbapi_connection, connection_record):
+    """Enable SQLite FK enforcement so local runs match PostgreSQL behaviour."""
+    if engine.dialect.name == "sqlite":
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 
 @pytest.fixture(autouse=True)

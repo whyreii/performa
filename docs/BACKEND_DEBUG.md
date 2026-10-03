@@ -13,7 +13,8 @@ grounded in `file:line`; every fix is covered by the test suite
 
 ## Executive summary
 
-A read-only audit of **every backend module** surfaced **18 findings (F1–F18)**.
+A read-only audit of **every backend module** surfaced **18 findings (F1–F18)**;
+a follow-up PostgreSQL-parity pass added **F19**, for **19 findings total**.
 They were resolved across four phases:
 
 | Phase | Commit | Focus |
@@ -42,9 +43,10 @@ They were resolved across four phases:
 | F13 | Low | Login DB lookup used the raw (un-normalized) email | **Code fix** — normalized lookup | `backend/routers/auth.py` |
 | F14 | Low | Admin could create another Admin | **Policy** — by design (last-admin guarded) | `backend/routers/admin.py` |
 | F15 | Low | Seed set `employer_id = admin.id` | **Code fix** — employer account | `backend/seed.py` |
-| F16 | Info | `get_current_user` email fallback when `sub` isn't a UUID | **Open (informational)** — signed tokens only | `backend/auth.py` |
+| F16 | Info | `get_current_user` email fallback when `sub` isn't a UUID | **Closed — accepted risk** (signed tokens only; see Residual Risk Register) | `backend/auth.py` |
 | F17 | Info | Dead `SUPERVISOR` branch in interventions | **Code fix** — removed | `backend/routers/interventions.py` |
 | F18 | Info | ML CSV loader raised `KeyError` on missing columns | **Code fix** — clear `ValueError` | `backend/ml/train.py` |
+| F19 | Med | `seed._reset` skipped FK-bearing tables (`Notification`, `ActivityLog`, `RegularizationRecommendation`) → would fail on PostgreSQL (SQLite didn't enforce FKs) | **Code fix** — FK-safe child→parent deletion order | `backend/seed.py` |
 
 ---
 
@@ -169,8 +171,33 @@ For a pre-existing database created by `create_all`, `0001` is a no-op and
 against PostgreSQL by pointing `DATABASE_URL` at the Postgres instance (CI runs
 the suite against a Postgres service container).
 
+**Foreign-key enforcement in tests.** The SQLite test harness enables
+`PRAGMA foreign_keys=ON` (a `connect` event on `engine.sync_engine` in
+`backend/tests/conftest.py`), so local runs catch FK-ordering bugs that
+PostgreSQL would reject — matching the `backend-postgres` CI job. This is what
+surfaced **F19** (`seed._reset` skipping FK-bearing tables), now fixed.
+
 **Drift check** (optional): `python -m alembic revision --autogenerate -m "drift"`
 and inspect the generated file for unexpected diffs before committing.
+
+---
+
+## Residual Risk Register
+
+This register is the honest boundary of what the current verification covers. It
+is maintained alongside the findings catalog and should be cited **as-is** in the
+manuscript — **never** as a "zero defects" claim.
+
+| ID | Residual risk | Impact | Likelihood | Mitigation / status |
+|---|---|---|---|---|
+| **R1** | **SQLite (dev) vs PostgreSQL (prod) parity** — engine-specific SQL/enum/constraint/**FK** behavior | Med | Low–Med | The suite runs on **both** engines in CI: `backend` (SQLite) and `backend-postgres` (Postgres 16 + `alembic upgrade head`). Per-test isolation on Postgres depends on `seed._reset` deleting FK-bearing tables child→parent (**F19**, fixed); SQLite tests now enforce FKs locally, so this class of bug is caught pre-push. Dev still defaults to SQLite; `performa.db` is `create_all`-built, not Alembic-stamped. |
+| **R2** | **No frontend automated E2E / unit tests** — React logic/UX regressions could ship | Med | Med | Compensating controls: manual **Design QA** sweeps, React **ErrorBoundary**, dev-only **Axios logging**, and `npm run build` in CI. A Vitest/Playwright suite is deferred. |
+| **R3** | **Single-threaded, in-memory Random Forest inference** — throughput/latency under concurrency; model staleness | Low | Low | One `lru_cache`d model per process, no batching/GPU. Acceptable for a single-tenant SME capstone; revisit for scale. Model is trained on synthetic data. |
+| **R4 (F16)** | **JWT email fallback on non-UUID `sub`** — a token could resolve a user by email instead of id | Very Low | Very Low | **Accepted risk (closed).** Tokens are signed (HS256); a forged `sub` cannot pass signature verification. The fallback is a legacy/dev convenience only. |
+| **R5** | **Coverage gap** — untested error paths and CLI scripts | Med | Med | Empirical baseline: **85% total / ≈81% source-only** statement coverage. Lowest files: `ml/train.py` 0% (CLI), `gemini.py` 45% (fallback branches), `admin.py` 60%, `seed.py` 64%. |
+
+**F16 resolution:** closed as an **accepted, low-risk** design convenience
+(signed-token model), documented here rather than changed.
 
 ---
 

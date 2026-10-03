@@ -25,12 +25,15 @@ from .auth import get_password_hash
 from .database import Base, async_session_maker, engine
 from .timeutils import manila_today
 from .models import (
+    ActivityLog,
     EvaluationAuditLog,
     KpiRubric,
     MonthlySummary,
+    Notification,
     Organization,
     ProbationaryEmployee,
     ProbationStatus,
+    RegularizationRecommendation,
     TrainingPlan,
     User,
     UserRole,
@@ -135,6 +138,26 @@ async def _reset(session: AsyncSession) -> None:
     )
     user_ids = select(User.id).where(User.organization_id == ORG_SLUG)
 
+    # FK-bearing tables must be cleared before their parents. SQLite does not
+    # enforce foreign keys by default (tests now enable the pragma), but
+    # PostgreSQL always does — so these deletes are required for parity.
+    await session.execute(
+        delete(RegularizationRecommendation).where(
+            RegularizationRecommendation.employee_id.in_(employee_ids)
+        )
+    )
+    await session.execute(
+        delete(Notification).where(
+            Notification.user_id.in_(user_ids)
+            | (Notification.organization_id == ORG_SLUG)
+        )
+    )
+    await session.execute(
+        delete(ActivityLog).where(
+            (ActivityLog.organization_id == ORG_SLUG)
+            | ActivityLog.actor_id.in_(user_ids)
+        )
+    )
     await session.execute(
         delete(EvaluationAuditLog).where(
             EvaluationAuditLog.employee_id.in_(employee_ids)
