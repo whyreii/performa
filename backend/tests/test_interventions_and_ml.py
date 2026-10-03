@@ -45,7 +45,7 @@ async def test_supervisor_can_list_pending_interventions(client):
 
 @pytest.mark.asyncio
 async def test_rollup_month_filter_and_idempotency(client):
-    """Monthly rollup filters evaluations by month window and is idempotent."""
+    """Monthly rollup uses a non-overlapping month window and is idempotent."""
     employer = await login_user(client, EMPLOYER_EMAIL)
     carlos_id = await find_employee_id(client, employer, "Carlos Early")
 
@@ -61,17 +61,23 @@ async def test_rollup_month_filter_and_idempotency(client):
     )
     assert created.status_code == 201, created.text
 
-    first = await client.post(
+    # Carlos is seeded at day 30, so the boundary evaluation belongs to month 2 only.
+    month_1 = await client.post(
         f"/api/interventions/{carlos_id}/monthly-rollup?month_number=1", headers=employer
+    )
+    assert month_1.status_code == 404, "day-30 boundary must not be counted in month 1"
+
+    first = await client.post(
+        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=2", headers=employer
     )
     assert first.status_code == 201, first.text
 
     pending_first = (await client.get("/api/interventions/pending", headers=employer)).json()
     assert len(pending_first) == 6  # 3 flagged competencies x 2 courses
 
-    # Re-running must regenerate, not duplicate.
+    # Re-running must update in place, not duplicate.
     second = await client.post(
-        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=1", headers=employer
+        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=2", headers=employer
     )
     assert second.status_code == 201, second.text
     pending_second = (await client.get("/api/interventions/pending", headers=employer)).json()
@@ -82,6 +88,43 @@ async def test_rollup_month_filter_and_idempotency(client):
         f"/api/interventions/{carlos_id}/monthly-rollup?month_number=4", headers=employer
     )
     assert missing.status_code == 404, missing.text
+
+
+@pytest.mark.asyncio
+async def test_rollup_regeneration_preserves_evidentiary_state(client):
+    """Regenerating a dispatched/acknowledged month is blocked to preserve records."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    carlos_id = await find_employee_id(client, employer, "Carlos Early")
+    await client.post(
+        f"/api/evaluations/{carlos_id}/weekly",
+        headers=employer,
+        json={competency: 3.0 for competency in COMPETENCIES},
+    )
+    rollup = await client.post(
+        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=2", headers=employer
+    )
+    assert rollup.status_code == 201, rollup.text
+    summary_id = rollup.json()["id"]
+
+    dispatch = await client.post(
+        f"/api/interventions/summaries/{summary_id}/dispatch", headers=employer
+    )
+    assert dispatch.status_code == 200, dispatch.text
+    employee = await login_user(client, EMP1_EMAIL)
+    ack = await client.post(
+        f"/api/interventions/summaries/{summary_id}/acknowledge", headers=employee
+    )
+    assert ack.status_code == 200, ack.text
+
+    # Re-running after dispatch/acknowledgement must be refused (409), not wipe records.
+    rerun = await client.post(
+        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=2", headers=employer
+    )
+    assert rerun.status_code == 409, rerun.text
+
+    mine = await client.get("/api/interventions/summaries/mine", headers=employee)
+    assert mine.status_code == 200
+    assert mine.json()[0]["acknowledged_at"], "acknowledgement must be preserved"
 
 
 @pytest.mark.asyncio
@@ -156,7 +199,7 @@ async def test_monthly_summary_dispatch_and_acknowledge(client):
         json={competency: 3.5 for competency in COMPETENCIES},
     )
     rollup = await client.post(
-        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=1", headers=employer
+        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=2", headers=employer
     )
     assert rollup.status_code == 201, rollup.text
     summary_id = rollup.json()["id"]
@@ -192,7 +235,7 @@ async def test_notifications_created_on_dispatch(client):
         json={competency: 3.5 for competency in COMPETENCIES},
     )
     rollup = await client.post(
-        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=1", headers=employer
+        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=2", headers=employer
     )
     assert rollup.status_code == 201, rollup.text
     summary_id = rollup.json()["id"]

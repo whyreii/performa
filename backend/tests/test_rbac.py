@@ -14,9 +14,12 @@ from backend.tests.helpers import (
     DEFAULT_PASSWORD,
     EMP1_EMAIL,
     EMPLOYER_EMAIL,
+    SUPERVISOR_EMAIL,
     find_employee_by_email,
     login_user,
 )
+
+_NONEXISTENT_ID = "00000000-0000-0000-0000-000000000000"
 
 
 @pytest.mark.asyncio
@@ -102,3 +105,46 @@ async def test_employer_retains_write_access(client):
 
     reset = await client.post("/api/kpi-rubrics/reset", headers=employer)
     assert reset.status_code == 200, reset.text
+
+
+@pytest.mark.asyncio
+async def test_only_employer_can_generate_rollups(client):
+    """Rollup generation is Employer-only (Admin/Supervisor are view-only)."""
+    admin = await login_user(client, ADMIN_EMAIL)
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    url = f"/api/interventions/{_NONEXISTENT_ID}/monthly-rollup?month_number=1"
+
+    assert (await client.post(url, headers=admin)).status_code == 403
+    assert (await client.post(url, headers=supervisor)).status_code == 403
+    # Employer passes authz; 404 because the employee does not exist.
+    assert (await client.post(url, headers=employer)).status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_only_employer_can_dispatch_or_sign_off(client):
+    """Summary dispatch and intervention sign-off are Employer-exclusive."""
+    admin = await login_user(client, ADMIN_EMAIL)
+
+    dispatch = await client.post(
+        f"/api/interventions/summaries/{_NONEXISTENT_ID}/dispatch", headers=admin
+    )
+    assert dispatch.status_code == 403, dispatch.text
+
+    sign_off = await client.post(
+        f"/api/interventions/{_NONEXISTENT_ID}/sign-off",
+        headers=admin,
+        json={"approved": True},
+    )
+    assert sign_off.status_code == 403, sign_off.text
+
+
+@pytest.mark.asyncio
+async def test_only_employer_can_generate_regularization(client):
+    """Regularization recommendations are Employer-only (Supervisor is view-only)."""
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    admin = await login_user(client, ADMIN_EMAIL)
+    url = f"/api/evaluations/{_NONEXISTENT_ID}/regularization-recommendation"
+
+    assert (await client.post(url, headers=supervisor)).status_code == 403
+    assert (await client.post(url, headers=admin)).status_code == 403

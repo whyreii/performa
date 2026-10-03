@@ -19,7 +19,7 @@ from statistics import fmean
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -127,9 +127,7 @@ async def monthly_rollup(
     employee_id: uuid.UUID,
     month_number: int = Query(..., ge=1, description="Probation month number"),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(
-        require_role(UserRole.ADMIN, UserRole.EMPLOYER, UserRole.SUPERVISOR)
-    ),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> MonthlySummary:
     """Aggregate evaluations and produce a MonthlySummary plus training plans."""
     employee = await _get_scoped_employee(db, employee_id, current_user)
@@ -137,7 +135,12 @@ async def monthly_rollup(
     month_start = employee.start_date + timedelta(
         days=(month_number - 1) * PROBATION_MONTH_DAYS
     )
-    month_end = employee.start_date + timedelta(days=month_number * PROBATION_MONTH_DAYS)
+    # Non-overlapping 30-day window: [month_start, month_start + 30 - 1].
+    # The previous inclusive end equalled the next month's start, so a boundary
+    # date (day 30/60/90/120) was counted in two months.
+    month_end = employee.start_date + timedelta(
+        days=month_number * PROBATION_MONTH_DAYS - 1
+    )
 
     evaluation_stmt = select(WeeklyEvaluation).where(
         WeeklyEvaluation.employee_id == employee.id,
@@ -198,7 +201,8 @@ async def monthly_rollup(
         recommended_courses=courses,
     )
 
-    # Idempotent regeneration: replace any existing summary for this month.
+    # Regenerate the month in place (idempotent, non-destructive):
+    # preserve dispatch/acknowledgement records and existing plan decisions.
     existing = (
         await db.execute(
             select(MonthlySummary).where(
@@ -207,35 +211,84 @@ async def monthly_rollup(
             )
         )
     ).scalar_one_or_none()
+
     if existing is not None:
-        await db.execute(
-            delete(TrainingPlan).where(TrainingPlan.monthly_summary_id == existing.id)
-        )
-        await db.delete(existing)
+        if existing.dispatched_at is not None or existing.acknowledged_at is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    "This month's summary has already been dispatched or "
+                    "acknowledged and cannot be regenerated (evidentiary record)."
+                ),
+            )
+        existing.overall_average = overall_average
+        existing.status_classification = _to_rating(predicted_tier)
+        existing.performance_summary = summary_text
+        for field, value in averages.items():
+            setattr(existing, field, value)
+        summary = existing
         await db.flush()
 
-    summary = MonthlySummary(
-        employee_id=employee.id,
-        month_number=month_number,
-        overall_average=overall_average,
-        status_classification=_to_rating(predicted_tier),
-        performance_summary=summary_text,
-        **averages,
-    )
-    db.add(summary)
-    await db.flush()
-
-    for course in courses:
-        fields = _course_fields(course)
-        db.add(
-            TrainingPlan(
-                employee_id=employee.id,
-                monthly_summary_id=summary.id,
-                rationale=rationales.get(fields["catalog_id"], ""),
-                status=TrainingStatusEnum.PENDING_APPROVAL,
-                **fields,
+        existing_plans = list(
+            (
+                await db.execute(
+                    select(TrainingPlan).where(
+                        TrainingPlan.monthly_summary_id == summary.id
+                    )
+                )
             )
+            .scalars()
+            .all()
         )
+        plans_by_catalog = {plan.catalog_id: plan for plan in existing_plans}
+        desired_catalog_ids: set[str] = set()
+        for course in courses:
+            fields = _course_fields(course)
+            catalog_id = fields["catalog_id"]
+            desired_catalog_ids.add(catalog_id)
+            plan = plans_by_catalog.get(catalog_id)
+            if plan is not None:
+                plan.rationale = rationales.get(catalog_id, "")
+            else:
+                db.add(
+                    TrainingPlan(
+                        employee_id=employee.id,
+                        monthly_summary_id=summary.id,
+                        rationale=rationales.get(catalog_id, ""),
+                        status=TrainingStatusEnum.PENDING_APPROVAL,
+                        **fields,
+                    )
+                )
+        # Drop no-longer-recommended plans, but keep approved ones for the audit trail.
+        for catalog_id, plan in plans_by_catalog.items():
+            if (
+                catalog_id not in desired_catalog_ids
+                and plan.status != TrainingStatusEnum.APPROVED
+            ):
+                await db.delete(plan)
+    else:
+        summary = MonthlySummary(
+            employee_id=employee.id,
+            month_number=month_number,
+            overall_average=overall_average,
+            status_classification=_to_rating(predicted_tier),
+            performance_summary=summary_text,
+            **averages,
+        )
+        db.add(summary)
+        await db.flush()
+
+        for course in courses:
+            fields = _course_fields(course)
+            db.add(
+                TrainingPlan(
+                    employee_id=employee.id,
+                    monthly_summary_id=summary.id,
+                    rationale=rationales.get(fields["catalog_id"], ""),
+                    status=TrainingStatusEnum.PENDING_APPROVAL,
+                    **fields,
+                )
+            )
 
     record_activity(
         db,
@@ -349,7 +402,7 @@ async def list_my_summaries(
 async def dispatch_monthly_summary(
     summary_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> MonthlySummary:
     """Mark a monthly summary as dispatched to the employee."""
     summary = (
@@ -496,7 +549,7 @@ async def sign_off_intervention(
     plan_id: uuid.UUID,
     payload: TrainingPlanSignOff,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> TrainingPlan:
     """Approve or reject a pending intervention within the caller's tenant."""
     stmt = (

@@ -367,7 +367,7 @@ async def get_kpi_trend(
 async def create_regularization_recommendation(
     employee_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.EMPLOYER, UserRole.SUPERVISOR)),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> RegularizationRecommendation:
     """Aggregate the first 150 days of evaluations into a decision-support output."""
     employee = await _get_scoped_employee(db, employee_id, current_user)

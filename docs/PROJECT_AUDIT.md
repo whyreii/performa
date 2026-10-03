@@ -109,3 +109,22 @@ Clean. `backend/ml/predictor.py` validates all 5 competencies present/numeric/in
 - Gemini fallback + RF input validation robust.
 - Full E2E lifecycle works; build + 34 tests pass.
 - Nav ↔ route-guard consistency (no dead links).
+
+---
+
+## Remediation status (applied)
+
+| ID | Status | Change |
+|----|--------|--------|
+| RBAC-1 | ✅ Fixed | `monthly-rollup` → `require_role(EMPLOYER)` (`interventions.py`). |
+| RBAC-2 | ✅ Fixed | `summaries/{id}/dispatch` → `require_role(EMPLOYER)`. |
+| RBAC-3 | ✅ Fixed | `{plan_id}/sign-off` → `require_role(EMPLOYER)`. |
+| RBAC-4 | ✅ Fixed | `regularization-recommendation` POST → `require_role(EMPLOYER)`. |
+| DATA-1 | ✅ Fixed | Rollup now updates in place, preserves plan decisions, and returns **409** if the month was already dispatched/acknowledged — no more record wiping. |
+| DATA-2 | ✅ Fixed | Month window is now non-overlapping: `[start + (n-1)*30, start + n*30 - 1]`. |
+| TEST | ✅ Fixed | Added RBAC + rollup-preservation regression tests; updated month-window tests. Suite: **38 passed**. |
+| RBAC-5 | ⏸ Won't-fix | Admin keeps view-only `/employees/supervisors` (per decision). |
+| UX (month selector) | ⏸ By design | Months 1–5 only (system scoped to mid-5th month). |
+| DOMAIN-1 | ⏳ Pending decision | Day-count convention (Day 1 vs Day 0) needs a legal call before changing statutory math. |
+
+**Live RBAC verification (post-fix):** rollup / dispatch / sign-off / regularization → `admin=403, employer=404, supervisor=403`.
