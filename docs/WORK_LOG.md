@@ -165,7 +165,11 @@ Remaining deep-debug backlog (not yet fixed) is in §7.
 
 ## 7. Open items / backlog
 
-**High-value (from the deep-debug session, not yet fixed):**
+> **Status (updated):** All high-value (P2) and hardening/hygiene (P3) items below
+> were resolved in **Wave A (`acc9e35`)** and **Wave B (`d395bd3`)**. Only the
+> infrastructure notes remain open.
+
+**High-value (from the deep-debug session):**
 - Rollup regeneration deletes **REJECTED** plans (only APPROVED preserved).
 - Missing DB unique constraints on `MonthlySummary(employee, month)` and `KpiRubric(org, competency)` → race duplicates / 500.
 - Email-race `IntegrityError` unhandled → 500 instead of 409 (admin/auth/employees).
