@@ -1,5 +1,44 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "small_model": "opencode-go/deepseek-v4.1-flash",
+  "lsp": true,
+  "formatter": true,
+  "watcher": {
+    "ignore": [
+      ".env",
+      "**/*.db",
+      "**/*.sqlite",
+      "**/*.sqlite3",
+      ".playwright-mcp/*.log",
+      ".playwright-mcp/*.yml",
+      "frontend/dist/**",
+      "backend/.pytest_cache/**",
+      "**/*.pyc",
+      "**/__pycache__/**"
+    ]
+  },
+  "permission": {
+    "read": {
+      "*": "allow",
+      ".env": "deny",
+      "**/*.db": "deny",
+      "**/*.sqlite": "deny",
+      "**/*.sqlite3": "deny",
+      ".playwright-mcp/*.log": "deny",
+      ".playwright-mcp/*.yml": "deny",
+      "frontend/dist/**": "deny",
+      "backend/.pytest_cache/**": "deny",
+      "**/*.pyc": "deny",
+      "**/__pycache__/**": "deny"
+    },
+    "bash": {
+      "*": "allow",
+      "git push*": "ask",
+      "git reset --hard*": "ask",
+      "rm -rf *": "deny",
+      "rmdir /s*": "deny"
+    }
+  },
   "mcp": {
     "playwright": {
       "type": "local",
