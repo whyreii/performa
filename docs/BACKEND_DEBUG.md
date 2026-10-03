@@ -14,7 +14,7 @@ grounded in `file:line`; every fix is covered by the test suite
 ## Executive summary
 
 A read-only audit of **every backend module** surfaced **18 findings (F1–F18)**;
-a follow-up PostgreSQL-parity pass added **F19**, for **19 findings total**.
+follow-up PostgreSQL-parity passes added **F19** and **F20**, for **20 findings total**.
 They were resolved across four phases:
 
 | Phase | Commit | Focus |
@@ -47,6 +47,7 @@ They were resolved across four phases:
 | F17 | Info | Dead `SUPERVISOR` branch in interventions | **Code fix** — removed | `backend/routers/interventions.py` |
 | F18 | Info | ML CSV loader raised `KeyError` on missing columns | **Code fix** — clear `ValueError` | `backend/ml/train.py` |
 | F19 | Med | `seed._reset` skipped FK-bearing tables (`Notification`, `ActivityLog`, `RegularizationRecommendation`) → would fail on PostgreSQL (SQLite didn't enforce FKs) | **Code fix** — FK-safe child→parent deletion order | `backend/seed.py` |
+| F20 | Med | `0002_unique_constraints` blindly `ADD CONSTRAINT`ed constraints that `0001_baseline` (`create_all`) already created → PostgreSQL "relation … already exists" | **Code fix** — idempotent inspect-based guard | `backend/migrations/versions/0002_unique_constraints.py` |
 
 ---
 
@@ -153,7 +154,9 @@ supports **PostgreSQL** via the `DATABASE_URL` override.
 - **Schema ownership is Alembic** (`backend/migrations/`):
   - `0001_baseline` — materialises the ORM schema (`create_all`).
   - `0002_unique_constraints` — adds `uq_monthly_summary_employee_month` and
-    `uq_kpi_rubric_org_competency` via `batch_alter_table` (SQLite-safe, PG-portable).
+    `uq_kpi_rubric_org_competency` via `batch_alter_table`, guarded by an
+    inspect-based existence check (**idempotent**, so it is safe whether or not
+    `0001` already created them — see F20).
 
 **Apply + verify**
 ```powershell
@@ -190,7 +193,7 @@ manuscript — **never** as a "zero defects" claim.
 
 | ID | Residual risk | Impact | Likelihood | Mitigation / status |
 |---|---|---|---|---|
-| **R1** | **SQLite (dev) vs PostgreSQL (prod) parity** — engine-specific SQL/enum/constraint/**FK** behavior | Med | Low–Med | The suite runs on **both** engines in CI: `backend` (SQLite) and `backend-postgres` (Postgres 16 + `alembic upgrade head`). Per-test isolation on Postgres depends on `seed._reset` deleting FK-bearing tables child→parent (**F19**, fixed); SQLite tests now enforce FKs locally, so this class of bug is caught pre-push. Dev still defaults to SQLite; `performa.db` is `create_all`-built, not Alembic-stamped. |
+| **R1** | **SQLite (dev) vs PostgreSQL (prod) parity** — engine-specific SQL/enum/constraint/**FK** behavior | Med | **Low (CI-verified)** | The suite runs on **both** engines in CI: `backend` (SQLite) and `backend-postgres` (Postgres 16 + `alembic upgrade head`). **All three jobs pass on `159c563`** — the prod engine is CI-verified. Two parity bugs were caught and fixed this way: **F19** (FK-safe `seed._reset`) and **F20** (idempotent `0002` migration). SQLite tests enforce FKs locally. Dev still defaults to SQLite; `performa.db` is `create_all`-built, not Alembic-stamped. |
 | **R2** | **No frontend automated E2E / unit tests** — React logic/UX regressions could ship | Med | Med | Compensating controls: manual **Design QA** sweeps, React **ErrorBoundary**, dev-only **Axios logging**, and `npm run build` in CI. A Vitest/Playwright suite is deferred. |
 | **R3** | **Single-threaded, in-memory Random Forest inference** — throughput/latency under concurrency; model staleness | Low | Low | One `lru_cache`d model per process, no batching/GPU. Acceptable for a single-tenant SME capstone; revisit for scale. Model is trained on synthetic data. |
 | **R4 (F16)** | **JWT email fallback on non-UUID `sub`** — a token could resolve a user by email instead of id | Very Low | Very Low | **Accepted risk (closed).** Tokens are signed (HS256); a forged `sub` cannot pass signature verification. The fallback is a legacy/dev convenience only. |
