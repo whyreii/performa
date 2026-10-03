@@ -10,6 +10,8 @@ import os
 import tempfile
 from pathlib import Path
 
+import pytest
+
 _TMP_DIR = Path(tempfile.mkdtemp(prefix="performa-tests-"))
 os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{(_TMP_DIR / 'test.db').as_posix()}"
 os.environ.pop("GEMINI_API_KEY", None)
@@ -20,6 +22,14 @@ import pytest_asyncio  # noqa: E402
 from backend.database import async_session_maker  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.seed import seed  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _clear_performa_today():
+    """Guarantee the PERFORMA_TODAY clock override never leaks between tests."""
+    os.environ.pop("PERFORMA_TODAY", None)
+    yield
+    os.environ.pop("PERFORMA_TODAY", None)
 
 
 @pytest_asyncio.fixture
