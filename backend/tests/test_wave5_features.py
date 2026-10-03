@@ -166,3 +166,22 @@ async def test_activity_log_records_and_is_admin_only(client):
     employee = await _login(client, "emp1@acme.com")
     forbidden = await client.get("/api/admin/activity", headers=employee)
     assert forbidden.status_code == 403
+
+
+async def test_kpi_trend(client):
+    supervisor = await _login(client, "supervisor@acme.com")
+    carlos_id = await _find_employee(client, supervisor, "Carlos Early")
+    await client.post(
+        f"/api/evaluations/{carlos_id}/weekly",
+        headers=supervisor,
+        json={competency: 4.0 for competency in COMPETENCIES},
+    )
+
+    response = await client.get(
+        f"/api/evaluations/{carlos_id}/trend", headers=supervisor
+    )
+    assert response.status_code == 200, response.text
+    points = response.json()
+    assert len(points) >= 1
+    assert points[0]["month_number"] == 1
+    assert set(COMPETENCIES) <= set(points[0])

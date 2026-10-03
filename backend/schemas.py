@@ -300,6 +300,20 @@ class RegularizationRecommendationResponse(BaseModel):
     created_at: datetime
 
 
+class TrendPoint(BaseModel):
+    """One monthly bucket of aggregated competency scores."""
+
+    month_number: int
+    period_start: date
+    period_end: date
+    overall_average: float
+    task_completion: float
+    attendance_and_punctuality: float
+    communication_and_teamwork: float
+    initiative_and_adaptability: float
+    quality_of_work: float
+
+
 # ---------------------------------------------------------------------------
 # MonthlySummary
 # ---------------------------------------------------------------------------
@@ -444,6 +458,7 @@ __all__ = [
     "EmployeeScorecardResponse",
     "RiskExplanationResponse",
     "RegularizationRecommendationResponse",
+    "TrendPoint",
     "MonthlySummaryBase",
     "MonthlySummaryCreate",
     "MonthlySummaryUpdate",

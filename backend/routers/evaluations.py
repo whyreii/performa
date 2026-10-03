@@ -41,6 +41,7 @@ from ..schemas import (
     EmployeeScorecardResponse,
     RegularizationRecommendationResponse,
     RiskExplanationResponse,
+    TrendPoint,
     WeeklyEvaluationResponse,
     WeeklyRatingSubmit,
 )
@@ -300,6 +301,59 @@ async def get_risk_explanation(
         )
 
     return RiskExplanationResponse(**result)
+
+
+@router.get(
+    "/{employee_id}/trend",
+    response_model=list[TrendPoint],
+    summary="Monthly KPI trend for a probationary employee",
+)
+async def get_kpi_trend(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[TrendPoint]:
+    """Aggregate weekly evaluations into monthly competency trend points."""
+    employee = await _get_scoped_employee(db, employee_id, current_user)
+
+    stmt = (
+        select(WeeklyEvaluation)
+        .where(
+            WeeklyEvaluation.employee_id == employee.id,
+            WeeklyEvaluation.organization_id == current_user.organization_id,
+        )
+        .order_by(WeeklyEvaluation.evaluation_date.asc())
+    )
+    evaluations = list((await db.execute(stmt)).scalars().all())
+    if not evaluations:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No evaluations recorded for this employee",
+        )
+
+    buckets: dict[int, list[WeeklyEvaluation]] = {}
+    for evaluation in evaluations:
+        days = (evaluation.evaluation_date - employee.start_date).days
+        month = max(1, ((days - 1) // 30) + 1)
+        buckets.setdefault(month, []).append(evaluation)
+
+    points: list[TrendPoint] = []
+    for month in sorted(buckets):
+        group = buckets[month]
+        scores = {
+            attribute: fmean(float(getattr(item, attribute)) for item in group)
+            for attribute, _ in COMPETENCIES
+        }
+        points.append(
+            TrendPoint(
+                month_number=month,
+                period_start=employee.start_date + timedelta(days=(month - 1) * 30),
+                period_end=employee.start_date + timedelta(days=month * 30),
+                overall_average=fmean(scores.values()),
+                **scores,
+            )
+        )
+    return points
 
 
 @router.post(
