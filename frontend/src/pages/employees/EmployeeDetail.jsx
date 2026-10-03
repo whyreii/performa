@@ -57,18 +57,20 @@ export default function EmployeeDetail() {
     enabled: !!id,
   });
 
-  // Fetch scorecard & competencies
-  const { data: scorecard, isLoading: isScoreLoading } = useQuery({
-    queryKey: ['scorecard', id],
-    queryFn: () => evaluationApi.getScorecard(id),
-    enabled: !!id,
-  });
-
-  // Fetch audit trail history
+  // Fetch audit trail history first (returns [] when there are no evaluations)
   const { data: auditLogs = [], isLoading: isAuditLoading } = useQuery({
     queryKey: ['audit-trail', id],
     queryFn: () => evaluationApi.getAuditTrail(id),
     enabled: !!id,
+  });
+
+  // Fetch scorecard & competencies only once evaluations exist
+  // (scorecard/trend/risk/regularization intentionally return 404 when there are none)
+  const hasEvaluations = auditLogs.length > 0;
+  const { data: scorecard, isLoading: isScoreLoading } = useQuery({
+    queryKey: ['scorecard', id],
+    queryFn: () => evaluationApi.getScorecard(id),
+    enabled: !!id && hasEvaluations,
   });
 
   // Status transition mutation (regularize or terminate)
@@ -95,21 +97,21 @@ export default function EmployeeDetail() {
   const { data: trend = [] } = useQuery({
     queryKey: ['trend', id],
     queryFn: () => evaluationApi.getTrend(id),
-    enabled: !!id,
+    enabled: !!id && hasEvaluations,
     retry: false,
   });
 
   const { data: regularization } = useQuery({
     queryKey: ['regularization', id],
     queryFn: () => evaluationApi.getRegularization(id),
-    enabled: !!id,
+    enabled: !!id && hasEvaluations,
     retry: false,
   });
 
   const { data: riskExplanation } = useQuery({
     queryKey: ['risk-explanation', id],
     queryFn: () => evaluationApi.getRiskExplanation(id),
-    enabled: !!id,
+    enabled: !!id && hasEvaluations,
     retry: false,
   });
 

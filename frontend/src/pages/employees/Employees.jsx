@@ -279,7 +279,75 @@ export default function Employees() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            {/* Mobile: stacked cards (table columns clip below md) */}
+            <div className="md:hidden divide-y divide-line">
+              {filteredEmployees.map((emp) => {
+                const daysElapsed = getDaysElapsed(emp.start_date);
+                const daysRemaining = Math.max(0, 180 - daysElapsed);
+                const progressPct = Math.min(100, Math.round((daysElapsed / 180) * 100));
+                const isRegular = emp.status === 'regularized';
+
+                return (
+                  <button
+                    key={emp.id}
+                    type="button"
+                    onClick={() => navigate(`/employees/${emp.id}`)}
+                    className="w-full text-left p-4 hover:bg-hover transition-colors flex flex-col gap-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-accent/15 text-accent font-semibold text-xs flex items-center justify-center shrink-0 border border-accent/20">
+                        {getInitials(emp.user?.full_name)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="font-semibold text-ink block truncate">
+                          {emp.user?.full_name}
+                        </span>
+                        <span className="text-xs text-ink-3 font-mono block truncate">
+                          {emp.user?.email}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      <span className="text-ink-2 truncate">
+                        {emp.job_title} · {emp.department}
+                      </span>
+                      {isRegular ? (
+                        <span className="text-ok flex items-center gap-1 shrink-0">
+                          <StatusDot status="active" />
+                          <span>Permanent Regular</span>
+                        </span>
+                      ) : (
+                        <span className="font-mono text-ink-3 shrink-0">
+                          Day {daysElapsed} · {daysRemaining}d left
+                        </span>
+                      )}
+                    </div>
+
+                    <MilestonePill daysElapsed={daysElapsed} status={emp.status} />
+
+                    {!isRegular && (
+                      <div className="h-1.5 w-full bg-line rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            daysElapsed >= 178
+                              ? 'bg-bad'
+                              : daysElapsed >= 150
+                              ? 'bg-warn'
+                              : 'bg-accent'
+                          }`}
+                          style={{ width: `${progressPct}%` }}
+                        />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Desktop: table */}
+            <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-line text-[11px] font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
@@ -391,7 +459,8 @@ export default function Employees() {
                 })}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
 
         {/* Footer */}

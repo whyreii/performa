@@ -38,18 +38,19 @@ export default function EmployeeDashboard() {
     return employees.find((e) => e.user_id === user?.id || e.user?.email === user?.email);
   }, [employees, user]);
 
-  // Fetch personal scorecard
-  const { data: scorecard, isLoading: isScoreLoading } = useQuery({
-    queryKey: ['scorecard', myProfile?.id],
-    queryFn: () => evaluationApi.getScorecard(myProfile.id),
-    enabled: !!myProfile?.id,
-  });
-
-  // Fetch personal audit trail
+  // Fetch personal audit trail first (returns [] when there are no evaluations)
   const { data: auditLogs = [], isLoading: isAuditLoading } = useQuery({
     queryKey: ['audit-trail', myProfile?.id],
     queryFn: () => evaluationApi.getAuditTrail(myProfile.id),
     enabled: !!myProfile?.id,
+  });
+
+  // Fetch personal scorecard only once evaluations exist
+  // (the endpoint intentionally returns 404 when there are none)
+  const { data: scorecard, isLoading: isScoreLoading } = useQuery({
+    queryKey: ['scorecard', myProfile?.id],
+    queryFn: () => evaluationApi.getScorecard(myProfile.id),
+    enabled: !!myProfile?.id && auditLogs.length > 0,
   });
 
   // Dispatched monthly summaries requiring acknowledgement
