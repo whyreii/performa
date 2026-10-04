@@ -13,5 +13,5 @@ export { default as Modal } from './Modal';
 export { default as EmptyState } from './EmptyState';
 export { default as StatRow } from './StatRow';
 export { default as Tabs } from './Tabs';
-export { default as Field, inputClass, textareaClass } from './Field';
+export { default as Field, inputClass, selectClass, textareaClass } from './Field';
 export { default as TextField } from './TextField';

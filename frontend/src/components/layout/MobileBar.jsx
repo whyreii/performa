@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { BarChart3, ChevronLeft, Search, LogOut } from 'lucide-react';
 import { getInitials } from '../../utils/format';
+import { PALETTE_IDS, PALETTE_BG } from '../../config/themes';
 
 export default function MobileBar({ onOpenCommandPalette }) {
   const { user, logout } = useAuth();
@@ -16,7 +17,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
     location.pathname.includes('/rate') ||
     location.pathname.includes('/rubrics');
 
-  const palettes = ['paper', 'midnight', 'dusk', 'mist', 'sage'];
+  const palettes = PALETTE_IDS;
   const nextPalette = () => {
     const idx = palettes.indexOf(palette);
     setPalette(palettes[(idx + 1) % palettes.length]);
@@ -63,18 +64,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
         >
           <span
             className="w-3 h-3 rounded-full border border-line"
-            style={{
-              backgroundColor:
-                palette === 'paper'
-                  ? '#f6f3ed'
-                  : palette === 'midnight'
-                  ? '#090b10'
-                  : palette === 'dusk'
-                  ? '#0c0a14'
-                  : palette === 'mist'
-                  ? '#f0f4f8'
-                  : '#edf2ee',
-            }}
+            style={{ backgroundColor: PALETTE_BG[palette] }}
           />
           <span className="text-12">{palette}</span>
         </button>

@@ -56,25 +56,25 @@ export default function SupervisorDashboard() {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 rounded-ctl bg-surface border border-line space-y-2">
+        <Card as="div" padded={false} className="p-5 space-y-2">
           <span className="text-xs text-ink-3">Direct Reports</span>
           <div className="text-2xl font-bold font-mono text-ink">
             {activeProbationers.length}
           </div>
           <p className="text-12 text-ink-2">Assigned probationary staff</p>
-        </div>
+        </Card>
 
-        <div className="p-5 rounded-ctl bg-surface border border-line space-y-2">
+        <Card as="div" padded={false} className="p-5 space-y-2">
           <span className="text-xs text-ink-3">Passing Target</span>
           <div className="text-2xl font-bold font-mono text-ink">4.0 / 5.0</div>
           <p className="text-12 text-ink-2">Statutory regularizing standard</p>
-        </div>
+        </Card>
 
-        <div className="p-5 rounded-ctl bg-surface border border-line space-y-2">
+        <Card as="div" padded={false} className="p-5 space-y-2">
           <span className="text-xs text-ink-3">Review Frequency</span>
           <div className="text-2xl font-bold font-mono text-ink">Weekly</div>
           <p className="text-12 text-ink-2">Mandatory evidentiary due process</p>
-        </div>
+        </Card>
       </div>
 
       {/* Assigned Probationers Table */}

@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { BarChart3, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
 import { TextField, Surface } from '../../components/ui';
+import { PALETTE_IDS, PALETTE_BG } from '../../config/themes';
 
 export default function Login() {
   const { login } = useAuth();
@@ -51,7 +52,7 @@ export default function Login() {
     setError('');
   };
 
-  const palettes = ['paper', 'midnight', 'dusk', 'mist', 'sage'];
+  const palettes = PALETTE_IDS;
 
   return (
     <div className="min-h-screen w-full flex flex-col justify-between bg-bg text-ink transition-colors duration-performa">
@@ -77,18 +78,7 @@ export default function Login() {
                 }`}
                 title={`Switch to ${p} theme`}
                 aria-label={`Switch to ${p} theme`}
-                style={{
-                  backgroundColor:
-                    p === 'paper'
-                      ? '#f6f3ed'
-                      : p === 'midnight'
-                      ? '#090b10'
-                      : p === 'dusk'
-                      ? '#0c0a14'
-                      : p === 'mist'
-                      ? '#f0f4f8'
-                      : '#edf2ee',
-                }}
+                style={{ backgroundColor: PALETTE_BG[p] }}
               />
             ))}
           </div>

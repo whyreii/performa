@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Search, Settings, Palette, X, Bell, ArrowUp, ArrowDown } from 'lucide-react';
 import { commandNav } from '../../config/nav';
+import { PALETTES } from '../../config/themes';
 import { prefetchRoute } from '../../routes/loaders';
 import { Modal } from '../ui';
 
@@ -35,11 +36,13 @@ export default function CommandPalette({ isOpen, onClose }) {
     list.push(
       { id: 'notifications', label: 'View Notifications', category: 'Navigation', icon: Bell, action: () => navigate('/notifications') },
       { id: 'settings', label: 'Platform & Profile Settings', category: 'Navigation', icon: Settings, action: () => navigate('/settings') },
-      { id: 'th-paper', label: 'Switch theme to Paper (Warm Light)', category: 'Appearance', icon: Palette, action: () => setPalette('paper') },
-      { id: 'th-midnight', label: 'Switch theme to Midnight (Obsidian Dark)', category: 'Appearance', icon: Palette, action: () => setPalette('midnight') },
-      { id: 'th-dusk', label: 'Switch theme to Dusk (Amethyst Dark)', category: 'Appearance', icon: Palette, action: () => setPalette('dusk') },
-      { id: 'th-mist', label: 'Switch theme to Mist (Scandinavian Slate)', category: 'Appearance', icon: Palette, action: () => setPalette('mist') },
-      { id: 'th-sage', label: 'Switch theme to Sage (Calm Herbal)', category: 'Appearance', icon: Palette, action: () => setPalette('sage') },
+      ...PALETTES.map((p) => ({
+        id: `th-${p.id}`,
+        label: `Switch theme to ${p.name} (${p.type})`,
+        category: 'Appearance',
+        icon: Palette,
+        action: () => setPalette(p.id),
+      })),
     );
 
     return list;

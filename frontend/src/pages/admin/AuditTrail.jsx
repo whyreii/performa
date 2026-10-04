@@ -4,7 +4,7 @@ import { evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
-import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, Page, inputClass, selectClass } from '../../components/ui';
 import {
   History,
   Printer,
@@ -108,7 +108,7 @@ export default function AuditTrail() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search evaluator or competency..."
               aria-label="Search audit trail"
-              className="w-full h-8 pl-9 pr-3 rounded-ctl border border-line bg-surface text-ink text-xs focus:outline-none focus:border-accent transition-colors shadow-xs"
+              className={`${inputClass} pl-9`}
             />
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function AuditTrail() {
             value={competencyFilter}
             onChange={(e) => setCompetencyFilter(e.target.value)}
             aria-label="Filter by competency"
-            className="h-8 px-2.5 rounded-ctl border border-line bg-surface text-ink text-xs focus:outline-none focus:border-accent transition-colors shadow-xs cursor-pointer"
+            className={selectClass}
           >
             <option value="all">All Competencies</option>
             {COMPETENCIES.map((c) => (

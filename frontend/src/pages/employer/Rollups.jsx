@@ -4,7 +4,7 @@ import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page } from '../../components/ui';
+import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, selectClass } from '../../components/ui';
 import {
   FileCheck2,
   Sparkles,
@@ -354,7 +354,7 @@ export default function Rollups() {
                     setSelectedEmpId(id);
                     setMonthNumber(monthForEmployee(id));
                   }}
-                  className="w-full h-10 px-3 rounded-ctl border border-line bg-surface text-ink text-sm focus:outline-none focus:border-accent transition-colors"
+                  className={`${selectClass} w-full`}
                 >
                   {activeProbationers.map((emp) => (
                     <option key={emp.id} value={emp.id}>
@@ -372,7 +372,7 @@ export default function Rollups() {
                   id="r_month"
                   value={monthNumber}
                   onChange={(e) => setMonthNumber(Number(e.target.value))}
-                  className="w-full h-10 px-3 rounded-ctl border border-line bg-surface text-ink text-sm focus:outline-none focus:border-accent transition-colors font-mono"
+                  className={`${selectClass} w-full font-mono`}
                 >
                   <option value={1}>Month 1 (Days 1 - 30)</option>
                   <option value={2}>Month 2 (Days 31 - 60)</option>

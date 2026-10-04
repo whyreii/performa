@@ -4,6 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { authApi, getApiErrorMessage } from '../../api';
 import { activateOnKey } from '../../utils/a11y';
 import { Button, Badge, TextField, Card, Page } from '../../components/ui';
+import { PALETTES } from '../../config/themes';
 import {
   Building,
   CheckCircle2,
@@ -99,49 +100,6 @@ export default function Settings() {
       setIsUpdatingPassword(false);
     }
   };
-
-  const palettes = [
-    {
-      id: 'paper',
-      name: 'Paper',
-      type: 'Light',
-      desc: 'Refined editorial warmth with terracotta rust accents',
-      bg: '#f6f3ed',
-      accent: '#b94b21',
-    },
-    {
-      id: 'midnight',
-      name: 'Midnight',
-      type: 'Dark',
-      desc: 'Obsidian slate with vibrant electric blue highlights',
-      bg: '#090b10',
-      accent: '#3b82f6',
-    },
-    {
-      id: 'dusk',
-      name: 'Dusk',
-      type: 'Dark',
-      desc: 'Deep cosmic amethyst with vivid violet tones',
-      bg: '#0c0a14',
-      accent: '#9368f7',
-    },
-    {
-      id: 'mist',
-      name: 'Mist',
-      type: 'Light',
-      desc: 'Scandinavian technical slate with cool cyan-azure',
-      bg: '#f0f4f8',
-      accent: '#0274af',
-    },
-    {
-      id: 'sage',
-      name: 'Sage',
-      type: 'Light',
-      desc: 'Organic herbal spruce with deep emerald accents',
-      bg: '#edf2ee',
-      accent: '#0f766e',
-    },
-  ];
 
   return (
     <Page
@@ -240,7 +198,7 @@ export default function Settings() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {palettes.map((p) => {
+          {PALETTES.map((p) => {
             const isSelected = palette === p.id;
             return (
               <div

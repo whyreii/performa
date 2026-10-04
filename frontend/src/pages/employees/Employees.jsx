@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { employeeApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, MilestonePill, Skeleton, Tabs, EmptyState, Card, Page } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Tabs, EmptyState, Card, Page, inputClass, selectClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -208,7 +208,7 @@ export default function Employees() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search name or title..."
               aria-label="Search employees"
-              className="w-full h-8 pl-9 pr-3 rounded-ctl border border-line bg-surface text-ink placeholder:text-ink-3 text-xs focus:outline-none focus:border-accent transition-colors shadow-xs"
+              className={`${inputClass} pl-9`}
             />
           </div>
 
@@ -217,7 +217,7 @@ export default function Employees() {
             value={selectedDept}
             onChange={(e) => setSelectedDept(e.target.value)}
             aria-label="Filter by department"
-            className="h-8 px-2.5 rounded-ctl border border-line bg-surface text-ink text-xs focus:outline-none focus:border-accent transition-colors shadow-xs cursor-pointer"
+            className={selectClass}
           >
             <option value="all">All Departments</option>
             {departments.map((d) => (

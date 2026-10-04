@@ -111,17 +111,17 @@ export default function Dashboard() {
       {/* 1. Top Metrics Cards — Option 1: label → metric → caption (no icons) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Active Probationers */}
-        <div className="p-5 rounded-ctl bg-surface border border-line flex flex-col gap-2">
+        <Card as="div" padded={false} className="p-5 flex flex-col gap-2">
           <span className="text-14 font-semibold text-ink">Active Probationers</span>
           <div className="flex items-baseline gap-2">
             <span className="text-30 font-bold font-mono text-ink">{stats.totalActive}</span>
             <span className="text-12 text-ink-3">staff members</span>
           </div>
           <p className="text-12 text-ink-2">Under {PROBATION_DAYS}-day evaluation</p>
-        </div>
+        </Card>
 
         {/* Milestone Alerts — tone number only when the count signals action */}
-        <div className="p-5 rounded-ctl bg-surface border border-line flex flex-col gap-2">
+        <Card as="div" padded={false} className="p-5 flex flex-col gap-2">
           <span className="text-14 font-semibold text-ink">Milestone Alerts</span>
           <div className="flex items-baseline gap-2">
             <span
@@ -136,20 +136,20 @@ export default function Dashboard() {
           <p className="text-12 text-ink-2">
             Day {MILESTONE_REVIEW} · {MILESTONE_NOTICE} · {MILESTONE_CRITICAL} thresholds
           </p>
-        </div>
+        </Card>
 
         {/* Regularizing Benchmark */}
-        <div className="p-5 rounded-ctl bg-surface border border-line flex flex-col gap-2">
+        <Card as="div" padded={false} className="p-5 flex flex-col gap-2">
           <span className="text-14 font-semibold text-ink">Regularizing Target</span>
           <div className="flex items-baseline gap-2">
             <span className="text-30 font-bold font-mono text-ink">4.0</span>
             <span className="text-12 text-ink-3">/ 5.0 passing</span>
           </div>
           <p className="text-12 text-ink-2">Across 5 legal competencies</p>
-        </div>
+        </Card>
 
         {/* AI Training Plans */}
-        <div className="p-5 rounded-ctl bg-surface border border-line flex flex-col gap-2">
+        <Card as="div" padded={false} className="p-5 flex flex-col gap-2">
           <span className="text-14 font-semibold text-ink">AI Training Plans</span>
           <div className="flex items-baseline gap-2">
             <span
@@ -170,7 +170,7 @@ export default function Dashboard() {
               ? 'No interventions required'
               : 'ML Random Forest gap classifier'}
           </p>
-        </div>
+        </Card>
       </div>
 
       {/* 2. Critical Milestones Banner (If any probationers >= Day 150) */}

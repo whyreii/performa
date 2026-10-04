@@ -177,4 +177,9 @@ Verified: `npm run build` 0 errors; `pytest` 79 passed, 3 skipped; runtime — 7
 
 **Page wrapper (2026-10-04):** added `components/ui/Page.jsx` and migrated all 14 routed pages off the hand-copied `space-y-6 animate-in fade-in duration-150` root div (12 plain pages + `AuditTrail` via `aboveHeader` for its print-only DOLE header + `EmployeeDetail` via `printSheet header={false}`). `Page` owns rhythm + fade + optional `PageHeader`; it declares **no** max-width/padding — the grid stays once in `AppShell.jsx:79`, which wraps both the content and the `PageSkeleton` fallback. Net DOM nodes added: 0. Guarded by `backend/tests/guardrails/test_page_wrapper.py` (no page hand-rolls the wrapper; every page uses `<Page>`; `Page` defines no grid).
 
+**Standardization pass (2026-10-04):** three parts that bypassed the shared primitives.
+- **Theme palette single source** — added `frontend/src/config/themes.js` (`PALETTES` + ids/modes/bg); `ThemeContext`, `Login`, `MobileBar`, `Settings`, `CommandPalette` now import it (was duplicated in 5 files). Fixed the drifted swatch accents: Midnight `#3b82f6` → `#60a5fa`, Dusk `#9368f7` → `#a78bfa`. Guarded by `backend/tests/guardrails/test_theme_palette.py` (themes.js hexes must mirror `tokens.css`).
+- **Metric cards → `Card`** — the 4 Dashboard + 3 SupervisorDashboard metric tiles and the RateEmployee summary box used `rounded-ctl` (6px) instead of the `Card`/`Surface` radius `rounded-float` (14px); now render through `Card`.
+- **Inputs/selects → `inputClass` / `selectClass`** — search + select literals in AuditTrail, Employees, UserManagement, Rollups, RateEmployee now use the shared classes (`rounded-field` 10px, `h-10`); added `selectClass` (no `w-full`) for toolbar filters.
+
 All phases (A–G) complete.

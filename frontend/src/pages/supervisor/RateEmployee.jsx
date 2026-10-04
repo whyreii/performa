@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, kpiApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, StatusDot, Skeleton, Modal, Card, Page } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, Skeleton, Modal, Card, Page, selectClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { TARGET, PROBATION_DAYS } from '../../config/domain';
 import {
@@ -194,7 +194,7 @@ export default function RateEmployee() {
           </p>
         </div>
 
-        <div className="p-5 rounded-ctl bg-surface border border-line text-left space-y-3 font-mono text-xs">
+        <Card as="div" padded={false} className="p-5 text-left space-y-3 font-mono text-xs">
           <div className="flex justify-between border-b border-line pb-2">
             <span className="text-ink-3">Overall Average</span>
             <span className="font-bold text-ink text-sm">
@@ -211,7 +211,7 @@ export default function RateEmployee() {
             <span className="text-ink-3">Article 296 Evidentiary Log</span>
             <span className="text-ok font-semibold">Immutable Record Created</span>
           </div>
-        </div>
+        </Card>
 
         <div className="flex justify-center gap-3 pt-2">
           <Button
@@ -266,7 +266,7 @@ export default function RateEmployee() {
                 id="empSelect"
                 value={selectedId}
                 onChange={(e) => setSelectedId(e.target.value)}
-                className="w-full h-10 px-3 rounded-ctl border border-line bg-surface text-ink text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer"
+                className={`${selectClass} w-full`}
               >
                 {activeProbationers.length === 0 ? (
                   <option value="">No active probationary employees found</option>

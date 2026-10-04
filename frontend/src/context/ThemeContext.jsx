@@ -1,17 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import {
+  PALETTE_MODES,
+  DEFAULT_DARK_PALETTE,
+  DEFAULT_LIGHT_PALETTE,
+  isValidPalette,
+} from '../config/themes';
 
 const ThemeContext = createContext(null);
-
-const PALETTE_MODES = {
-  midnight: 'dark',
-  dusk: 'dark',
-  paper: 'light',
-  mist: 'light',
-  sage: 'light',
-};
-
-const DEFAULT_DARK_PALETTE = 'midnight';
-const DEFAULT_LIGHT_PALETTE = 'paper';
 
 export function ThemeProvider({ children }) {
   const [mode, setModeState] = useState(() => {
@@ -25,7 +20,7 @@ export function ThemeProvider({ children }) {
   const [palette, setPaletteState] = useState(() => {
     try {
       const saved = localStorage.getItem('performa-palette');
-      if (saved && /^(midnight|dusk|paper|mist|sage)$/.test(saved)) {
+      if (saved && isValidPalette(saved)) {
         return saved;
       }
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -72,7 +67,7 @@ export function ThemeProvider({ children }) {
   };
 
   const setPalette = (newPalette) => {
-    if (!/^(midnight|dusk|paper|mist|sage)$/.test(newPalette)) return;
+    if (!isValidPalette(newPalette)) return;
     setPaletteState(newPalette);
     setModeState(PALETTE_MODES[newPalette]);
   };

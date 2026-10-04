@@ -12,6 +12,7 @@ import Modal from '../../components/ui/Modal';
 import TextField from '../../components/ui/TextField';
 import Tabs from '../../components/ui/Tabs';
 import Page from '../../components/ui/Page';
+import { inputClass } from '../../components/ui/Field';
 import {
   Users,
   UserPlus,
@@ -180,7 +181,7 @@ export default function UserManagement() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Search users"
-            className="w-full h-8 pl-9 pr-3 rounded-ctl border border-line bg-surface text-ink placeholder:text-ink-3 text-xs focus:outline-none focus:border-accent transition-colors shadow-xs"
+            className={`${inputClass} pl-9`}
           />
         </div>
       </div>
