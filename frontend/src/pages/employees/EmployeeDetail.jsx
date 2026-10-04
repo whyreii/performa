@@ -10,8 +10,6 @@ import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL,
 import { getInitials } from '../../utils/format';
 import {
   ArrowLeft,
-  Building,
-  Mail,
   Award,
   ShieldAlert,
   CheckCircle2,
@@ -357,7 +355,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
       {/* 1. Header Profile Banner */}
       <Card className="p-6 sm:p-7">
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-line">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-6 border-b border-line">
           <div className="flex items-start gap-4 shrink-0">
             <div className="w-14 h-14 rounded-full bg-accent/15 border border-accent/25 text-accent font-semibold text-16 flex items-center justify-center shrink-0">
               {getInitials(employee.user?.full_name)}
@@ -371,27 +369,22 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 <MilestonePill daysElapsed={daysElapsed} status={employee.status} />
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-12 text-ink-2">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-12 text-ink-2">
                 <span className="font-medium text-ink">{employee.job_title}</span>
                 <span>·</span>
-                <span className="flex items-center gap-1">
-                  <Building className="w-3.5 h-3.5 text-ink-3" />
-                  <span>{employee.department}</span>
-                </span>
+                <span>{employee.department}</span>
                 <span>·</span>
-                <span className="font-mono flex items-center gap-1">
-                  <Mail className="w-3.5 h-3.5 text-ink-3" />
-                  <span>{employee.user?.email}</span>
-                </span>
+                <span className="font-mono">{employee.user?.email}</span>
               </div>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-start xl:justify-end">
+          <div className="flex flex-wrap items-center gap-1.5 w-full xl:w-auto justify-start xl:justify-end">
             {canRate && employee.status === 'active' && (
               <Button
                 variant="primary"
+                size="sm"
                 leftIcon={Award}
                 onClick={() => navigate(`/supervisor/rate?employee=${employee.id}`)}
               >
