@@ -8,6 +8,7 @@ import pytest
 
 from backend.timeutils import manila_today
 from backend.tests.helpers import (
+    ADMIN_EMAIL,
     EMPLOYER_EMAIL,
     SUPERVISOR_EMAIL,
     find_employee_id,
@@ -58,6 +59,39 @@ async def test_onboard_requires_supervisor(client):
         },
     )
     assert create_resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_onboard_rejects_admin_as_employer(client):
+    """An Admin can never be assigned as employer_id.
+
+    Manuscript Scope of the Study: the Admin is view-only and never an employer.
+    Allowing an Admin here previously made admins receive employer-only statutory
+    milestone alerts.
+    """
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    admin = await login_user(client, ADMIN_EMAIL)
+    admin_id = (await client.get("/api/auth/me", headers=admin)).json()["id"]
+    supervisor_id = (
+        await client.get("/api/employees/supervisors", headers=employer)
+    ).json()[0]["id"]
+
+    create_resp = await client.post(
+        "/api/employees/",
+        headers=employer,
+        json={
+            "email": "admin-employer@acme.com",
+            "full_name": "Bad Employer",
+            "department": "Engineering",
+            "job_title": "Backend Engineer",
+            "start_date": "2026-09-01",
+            "supervisor_id": supervisor_id,
+            "employer_id": admin_id,
+            "password": "Password123!",
+        },
+    )
+    assert create_resp.status_code == 400, create_resp.text
+    assert "employer" in create_resp.json()["detail"].lower()
 
 
 @pytest.mark.asyncio

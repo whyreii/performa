@@ -239,11 +239,15 @@ async def create_employee(
     if (
         employer is None
         or employer.organization_id != organization_id
-        or employer.role not in (UserRole.ADMIN, UserRole.EMPLOYER)
+        or employer.role != UserRole.EMPLOYER
     ):
+        # Only an Employer may own a probationary record (Manuscript Scope of the
+        # Study: the Admin is view-only and never an employer). This prevents an
+        # Admin from being assigned as employer_id and receiving employer-only
+        # milestone alerts.
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="employer_id must reference an admin or employer in your organization",
+            detail="employer_id must reference an employer in your organization",
         )
 
     supervisor = await db.get(User, payload.supervisor_id)
