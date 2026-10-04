@@ -32,11 +32,12 @@ const COMPETENCY_DESCRIPTIONS = {
 
 // One row of the local-attribution waterfall: a floating segment on a 0–100%
 // track. Positive contributions advance the running value to the right; negative
-// contributions move it left.
+// contributions move it left. The tone is risk/safe (status tokens) for
+// contribution segments, and neutral for the Base/Predicted bounding bars.
 function WaterfallRow({ label, barFrom, barTo, valueText, tone }) {
   const left = Math.min(barFrom, barTo) * 100;
   const width = Math.abs(barTo - barFrom) * 100;
-  const toneClass = tone === 'up' ? 'bg-accent' : tone === 'down' ? 'bg-ink-2' : 'bg-ink-3';
+  const toneClass = tone === 'risk' ? 'bg-bad' : tone === 'safe' ? 'bg-good' : 'bg-ink-3';
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-12 font-mono text-ink-2">
@@ -719,6 +720,16 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </span>
               <span className="text-12 font-mono text-ink-3">probability 0–100%</span>
             </div>
+            <div className="flex items-center gap-3 text-12 text-ink-3">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-bad" />
+                toward gap
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-good" />
+                away from gap
+              </span>
+            </div>
             <WaterfallRow
               label="Base value"
               barFrom={0}
@@ -726,16 +737,20 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               valueText={`${(shapBase * 100).toFixed(1)}%`}
               tone="base"
             />
-            {shapSteps.map(({ key, contribution, from, to }) => (
-              <WaterfallRow
-                key={key}
-                label={key.replace(/_/g, ' ')}
-                barFrom={from}
-                barTo={to}
-                valueText={`${contribution >= 0 ? '+' : '−'}${(Math.abs(contribution) * 100).toFixed(1)}%`}
-                tone={contribution >= 0 ? 'up' : 'down'}
-              />
-            ))}
+            {shapSteps.map(({ key, contribution, from, to }) => {
+              const isRisk =
+                (contribution >= 0) === (riskExplanation.shap_risk_polarity === 'risk');
+              return (
+                <WaterfallRow
+                  key={key}
+                  label={key.replace(/_/g, ' ')}
+                  barFrom={from}
+                  barTo={to}
+                  valueText={`${contribution >= 0 ? '+' : '−'}${(Math.abs(contribution) * 100).toFixed(1)}%`}
+                  tone={isRisk ? 'risk' : 'safe'}
+                />
+              );
+            })}
             <WaterfallRow
               label="Predicted"
               barFrom={0}

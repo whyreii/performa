@@ -44,6 +44,14 @@ averaging its marginal effect over every possible coalition of features:
 
 - **Target class** = the model's predicted tier, so the attribution explains the
   classification actually shown to the user.
+- **Polarity** (`shap_risk_polarity`). The backend also classifies the meaning of a
+  positive contribution: `"risk"` when the predicted tier is a competency gap
+  (Needs Improvement / Critical Gap), so positive values push the employee *toward*
+  the gap; `"safe"` for Meets Expectations. The UI consumes this single server-side
+  mapping to color contribution segments red/risk (`--bad`) vs green/safe
+  (`--good`); the Base-value and Predicted bounding bars stay neutral. Keeping the
+  mapping server-side means the presentation layer stays "dumb" and the polarity is
+  unit-tested alongside the Shapley math.
 
 ### Correctness: the efficiency axiom
 

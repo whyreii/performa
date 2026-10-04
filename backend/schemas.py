@@ -311,6 +311,8 @@ class RiskExplanationResponse(BaseModel):
     shap_values: dict[str, float] = {}
     shap_base_value: float = 0.0
     shap_target_class: str = ""
+    # Meaning of a positive contribution: "risk" (toward a gap) or "safe".
+    shap_risk_polarity: str = ""
     permutation_importances: dict[str, float] = {}
     explanation_method: str = ""
 

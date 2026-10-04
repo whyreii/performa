@@ -13,6 +13,7 @@ from backend.ml.catalog import COMPETENCIES
 from backend.ml.explain import (
     explain_prediction,
     permutation_importances,
+    risk_polarity,
     shapley_values,
 )
 from backend.ml.predictor import _load_model, predict_employee_risk
@@ -65,6 +66,24 @@ def test_explain_prediction_matches_predicted_tier():
     assert set(explanation["permutation_importances"]) == set(COMPETENCIES)
     assert isinstance(explanation["shap_base_value"], float)
     assert "Exact Shapley" in explanation["explanation_method"]
+
+
+def test_risk_polarity_maps_gap_tiers_to_risk():
+    assert risk_polarity("Critical Gap") == "risk"
+    assert risk_polarity("Needs Improvement") == "risk"
+    assert risk_polarity("Meets Expectations") == "safe"
+
+
+def test_explain_prediction_reports_consistent_polarity():
+    explanation = explain_prediction(SCORES)
+    assert explanation["shap_risk_polarity"] == risk_polarity(explanation["shap_target_class"])
+
+
+def test_high_scores_are_safe_polarity():
+    strong = {name: 5.0 for name in COMPETENCIES}
+    explanation = explain_prediction(strong)
+    assert explanation["shap_target_class"] == "Meets Expectations"
+    assert explanation["shap_risk_polarity"] == "safe"
 
 
 def test_missing_competency_rejected():

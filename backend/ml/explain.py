@@ -34,11 +34,26 @@ from sklearn.inspection import permutation_importance
 
 from .catalog import COMPETENCIES
 from .predictor import _load_model, _validate_scores
-from .train import load_dataset
+from .train import CRITICAL_GAP, MEETS_EXPECTATIONS, NEEDS_IMPROVEMENT, load_dataset
 
 N_FEATURES: int = len(COMPETENCIES)
 BACKGROUND_SIZE: int = 128
 RANDOM_STATE: int = 42
+
+# Tiers that represent a competency gap. A positive Shapley contribution toward
+# one of these pushes the employee *toward* a gap (risk); toward
+# ``MEETS_EXPECTATIONS`` it pushes toward the pass (safe).
+_GAP_TIERS: frozenset[str] = frozenset({NEEDS_IMPROVEMENT, CRITICAL_GAP})
+
+
+def risk_polarity(target_class: str) -> str:
+    """Meaning of a *positive* contribution for ``target_class``.
+
+    Returns ``"risk"`` when a positive contribution moves the employee toward a
+    competency gap, and ``"safe"`` when it moves them toward meeting expectations.
+    This is the single source of truth for the UI's red/risk vs green/safe bars.
+    """
+    return "risk" if target_class in _GAP_TIERS else "safe"
 
 
 @lru_cache(maxsize=1)
@@ -157,6 +172,7 @@ def explain_prediction(scores: dict) -> dict:
         "shap_values": local["shap_values"],
         "shap_base_value": local["base_value"],
         "shap_target_class": local["target_class"],
+        "shap_risk_polarity": risk_polarity(predicted_tier),
         "permutation_importances": dict(permutation_importances()),
         "explanation_method": (
             f"Exact Shapley over {N_FEATURES} competencies "
@@ -169,5 +185,6 @@ __all__ = [
     "N_FEATURES",
     "explain_prediction",
     "permutation_importances",
+    "risk_polarity",
     "shapley_values",
 ]
