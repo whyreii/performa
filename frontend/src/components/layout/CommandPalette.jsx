@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Search, Settings, Palette, X, Bell, ArrowUp, ArrowDown } from 'lucide-react';
 import { commandNav } from '../../config/nav';
+import { prefetchRoute } from '../../routes/loaders';
 import { Modal } from '../ui';
 
 /* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus --
@@ -142,7 +143,10 @@ export default function CommandPalette({ isOpen, onClose }) {
                     item.action();
                     onClose();
                   }}
-                  onMouseEnter={() => setSelectedIndex(index)}
+                  onMouseEnter={() => {
+                    setSelectedIndex(index);
+                    prefetchRoute(item.id);
+                  }}
                   className={`flex items-center justify-between px-3 py-2.5 rounded-ctl cursor-pointer text-xs transition-colors ${
                     isSelected ? 'bg-hover text-ink font-medium' : 'text-ink-2 hover:bg-hover'
                   }`}

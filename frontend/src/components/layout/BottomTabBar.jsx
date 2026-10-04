@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { tabNav } from '../../config/nav';
+import { prefetchRoute } from '../../routes/loaders';
 
 const TAB_GRID = {
   3: 'grid-cols-3',
@@ -27,6 +28,8 @@ export default function BottomTabBar() {
             <NavLink
               key={tab.path}
               to={tab.path}
+              onMouseEnter={() => prefetchRoute(tab.path)}
+              onFocus={() => prefetchRoute(tab.path)}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center py-2 px-1 min-h-11 rounded-nav text-12 font-medium transition-colors ${
                   isActive ? 'text-accent font-semibold' : 'text-ink-3 hover:text-ink'

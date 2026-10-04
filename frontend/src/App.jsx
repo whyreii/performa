@@ -6,24 +6,26 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { useDocumentTitle } from './hooks/useDocumentTitle';
 import { Surface } from './components/ui';
+import { routeLoaders } from './routes/loaders';
 
-// Route-level code splitting: each page is loaded on demand.
-const Login = lazy(() => import('./pages/auth/Login'));
+// Route-level code splitting: each page is loaded on demand. The loaders live in
+// routes/loaders.js so navigation links can prefetch a chunk on hover/focus.
+const Login = lazy(routeLoaders['/login']);
 const AppShell = lazy(() => import('./components/layout/AppShell'));
-const Settings = lazy(() => import('./pages/settings/Settings'));
-const Employees = lazy(() => import('./pages/employees/Employees'));
-const EmployeeDetail = lazy(() => import('./pages/employees/EmployeeDetail'));
-const RateEmployee = lazy(() => import('./pages/supervisor/RateEmployee'));
-const SupervisorDashboard = lazy(() => import('./pages/supervisor/SupervisorDashboard'));
-const Rubrics = lazy(() => import('./pages/supervisor/Rubrics'));
-const Dashboard = lazy(() => import('./pages/employer/Dashboard'));
-const Rollups = lazy(() => import('./pages/employer/Rollups'));
-const AuditTrail = lazy(() => import('./pages/admin/AuditTrail'));
-const ActivityLog = lazy(() => import('./pages/admin/ActivityLog'));
-const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
-const EmployeeDashboard = lazy(() => import('./pages/employee/EmployeeDashboard'));
-const EmployeeTraining = lazy(() => import('./pages/employee/EmployeeTraining'));
-const Notifications = lazy(() => import('./pages/notifications/Notifications'));
+const Settings = lazy(routeLoaders['/settings']);
+const Employees = lazy(routeLoaders['/employees']);
+const EmployeeDetail = lazy(routeLoaders['/employees/:id']);
+const RateEmployee = lazy(routeLoaders['/supervisor/rate']);
+const SupervisorDashboard = lazy(routeLoaders['/supervisor/dashboard']);
+const Rubrics = lazy(routeLoaders['/supervisor/rubrics']);
+const Dashboard = lazy(routeLoaders['/dashboard']);
+const Rollups = lazy(routeLoaders['/rollups']);
+const AuditTrail = lazy(routeLoaders['/audits']);
+const ActivityLog = lazy(routeLoaders['/admin/activity']);
+const UserManagement = lazy(routeLoaders['/admin/users']);
+const EmployeeDashboard = lazy(routeLoaders['/employee/dashboard']);
+const EmployeeTraining = lazy(routeLoaders['/employee/training']);
+const Notifications = lazy(routeLoaders['/notifications']);
 
 function RouteFallback() {
   return (

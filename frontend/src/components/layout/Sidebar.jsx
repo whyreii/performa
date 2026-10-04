@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { BarChart3, LogOut, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { sidebarNav } from '../../config/nav';
 import { getInitials } from '../../utils/format';
+import { prefetchRoute } from '../../routes/loaders';
 
 export default function Sidebar({ onOpenCommandPalette }) {
   const { user, logout } = useAuth();
@@ -151,6 +152,8 @@ export default function Sidebar({ onOpenCommandPalette }) {
                 key={item.path}
                 to={item.path}
                 title={collapsed ? item.label : undefined}
+                onMouseEnter={() => prefetchRoute(item.path)}
+                onFocus={() => prefetchRoute(item.path)}
                 className={({ isActive }) =>
                   `flex items-center gap-3 h-10 rounded-nav text-sm font-medium transition-colors ${
                     collapsed ? 'justify-center px-0' : 'px-3'

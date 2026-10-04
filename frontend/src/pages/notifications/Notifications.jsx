@@ -18,6 +18,8 @@ export default function Notifications() {
   } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => notificationApi.list(),
+    // Notifications change rarely; keep them warm so revisits render instantly.
+    staleTime: 60_000,
   });
 
   const readMutation = useMutation({
@@ -57,10 +59,17 @@ export default function Notifications() {
 
       <Card padded={false} className="overflow-hidden">
         {isLoading ? (
-          <div className="p-6 space-y-3">
-            <Skeleton className="h-14 w-full" />
-            <Skeleton className="h-14 w-full" />
-            <Skeleton className="h-14 w-full" />
+          <div className="divide-y divide-line" aria-hidden="true">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className="p-4 flex items-start gap-3">
+                <div className="mt-1.5 w-2 h-2 rounded-full bg-hover/80 animate-pulse shrink-0" />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-3 w-2/3" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : isError ? (
           <div className="p-10 text-center space-y-3">
