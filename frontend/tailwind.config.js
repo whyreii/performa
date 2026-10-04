@@ -47,6 +47,7 @@ export default {
         field: 'var(--r-field)',
         nav: 'var(--r-nav)',
         float: 'var(--r-float)',
+        'float-inner': 'var(--r-float-inner)',
       },
       fontFamily: {
         sans: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],

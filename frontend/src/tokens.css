@@ -22,6 +22,9 @@
   --r-field: 10px;
   --r-nav: 10px;
   --r-float: 14px;
+  /* Concentric nesting: a surface inside another surface uses this (outer − gap)
+     so corners stay parallel (Apple's concentric-rectangle rule). */
+  --r-float-inner: calc(var(--r-float) - 4px);
   --m: 160ms;
   --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
   --font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
