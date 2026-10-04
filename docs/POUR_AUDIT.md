@@ -178,7 +178,13 @@ smoke check (combobox/listbox/option roles, table captions, `th scope`).
 | U-6 | Command palette → full combobox/listbox pattern (`aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-selected`) | `CommandPalette.jsx` |
 | R-4 | Focusable `<tr>` replaced by a real `<Link>` on the employee name (no roleless focusable row) | `Employees.jsx`, `Dashboard.jsx` |
 
-**Still open (by decision):** `P-2` (doc drift — the `!important` wording in
-`UIUX_STANDARDS.md` §7), `O-4` (covered by the shared `Modal` primitive's focus
-trap/return), `R-1` (automated a11y lint — devDependency, STOP-AND-ASK), `R-5`
-(no action).
+**Resolved after this log:**
+- `P-2` — the `!important` focus-ring wording in `UIUX_STANDARDS.md` §7 was corrected
+  to match the code (`index.css` deliberately omits it).
+- `R-1` — `eslint-plugin-jsx-a11y` was added (devDependency) and wired into
+  `frontend/eslint.config.js`; CI's `npm run lint` now enforces accessibility.
+
+**Still open (by decision):** `O-4` (covered by the shared `Modal` primitive's focus
+trap/return), `R-5` (no action — landmarks verified and labelled).
+
+Every actionable POUR finding is now fixed.
