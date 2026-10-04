@@ -130,6 +130,15 @@ export default function EmployeeDetail() {
     return targets.length ? Math.max(TARGET, ...targets) : TARGET;
   }, [scorecard]);
 
+  // Exact-Shapley local attribution (backend/ml/explain.py). The waterfall is
+  // scaled to the largest absolute contribution; the final probability is the
+  // background base value plus the sum of the contributions.
+  const shap = riskExplanation?.shap_values || {};
+  const shapMaxAbs = Math.max(1e-6, ...Object.values(shap).map((v) => Math.abs(Number(v))));
+  const shapFinal =
+    Number(riskExplanation?.shap_base_value || 0) +
+    Object.values(shap).reduce((sum, v) => sum + Number(v), 0);
+
   const regularizationMutation = useMutation({
     mutationFn: () => evaluationApi.generateRegularization(id),
     onSuccess: () => {
@@ -660,7 +669,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
       {/* 3d. ML Risk Explanation (feature importances) */}
       {riskExplanation && (
-        <Card className="space-y-3">
+        <Card className="space-y-4 no-print">
           <div className="flex items-center justify-between pb-3 border-b border-line">
             <div>
               <h2 className="text-base font-semibold text-ink">ML Risk Explanation</h2>
@@ -673,22 +682,82 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               {(Number(riskExplanation.confidence) * 100).toFixed(0)}%
             </Badge>
           </div>
+
+          {/* Local attribution — exact Shapley (per-employee) */}
           <div className="space-y-2">
-            {Object.entries(riskExplanation.feature_importances || {}).map(([key, value]) => (
-              <div key={key} className="space-y-1">
-                <div className="flex justify-between text-xs font-mono text-ink-2">
-                  <span>{key.replace(/_/g, ' ')}</span>
-                  <span>{(Number(value) * 100).toFixed(1)}%</span>
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-12 font-medium text-ink-2">
+                Local attribution · {riskExplanation.shap_target_class}
+              </span>
+              <span className="text-12 font-mono text-ink-3">
+                base {(Number(riskExplanation.shap_base_value) * 100).toFixed(1)}%
+              </span>
+            </div>
+            {Object.entries(shap).map(([key, value]) => {
+              const contribution = Number(value);
+              const width = (Math.abs(contribution) / shapMaxAbs) * 50;
+              const positive = contribution >= 0;
+              return (
+                <div key={key} className="space-y-1">
+                  <div className="flex justify-between text-12 font-mono text-ink-2">
+                    <span>{key.replace(/_/g, ' ')}</span>
+                    <span>
+                      {positive ? '+' : '−'}
+                      {(Math.abs(contribution) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="relative h-1.5 w-full bg-hover rounded-full overflow-hidden">
+                    <div
+                      className={`absolute top-0 h-full rounded-full ${
+                        positive ? 'bg-accent' : 'bg-ink-3'
+                      }`}
+                      style={
+                        positive
+                          ? { left: '50%', width: `${width}%` }
+                          : { right: '50%', width: `${width}%` }
+                      }
+                    />
+                    <div className="absolute left-1/2 top-0 h-full w-px bg-line" />
+                  </div>
                 </div>
-                <div className="h-1.5 w-full bg-hover rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-accent rounded-full"
-                    style={{ width: `${Number(value) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
+            <p className="text-12 font-mono text-ink-3">
+              = predicted {(shapFinal * 100).toFixed(1)}% for {riskExplanation.shap_target_class}
+            </p>
           </div>
+
+          {/* Global importance — Gini impurity + permutation */}
+          <div className="pt-3 border-t border-line">
+            <p className="text-12 font-medium text-ink-2 mb-2">Global importance</p>
+            <table className="w-full text-12">
+              <thead>
+                <tr className="text-ink-3 font-mono">
+                  <th className="text-left font-medium pb-1">Competency</th>
+                  <th className="text-right font-medium pb-1">Gini</th>
+                  <th className="text-right font-medium pb-1">Permutation</th>
+                </tr>
+              </thead>
+              <tbody className="font-mono">
+                {Object.keys(riskExplanation.feature_importances || {}).map((key) => (
+                  <tr key={key} className="text-ink-2">
+                    <td className="py-1">{key.replace(/_/g, ' ')}</td>
+                    <td className="py-1 text-right">
+                      {(Number(riskExplanation.feature_importances[key]) * 100).toFixed(1)}%
+                    </td>
+                    <td className="py-1 text-right">
+                      {(Number((riskExplanation.permutation_importances || {})[key]) * 100).toFixed(1)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="text-12 text-ink-3">
+            Local attribution explains the model's output for this employee, not an
+            employment decision. {riskExplanation.explanation_method}.
+          </p>
         </Card>
       )}
 
