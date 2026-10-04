@@ -313,9 +313,9 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         <p className="text-center text-12 font-semibold tracking-widest uppercase">
           Republic of the Philippines
         </p>
-        <h1 className="text-center text-lg font-bold mt-1">
+        <p className="text-center text-lg font-bold mt-1">
           Probationary Performance Evaluation Report
-        </h1>
+        </p>
         <p className="text-center text-12 mt-1">
             Labor Code of the Philippines · Article 296 · {user?.organization_name || user?.organization_id || ''}
         </p>

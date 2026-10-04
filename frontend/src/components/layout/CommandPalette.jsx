@@ -85,6 +85,13 @@ export default function CommandPalette({ isOpen, onClose }) {
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
+            aria-expanded="true"
+            aria-controls="command-listbox"
+            aria-autocomplete="list"
+            aria-activedescendant={
+              filtered[selectedIndex] ? `command-option-${filtered[selectedIndex].id}` : undefined
+            }
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -105,7 +112,12 @@ export default function CommandPalette({ isOpen, onClose }) {
         </div>
 
         {/* Command list */}
-        <div className="max-h-[340px] overflow-y-auto p-2 space-y-1">
+        <div
+          id="command-listbox"
+          role="listbox"
+          aria-label="Commands"
+          className="max-h-[340px] overflow-y-auto p-2 space-y-1"
+        >
           {filtered.length === 0 ? (
             <div className="py-8 text-center text-xs text-ink-3">
               No matching commands or pages found.
@@ -117,6 +129,9 @@ export default function CommandPalette({ isOpen, onClose }) {
               return (
                 <div
                   key={item.id}
+                  id={`command-option-${item.id}`}
+                  role="option"
+                  aria-selected={isSelected}
                   onClick={() => {
                     item.action();
                     onClose();

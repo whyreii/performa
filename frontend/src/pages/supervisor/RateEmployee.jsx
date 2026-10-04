@@ -244,7 +244,10 @@ export default function RateEmployee() {
       />
 
       {error && (
-        <div className="p-3 rounded-ctl bg-bad/8 border border-line text-bad text-xs flex items-center gap-2">
+        <div
+          role="alert"
+          className="p-3 rounded-ctl bg-bad/8 border border-line text-bad text-xs flex items-center gap-2"
+        >
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>

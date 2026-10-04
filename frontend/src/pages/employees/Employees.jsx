@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { employeeApi, getApiErrorMessage } from '../../api';
@@ -7,7 +7,6 @@ import { Button, Badge, MilestonePill, Skeleton, Tabs, EmptyState, Card, PageHea
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
-import { activateOnKey } from '../../utils/a11y';
 import AddEmployeeModal from '../../components/employees/AddEmployeeModal';
 import {
   Users,
@@ -453,9 +452,7 @@ export default function Employees() {
                   return (
                     <tr
                       key={emp.id}
-                      tabIndex={0}
                       onClick={() => navigate(`/employees/${emp.id}`)}
-                      onKeyDown={activateOnKey(() => navigate(`/employees/${emp.id}`))}
                       className="hover:bg-hover cursor-pointer transition-colors group"
                     >
                       {/* Name & Avatar */}
@@ -465,9 +462,13 @@ export default function Employees() {
                             {getInitials(emp.user?.full_name)}
                           </div>
                           <div className="min-w-0">
-                            <span className="font-semibold text-ink block truncate group-hover:text-accent transition-colors">
+                            <Link
+                              to={`/employees/${emp.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="font-semibold text-ink block truncate group-hover:text-accent transition-colors"
+                            >
                               {emp.user?.full_name}
-                            </span>
+                            </Link>
                             <span className="text-xs text-ink-3 font-mono block truncate">
                               {emp.user?.email}
                             </span>

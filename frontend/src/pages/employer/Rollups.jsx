@@ -146,6 +146,7 @@ export default function Rollups() {
       {/* Action Notification */}
       {actionMessage.text && (
         <div
+          role="alert"
           className={`p-3 rounded-ctl text-xs flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
             actionMessage.type === 'error'
               ? 'bg-bad/8 text-bad'

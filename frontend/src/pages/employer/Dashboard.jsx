@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, PageHeader, Surface } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
-import { activateOnKey } from '../../utils/a11y';
 import {
   ChevronRight,
   ArrowRight,
@@ -181,9 +180,9 @@ export default function Dashboard() {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
               <div>
-                <h3 className="text-sm font-semibold text-ink">
+                <h2 className="text-sm font-semibold text-ink">
                   {urgentProbationers.length} to review
-                </h3>
+                </h2>
                 <p className="text-xs text-ink-2">
                   Day {MILESTONE_REVIEW} · {MILESTONE_NOTICE} · {MILESTONE_CRITICAL} under Art. 296 — decisions due before Day {PROBATION_DAYS}.
                 </p>
@@ -250,9 +249,7 @@ export default function Dashboard() {
                   return (
                     <tr
                       key={emp.id}
-                      tabIndex={0}
                       onClick={() => navigate(`/employees/${emp.id}`)}
-                      onKeyDown={activateOnKey(() => navigate(`/employees/${emp.id}`))}
                       className="hover:bg-hover cursor-pointer transition-colors"
                     >
                       <td className="py-3 px-3">
@@ -261,9 +258,13 @@ export default function Dashboard() {
                             {getInitials(emp.user?.full_name)}
                           </div>
                           <div>
-                            <span className="font-semibold text-ink block truncate">
+                            <Link
+                              to={`/employees/${emp.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="font-semibold text-ink block truncate"
+                            >
                               {emp.user?.full_name}
-                            </span>
+                            </Link>
                             <span className="text-12 text-ink-3 block font-mono">
                               {emp.job_title}
                             </span>

@@ -201,6 +201,7 @@ export default function Settings() {
           >
             {profileStatus.message && (
               <div
+                role="alert"
                 className={`p-3 rounded-ctl text-xs border border-line ${
                   profileStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
                 }`}
@@ -351,6 +352,7 @@ export default function Settings() {
 
         {passwordStatus.message && (
           <div
+            role="alert"
             className={`mb-5 p-3 rounded-ctl text-xs flex items-center gap-2 border border-line ${
               passwordStatus.type === 'error'
                 ? 'bg-bad/8 text-bad'

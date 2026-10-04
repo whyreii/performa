@@ -123,6 +123,7 @@ export default function UserManagement() {
       {/* Action feedback toast */}
       {actionFeedback && (
         <div
+          role="alert"
           className={`p-3 rounded-ctl text-xs flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
             actionFeedback.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
           }`}

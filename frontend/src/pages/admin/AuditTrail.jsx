@@ -66,9 +66,9 @@ export default function AuditTrail() {
         <div className="text-center space-y-1">
           <p className="text-xs uppercase tracking-widest font-semibold">Republic of the Philippines</p>
           <p className="text-xs font-semibold">DEPARTMENT OF LABOR AND EMPLOYMENT</p>
-          <h1 className="text-base font-bold uppercase tracking-tight mt-1">
+          <p className="text-base font-bold uppercase tracking-tight mt-1">
             Article 296 Statutory Evaluation Audit Exhibit
-          </h1>
+          </p>
           <p className="text-12 text-gray-600">
             Tenant: {orgLabel} · Generated: {formatDate(new Date())} (Asia/Manila)
           </p>
