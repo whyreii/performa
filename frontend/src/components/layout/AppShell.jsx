@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import MobileBar from './MobileBar';
 import BottomTabBar from './BottomTabBar';
 import CommandPalette from './CommandPalette';
 import ShortcutModal from './ShortcutModal';
+import ScrollToTop from './ScrollToTop';
+import PageSkeleton from '../ui/PageSkeleton';
 
 export default function AppShell({ children }) {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -34,6 +36,8 @@ export default function AppShell({ children }) {
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-bg text-ink transition-colors duration-performa selection:bg-accent/20 selection:text-accent">
+      <ScrollToTop />
+
       {/* Skip link — first focusable element (WCAG 2.4.1 Bypass Blocks) */}
       <a
         href="#main"
@@ -55,7 +59,9 @@ export default function AppShell({ children }) {
         tabIndex={-1}
       >
         <div className="max-w-[1120px] mx-auto w-full">
-          {children || <Outlet />}
+          <Suspense fallback={<PageSkeleton />}>
+            {children || <Outlet />}
+          </Suspense>
         </div>
       </main>
 
