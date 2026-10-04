@@ -18,6 +18,8 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
+from fastapi.routing import APIRoute
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -163,18 +165,41 @@ def _column_default(column) -> str:
     return ""
 
 
-def _render_routes() -> str:
-    from fastapi.routing import APIRoute
+def _iter_api_routes(routes, prefix: str = "") -> Iterable[tuple[APIRoute, str]]:
+    """Yield ``(route, path_prefix)`` for every ``APIRoute``, across FastAPI versions.
 
+    Older FastAPI flattened ``include_router`` routes into ``app.routes`` (full
+    paths, empty prefix). Newer versions wrap each included router in an internal
+    ``_IncludedRouter`` whose routes live on ``original_router`` with a relative
+    path plus an ``include_context.prefix``. Mounts expose a ``.routes`` list.
+    Recurse through all of these and carry the accumulated prefix.
+    """
+    for route in routes:
+        if isinstance(route, APIRoute):
+            yield route, prefix
+            continue
+        sub = getattr(route, "routes", None)
+        if sub is not None:
+            mount_path = getattr(route, "path", "") or ""
+            yield from _iter_api_routes(sub, prefix + mount_path)
+            continue
+        original = getattr(route, "original_router", None)
+        if original is not None:
+            context = getattr(route, "include_context", None)
+            include_prefix = getattr(context, "prefix", "") or ""
+            yield from _iter_api_routes(
+                getattr(original, "routes", []), prefix + include_prefix
+            )
+
+
+def _render_routes() -> str:
     from backend.main import app
 
     rows: list[tuple[str, str, str, str]] = []
-    for route in app.routes:
-        if not isinstance(route, APIRoute):
-            continue
+    for route, path_prefix in _iter_api_routes(app.routes):
         auth = _auth_for_route(route)
         for method in sorted(route.methods - {"HEAD", "OPTIONS"}):
-            rows.append((route.path, method, auth, route.name))
+            rows.append((path_prefix + route.path, method, auth, route.name))
     rows.sort(key=lambda row: (row[0], row[1]))
 
     lines = ["## Routes", "", "Auth column is read from the FastAPI dependency graph.", ""]
