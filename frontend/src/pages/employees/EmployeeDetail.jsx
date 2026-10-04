@@ -30,6 +30,29 @@ const COMPETENCY_DESCRIPTIONS = {
   initiative_and_adaptability: 'Self-driven problem solving and agility to change',
 };
 
+// One row of the local-attribution waterfall: a floating segment on a 0–100%
+// track. Positive contributions advance the running value to the right; negative
+// contributions move it left.
+function WaterfallRow({ label, barFrom, barTo, valueText, tone }) {
+  const left = Math.min(barFrom, barTo) * 100;
+  const width = Math.abs(barTo - barFrom) * 100;
+  const toneClass = tone === 'up' ? 'bg-accent' : tone === 'down' ? 'bg-ink-2' : 'bg-ink-3';
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-12 font-mono text-ink-2">
+        <span>{label}</span>
+        <span>{valueText}</span>
+      </div>
+      <div className="relative h-1.5 w-full bg-hover rounded-full">
+        <div
+          className={`absolute top-0 h-full rounded-full ${toneClass}`}
+          style={{ left: `${left}%`, width: `${width}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function EmployeeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -130,14 +153,19 @@ export default function EmployeeDetail() {
     return targets.length ? Math.max(TARGET, ...targets) : TARGET;
   }, [scorecard]);
 
-  // Exact-Shapley local attribution (backend/ml/explain.py). The waterfall is
-  // scaled to the largest absolute contribution; the final probability is the
-  // background base value plus the sum of the contributions.
+  // Exact-Shapley local attribution (backend/ml/explain.py) rendered as a
+  // cumulative waterfall: each competency moves the running probability from the
+  // background base value toward the predicted value.
   const shap = riskExplanation?.shap_values || {};
-  const shapMaxAbs = Math.max(1e-6, ...Object.values(shap).map((v) => Math.abs(Number(v))));
-  const shapFinal =
-    Number(riskExplanation?.shap_base_value || 0) +
-    Object.values(shap).reduce((sum, v) => sum + Number(v), 0);
+  const shapBase = Number(riskExplanation?.shap_base_value || 0);
+  const shapSteps = [];
+  let shapRunning = shapBase;
+  for (const [key, value] of Object.entries(shap)) {
+    const contribution = Number(value);
+    shapSteps.push({ key, contribution, from: shapRunning, to: shapRunning + contribution });
+    shapRunning += contribution;
+  }
+  const shapPredicted = shapRunning;
 
   const regularizationMutation = useMutation({
     mutationFn: () => evaluationApi.generateRegularization(id),
@@ -683,47 +711,40 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             </Badge>
           </div>
 
-          {/* Local attribution — exact Shapley (per-employee) */}
+          {/* Local attribution — exact Shapley (per-employee), cumulative waterfall */}
           <div className="space-y-2">
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-12 font-medium text-ink-2">
                 Local attribution · {riskExplanation.shap_target_class}
               </span>
-              <span className="text-12 font-mono text-ink-3">
-                base {(Number(riskExplanation.shap_base_value) * 100).toFixed(1)}%
-              </span>
+              <span className="text-12 font-mono text-ink-3">probability 0–100%</span>
             </div>
-            {Object.entries(shap).map(([key, value]) => {
-              const contribution = Number(value);
-              const width = (Math.abs(contribution) / shapMaxAbs) * 50;
-              const positive = contribution >= 0;
-              return (
-                <div key={key} className="space-y-1">
-                  <div className="flex justify-between text-12 font-mono text-ink-2">
-                    <span>{key.replace(/_/g, ' ')}</span>
-                    <span>
-                      {positive ? '+' : '−'}
-                      {(Math.abs(contribution) * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="relative h-1.5 w-full bg-hover rounded-full overflow-hidden">
-                    <div
-                      className={`absolute top-0 h-full rounded-full ${
-                        positive ? 'bg-accent' : 'bg-ink-3'
-                      }`}
-                      style={
-                        positive
-                          ? { left: '50%', width: `${width}%` }
-                          : { right: '50%', width: `${width}%` }
-                      }
-                    />
-                    <div className="absolute left-1/2 top-0 h-full w-px bg-line" />
-                  </div>
-                </div>
-              );
-            })}
+            <WaterfallRow
+              label="Base value"
+              barFrom={0}
+              barTo={shapBase}
+              valueText={`${(shapBase * 100).toFixed(1)}%`}
+              tone="base"
+            />
+            {shapSteps.map(({ key, contribution, from, to }) => (
+              <WaterfallRow
+                key={key}
+                label={key.replace(/_/g, ' ')}
+                barFrom={from}
+                barTo={to}
+                valueText={`${contribution >= 0 ? '+' : '−'}${(Math.abs(contribution) * 100).toFixed(1)}%`}
+                tone={contribution >= 0 ? 'up' : 'down'}
+              />
+            ))}
+            <WaterfallRow
+              label="Predicted"
+              barFrom={0}
+              barTo={shapPredicted}
+              valueText={`${(shapPredicted * 100).toFixed(1)}%`}
+              tone="base"
+            />
             <p className="text-12 font-mono text-ink-3">
-              = predicted {(shapFinal * 100).toFixed(1)}% for {riskExplanation.shap_target_class}
+              = predicted {(shapPredicted * 100).toFixed(1)}% for {riskExplanation.shap_target_class}
             </p>
           </div>
 
