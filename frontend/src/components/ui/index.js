@@ -5,6 +5,7 @@ export { default as StatusDot } from './StatusDot';
 export { default as MilestonePill } from './MilestonePill';
 export { default as Skeleton } from './Skeleton';
 export { default as Card } from './Card';
+export { default as Surface } from './Surface';
 export { default as PageHeader } from './PageHeader';
 export { default as Modal } from './Modal';
 export { default as EmptyState } from './EmptyState';

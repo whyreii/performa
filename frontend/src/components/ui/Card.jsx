@@ -1,12 +1,12 @@
 import React from 'react';
+import Surface from './Surface';
 
-// Canonical surface: hairline border, no drop shadow. This is the single card
-// style the de-slop pass standardizes on (see docs/SLOP_AUDIT.md, Phase C).
-export default function Card({ as: Tag = 'section', padded = true, className = '', children, ...props }) {
-  const base = 'bg-surface border border-line rounded-float';
+// Canonical card: a padded surface. The surface itself (radius + border + bg)
+// is defined once in Surface.jsx (see docs/SLOP_AUDIT.md, Phase C).
+export default function Card({ as = 'section', padded = true, className = '', children, ...props }) {
   return (
-    <Tag className={`${base}${padded ? ' p-6' : ''}${className ? ` ${className}` : ''}`} {...props}>
+    <Surface as={as} padded={padded} className={className} {...props}>
       {children}
-    </Tag>
+    </Surface>
   );
 }
