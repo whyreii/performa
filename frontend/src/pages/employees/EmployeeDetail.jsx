@@ -307,7 +307,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
   const canRate = user?.role === 'supervisor' || user?.role === 'employer';
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-150 print-sheet">
+    <div className="space-y-6 animate-in fade-in duration-150 print-sheet">
       {/* Print-only official document header */}
       <div className="print-only mb-6 pb-4 border-b-2 border-black">
         <p className="text-center text-12 font-semibold tracking-widest uppercase">

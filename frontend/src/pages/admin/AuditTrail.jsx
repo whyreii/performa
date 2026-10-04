@@ -60,7 +60,7 @@ export default function AuditTrail() {
   );
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-150">
+    <div className="space-y-6 animate-in fade-in duration-150">
       {/* Print-Only Official DOLE Exhibit Header */}
       <div hidden className="print-only mb-6 pb-4 border-b-2 border-black text-black">
         <div className="text-center space-y-1">

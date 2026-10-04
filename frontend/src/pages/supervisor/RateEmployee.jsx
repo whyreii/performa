@@ -237,7 +237,7 @@ export default function RateEmployee() {
   const daysElapsed = selectedEmployee ? getDaysElapsed(selectedEmployee.start_date) : 0;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-150">
+    <div className="space-y-6 animate-in fade-in duration-150">
       <PageHeader
         title="Rate Probationary Employee"
         subtitle={`Article 296 Evidentiary Due Process Matrix · Target ${thresholdTarget.toFixed(1)} Standard`}

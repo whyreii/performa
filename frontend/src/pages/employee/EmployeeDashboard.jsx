@@ -78,7 +78,7 @@ export default function EmployeeDashboard() {
   const progressPct = Math.min(100, Math.round((daysElapsed / PROBATION_DAYS) * 100));
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-150">
+    <div className="space-y-6 animate-in fade-in duration-150">
       <PageHeader
         title="My Performance Scorecard"
         subtitle={

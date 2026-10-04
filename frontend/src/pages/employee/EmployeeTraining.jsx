@@ -18,7 +18,7 @@ export default function EmployeeTraining() {
   });
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-150">
+    <div className="space-y-6 animate-in fade-in duration-150">
       <PageHeader
         title="Assigned Training Interventions"
         subtitle="Targeted Learning Modules to Close Competency Gaps Before Day 150 Appraisal"

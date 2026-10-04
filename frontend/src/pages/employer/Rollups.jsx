@@ -132,7 +132,7 @@ export default function Rollups() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-150">
+    <div className="space-y-6 animate-in fade-in duration-150">
       <PageHeader
         title="Rollups"
         subtitle="Gemini summaries · Random Forest recommendations"

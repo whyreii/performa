@@ -85,7 +85,7 @@ export default function Rubrics() {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-150">
+    <div className="space-y-6 animate-in fade-in duration-150">
       <PageHeader
         title="KPI Performance Rubrics"
         subtitle="The 5 Statutory Competencies & Regularizing Benchmarks · Philippine Labor Code Art. 296"
