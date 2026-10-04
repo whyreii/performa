@@ -19,6 +19,12 @@ jobs:
           pip install -r backend/requirements.txt
       - name: Lint (ruff — flake8-datetimez DTZ)
         run: python -m ruff check backend
+      - name: Check for model/migration drift (Alembic)
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///./drift_check.db
+        run: |
+          python -m alembic upgrade head
+          python -m alembic check
       - name: Train ML model (rf_model.joblib is generated, not committed)
         run: python -m backend.ml.train
       - name: Run tests
