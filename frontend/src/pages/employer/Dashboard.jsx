@@ -175,7 +175,9 @@ export default function Dashboard() {
       </div>
 
       {/* 2. Critical Milestones Banner (If any probationers >= Day 150) */}
-      {urgentProbationers.length > 0 && (
+      {/* Reserve the banner slot while employees load so its mount does not shift the page. */}
+      {isEmpLoading && <Skeleton className="h-[78px] w-full" />}
+      {!isEmpLoading && urgentProbationers.length > 0 && (
         <Surface as="section" tone="warn" className="p-5">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
@@ -217,10 +219,12 @@ export default function Dashboard() {
         </div>
 
         {isEmpLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-11 w-full" />
+            <Skeleton className="h-11 w-full" />
+            <Skeleton className="h-11 w-full" />
+            <Skeleton className="h-11 w-full" />
           </div>
         ) : activeProbationers.length === 0 ? (
           <div className="py-8 text-center text-xs text-ink-3">
@@ -324,7 +328,11 @@ export default function Dashboard() {
         </div>
 
         {isPlansLoading ? (
-          <Skeleton className="h-20 w-full" />
+          <div className="space-y-3">
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-full" />
+          </div>
         ) : isPlansError ? (
           <div className="py-8 text-center text-xs text-bad">
             Unable to load AI training recommendations right now. Please retry.

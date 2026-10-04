@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { BarChart3, LogOut, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { sidebarNav } from '../../config/nav';
 import { getInitials } from '../../utils/format';
+import { formatManilaClock } from '../../utils/datetime';
 import { prefetchRoute } from '../../routes/loaders';
 
 export default function Sidebar({ onOpenCommandPalette }) {
@@ -37,22 +38,11 @@ export default function Sidebar({ onOpenCommandPalette }) {
       ? '/supervisor/dashboard'
       : '/dashboard';
 
-  // Live Philippine Standard Time (Asia/Manila)
-  const [manilaTime, setManilaTime] = useState('');
+  // Live Philippine Standard Time (Asia/Manila). Initialised synchronously so
+  // the block is present on first paint (avoids a post-paint layout shift).
+  const [manilaTime, setManilaTime] = useState(() => formatManilaClock());
   useEffect(() => {
-    const updateTime = () => {
-      setManilaTime(
-        new Date().toLocaleTimeString('en-US', {
-          timeZone: 'Asia/Manila',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false,
-        })
-      );
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
+    const interval = setInterval(() => setManilaTime(formatManilaClock()), 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -100,7 +90,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
       </div>
 
       {/* Manila Time Clock (Article 296 Timezone Anchor) */}
-      {!collapsed && manilaTime && (
+      {!collapsed && (
         <div className="mb-3 px-2.5 py-1.5 rounded-ctl bg-hover/50 border border-line/60 flex items-center justify-between text-12 font-mono text-ink-3">
           <span className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-good animate-pulse" />

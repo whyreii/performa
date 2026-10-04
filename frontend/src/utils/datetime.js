@@ -41,6 +41,17 @@ export function milestoneDate(startDate, day) {
   return addDays(startDate, day);
 }
 
+// Live wall-clock time in Asia/Manila (24h, HH:MM:SS). Display only.
+export function formatManilaClock(date = new Date()) {
+  return date.toLocaleTimeString('en-US', {
+    timeZone: 'Asia/Manila',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+}
+
 export function formatDate(value, { withTime = false, seconds = true } = {}) {
   if (!value) return 'N/A';
   try {
