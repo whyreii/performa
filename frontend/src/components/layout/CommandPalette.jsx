@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { Search, Settings, Palette, X, Bell, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Settings, Palette, X, Bell, ArrowUp, ArrowDown } from '../icons';
 import { commandNav } from '../../config/nav';
 import { PALETTES } from '../../config/themes';
 import { prefetchRoute } from '../../routes/loaders';

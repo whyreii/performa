@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { BarChart3, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
+import { BarChart3, Eye, EyeOff, AlertCircle, ArrowRight } from '../../components/icons';
 import { TextField, Surface } from '../../components/ui';
 import { PALETTE_IDS, PALETTE_BG } from '../../config/themes';
 

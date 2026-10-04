@@ -4,7 +4,7 @@ import { employeeApi, getApiErrorMessage } from '../../api';
 import { manilaTodayISO, addDays, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS } from '../../config/domain';
 import { Button, Modal, TextField } from '../ui';
-import { X, AlertCircle, UserCog } from 'lucide-react';
+import { X, AlertCircle, UserCog } from '../icons';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
   const queryClient = useQueryClient();

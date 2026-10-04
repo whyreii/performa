@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { adminApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
 import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
-import { History, AlertCircle } from 'lucide-react';
+import { History, AlertCircle } from '../../components/icons';
 
 export default function ActivityLog() {
   const {

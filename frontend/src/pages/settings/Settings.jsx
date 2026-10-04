@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   AlertCircle,
   ShieldAlert,
-} from 'lucide-react';
+} from '../../components/icons';
 
 export default function Settings() {
   const { user, refreshUser } = useAuth();

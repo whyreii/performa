@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { kpiApi } from '../../api';
-import { Target, Award, BookOpen, AlertCircle } from 'lucide-react';
+import { Target, Award, BookOpen, AlertCircle } from '../../components/icons';
 import { Card, Page } from '../../components/ui';
 
 export default function Rubrics() {

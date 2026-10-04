@@ -25,7 +25,7 @@ import {
   AlertCircle,
   Building2,
   Lock,
-} from 'lucide-react';
+} from '../../components/icons';
 
 export default function UserManagement() {
   const { user: currentUser } = useAuth();

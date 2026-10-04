@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { interventionApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, EmptyState, Card, CardSkeleton, Page } from '../../components/ui';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle } from '../../components/icons';
 
 export default function EmployeeTraining() {
   // Fetch the employee's own assigned intervention plans

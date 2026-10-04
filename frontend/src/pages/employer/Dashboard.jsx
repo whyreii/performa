@@ -9,7 +9,7 @@ import { getInitials } from '../../utils/format';
 import {
   ChevronRight,
   ArrowRight,
-} from 'lucide-react';
+} from '../../components/icons';
 
 export default function Dashboard() {
   const navigate = useNavigate();

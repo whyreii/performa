@@ -23,6 +23,7 @@ From the de-vibe work:
 10. One page wrapper. Every routed page renders `Page` (`components/ui/Page.jsx`); the per-page vertical rhythm (24px) + fade-in live there. The max-width/padding "gallery wall" lives **once** in `AppShell.jsx` — `Page` never declares it (no double grid). Direct children of `Page` must **not** add their own `mt-*`/`pt-*` — the 24px gap is owned solely by `Page` (a top-level row that pads itself drifts off the wall).
 11. The frame never moves. A card/list that loads asynchronously renders `CardSkeleton` (or a skeleton **inside** the real `Card`) with stubs sized to the loaded content, so the surface/height is reserved and nothing shifts when data arrives.
 12. Motion easing: use `--ease` for color/opacity transitions; use the `.ease-spring` utility (guarded by `@supports`, falls back to `--ease`) **only** for transform/position transitions — never on color.
+13. Icons come from `src/components/icons.js` **only** (Phosphor, MIT — SF-Symbols-inspired). No direct `lucide-react` / `@phosphor-icons/react` imports (enforced by `eslint.config.js` `no-restricted-imports`). Pass `weight="fill"` for active/selected states.
 
 ---
 
@@ -183,5 +184,7 @@ Verified: `npm run build` 0 errors; `pytest` 79 passed, 3 skipped; runtime — 7
 - **Theme palette single source** — added `frontend/src/config/themes.js` (`PALETTES` + ids/modes/bg); `ThemeContext`, `Login`, `MobileBar`, `Settings`, `CommandPalette` now import it (was duplicated in 5 files). Fixed the drifted swatch accents: Midnight `#3b82f6` → `#60a5fa`, Dusk `#9368f7` → `#a78bfa`. Guarded by `backend/tests/guardrails/test_theme_palette.py` (themes.js hexes must mirror `tokens.css`).
 - **Metric cards → `Card`** — the 4 Dashboard + 3 SupervisorDashboard metric tiles and the RateEmployee summary box used `rounded-ctl` (6px) instead of the `Card`/`Surface` radius `rounded-float` (14px); now render through `Card`.
 - **Inputs/selects → `inputClass` / `selectClass`** — search + select literals in AuditTrail, Employees, UserManagement, Rollups, RateEmployee now use the shared classes (`rounded-field` 10px, `h-10`); added `selectClass` (no `w-full`) for toolbar filters.
+
+**Icon system (2026-10-04):** migrated all icons from **Lucide** to **Phosphor** (MIT, SF-Symbols-inspired: weights + fill). Added `src/components/icons.js` as the single source — Phosphor components re-exported under the existing Lucide-style names so the 55 call sites did not change. Migrated 23 files (import-source swap only), removed the `lucide-react` dependency, updated `vite.config.js` `manualChunks` (dropped the forced vendor chunk so icons tree-shake/code-split), and added an eslint `no-restricted-imports` guardrail (only `icons.js` may import an icon library). No Apple assets (SF Symbols/SF Pro are proprietary; Phosphor is MIT).
 
 All phases (A–G) complete.

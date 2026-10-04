@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { BarChart3, ChevronLeft, Search, LogOut } from 'lucide-react';
+import { BarChart3, ChevronLeft, Search, LogOut } from '../icons';
 import { getInitials } from '../../utils/format';
 import { PALETTE_IDS, PALETTE_BG } from '../../config/themes';
 

@@ -5,7 +5,7 @@ import { formatDate } from '../../utils/datetime';
 import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, CheckCheck, AlertCircle } from 'lucide-react';
+import { Bell, CheckCheck, AlertCircle } from '../../components/icons';
 
 // Copy reflects what each role actually receives (backend notification
 // categories): Employer → statutory milestone alerts; Supervisor → Day 150 for

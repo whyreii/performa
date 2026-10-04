@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { BarChart3, LogOut, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { BarChart3, LogOut, ChevronLeft, ChevronRight, Search } from '../icons';
 import { sidebarNav } from '../../config/nav';
 import { getInitials } from '../../utils/format';
 import { formatManilaClock } from '../../utils/datetime';

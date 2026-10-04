@@ -16,7 +16,7 @@ import {
   ShieldCheck,
   Target,
   Users,
-} from 'lucide-react';
+} from '../components/icons';
 
 export const ROUTES = {
   adminUsers: { path: '/admin/users', icon: ShieldCheck },

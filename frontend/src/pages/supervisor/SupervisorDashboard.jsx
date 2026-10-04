@@ -13,7 +13,7 @@ import {
   AlertTriangle,
   ChevronRight,
   CheckCircle2,
-} from 'lucide-react';
+} from '../../components/icons';
 
 export default function SupervisorDashboard() {
   const { user } = useAuth();

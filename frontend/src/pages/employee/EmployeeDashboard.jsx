@@ -16,7 +16,7 @@ import {
   TrendingUp,
   ShieldCheck,
   AlertCircle,
-} from 'lucide-react';
+} from '../../components/icons';
 
 const COMPETENCY_DESCRIPTIONS = {
   task_completion: 'Job-specific deliverables and quota adherence',

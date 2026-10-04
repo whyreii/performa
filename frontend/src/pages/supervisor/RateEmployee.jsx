@@ -15,7 +15,7 @@ import {
   User,
   ArrowRight,
   Info,
-} from 'lucide-react';
+} from '../../components/icons';
 
 export default function RateEmployee() {
   const [searchParams] = useSearchParams();

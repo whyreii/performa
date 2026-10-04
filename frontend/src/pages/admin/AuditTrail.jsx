@@ -14,7 +14,7 @@ import {
   FileText,
   Clock,
   ArrowRight,
-} from 'lucide-react';
+} from '../../components/icons';
 
 export default function AuditTrail() {
   const { user } = useAuth();

@@ -18,7 +18,7 @@ import {
   X,
   Filter,
   Flame,
-} from 'lucide-react';
+} from '../../components/icons';
 
 export default function Employees() {
   const navigate = useNavigate();

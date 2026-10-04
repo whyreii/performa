@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal } from '../ui';
-import { X, Search, Printer, Sliders, Navigation, ShieldCheck } from 'lucide-react';
+import { X, Search, Printer, Sliders, Navigation, ShieldCheck } from '../icons';
 
 export default function ShortcutModal({ isOpen, onClose }) {
   const shortcutGroups = [

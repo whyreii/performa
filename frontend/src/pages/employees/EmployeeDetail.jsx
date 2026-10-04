@@ -18,7 +18,7 @@ import {
   Download,
   FileText,
   ArrowRight,
-} from 'lucide-react';
+} from '../../components/icons';
 
 const COMPETENCY_DESCRIPTIONS = {
   task_completion: 'Deliverables completed on schedule and adherence to task assignments',

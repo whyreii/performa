@@ -18,7 +18,7 @@ import {
   Plus,
   X,
   ArrowRight,
-} from 'lucide-react';
+} from '../../components/icons';
 
 export default function Rollups() {
   const queryClient = useQueryClient();

@@ -7,6 +7,7 @@
 //   3. No arbitrary type sizes (text-[…px]); use the Scale B tokens.
 //   4. No shadow-sm on rounded-float cards (cards are hairline).
 //   5. No uppercase micro-label kickers on span/div (table/print headers only).
+//   6. Icons come from src/components/icons.js only (no direct icon-library imports).
 //
 // Run: npm run lint
 import jsxA11y from 'eslint-plugin-jsx-a11y';
@@ -74,12 +75,33 @@ export default [
             'Do not hand-roll the card surface; use <Card>/<Surface> from src/components/ui.',
         },
       ],
+      // --- icon guardrail (docs/SLOP_AUDIT.md) ---
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'lucide-react',
+              message: 'Icons are centralized in src/components/icons.js.',
+            },
+            {
+              name: '@phosphor-icons/react',
+              message: 'Icons are centralized in src/components/icons.js.',
+            },
+          ],
+        },
+      ],
     },
   },
   {
     // The datetime helper is the single place allowed to convert to ISO.
     files: ['src/utils/datetime.js'],
     rules: { 'no-restricted-syntax': 'off' },
+  },
+  {
+    // The icon module is the single place allowed to import an icon library.
+    files: ['src/components/icons.js'],
+    rules: { 'no-restricted-imports': 'off' },
   },
   {
     // The surface definition lives in the primitives; the modal panel is its own
