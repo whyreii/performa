@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
-import { Button, Badge, Skeleton, EmptyState, Card } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, PageHeader } from '../../components/ui';
 import { History, AlertCircle } from 'lucide-react';
 
 export default function ActivityLog() {
@@ -19,16 +19,10 @@ export default function ActivityLog() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            System Activity Log
-          </h1>
-          <p className="text-sm text-ink-2 mt-1">
-            User actions across the tenant · newest first
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title="System Activity Log"
+        subtitle="User actions across the tenant · newest first"
+      />
 
       <Card padded={false} className="overflow-hidden">
         {isLoading ? (

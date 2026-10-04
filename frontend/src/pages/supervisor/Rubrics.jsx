@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { kpiApi } from '../../api';
 import { Target, Award, BookOpen, AlertCircle } from 'lucide-react';
-import { Card } from '../../components/ui';
+import { Card, PageHeader } from '../../components/ui';
 
 export default function Rubrics() {
   const { data: dbRubrics = [], isError: isRubricsError } = useQuery({
@@ -86,14 +86,10 @@ export default function Rubrics() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
-      <header className="pb-5 border-b border-line">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-          KPI Performance Rubrics
-        </h1>
-        <p className="text-sm text-ink-2 mt-1">
-          The 5 Statutory Competencies & Regularizing Benchmarks · Philippine Labor Code Art. 296
-        </p>
-      </header>
+      <PageHeader
+        title="KPI Performance Rubrics"
+        subtitle="The 5 Statutory Competencies & Regularizing Benchmarks · Philippine Labor Code Art. 296"
+      />
 
       {isRubricsError && (
         <div className="p-3 rounded-ctl bg-warn/8 border border-line text-warn text-xs flex items-center gap-2">
