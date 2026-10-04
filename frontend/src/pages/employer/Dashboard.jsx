@@ -230,13 +230,16 @@ export default function Dashboard() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
+              <caption className="sr-only">
+                Active probationers pipeline with {PROBATION_DAYS}-day tracker and milestone
+              </caption>
               <thead>
                 <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
-                  <th className="py-2.5 px-3">Employee</th>
-                  <th className="py-2.5 px-3">Department</th>
-                  <th className="py-2.5 px-3">{PROBATION_DAYS}-Day Tracker</th>
-                  <th className="py-2.5 px-3">Milestone</th>
-                  <th className="py-2.5 px-3 text-right">Action</th>
+                  <th scope="col" className="py-2.5 px-3">Employee</th>
+                  <th scope="col" className="py-2.5 px-3">Department</th>
+                  <th scope="col" className="py-2.5 px-3">{PROBATION_DAYS}-Day Tracker</th>
+                  <th scope="col" className="py-2.5 px-3">Milestone</th>
+                  <th scope="col" className="py-2.5 px-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line text-xs">

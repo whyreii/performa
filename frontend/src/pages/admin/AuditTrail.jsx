@@ -157,13 +157,16 @@ export default function AuditTrail() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
+              <caption className="sr-only">
+                Evidentiary labor score audit trail (Article 296)
+              </caption>
               <thead>
                 <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
-                  <th className="py-3 px-4">Timestamp (Asia/Manila)</th>
-                  <th className="py-3 px-4">Evaluator</th>
-                  <th className="py-3 px-4">Competency</th>
-                  <th className="py-3 px-4">Score Transition</th>
-                  <th className="py-3 px-4">Integrity Verification</th>
+                  <th scope="col" className="py-3 px-4">Timestamp (Asia/Manila)</th>
+                  <th scope="col" className="py-3 px-4">Evaluator</th>
+                  <th scope="col" className="py-3 px-4">Competency</th>
+                  <th scope="col" className="py-3 px-4">Score Transition</th>
+                  <th scope="col" className="py-3 px-4">Integrity Verification</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">

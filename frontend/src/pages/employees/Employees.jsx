@@ -414,9 +414,12 @@ export default function Employees() {
             {/* Desktop: table */}
             <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
+              <caption className="sr-only">
+                Employee directory with department, Article 296 timeline, and milestone status
+              </caption>
               <thead>
                 <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
-                  <th className="py-3 px-4">
+                  <th scope="col" className="py-3 px-4">
                     <button
                       type="button"
                       onClick={() => handleSort('name')}
@@ -426,8 +429,8 @@ export default function Employees() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="py-3 px-4">Department & Title</th>
-                  <th className="py-3 px-4">
+                  <th scope="col" className="py-3 px-4">Department & Title</th>
+                  <th scope="col" className="py-3 px-4">
                     <button
                       type="button"
                       onClick={() => handleSort('day')}
@@ -437,8 +440,8 @@ export default function Employees() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="py-3 px-4">Milestone Status</th>
-                  <th className="py-3 px-4 text-right">Action</th>
+                  <th scope="col" className="py-3 px-4">Milestone Status</th>
+                  <th scope="col" className="py-3 px-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line text-sm">

@@ -48,13 +48,14 @@ export default function ActivityLog() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
+              <caption className="sr-only">System activity log</caption>
               <thead>
                 <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
-                  <th className="py-3 px-4">Timestamp (Asia/Manila)</th>
-                  <th className="py-3 px-4">Actor</th>
-                  <th className="py-3 px-4">Action</th>
-                  <th className="py-3 px-4">Entity</th>
-                  <th className="py-3 px-4">Detail</th>
+                  <th scope="col" className="py-3 px-4">Timestamp (Asia/Manila)</th>
+                  <th scope="col" className="py-3 px-4">Actor</th>
+                  <th scope="col" className="py-3 px-4">Action</th>
+                  <th scope="col" className="py-3 px-4">Entity</th>
+                  <th scope="col" className="py-3 px-4">Detail</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">

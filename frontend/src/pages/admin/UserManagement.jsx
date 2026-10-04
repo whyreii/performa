@@ -288,13 +288,14 @@ export default function UserManagement() {
         {/* Desktop: table (>= lg) */}
         <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
+            <caption className="sr-only">User accounts</caption>
             <thead>
               <tr className="border-b border-line bg-hover/40 text-ink-3 font-mono uppercase text-12 tracking-wider">
-                <th className="py-3 px-4">User</th>
-                <th className="py-3 px-4">Role</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Created Date</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th scope="col" className="py-3 px-4">User</th>
+                <th scope="col" className="py-3 px-4">Role</th>
+                <th scope="col" className="py-3 px-4">Status</th>
+                <th scope="col" className="py-3 px-4">Created Date</th>
+                <th scope="col" className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
