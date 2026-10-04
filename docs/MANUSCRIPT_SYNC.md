@@ -61,21 +61,27 @@ The manuscript specifies a **70% / 15% / 15%** train / validation / test split
 reports accuracy, macro precision/recall/F1, weighted F1, confusion matrix, and a
 classification report for **validation and test**.
 
-**Important, honest finding to report** — on the current (synthetic) data the
-class distribution is heavily imbalanced and the model **cannot predict the
-minority class**:
+**Class imbalance — found and mitigated.** The synthetic labelling cascade yields
+far fewer "Meets Expectations" rows than gap rows, and the default classifier
+**ignored the minority class entirely** (F1 0.00). Adding `class_weight="balanced"`
+to the RandomForest fixed it:
 
 ```
 Label distribution: Critical Gap=290, Meets Expectations=16, Needs Improvement=294
-Test  — accuracy=0.9667  f1(macro)=0.6517  f1(weighted)=0.9558
-        Meets Expectations  precision=0.00  recall=0.00  f1=0.00  (support=2)
+
+Before (default weights)  Test: accuracy=0.9667  f1(macro)=0.6517
+  Meets Expectations  precision=0.00  recall=0.00  f1=0.00
+
+After (class_weight=balanced)  Test: accuracy=0.9778  f1(macro)=0.8776  f1(weighted)=0.9760
+  Meets Expectations  precision=1.00  recall=0.50  f1=0.67
+Validation: accuracy=0.9667  f1(macro)=0.9143  (Meets Expectations f1=0.80)
 ```
 
 **Action:** report **macro** F1 and the **confusion matrix**, not accuracy alone
-(accuracy is misleading under this imbalance), and state the limitation plainly.
-Options for the manuscript to note: collect more "Meets Expectations" records,
-or add `class_weight="balanced"` to the classifier (a code change — do not apply
-unasked). Regenerate metrics with `python -m backend.ml.train`.
+(accuracy is misleading under this imbalance). Regenerate metrics with
+`python -m backend.ml.train`. Note: this tuning is against the *synthetic*
+distribution; re-run and re-report once the partner dataset is wired via
+`TRAINING_DATASET`.
 
 ---
 

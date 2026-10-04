@@ -169,6 +169,10 @@ def train_model() -> tuple[RandomForestClassifier, dict]:
         n_estimators=100,
         max_depth=6,
         random_state=RANDOM_STATE,
+        # The competency cascade yields far fewer "Meets Expectations" rows than
+        # gap rows; balanced class weights stop the model from ignoring the
+        # minority class (which otherwise scores ~0 F1).
+        class_weight="balanced",
     )
     model.fit(x_train, y_train)
 
