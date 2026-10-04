@@ -26,7 +26,7 @@
     margin: 0;
     color: var(--ink);
     font-family: var(--font);
-    font-size: var(--t-15);
+    font-size: var(--t-16);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     transition: background-color var(--m) var(--ease), color var(--m) var(--ease);

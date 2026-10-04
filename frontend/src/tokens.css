@@ -5,12 +5,12 @@
    Fonts: IBM Plex Sans (UI) + IBM Plex Mono (numbers, dates, scores, IDs, hashes). */
 
 :root {
+  /* Type scale — Scale B (5 steps): 12 / 14 / 16 / 22 / 30 */
   --t-12: 12px;
-  --t-13: 13px;
-  --t-15: 15px;
-  --t-17: 17px;
+  --t-14: 14px;
+  --t-16: 16px;
   --t-22: 22px;
-  --t-34: 34px;
+  --t-30: 30px;
   --s1: 4px;
   --s2: 8px;
   --s3: 16px;

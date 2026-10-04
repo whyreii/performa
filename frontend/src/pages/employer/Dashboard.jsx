@@ -7,14 +7,8 @@ import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { getInitials } from '../../utils/format';
 import { activateOnKey } from '../../utils/a11y';
 import {
-  Users,
-  AlertTriangle,
-  Award,
-  FileCheck2,
-  Calendar,
   ChevronRight,
   TrendingUp,
-  Clock,
   ArrowRight,
   ShieldAlert,
 } from 'lucide-react';
@@ -126,78 +120,67 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* 1. Top Metrics Cards */}
+      {/* 1. Top Metrics Cards — Option 1: label → metric → caption (no icons) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Active Probationers */}
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs text-ink-3">
-            <span className="font-medium">Active Probationers</span>
-            <Users className="w-4 h-4 text-accent" />
-          </div>
+        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm flex flex-col gap-2">
+          <span className="text-14 font-semibold text-ink">Active Probationers</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-bold font-mono text-ink">
-              {stats.totalActive}
-            </span>
-            <span className="text-xs text-ink-3">staff members</span>
+            <span className="text-30 font-bold font-mono text-ink">{stats.totalActive}</span>
+            <span className="text-12 text-ink-3">staff members</span>
           </div>
-          <p className="text-[11px] text-ink-2">Under 180-day evaluation</p>
+          <p className="text-12 text-ink-2">Under 180-day evaluation</p>
         </div>
 
-        {/* Milestone Warnings */}
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs text-ink-3">
-            <span className="font-medium">Milestone Alerts</span>
-            <AlertTriangle className="w-4 h-4 text-warn" />
-          </div>
+        {/* Milestone Alerts — tone dot only when the count signals action */}
+        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm flex flex-col gap-2">
+          <span className="text-14 font-semibold text-ink inline-flex items-center gap-1.5">
+            {stats.criticalMilestones > 0 && (
+              <span className="w-1.5 h-1.5 rounded-full bg-warn shrink-0" aria-hidden="true" />
+            )}
+            Milestone Alerts
+          </span>
           <div className="flex items-baseline gap-2">
             <span
-              className={`text-2xl sm:text-3xl font-bold font-mono ${
+              className={`text-30 font-bold font-mono ${
                 stats.criticalMilestones > 0 ? 'text-warn' : 'text-ink'
               }`}
             >
               {stats.criticalMilestones}
             </span>
-            <span className="text-xs text-ink-3">action items</span>
+            <span className="text-12 text-ink-3">action items</span>
           </div>
-          <p className="text-[11px] text-ink-2">Day 150 · 165 · 178 thresholds</p>
+          <p className="text-12 text-ink-2">Day 150 · 165 · 178 thresholds</p>
         </div>
 
         {/* Regularizing Benchmark */}
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs text-ink-3">
-            <span className="font-medium">Regularizing Target</span>
-            <Award className="w-4 h-4 text-ok" />
-          </div>
+        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm flex flex-col gap-2">
+          <span className="text-14 font-semibold text-ink">Regularizing Target</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-bold font-mono text-ink">4.0</span>
-            <span className="text-xs text-ink-3">/ 5.0 passing</span>
+            <span className="text-30 font-bold font-mono text-ink">4.0</span>
+            <span className="text-12 text-ink-3">/ 5.0 passing</span>
           </div>
-          <p className="text-[11px] text-ink-2">Across 5 legal competencies</p>
+          <p className="text-12 text-ink-2">Across 5 legal competencies</p>
         </div>
 
         {/* AI Training Plans */}
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs text-ink-3">
-            <span className="font-medium">AI Training Plans</span>
-            <FileCheck2
-              className={`w-4 h-4 ${(stats.pendingPlans ?? plans.length) === 0 ? 'text-ok' : 'text-accent'}`}
-            />
-          </div>
+        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm flex flex-col gap-2">
+          <span className="text-14 font-semibold text-ink">AI Training Plans</span>
           <div className="flex items-baseline gap-2">
             <span
-              className={`text-2xl sm:text-3xl font-bold font-mono ${
+              className={`text-30 font-bold font-mono ${
                 (stats.pendingPlans ?? plans.length) === 0 ? 'text-ok' : 'text-ink'
               }`}
             >
               {stats.pendingPlans ?? plans.length}
             </span>
-            <span className="text-xs text-ink-3">
+            <span className="text-12 text-ink-3">
               {(stats.pendingPlans ?? plans.length) === 0
                 ? 'all meeting benchmarks'
                 : 'courses recommended'}
             </span>
           </div>
-          <p className="text-[11px] text-ink-2">
+          <p className="text-12 text-ink-2">
             {(stats.pendingPlans ?? plans.length) === 0
               ? 'No interventions required'
               : 'ML Random Forest gap classifier'}

@@ -52,6 +52,15 @@ export default {
         sans: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
         mono: ['IBM Plex Mono', 'ui-monospace', 'Menlo', 'monospace'],
       },
+      // Scale B — the only five type sizes (see tokens.css). Mono stays for
+      // numbers/dates/IDs; 12px floor uses weight 450–500.
+      fontSize: {
+        12: ['var(--t-12)', { lineHeight: '1.5' }],
+        14: ['var(--t-14)', { lineHeight: '1.5' }],
+        16: ['var(--t-16)', { lineHeight: '1.5' }],
+        22: ['var(--t-22)', { lineHeight: '1.3' }],
+        30: ['var(--t-30)', { lineHeight: '1.15' }],
+      },
       boxShadow: {
         side: 'var(--shadow)',
         pop: 'var(--pop)',

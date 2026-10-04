@@ -315,19 +315,19 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       <section className="bg-surface border border-line rounded-float p-6 sm:p-7 shadow-sm">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-line">
           <div className="flex items-start gap-4 shrink-0">
-            <div className="w-14 h-14 rounded-full bg-accent/15 border border-accent/25 text-accent font-semibold text-lg flex items-center justify-center shrink-0">
+            <div className="w-14 h-14 rounded-full bg-accent/15 border border-accent/25 text-accent font-semibold text-16 flex items-center justify-center shrink-0">
               {getInitials(employee.user?.full_name)}
             </div>
 
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-ink">
+                <h1 className="text-22 font-bold tracking-tight text-ink">
                   {employee.user?.full_name}
                 </h1>
                 <MilestonePill daysElapsed={daysElapsed} status={employee.status} />
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-2">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-12 text-ink-2">
                 <span className="font-medium text-ink">{employee.job_title}</span>
                 <span>·</span>
                 <span className="flex items-center gap-1">
@@ -433,16 +433,16 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-5">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h2 className="text-base font-semibold text-ink flex items-center gap-2">
+            <h2 className="text-16 font-semibold text-ink flex items-center gap-2">
               <Calendar className="w-4 h-4 text-accent" />
               <span>Article 296 Statutory Probation Tracker</span>
             </h2>
-            <p className="text-xs text-ink-3 mt-0.5">
+            <p className="text-12 text-ink-3 mt-0.5">
               Strict 180-day limitation calculated under Asia/Manila standard time
             </p>
           </div>
 
-          <div className="font-mono text-xs text-ink">
+          <div className="font-mono text-12 text-ink">
             <b>Day {daysElapsed}</b> / 180 ({daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining)
           </div>
         </div>
@@ -465,7 +465,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </div>
 
           {/* Milestone markers */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-[11px] font-mono">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-12 font-mono">
             <div className="p-3 rounded-ctl bg-hover border border-line">
               <span className="text-ink-3 block">Start (Day 0)</span>
               <span className="font-semibold text-ink">{formatDate(employee.start_date)}</span>
@@ -501,19 +501,19 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-6">
         <div className="flex items-center justify-between pb-4 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink flex items-center gap-2">
+            <h2 className="text-16 font-semibold text-ink flex items-center gap-2">
               <Award className="w-4 h-4 text-accent" />
               <span>Competency Scorecard & Benchmarks</span>
             </h2>
-            <p className="text-xs text-ink-3 mt-0.5">
+            <p className="text-12 text-ink-3 mt-0.5">
               The 5 statutory performance competencies with 4.0 regularizing target
             </p>
           </div>
 
           {scorecard?.latest_evaluation_date ? (
-            <div className="text-right">
-              <span className="text-xs text-ink-3 block font-mono">Overall Average</span>
-              <span className="text-xl font-bold font-mono text-ink">
+            <div>
+              <span className="text-12 text-ink-3 block">Overall Average</span>
+              <span className="text-22 font-bold font-mono text-ink">
                 {Number(scorecard.overall_score).toFixed(1)} / 5.0
               </span>
             </div>
@@ -542,12 +542,12 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <div key={comp.key} className="p-4 rounded-ctl bg-hover/60 border border-line space-y-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="font-semibold text-sm text-ink block">{comp.label}</span>
-                    <span className="text-xs text-ink-3 block">
+                    <span className="font-semibold text-14 text-ink block">{comp.label}</span>
+                    <span className="text-12 text-ink-3 block">
                       {COMPETENCY_DESCRIPTIONS[comp.key] || 'Statutory competency'}
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-sm text-ink shrink-0 ml-2">
+                  <span className="font-mono font-bold text-14 text-ink shrink-0 ml-2">
                     {Number(comp.score).toFixed(1)}
                   </span>
                 </div>
