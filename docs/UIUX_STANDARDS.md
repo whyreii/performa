@@ -186,10 +186,12 @@ the interface fully keyboard-operable.
 - **Color independence.** Status is always color **plus** text/icon: `Badge` renders
   a label (`Active`, `Day 178 · Critical Action`, `Regularized`), `StatusDot` pairs a
   dot with a label, and `ScoreMeter` shows the numeric score.
-- **Keyboard operability.** A global `:focus-visible` ring (2 px accent, `!important`
-  so it survives `focus:outline-none`), a `?` shortcut modal, `Esc` to close
-  dialogs/modals (`hooks/useEscapeKey.js`), and `Ctrl/⌘+K` command palette
-  (`AppShell.jsx`).
+- **Keyboard operability.** A global `:focus-visible` ring (2 px accent). It is
+  deliberately **not** `!important` (`index.css:44-52`): components that opt out
+  with `focus:outline-none` provide their own focus style, so forcing the ring
+  would paint a second, offset indicator on top of theirs. Plus a `?` shortcut
+  modal, `Esc` to close dialogs/modals (`hooks/useEscapeKey.js`), and `Ctrl/⌘+K`
+  command palette (`AppShell.jsx`).
 - **Verified contrast.** All five themes were audited and adjusted so every text
   token and badge meets **≥ 4.5:1** (Appendix A). Minimum measured value:
   **4.50:1**.
