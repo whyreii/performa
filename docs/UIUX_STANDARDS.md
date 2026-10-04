@@ -40,6 +40,10 @@ recommended something and must never take an irreversible employment action on i
   (`GET /api/evaluations/{id}/risk-explanation`), rendered under "ML Risk Explanation"
   in `EmployeeDetail.jsx`. A **Gemini Performance Rationale** accompanies the
   recommendation (`routers/evaluations.py`, `Regularization Recommendation` panel).
+- **Local + global explainability.** Beyond Gini and permutation feature importance,
+  `backend/ml/explain.py` computes **exact Shapley values** over the five
+  competencies for each prediction, and the panel renders a per-competency
+  attribution waterfall. See `docs/XAI_METHODOLOGY.md`.
 - **Advisory only.** Regularization status is changed solely through an explicit
   employer action (`POST /api/employees/{id}/status`, restricted to the `employer`
   role — see `AGENTS.md` §3.2). The AI produces a *recommendation*, never a status.
