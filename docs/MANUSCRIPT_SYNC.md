@@ -83,6 +83,18 @@ Validation: accuracy=0.9667  f1(macro)=0.9143  (Meets Expectations f1=0.80)
 distribution; re-run and re-report once the partner dataset is wired via
 `TRAINING_DATASET`.
 
+**Supplying the real dataset.** Point `TRAINING_DATASET` at a CSV with one row per
+employee and one column per competency in canonical order (values 1.0–5.0):
+
+```
+task_completion,attendance_and_punctuality,communication_and_teamwork,initiative_and_adaptability,quality_of_work
+4.5,4.0,3.5,4.2,4.8
+1.5,2.0,1.8,2.2,1.9
+```
+
+Labels are derived with the same cascade; then run `python -m backend.ml.train`.
+The loader (and its validation) is covered by `backend/tests/test_ml_train.py`.
+
 ---
 
 ## 5. Security section (P1)
