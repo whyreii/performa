@@ -1,6 +1,6 @@
 # POUR Audit — Performa Frontend (real app)
 
-**Status:** Audit + **Phase 1 remediation applied (2026-10-04)** · Not a conformance claim
+**Status:** Audit + **Phase 1 and Phase 2/3 remediation applied (2026-10-04)** · Not a conformance claim
 **Scope:** `frontend/src/**` — 15 pages, 7 UI primitives, 5 layout components, contexts/utils.
 **Date basis:** source as of the current working tree (`frontend/src`, `frontend/index.html`, `frontend/eslint.config.js`, `frontend/package.json`, `.github/workflows/ci.yml`).
 **Method:** manual code inspection with `file:line` evidence. Contrast is not re-measured here — it reuses the measured values in `docs/UIUX_STANDARDS.md` §7 Appendix A. No automated accessibility tooling exists in the repo (see `R-1`), so nothing below is machine-verified.
@@ -156,3 +156,29 @@ Automated tooling is intentionally not present, so verify by hand:
 ## 11. Sources
 
 `frontend/src/components/layout/{AppShell,Sidebar,MobileBar,BottomTabBar,CommandPalette,ShortcutModal}.jsx`; `frontend/src/components/employees/AddEmployeeModal.jsx`; `frontend/src/components/ui/{Button,Badge,StatusDot,ScoreMeter,MilestonePill,Skeleton}.jsx`; `frontend/src/pages/**/*.jsx` (15 pages); `frontend/src/utils/a11y.js`; `frontend/src/hooks/useEscapeKey.js`; `frontend/src/context/ToastContext.jsx`; `frontend/src/index.css`; `frontend/src/tokens.css`; `frontend/index.html`; `frontend/eslint.config.js`; `frontend/package.json`; `.github/workflows/ci.yml`; `docs/UIUX_STANDARDS.md`; `docs/UIUX_AUDIT.md`; `docs/DESIGN_QA.md`; `AGENTS.md`.
+
+---
+
+## 12. Phase 2/3 remediation log (2026-10-04)
+
+The structural findings from §8 were implemented. No new dependencies, no
+invariant change. Verified with `npm run build` (0 errors), `npm run lint` (0),
+and `python -m pytest backend/tests/ -q` (95 passed, 3 skipped), plus a browser
+smoke check (combobox/listbox/option roles, table captions, `th scope`).
+
+| ID | Change | Files |
+|---|---|---|
+| P-3 / R-3 | `<caption className="sr-only">` + `scope="col"` on every data table | `Employees.jsx`, `Dashboard.jsx`, `AuditTrail.jsx`, `ActivityLog.jsx`, `UserManagement.jsx` |
+| P-1 | Unread state exposed as text (`sr-only` "Unread"/"Read"); dot is `aria-hidden` | `Notifications.jsx` |
+| O-2 | Sidebar brand `<div onClick>` → real `<Link>` to the role home; palette options now `role="option"` | `Sidebar.jsx`, `CommandPalette.jsx` |
+| O-5 | Mobile tab targets raised to a 44px min height | `BottomTabBar.jsx` |
+| U-3 | "Assigned System Role" wrapped in `role="radiogroup"` with `role="radio"`/`aria-checked` | `UserManagement.jsx` |
+| U-4 | Duplicate print `<h1>` demoted to `<p>` (single h1 per page); Dashboard h3-before-h2 corrected | `EmployeeDetail.jsx`, `AuditTrail.jsx`, `Dashboard.jsx` |
+| U-5 | Inline success/error banners announced with `role="alert"` | `UserManagement.jsx`, `Rollups.jsx`, `RateEmployee.jsx`, `Login.jsx`, `Settings.jsx` |
+| U-6 | Command palette → full combobox/listbox pattern (`aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-selected`) | `CommandPalette.jsx` |
+| R-4 | Focusable `<tr>` replaced by a real `<Link>` on the employee name (no roleless focusable row) | `Employees.jsx`, `Dashboard.jsx` |
+
+**Still open (by decision):** `P-2` (doc drift — the `!important` wording in
+`UIUX_STANDARDS.md` §7), `O-4` (covered by the shared `Modal` primitive's focus
+trap/return), `R-1` (automated a11y lint — devDependency, STOP-AND-ASK), `R-5`
+(no action).
