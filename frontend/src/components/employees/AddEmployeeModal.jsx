@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
-import { manilaTodayISO } from '../../utils/datetime';
+import { manilaTodayISO, addDays, formatDate } from '../../utils/datetime';
+import { PROBATION_DAYS } from '../../config/domain';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { Button } from '../ui';
 import { X, UserPlus, AlertCircle, Calendar, ShieldCheck, UserCog } from 'lucide-react';
@@ -34,20 +35,10 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
     }
   }, [supervisors, supervisorId]);
 
-  // Calculate Day 180 preview (+180 days)
+  // Calculate Day 180 preview (start + PROBATION_DAYS) via the shared helper.
   const calculateDay180 = (start) => {
-    if (!start) return '';
-    try {
-      const d = new Date(start);
-      d.setDate(d.getDate() + 180);
-      return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    } catch {
-      return '';
-    }
+    const d = addDays(start, PROBATION_DAYS);
+    return d ? formatDate(d) : '';
   };
 
   const day180Preview = calculateDay180(startDate);

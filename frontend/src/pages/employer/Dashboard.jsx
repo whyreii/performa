@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
+import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
 import { activateOnKey } from '../../utils/a11y';
 import {
@@ -62,9 +63,9 @@ export default function Dashboard() {
 
     activeProbationers.forEach((emp) => {
       const days = getDaysElapsed(emp.start_date);
-      if (days >= 178) day178Count += 1;
-      else if (days >= 165) day165Count += 1;
-      else if (days >= 150) day150Count += 1;
+      if (days >= MILESTONE_CRITICAL) day178Count += 1;
+      else if (days >= MILESTONE_NOTICE) day165Count += 1;
+      else if (days >= MILESTONE_REVIEW) day150Count += 1;
     });
 
     const pendingPlans = plans.filter((p) => p.status === 'pending_approval').length;
@@ -86,7 +87,7 @@ export default function Dashboard() {
         ...emp,
         daysElapsed: getDaysElapsed(emp.start_date),
       }))
-      .filter((emp) => emp.daysElapsed >= 150)
+      .filter((emp) => emp.daysElapsed >= MILESTONE_REVIEW)
       .sort((a, b) => b.daysElapsed - a.daysElapsed);
   }, [activeProbationers]);
 
@@ -129,7 +130,7 @@ export default function Dashboard() {
             <span className="text-30 font-bold font-mono text-ink">{stats.totalActive}</span>
             <span className="text-12 text-ink-3">staff members</span>
           </div>
-          <p className="text-12 text-ink-2">Under 180-day evaluation</p>
+          <p className="text-12 text-ink-2">Under {PROBATION_DAYS}-day evaluation</p>
         </div>
 
         {/* Milestone Alerts — tone dot only when the count signals action */}
@@ -150,7 +151,9 @@ export default function Dashboard() {
             </span>
             <span className="text-12 text-ink-3">action items</span>
           </div>
-          <p className="text-12 text-ink-2">Day 150 · 165 · 178 thresholds</p>
+          <p className="text-12 text-ink-2">
+            Day {MILESTONE_REVIEW} · {MILESTONE_NOTICE} · {MILESTONE_CRITICAL} thresholds
+          </p>
         </div>
 
         {/* Regularizing Benchmark */}
@@ -220,7 +223,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
             <h2 className="text-base font-semibold text-ink">Active Probationary Pipeline</h2>
-            <p className="text-xs text-ink-3">Live timeline progress tracking toward Day 180</p>
+            <p className="text-xs text-ink-3">Live timeline progress tracking toward Day {PROBATION_DAYS}</p>
           </div>
           <Button
             variant="ghost"
@@ -248,7 +251,7 @@ export default function Dashboard() {
                 <tr className="border-b border-line text-[11px] font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
                   <th className="py-2.5 px-3">Employee</th>
                   <th className="py-2.5 px-3">Department</th>
-                  <th className="py-2.5 px-3">180-Day Tracker</th>
+                  <th className="py-2.5 px-3">{PROBATION_DAYS}-Day Tracker</th>
                   <th className="py-2.5 px-3">Milestone</th>
                   <th className="py-2.5 px-3 text-right">Action</th>
                 </tr>
@@ -256,7 +259,7 @@ export default function Dashboard() {
               <tbody className="divide-y divide-line text-xs">
                 {activeProbationers.map((emp) => {
                   const days = getDaysElapsed(emp.start_date);
-                  const progressPct = Math.min(100, Math.round((days / 180) * 100));
+                  const progressPct = Math.min(100, Math.round((days / PROBATION_DAYS) * 100));
 
                   return (
                     <tr
@@ -288,18 +291,18 @@ export default function Dashboard() {
                         <div className="space-y-1">
                           <div className="flex justify-between font-mono text-[11px] text-ink-2">
                             <span>Day {days}</span>
-                            <span className="text-ink-3">{Math.max(0, 180 - days)}d left</span>
+                            <span className="text-ink-3">{Math.max(0, PROBATION_DAYS - days)}d left</span>
                           </div>
                           <div className="h-1.5 w-full bg-line rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all ${
-                                days >= 178
-                                  ? 'bg-bad'
-                                  : days >= 165
-                                  ? 'bg-notice'
-                                  : days >= 150
-                                  ? 'bg-warn'
-                                  : 'bg-accent'
+              days >= MILESTONE_CRITICAL
+                ? 'bg-bad'
+                : days >= MILESTONE_NOTICE
+                ? 'bg-notice'
+                : days >= MILESTONE_REVIEW
+                ? 'bg-warn'
+                : 'bg-accent'
                               }`}
                               style={{ width: `${progressPct}%` }}
                             />

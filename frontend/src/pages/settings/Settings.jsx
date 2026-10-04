@@ -219,9 +219,7 @@ export default function Settings() {
             <span className="text-sm font-semibold text-ink flex items-center gap-1.5 truncate">
               <Building className="w-3.5 h-3.5 text-ink-3 shrink-0" />
               <span>
-                {user?.organization_id === 'acme-ph'
-                  ? 'Acme Philippines Corp.'
-                  : user?.organization_id || '—'}
+                {user?.organization_name || user?.organization_id || '—'}
               </span>
             </span>
           </div>

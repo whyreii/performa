@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, ScoreMeter, MilestonePill, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
+import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import {
   Award,
   Calendar,
@@ -73,8 +74,8 @@ export default function EmployeeDashboard() {
   });
 
   const daysElapsed = myProfile ? getDaysElapsed(myProfile.start_date) : 0;
-  const daysRemaining = Math.max(0, 180 - daysElapsed);
-  const progressPct = Math.min(100, Math.round((daysElapsed / 180) * 100));
+  const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
+  const progressPct = Math.min(100, Math.round((daysElapsed / PROBATION_DAYS) * 100));
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
@@ -110,7 +111,7 @@ export default function EmployeeDashboard() {
               Start: <b>{formatDate(myProfile?.start_date)}</b>
             </span>
             <span className="p-1.5 rounded-ctl bg-hover border border-line">
-              Day 180 Cap: <b>{formatDate(myProfile?.day_180_date)}</b>
+              Day {PROBATION_DAYS} Cap: <b>{formatDate(myProfile?.day_180_date)}</b>
             </span>
           </div>
         </div>
@@ -129,11 +130,11 @@ export default function EmployeeDashboard() {
           <div className="relative h-3 w-full bg-hover border border-line rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-performa ${
-                daysElapsed >= 178
+                daysElapsed >= MILESTONE_CRITICAL
                   ? 'bg-bad'
-                  : daysElapsed >= 165
+                  : daysElapsed >= MILESTONE_NOTICE
                   ? 'bg-notice'
-                  : daysElapsed >= 150
+                  : daysElapsed >= MILESTONE_REVIEW
                   ? 'bg-warn'
                   : 'bg-accent'
               }`}
@@ -144,19 +145,19 @@ export default function EmployeeDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 text-xs">
             <div className="p-3 rounded-ctl bg-hover/70 border border-line space-y-1">
               <span className="text-ink-3 block font-mono text-[11px]">Milestone 1</span>
-              <span className="font-semibold text-ink block">Day 150 Appraisal</span>
+              <span className="font-semibold text-ink block">Day {MILESTONE_REVIEW} Appraisal</span>
               <p className="text-[11px] text-ink-3">Comprehensive 5th-month evaluation.</p>
             </div>
 
             <div className="p-3 rounded-ctl bg-hover/70 border border-line space-y-1">
               <span className="text-ink-3 block font-mono text-[11px]">Milestone 2</span>
-              <span className="font-semibold text-ink block">Day 165 Notice Window</span>
+              <span className="font-semibold text-ink block">Day {MILESTONE_NOTICE} Notice Window</span>
               <p className="text-[11px] text-ink-3">Statutory 15-day notice threshold.</p>
             </div>
 
             <div className="p-3 rounded-ctl bg-hover/70 border border-line space-y-1">
               <span className="text-ink-3 block font-mono text-[11px]">Milestone 3</span>
-              <span className="font-semibold text-ink block">Day 180 Regularization</span>
+              <span className="font-semibold text-ink block">Day {PROBATION_DAYS} Regularization</span>
               <p className="text-[11px] text-ink-3">Permanent employment conferment.</p>
             </div>
           </div>

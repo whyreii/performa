@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
-import { daysElapsed as getDaysElapsed, parseDateOnly, formatDate } from '../../utils/datetime';
+import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
+import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET } from '../../config/domain';
 import { getInitials } from '../../utils/format';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import {
@@ -128,6 +129,15 @@ export default function EmployeeDetail() {
     retry: false,
   });
 
+  // Overall regularization target for the trend marker (max configured target,
+  // floored at TARGET) — never a hardcoded 4.0 / 80%.
+  const overallTarget = useMemo(() => {
+    const targets = (scorecard?.competencies || [])
+      .map((c) => Number(c.target))
+      .filter((v) => Number.isFinite(v));
+    return targets.length ? Math.max(TARGET, ...targets) : TARGET;
+  }, [scorecard]);
+
   const regularizationMutation = useMutation({
     mutationFn: () => evaluationApi.generateRegularization(id),
     onSuccess: () => {
@@ -182,24 +192,24 @@ REPUBLIC OF THE PHILIPPINES | LABOR CODE ARTICLE 296
 STATUTORY PROBATIONARY EVALUATION NOTICE
 ========================================================================
 Date Generated: ${formatDate(new Date())} (Asia/Manila Standard Time)
-Organization: Acme Philippines Corp.
+Organization: ${user?.organization_name || user?.organization_id || 'N/A'}
 Employee: ${employee.user?.full_name || 'N/A'}
 Job Title / Department: ${employee.job_title} · ${employee.department}
-Start Date: ${formatDate(employee.start_date)} | Days Elapsed: Day ${elapsed} of 180
+Start Date: ${formatDate(employee.start_date)} | Days Elapsed: Day ${elapsed} of ${PROBATION_DAYS}
 Statutory Status: ${
-      elapsed >= 178
-        ? 'CRITICAL (Day 178+ Auto-Regularization Risk)'
-        : elapsed >= 165
-        ? 'DAY 165 NOTICE WINDOW (15-Day Buffer)'
-        : elapsed >= 150
-        ? 'DAY 150 PERFORMANCE REVIEW DUE'
-        : 'ON TRACK (< Day 150)'
+      elapsed >= MILESTONE_CRITICAL
+        ? `CRITICAL (Day ${MILESTONE_CRITICAL}+ Auto-Regularization Risk)`
+        : elapsed >= MILESTONE_NOTICE
+        ? `DAY ${MILESTONE_NOTICE} NOTICE WINDOW (15-Day Buffer)`
+        : elapsed >= MILESTONE_REVIEW
+        ? `DAY ${MILESTONE_REVIEW} PERFORMANCE REVIEW DUE`
+        : `ON TRACK (< Day ${MILESTONE_REVIEW})`
     }
 
 1. STATUTORY BENCHMARK (Article 296 Standard)
-   Mandatory Regularizing Benchmark: 4.00 / 5.00 across all 5 core competencies
+   Mandatory Regularizing Benchmark: ${TARGET.toFixed(2)} / 5.00 across all 5 core competencies
    Current Overall Rating: ${typeof overall === 'number' ? overall.toFixed(2) : overall} / 5.00 ${
-      typeof overall === 'number' && overall >= 4.0
+      typeof overall === 'number' && overall >= TARGET
         ? '[MET STATUTORY BENCHMARK]'
         : '[BELOW STATUTORY BENCHMARK]'
     }
@@ -208,9 +218,9 @@ Statutory Status: ${
 ${competenciesText || '   • No weekly ratings submitted yet.'}
 
 3. STATUTORY NOTICE TIMELINE
-   Day 150 Review Date: ${formatDate(new Date(new Date(employee.start_date).getTime() + 150 * 86400000))}
-   Day 165 Written Notice Deadline: ${formatDate(new Date(new Date(employee.start_date).getTime() + 165 * 86400000))}
-   Day 180 Legal Ceiling: ${formatDate(employee.day_180_date)}
+   Day ${MILESTONE_REVIEW} Review Date: ${formatDate(milestoneDate(employee.start_date, MILESTONE_REVIEW))}
+   Day ${MILESTONE_NOTICE} Written Notice Deadline: ${formatDate(milestoneDate(employee.start_date, MILESTONE_NOTICE))}
+   Day ${PROBATION_DAYS} Legal Ceiling: ${formatDate(employee.day_180_date)}
 ========================================================================`;
 
     navigator.clipboard
@@ -256,8 +266,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
   }
 
   const daysElapsed = getDaysElapsed(employee.start_date);
-  const daysRemaining = Math.max(0, 180 - daysElapsed);
-  const progressPct = Math.min(100, Math.round((daysElapsed / 180) * 100));
+  const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
+  const progressPct = Math.min(100, Math.round((daysElapsed / PROBATION_DAYS) * 100));
 
   const canManageStatus = user?.role === 'employer';
   const canRate = user?.role === 'supervisor' || user?.role === 'employer';
@@ -273,7 +283,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           Probationary Performance Evaluation Report
         </h1>
         <p className="text-center text-[11px] mt-1">
-          Labor Code of the Philippines · Article 296 · Acme Philippines Corp.
+            Labor Code of the Philippines · Article 296 · {user?.organization_name || user?.organization_id || ''}
         </p>
         <div className="mt-3 text-[11px] leading-relaxed">
           <p>
@@ -283,7 +293,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             <b>Job Title / Department:</b> {employee.job_title} · {employee.department}
           </p>
           <p>
-            <b>Start Date:</b> {formatDate(employee.start_date)} · <b>Day:</b> {daysElapsed} of 180
+            <b>Start Date:</b> {formatDate(employee.start_date)} · <b>Day:</b> {daysElapsed} of {PROBATION_DAYS}
           </p>
           <p>
             <b>Generated:</b> {formatDate(new Date())} (Asia/Manila Standard Time)
@@ -438,12 +448,12 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <span>Article 296 Statutory Probation Tracker</span>
             </h2>
             <p className="text-12 text-ink-3 mt-0.5">
-              Strict 180-day limitation calculated under Asia/Manila standard time
+              Strict {PROBATION_DAYS}-day limitation calculated under Asia/Manila standard time
             </p>
           </div>
 
           <div className="font-mono text-12 text-ink">
-            <b>Day {daysElapsed}</b> / 180 ({daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining)
+            <b>Day {daysElapsed}</b> / {PROBATION_DAYS} ({daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining)
           </div>
         </div>
 
@@ -452,11 +462,11 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           <div className="relative h-3 w-full bg-hover border border-line rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
-                daysElapsed >= 178
+                daysElapsed >= MILESTONE_CRITICAL
                   ? 'bg-bad'
-                  : daysElapsed >= 165
+                  : daysElapsed >= MILESTONE_NOTICE
                   ? 'bg-notice'
-                  : daysElapsed >= 150
+                  : daysElapsed >= MILESTONE_REVIEW
                   ? 'bg-warn'
                   : 'bg-accent'
               }`}
@@ -472,25 +482,21 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             </div>
 
             <div className="p-3 rounded-ctl bg-hover border border-line">
-              <span className="text-warn block">Day 150 (Review Due)</span>
+              <span className="text-warn block">Day {MILESTONE_REVIEW} (Review Due)</span>
               <span className="font-semibold text-ink">
-                {formatDate(
-                  new Date(parseDateOnly(employee.start_date).getTime() + 150 * 86400000)
-                )}
+                {formatDate(milestoneDate(employee.start_date, MILESTONE_REVIEW))}
               </span>
             </div>
 
             <div className="p-3 rounded-ctl bg-hover border border-line">
-              <span className="text-notice block">Day 165 (Notice Due)</span>
+              <span className="text-notice block">Day {MILESTONE_NOTICE} (Notice Due)</span>
               <span className="font-semibold text-ink">
-                {formatDate(
-                  new Date(parseDateOnly(employee.start_date).getTime() + 165 * 86400000)
-                )}
+                {formatDate(milestoneDate(employee.start_date, MILESTONE_NOTICE))}
               </span>
             </div>
 
             <div className="p-3 rounded-ctl bg-hover border border-line">
-              <span className="text-bad block">Day 180 (Deadline)</span>
+              <span className="text-bad block">Day {PROBATION_DAYS} (Deadline)</span>
               <span className="font-semibold text-ink">{formatDate(employee.day_180_date)}</span>
             </div>
           </div>
@@ -567,7 +573,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <span>Monthly KPI Trend</span>
             </h2>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono text-ink-3">Target &gt;= 4.00</span>
+              <span className="text-12 font-mono text-ink-3">Target &gt;= {overallTarget.toFixed(2)}</span>
               <Badge variant="neutral">{trend.length} months</Badge>
             </div>
           </div>
@@ -576,22 +582,22 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <div key={point.month_number} className="space-y-1">
                 <div className="flex justify-between text-xs font-mono text-ink-2">
                   <span>Month {point.month_number}</span>
-                  <span className={`font-semibold ${Number(point.overall_average) >= 4.0 ? 'text-good' : 'text-warn'}`}>
+                  <span className={`font-semibold ${Number(point.overall_average) >= overallTarget ? 'text-good' : 'text-warn'}`}>
                     {Number(point.overall_average).toFixed(2)} / 5.0
                   </span>
                 </div>
                 <div className="relative h-2.5 w-full bg-hover border border-line rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${
-                      Number(point.overall_average) >= 4.0 ? 'bg-good' : 'bg-warn'
+                      Number(point.overall_average) >= overallTarget ? 'bg-good' : 'bg-warn'
                     }`}
                     style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
                   />
-                  {/* Statutory 4.0 Benchmark Marker (80%) */}
+                  {/* Target marker at the configured regularizing target */}
                   <div
                     className="absolute top-0 bottom-0 w-0.5 bg-ink/60 z-10"
-                    style={{ left: '80%' }}
-                    title="Statutory 4.0 Regularizing Standard (80%)"
+                    style={{ left: `${(overallTarget / 5) * 100}%` }}
+                    title={`Target ${overallTarget.toFixed(2)} / 5.0`}
                   />
                 </div>
               </div>

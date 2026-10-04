@@ -55,6 +55,8 @@ class UserResponse(UserBase):
 
     id: uuid.UUID
     created_at: datetime
+    # Tenant display name (resolved from Organization.name); None when unknown.
+    organization_name: Optional[str] = None
 
 
 class Token(BaseModel):

@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
+import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
 import { activateOnKey } from '../../utils/a11y';
 import AddEmployeeModal from '../../components/employees/AddEmployeeModal';
@@ -84,9 +85,9 @@ export default function Employees() {
     employees.forEach((emp) => {
       if (emp.status === 'active') {
         const elapsed = getDaysElapsed(emp.start_date);
-        if (elapsed >= 178) critical178 += 1;
-        else if (elapsed >= 165) notice165 += 1;
-        else if (elapsed >= 150) appraisal150 += 1;
+        if (elapsed >= MILESTONE_CRITICAL) critical178 += 1;
+        else if (elapsed >= MILESTONE_NOTICE) notice165 += 1;
+        else if (elapsed >= MILESTONE_REVIEW) appraisal150 += 1;
         else nominal += 1;
       }
     });
@@ -106,10 +107,10 @@ export default function Employees() {
         if (selectedMilestone !== 'all') {
           if (emp.status !== 'active') return false;
           const elapsed = getDaysElapsed(emp.start_date);
-          if (selectedMilestone === 'critical178' && elapsed < 178) return false;
-          if (selectedMilestone === 'notice165' && (elapsed < 165 || elapsed >= 178)) return false;
-          if (selectedMilestone === 'appraisal150' && (elapsed < 150 || elapsed >= 165)) return false;
-          if (selectedMilestone === 'nominal' && elapsed >= 150) return false;
+          if (selectedMilestone === 'critical178' && elapsed < MILESTONE_CRITICAL) return false;
+          if (selectedMilestone === 'notice165' && (elapsed < MILESTONE_NOTICE || elapsed >= MILESTONE_CRITICAL)) return false;
+          if (selectedMilestone === 'appraisal150' && (elapsed < MILESTONE_REVIEW || elapsed >= MILESTONE_NOTICE)) return false;
+          if (selectedMilestone === 'nominal' && elapsed >= MILESTONE_REVIEW) return false;
         }
 
         // Dept filter
@@ -316,7 +317,7 @@ export default function Employees() {
           }`}
         >
           <Flame className="w-3.5 h-3.5" />
-          <span>Day 178 Critical ({milestoneCounts.critical178})</span>
+          <span>Day {MILESTONE_CRITICAL} Critical ({milestoneCounts.critical178})</span>
         </button>
 
         <button
@@ -329,7 +330,7 @@ export default function Employees() {
           }`}
         >
           <AlertCircle className="w-3.5 h-3.5" />
-          <span>Day 165 Notice ({milestoneCounts.notice165})</span>
+          <span>Day {MILESTONE_NOTICE} Notice ({milestoneCounts.notice165})</span>
         </button>
 
         <button
@@ -342,7 +343,7 @@ export default function Employees() {
           }`}
         >
           <Clock className="w-3.5 h-3.5" />
-          <span>Day 150 Review ({milestoneCounts.appraisal150})</span>
+          <span>Day {MILESTONE_REVIEW} Review ({milestoneCounts.appraisal150})</span>
         </button>
 
         <button
@@ -355,7 +356,7 @@ export default function Employees() {
           }`}
         >
           <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>On Track (&lt; Day 150) ({milestoneCounts.nominal})</span>
+          <span>On Track (&lt; Day {MILESTONE_REVIEW}) ({milestoneCounts.nominal})</span>
         </button>
       </div>
       )}
@@ -397,8 +398,8 @@ export default function Employees() {
             <div className="lg:hidden divide-y divide-line">
               {filteredEmployees.map((emp) => {
                 const daysElapsed = getDaysElapsed(emp.start_date);
-                const daysRemaining = Math.max(0, 180 - daysElapsed);
-                const progressPct = Math.min(100, Math.round((daysElapsed / 180) * 100));
+                const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
+                const progressPct = Math.min(100, Math.round((daysElapsed / PROBATION_DAYS) * 100));
                 const isRegular = emp.status === 'regularized';
 
                 return (
@@ -444,11 +445,11 @@ export default function Employees() {
                       <div className="h-1.5 w-full bg-line rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${
-                            daysElapsed >= 178
+                            daysElapsed >= MILESTONE_CRITICAL
                               ? 'bg-bad'
-                              : daysElapsed >= 165
+                              : daysElapsed >= MILESTONE_NOTICE
                               ? 'bg-notice'
-                              : daysElapsed >= 150
+                              : daysElapsed >= MILESTONE_REVIEW
                               ? 'bg-warn'
                               : 'bg-accent'
                           }`}
@@ -494,8 +495,8 @@ export default function Employees() {
               <tbody className="divide-y divide-line text-sm">
                 {filteredEmployees.map((emp) => {
                   const daysElapsed = getDaysElapsed(emp.start_date);
-                  const daysRemaining = Math.max(0, 180 - daysElapsed);
-                  const progressPct = Math.min(100, Math.round((daysElapsed / 180) * 100));
+                  const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
+                  const progressPct = Math.min(100, Math.round((daysElapsed / PROBATION_DAYS) * 100));
 
                   return (
                     <tr
@@ -528,7 +529,7 @@ export default function Employees() {
                         <span className="text-xs text-ink-3 block">{emp.department}</span>
                       </td>
 
-                      {/* Probation 180-Day Timeline Bar */}
+                      {/* Probation timeline bar */}
                       <td className="py-3 px-4 min-w-[150px]">
                         {emp.status === 'regularized' ? (
                           <span className="text-xs font-medium text-ok flex items-center gap-1">
@@ -544,11 +545,11 @@ export default function Employees() {
                             <div className="h-1.5 w-full bg-line rounded-full overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all ${
-                                  daysElapsed >= 178
+                                  daysElapsed >= MILESTONE_CRITICAL
                                     ? 'bg-bad'
-                                    : daysElapsed >= 165
+                                    : daysElapsed >= MILESTONE_NOTICE
                                     ? 'bg-notice'
-                                    : daysElapsed >= 150
+                                    : daysElapsed >= MILESTONE_REVIEW
                                     ? 'bg-warn'
                                     : 'bg-accent'
                                 }`}

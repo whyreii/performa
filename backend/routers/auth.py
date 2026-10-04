@@ -21,7 +21,7 @@ from ..auth import (
 from ..audit import record_activity
 from ..config import get_settings
 from ..database import get_db
-from ..models import User
+from ..models import Organization, User
 from ..schemas import PasswordChange, ProfileUpdate, Token, UserResponse
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -117,10 +117,26 @@ async def login(
     return Token(access_token=access_token, token_type="bearer")
 
 
+async def _with_organization_name(user: User, db: AsyncSession) -> UserResponse:
+    """Serialize a user, enriching the response with the tenant's display name."""
+    response = UserResponse.model_validate(user)
+    org = (
+        await db.execute(
+            select(Organization).where(Organization.slug == user.organization_id)
+        )
+    ).scalar_one_or_none()
+    if org is not None:
+        response.organization_name = org.name
+    return response
+
+
 @router.get("/me", response_model=UserResponse, summary="Return the authenticated user")
-async def read_current_user(current_user: User = Depends(get_current_user)) -> User:
+async def read_current_user(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> UserResponse:
     """Return the profile of the currently authenticated user."""
-    return current_user
+    return await _with_organization_name(current_user, db)
 
 
 @router.post("/logout", summary="Clear the authentication cookie")
@@ -135,7 +151,7 @@ async def update_current_user(
     payload: ProfileUpdate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> User:
+) -> UserResponse:
     """Allow a user to update their own full name and email."""
     if payload.email is not None and payload.email != current_user.email:
         existing = await db.execute(select(User.id).where(User.email == payload.email))
@@ -158,7 +174,7 @@ async def update_current_user(
             detail="That email address is already in use.",
         )
     await db.refresh(current_user)
-    return current_user
+    return await _with_organization_name(current_user, db)
 
 
 @router.post("/change-password", summary="Change the current user's password")

@@ -5,6 +5,7 @@ import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, MilestonePill, StatusDot, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
+import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
 import {
   Users,
@@ -127,7 +128,7 @@ export default function SupervisorDashboard() {
           <div className="divide-y divide-line">
             {activeProbationers.map((emp) => {
               const days = getDaysElapsed(emp.start_date);
-              const progressPct = Math.min(100, Math.round((days / 180) * 100));
+              const progressPct = Math.min(100, Math.round((days / PROBATION_DAYS) * 100));
 
               return (
                 <div
@@ -152,12 +153,12 @@ export default function SupervisorDashboard() {
                     <div className="min-w-[130px] space-y-1">
                       <div className="flex justify-between font-mono text-[11px] text-ink-2">
                         <span>Day {days}</span>
-                        <span className="text-ink-3">{Math.max(0, 180 - days)}d left</span>
+                        <span className="text-ink-3">{Math.max(0, PROBATION_DAYS - days)}d left</span>
                       </div>
                       <div className="h-1.5 w-full bg-line rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${
-                            days >= 178 ? 'bg-bad' : days >= 165 ? 'bg-notice' : days >= 150 ? 'bg-warn' : 'bg-accent'
+                            days >= MILESTONE_CRITICAL ? 'bg-bad' : days >= MILESTONE_NOTICE ? 'bg-notice' : days >= MILESTONE_REVIEW ? 'bg-warn' : 'bg-accent'
                           }`}
                           style={{ width: `${progressPct}%` }}
                         />

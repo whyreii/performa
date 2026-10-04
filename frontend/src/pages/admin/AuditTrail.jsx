@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { evaluationApi, getApiErrorMessage } from '../../api';
+import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
 import { Button, Badge, Skeleton } from '../../components/ui';
@@ -17,6 +18,8 @@ import {
 } from 'lucide-react';
 
 export default function AuditTrail() {
+  const { user } = useAuth();
+  const orgLabel = user?.organization_name || user?.organization_id || 'Organization';
   const [competencyFilter, setCompetencyFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -68,7 +71,7 @@ export default function AuditTrail() {
             Article 296 Statutory Evaluation Audit Exhibit
           </h1>
           <p className="text-[10px] text-gray-600">
-            Tenant: Acme Philippines Corp. (acme-ph) · Generated: {formatDate(new Date())} (Asia/Manila)
+            Tenant: {orgLabel} · Generated: {formatDate(new Date())} (Asia/Manila)
           </p>
         </div>
       </div>
@@ -252,7 +255,7 @@ export default function AuditTrail() {
               </Button>
             </div>
           )}
-          <span className="hidden sm:inline">Acme Philippines Corp. · Legal Archive</span>
+            <span className="hidden sm:inline">{orgLabel} · Legal Archive</span>
         </footer>
       </section>
 

@@ -27,6 +27,20 @@ export function daysElapsed(startDate) {
   return Math.max(0, Math.round((now.getTime() - start.getTime()) / 86400000));
 }
 
+// Add whole days to a calendar date without UTC drift (shared day-math helper).
+export function addDays(value, days) {
+  const base = value instanceof Date ? value : parseDateOnly(value);
+  if (!base) return null;
+  const result = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+// Statutory milestone date = start date + N days (Day-0 convention).
+export function milestoneDate(startDate, day) {
+  return addDays(startDate, day);
+}
+
 export function formatDate(value, { withTime = false, seconds = true } = {}) {
   if (!value) return 'N/A';
   try {

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
+import { employeeApi, evaluationApi, kpiApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, ScoreMeter, StatusDot, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
+import { TARGET } from '../../config/domain';
 import {
   Award,
   AlertTriangle,
@@ -35,6 +36,24 @@ export default function RateEmployee() {
     return employees.filter((e) => e.status === 'active');
   }, [employees]);
 
+  // Employer-configured per-competency targets (floor: TARGET). Pass/fail and
+  // the "Target" marker evaluate against these, never a hardcoded 4.0.
+  const { data: rubrics = [] } = useQuery({
+    queryKey: ['kpi-rubrics'],
+    queryFn: () => kpiApi.list(),
+  });
+  const targetByKey = useMemo(() => {
+    const map = {};
+    rubrics.forEach((r) => {
+      map[r.competency] = Number(r.target_score);
+    });
+    return map;
+  }, [rubrics]);
+  const thresholdTarget = useMemo(() => {
+    const values = Object.values(targetByKey).filter((v) => Number.isFinite(v));
+    return values.length ? Math.max(TARGET, ...values) : TARGET;
+  }, [targetByKey]);
+
   // Selected employee ID state
   const [selectedId, setSelectedId] = useState(preselectedEmpId || '');
 
@@ -58,11 +77,11 @@ export default function RateEmployee() {
 
   // Form ratings state (5 competencies on 1.0 to 5.0 scale)
   const [ratings, setRatings] = useState({
-    task_completion: 4.0,
-    quality_of_work: 4.0,
-    attendance_and_punctuality: 4.0,
-    communication_and_teamwork: 4.0,
-    initiative_and_adaptability: 4.0,
+    task_completion: TARGET,
+    quality_of_work: TARGET,
+    attendance_and_punctuality: TARGET,
+    communication_and_teamwork: TARGET,
+    initiative_and_adaptability: TARGET,
   });
 
   const [remarks, setRemarks] = useState('');
@@ -227,7 +246,7 @@ export default function RateEmployee() {
             Rate Probationary Employee
           </h1>
           <p className="text-sm text-ink-2 mt-1">
-            Article 296 Evidentiary Due Process Matrix · Target 4.0 Standard
+            Article 296 Evidentiary Due Process Matrix · Target {thresholdTarget.toFixed(1)} Standard
           </p>
         </div>
       </header>
@@ -278,7 +297,7 @@ export default function RateEmployee() {
               </div>
               <div className="border-l border-line pl-3">
                 <span className="text-ink-3 block">Threshold Target</span>
-                <span className="font-mono font-semibold text-accent">4.0 / 5.0</span>
+                <span className="font-mono font-semibold text-accent">{thresholdTarget.toFixed(1)} / 5.0</span>
               </div>
             </div>
           )}
@@ -291,8 +310,8 @@ export default function RateEmployee() {
         <div className="space-y-4">
           {competencies.map((comp, idx) => {
             const currentScore = ratings[comp.key];
-            const isMeets = currentScore >= 4.0;
-            const isWarn = currentScore >= 3.0 && currentScore < 4.0;
+            const target = targetByKey[comp.key] ?? TARGET;
+            const isMeets = currentScore >= target;
 
             return (
               <div
@@ -312,8 +331,8 @@ export default function RateEmployee() {
                     <span className="font-mono text-lg font-bold text-ink">
                       {currentScore.toFixed(1)}
                     </span>
-                    <Badge variant={isMeets ? 'ok' : isWarn ? 'warn' : 'bad'}>
-                      {isMeets ? 'Meets (>= 4.0)' : isWarn ? 'Developing' : 'Critical Gap'}
+                    <Badge variant={isMeets ? 'ok' : 'warn'}>
+                      {isMeets ? 'Meets Target' : 'Below Target'}
                     </Badge>
                   </div>
                 </div>
@@ -323,7 +342,7 @@ export default function RateEmployee() {
                   <div className="flex items-center justify-between gap-0.5 sm:gap-2 overflow-x-auto pt-3 pb-1 sm:pb-0 scrollbar-none">
                     {[1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0].map((score) => {
                       const isSelected = currentScore === score;
-                      const isTarget = score === 4.0;
+                      const isTarget = score === target;
                       return (
                         <button
                           key={score}
@@ -350,7 +369,7 @@ export default function RateEmployee() {
                   </div>
                   <div className="flex justify-between text-[11px] text-ink-3 mt-1.5 px-0.5 font-mono">
                     <span>1.0 Unsatisfactory</span>
-                    <span>3.0 Minimum Pass</span>
+                    <span>{TARGET.toFixed(1)} Regularizing Standard</span>
                     <span>5.0 Exceptional</span>
                   </div>
                 </div>
@@ -376,12 +395,10 @@ export default function RateEmployee() {
                   {overallAverage.toFixed(1)} <span className="text-xs text-ink-3">/ 5.0</span>
                 </span>
               </div>
-              <Badge variant={overallAverage >= 4.0 ? 'ok' : overallAverage >= 3.0 ? 'warn' : 'bad'}>
-                {overallAverage >= 4.0
+              <Badge variant={overallAverage >= thresholdTarget ? 'ok' : 'warn'}>
+                {overallAverage >= thresholdTarget
                   ? 'On Track for Regularization'
-                  : overallAverage >= 3.0
-                  ? 'Needs Targeted Coaching'
-                  : 'Critical Non-Regularization Risk'}
+                  : 'Below Regularization Target'}
               </Badge>
             </div>
           </div>
