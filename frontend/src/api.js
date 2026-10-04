@@ -138,6 +138,10 @@ export const employeeApi = {
     const response = await apiClient.get('/api/employees/milestones');
     return response.data;
   },
+  scanMilestones: async () => {
+    const response = await apiClient.post('/api/employees/milestones/scan');
+    return response.data;
+  },
   listSupervisors: async () => {
     const response = await apiClient.get('/api/employees/supervisors');
     return response.data;

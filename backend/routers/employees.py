@@ -24,6 +24,7 @@ from ..auth import get_current_user, get_password_hash, require_role
 from ..audit import record_activity
 from ..database import get_db
 from ..models import ProbationaryEmployee, ProbationStatus, User, UserRole
+from ..notifications import create_notification
 from ..schemas import (
     MilestoneEmployee,
     MilestoneReport,
@@ -38,6 +39,16 @@ router = APIRouter(tags=["Employees"])
 
 PROBATION_TERM_DAYS = 180
 MILESTONE_LEAD_DAYS = 7
+
+# Statutory milestone alerts (Article 296). Each fires at most once per
+# employee; the Employer always receives all three, the assigned Supervisor
+# only the Day 150 review alert (Manuscript: supervisor is view-only for alerts).
+# (day, employee flag attribute, notification title, category)
+MILESTONE_ALERT_STEPS: tuple[tuple[int, str, str, str], ...] = (
+    (150, "milestone_150_alerted", "Day 150 · Performance appraisal due", "milestone_150"),
+    (165, "milestone_165_alerted", "Day 165 · Written-notice window", "milestone_165"),
+    (178, "milestone_178_alerted", "Day 178 · Critical 48h to regularization", "milestone_178"),
+)
 
 
 def _employee_load_options() -> tuple[Load, ...]:
@@ -92,6 +103,66 @@ def _milestone_item(employee: ProbationaryEmployee, as_of: date) -> MilestoneEmp
         day_178_reached=as_of >= day_178_date,
         overdue=days_remaining < 0,
     )
+
+
+async def _fire_milestone_alerts(
+    db: AsyncSession, organization_id: Optional[str] = None
+) -> int:
+    """Dispatch due statutory milestone alerts for active probationers.
+
+    Idempotent: each of the Day 150/165/178 alerts fires at most once per
+    employee (guarded by the ``milestone_*_alerted`` flags). The Employer always
+    receives all three; the assigned Supervisor receives only the Day 150 review
+    alert. When ``organization_id`` is ``None`` every tenant is scanned (used by
+    the background dispatch loop). Returns the number of alerts fired.
+    """
+    stmt = (
+        select(ProbationaryEmployee)
+        .options(selectinload(ProbationaryEmployee.user))
+        .where(ProbationaryEmployee.status == ProbationStatus.ACTIVE)
+    )
+    if organization_id is not None:
+        stmt = stmt.where(ProbationaryEmployee.organization_id == organization_id)
+    employees = list((await db.execute(stmt)).scalars().all())
+
+    as_of = manila_today()
+    fired = 0
+    for employee in employees:
+        for day, flag_attr, title, category in MILESTONE_ALERT_STEPS:
+            if getattr(employee, flag_attr):
+                continue
+            if as_of < employee.start_date + timedelta(days=day):
+                continue
+
+            setattr(employee, flag_attr, True)
+            fired += 1
+            days_elapsed = (as_of - employee.start_date).days
+            name = employee.user.full_name if employee.user else "A probationary employee"
+            body = (
+                f"{name} is at Day {days_elapsed} of 180 and has reached the "
+                f"statutory Day {day} milestone under Article 296."
+            )
+            create_notification(
+                db,
+                user_id=employee.employer_id,
+                organization_id=employee.organization_id,
+                title=title,
+                body=body,
+                category=category,
+            )
+            if day == 150 and employee.supervisor_id is not None:
+                create_notification(
+                    db,
+                    user_id=employee.supervisor_id,
+                    organization_id=employee.organization_id,
+                    title=title,
+                    body=body,
+                    category=category,
+                )
+
+    if fired:
+        await db.commit()
+    return fired
 
 
 def _is_approaching_or_past(threshold_date: date, as_of: date) -> bool:
@@ -316,6 +387,34 @@ async def list_milestones(
             day_178.append(item)
 
     return MilestoneReport(as_of=as_of, day_150=day_150, day_165=day_165, day_178=day_178)
+
+
+@router.post(
+    "/milestones/scan",
+    summary="Dispatch due statutory milestone alerts (Employer)",
+)
+async def scan_milestone_alerts(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
+) -> dict[str, int]:
+    """Fire any due, un-dispatched Day 150/165/178 alerts for the caller's tenant.
+
+    Idempotent: each alert fires at most once per employee, so the Employer
+    dashboard can call this on load to dispatch alerts automatically.
+    """
+    fired = await _fire_milestone_alerts(db, current_user.organization_id)
+    if fired:
+        record_activity(
+            db,
+            organization_id=current_user.organization_id,
+            actor=current_user,
+            action="milestone.dispatch",
+            entity_type="organization",
+            entity_id=current_user.organization_id,
+            detail=f"fired={fired}",
+        )
+        await db.commit()
+    return {"fired": fired}
 
 
 @router.get(

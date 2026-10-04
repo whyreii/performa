@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   AlertCircle,
   ShieldAlert,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function Settings() {
@@ -50,35 +51,6 @@ export default function Settings() {
     } finally {
       setIsSavingProfile(false);
     }
-  };
-
-  // Milestone Notification preferences
-  const [notifications, setNotifications] = useState(() => {
-    try {
-      const saved = localStorage.getItem('performa_milestone_notifications');
-      return saved
-        ? JSON.parse(saved)
-        : {
-            day150: true,
-            day165: true,
-            day178: true,
-            weeklyDigest: false,
-          };
-    } catch {
-      return { day150: true, day165: true, day178: true, weeklyDigest: false };
-    }
-  });
-
-  const [notificationSaved, setNotificationSaved] = useState(false);
-
-  const handleToggleNotification = (key) => {
-    const updated = { ...notifications, [key]: !notifications[key] };
-    setNotifications(updated);
-    try {
-      localStorage.setItem('performa_milestone_notifications', JSON.stringify(updated));
-      setNotificationSaved(true);
-      setTimeout(() => setNotificationSaved(false), 2500);
-    } catch {}
   };
 
   // Password change state
@@ -357,7 +329,7 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* 3. Article 296 Statutory Milestone Notifications */}
+      {/* 3. Article 296 Statutory Alert Protocols (mandatory, system-dispatched) */}
       <section className="bg-surface border border-line rounded-float p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-line flex-wrap gap-2">
           <div className="flex items-center gap-3">
@@ -366,19 +338,17 @@ export default function Settings() {
             </div>
             <div>
               <h2 className="text-base font-semibold text-ink">
-                Philippine Labor Code Article 296 Alerts
+                Article 296 Statutory Alert Protocols
               </h2>
               <p className="text-xs text-ink-3">
-                Mandatory alerts calculated in Asia/Manila against the strict 180-day cap
+                Mandatory · System Active — dispatched automatically in Asia/Manila against the strict 180-day cap
               </p>
             </div>
           </div>
-          {notificationSaved && (
-            <span className="text-xs font-medium text-ok flex items-center gap-1 animate-in fade-in">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Preferences saved</span>
-            </span>
-          )}
+          <span className="text-xs font-medium text-ok flex items-center gap-1">
+            <ShieldCheck className="w-4 h-4" />
+            <span>System Active</span>
+          </span>
         </div>
 
         <div className="space-y-4">
@@ -392,15 +362,10 @@ export default function Settings() {
                 Triggers when an employee reaches 150 days of probation. Alerts HR and supervisors to schedule the formal 5th-month performance appraisal.
               </p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
-              <input
-                type="checkbox"
-                checked={notifications.day150}
-                onChange={() => handleToggleNotification('day150')}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-line peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent" />
-            </label>
+            <span className="text-xs font-medium text-ok flex items-center gap-1 shrink-0 mt-1">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Active</span>
+            </span>
           </div>
 
           <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
@@ -415,15 +380,10 @@ export default function Settings() {
                 Guarantees the required 15-day notice buffer before Day 180. Alerts employers if any employee under target is in jeopardy of termination or regularization.
               </p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
-              <input
-                type="checkbox"
-                checked={notifications.day165}
-                onChange={() => handleToggleNotification('day165')}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-line peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent" />
-            </label>
+            <span className="text-xs font-medium text-ok flex items-center gap-1 shrink-0 mt-1">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Active</span>
+            </span>
           </div>
 
           <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
@@ -438,15 +398,10 @@ export default function Settings() {
                 Final alert: under Philippine law, working on Day 181 confers automatic permanent regular status. Immediate action required.
               </p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
-              <input
-                type="checkbox"
-                checked={notifications.day178}
-                onChange={() => handleToggleNotification('day178')}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-line peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-bad" />
-            </label>
+            <span className="text-xs font-medium text-ok flex items-center gap-1 shrink-0 mt-1">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Active</span>
+            </span>
           </div>
         </div>
       </section>

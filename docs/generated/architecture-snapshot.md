@@ -201,6 +201,7 @@ Auth column is read from the FastAPI dependency graph.
 | GET | `/api/employees/` | authenticated (any role) | list_employees |
 | POST | `/api/employees/` | roles: employer | create_employee |
 | GET | `/api/employees/milestones` | roles: admin, employer, supervisor | list_milestones |
+| POST | `/api/employees/milestones/scan` | roles: employer | scan_milestone_alerts |
 | GET | `/api/employees/supervisors` | roles: admin, employer | list_supervisors |
 | GET | `/api/employees/{employee_id}` | authenticated (any role) | get_employee |
 | POST | `/api/employees/{employee_id}/acknowledge-standards` | authenticated (any role) | acknowledge_standards |

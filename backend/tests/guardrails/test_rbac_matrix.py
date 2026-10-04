@@ -47,6 +47,7 @@ MATRIX = {
     ("POST", "/api/employees/"): {"employer"},
     ("GET", "/api/employees/"): ALL,
     ("GET", "/api/employees/milestones"): {"admin", "employer", "supervisor"},
+    ("POST", "/api/employees/milestones/scan"): {"employer"},
     ("GET", "/api/employees/supervisors"): {"admin", "employer"},
     ("GET", "/api/employees/{employee_id}"): ALL,
     ("POST", "/api/employees/{employee_id}/acknowledge-standards"): {"probationary_employee"},

@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
@@ -21,6 +21,17 @@ import {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Dispatch any due statutory milestone alerts (idempotent) on dashboard load.
+  useEffect(() => {
+    employeeApi
+      .scanMilestones()
+      .then((res) => {
+        if (res?.fired) queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      })
+      .catch(() => {});
+  }, [queryClient]);
 
   // Fetch employees
   const { data: employees = [], isLoading: isEmpLoading } = useQuery({

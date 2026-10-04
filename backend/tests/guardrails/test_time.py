@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
-from backend.tests.helpers import EMPLOYER_EMAIL, login_user
+from backend.tests.helpers import EMPLOYER_EMAIL, SUPERVISOR_EMAIL, login_user
 from backend.timeutils import MANILA_TZ, manila_today
 
 
@@ -74,12 +74,29 @@ async def test_milestone_dates_have_fixed_spacing_and_cap(client, monkeypatch):
     assert (cap - start).days == 180
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="FINDING: milestone alerts are not wired — milestone_150/165/178_alerted "
-    "are never written and no notification fires at 150/165/178 (only a read-only report exists)",
-)
-def test_milestone_alerts_fire_once_in_order():
-    import backend.routers.employees as emp
+@pytest.mark.asyncio
+async def test_milestone_alerts_fire_once_in_order(client):
+    """Day 150/165/178 alerts dispatch once (idempotent), Employer gets all three."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
 
-    assert hasattr(emp, "_fire_milestone_alerts"), "no milestone alert-firing function exists"
+    # Seed: emp2 Day 152 (150), emp3 Day 166 (150,165), emp4 Day 179 (150,165,178) = 6 alerts.
+    first = await client.post("/api/employees/milestones/scan", headers=employer)
+    assert first.status_code == 200, first.text
+    assert first.json()["fired"] == 6
+
+    again = await client.post("/api/employees/milestones/scan", headers=employer)
+    assert again.json()["fired"] == 0, "alerts must fire at most once per milestone"
+
+    employer_notes = (await client.get("/api/notifications", headers=employer)).json()
+    assert len(employer_notes) == 6
+    assert {n["category"] for n in employer_notes} == {
+        "milestone_150",
+        "milestone_165",
+        "milestone_178",
+    }
+
+    # Supervisor receives only the Day 150 alert, and only for an assigned report.
+    supervisor_notes = (await client.get("/api/notifications", headers=supervisor)).json()
+    assert len(supervisor_notes) == 1
+    assert supervisor_notes[0]["category"] == "milestone_150"
