@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, Modal, EmptyState, textareaClass } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, CardSkeleton, Modal, EmptyState, textareaClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -124,7 +124,7 @@ export default function EmployeeDetail() {
     },
   });
 
-  const { data: trend = [] } = useQuery({
+  const { data: trend = [], isLoading: isTrendLoading } = useQuery({
     queryKey: ['trend', id],
     queryFn: () => evaluationApi.getTrend(id),
     enabled: !!id && hasEvaluations,
@@ -138,7 +138,7 @@ export default function EmployeeDetail() {
     retry: false,
   });
 
-  const { data: riskExplanation } = useQuery({
+  const { data: riskExplanation, isLoading: isRiskLoading } = useQuery({
     queryKey: ['risk-explanation', id],
     queryFn: () => evaluationApi.getRiskExplanation(id),
     enabled: !!id && hasEvaluations,
@@ -593,7 +593,26 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       </Card>
 
       {/* 3b. Monthly KPI Trend */}
-      {trend.length > 0 && (
+      {isTrendLoading && (
+        <CardSkeleton className="space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-line">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="space-y-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="space-y-1">
+                <div className="flex justify-between">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+                <Skeleton className="h-2.5 w-full" />
+              </div>
+            ))}
+          </div>
+        </CardSkeleton>
+      )}
+      {!isTrendLoading && trend.length > 0 && (
         <Card className="space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-line">
             <h2 className="text-base font-semibold text-ink">Monthly KPI Trend</h2>
@@ -697,7 +716,30 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       </Card>
 
       {/* 3d. ML Risk Explanation (feature importances) */}
-      {riskExplanation && (
+      {isRiskLoading && (
+        <CardSkeleton className="space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-line">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-3 w-56" />
+            </div>
+            <Skeleton className="h-6 w-28" />
+          </div>
+          <div className="space-y-3">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className="space-y-1">
+                <div className="flex justify-between">
+                  <Skeleton className="h-3 w-28" />
+                  <Skeleton className="h-3 w-12" />
+                </div>
+                <Skeleton className="h-1.5 w-full" />
+              </div>
+            ))}
+          </div>
+          <Skeleton className="h-24 w-full" />
+        </CardSkeleton>
+      )}
+      {!isRiskLoading && riskExplanation && (
         <Card className="space-y-4 no-print">
           <div className="flex items-center justify-between pb-3 border-b border-line">
             <div>
