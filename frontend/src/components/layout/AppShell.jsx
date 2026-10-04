@@ -1,5 +1,8 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { sidebarNav } from '../../config/nav';
+import { prefetchRoute } from '../../routes/loaders';
 import Sidebar from './Sidebar';
 import MobileBar from './MobileBar';
 import BottomTabBar from './BottomTabBar';
@@ -9,8 +12,23 @@ import ScrollToTop from './ScrollToTop';
 import PageSkeleton from '../ui/PageSkeleton';
 
 export default function AppShell({ children }) {
+  const { user } = useAuth();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
+
+  // Warm the current role's route chunks once the browser is idle, so the first
+  // navigation to each page resolves instantly (complements the hover prefetch).
+  useEffect(() => {
+    if (!user?.role) return;
+    const paths = sidebarNav(user.role).map((item) => item.path);
+    const run = () => paths.forEach(prefetchRoute);
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(run, { timeout: 2500 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const timer = setTimeout(run, 1000);
+    return () => clearTimeout(timer);
+  }, [user?.role]);
 
   // Global hotkeys: Ctrl+K and ?
   useEffect(() => {
