@@ -60,12 +60,29 @@ export default [
           message:
             'No uppercase micro-label kickers on span/div; uppercase is reserved for table headers and print/legal headers.',
         },
+        // --- surface guardrail (docs/UIUX_STANDARDS.md §6) ---
+        {
+          selector: 'Literal[value=/bg-surface border border-line rounded-float/]',
+          message:
+            'Do not hand-roll the card surface; use <Card>/<Surface> from src/components/ui.',
+        },
+        {
+          selector: 'TemplateElement[value.raw=/bg-surface border border-line rounded-float/]',
+          message:
+            'Do not hand-roll the card surface; use <Card>/<Surface> from src/components/ui.',
+        },
       ],
     },
   },
   {
     // The datetime helper is the single place allowed to convert to ISO.
     files: ['src/utils/datetime.js'],
+    rules: { 'no-restricted-syntax': 'off' },
+  },
+  {
+    // The surface definition lives in the primitives; the modal panel is its own
+    // surface (rounded-float + shadow-pop), so it is allowed to spell it out.
+    files: ['src/components/ui/Modal.jsx'],
     rules: { 'no-restricted-syntax': 'off' },
   },
 ]
