@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card } from '../../components/ui';
+import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card, PageHeader } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -36,33 +36,24 @@ export default function SupervisorDashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            Supervisor Workspace
-          </h1>
-          <p className="text-sm text-ink-2 mt-1">
+      <PageHeader
+        title="Supervisor Workspace"
+        subtitle={
+          <>
             Weekly Evaluator Dashboard · <span className="font-mono text-ink">Acme PH</span>
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/supervisor/rubrics')}
-          >
-            KPI Rubrics
-          </Button>
-          <Button
-            variant="primary"
-            leftIcon={Award}
-            onClick={() => navigate('/supervisor/rate')}
-          >
-            Rate Staff
-          </Button>
-        </div>
-      </header>
+          </>
+        }
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => navigate('/supervisor/rubrics')}>
+              KPI Rubrics
+            </Button>
+            <Button variant="primary" leftIcon={Award} onClick={() => navigate('/supervisor/rate')}>
+              Rate Staff
+            </Button>
+          </>
+        }
+      />
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

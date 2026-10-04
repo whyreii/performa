@@ -11,6 +11,7 @@ import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import TextField from '../../components/ui/TextField';
 import Tabs from '../../components/ui/Tabs';
+import PageHeader from '../../components/ui/PageHeader';
 import {
   Users,
   UserPlus,
@@ -103,29 +104,21 @@ export default function UserManagement() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-5 border-b border-line">
-        <div>
-          <div className="text-xs font-semibold text-accent font-mono mb-1">
-            IT &amp; System Administration
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            Account Management
-          </h1>
-          <p className="text-sm text-ink-2 mt-1">
+      <PageHeader
+        kicker="IT & System Administration"
+        title="Account Management"
+        subtitle={
+          <>
             User provisioning, role assignments, and credential management ·{' '}
             <span className="font-mono text-ink">Acme PH</span>
-          </p>
-        </div>
-
-        <Button
-          variant="primary"
-          leftIcon={UserPlus}
-          onClick={() => setIsCreateModalOpen(true)}
-        >
-          Create User Account
-        </Button>
-      </header>
+          </>
+        }
+        actions={
+          <Button variant="primary" leftIcon={UserPlus} onClick={() => setIsCreateModalOpen(true)}>
+            Create User Account
+          </Button>
+        }
+      />
 
       {/* Action feedback toast */}
       {actionFeedback && (

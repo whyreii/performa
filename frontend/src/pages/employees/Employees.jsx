@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { employeeApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, MilestonePill, Skeleton, Tabs, EmptyState, Card } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Tabs, EmptyState, Card, PageHeader } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -169,29 +169,21 @@ export default function Employees() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-5 border-b border-line">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            Employee Directory
-          </h1>
-          <p className="text-sm text-ink-2 mt-1">
-            Probationary & Regular Staff · <span className="font-mono text-ink">Acme PH</span>
-          </p>
-        </div>
-
-        {isEmployer && (
-          <div className="flex items-center gap-3">
-            <Button
-              variant="primary"
-              leftIcon={Plus}
-              onClick={() => setIsAddModalOpen(true)}
-            >
+      <PageHeader
+        title="Employee Directory"
+        subtitle={
+          <>
+            Probationary &amp; Regular Staff · <span className="font-mono text-ink">Acme PH</span>
+          </>
+        }
+        actions={
+          isEmployer ? (
+            <Button variant="primary" leftIcon={Plus} onClick={() => setIsAddModalOpen(true)}>
               Onboard Employee
             </Button>
-          </div>
-        )}
-      </header>
+          ) : null
+        }
+      />
 
       {/* Tabs and Search Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">

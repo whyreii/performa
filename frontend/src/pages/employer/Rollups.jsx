@@ -4,7 +4,7 @@ import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Modal, EmptyState, Card } from '../../components/ui';
+import { Button, Badge, Skeleton, Modal, EmptyState, Card, PageHeader } from '../../components/ui';
 import {
   FileCheck2,
   Sparkles,
@@ -133,25 +133,15 @@ export default function Rollups() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            Rollups
-          </h1>
-          <p className="text-sm text-ink-2 mt-1">
-            Gemini summaries · Random Forest recommendations
-          </p>
-        </div>
-
-        <Button
-          variant="primary"
-          leftIcon={Sparkles}
-          onClick={handleOpenGenerate}
-        >
-          Generate Rollup
-        </Button>
-      </header>
+      <PageHeader
+        title="Rollups"
+        subtitle="Gemini summaries · Random Forest recommendations"
+        actions={
+          <Button variant="primary" leftIcon={Sparkles} onClick={handleOpenGenerate}>
+            Generate Rollup
+          </Button>
+        }
+      />
 
       {/* Action Notification */}
       {actionMessage.text && (

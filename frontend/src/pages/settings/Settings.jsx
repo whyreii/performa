@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { authApi, getApiErrorMessage } from '../../api';
 import { activateOnKey } from '../../utils/a11y';
-import { Button, Badge, TextField, Card } from '../../components/ui';
+import { Button, Badge, TextField, Card, PageHeader } from '../../components/ui';
 import {
   Building,
   CheckCircle2,
@@ -145,17 +145,10 @@ export default function Settings() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
-      {/* Page Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            Settings & Appearance
-          </h1>
-          <p className="text-sm text-ink-2 mt-1">
-            Configure system appearance, statutory alerts, and account credentials.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title="Settings & Appearance"
+        subtitle="Configure system appearance, statutory alerts, and account credentials."
+      />
 
       {/* 1. Account Profile Card */}
       <Card>

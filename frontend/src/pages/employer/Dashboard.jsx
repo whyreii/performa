@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, PageHeader } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -91,33 +91,24 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            Dashboard
-          </h1>
-          <p className="text-sm text-ink-2 mt-1">
-            Probationary pipeline ·{' '}
-            <span className="font-mono text-ink">Acme PH</span>
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/employees')}
-          >
-            Directory
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => navigate('/supervisor/rate')}
-          >
-            Rate Staff
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        title="Dashboard"
+        subtitle={
+          <>
+            Probationary pipeline · <span className="font-mono text-ink">Acme PH</span>
+          </>
+        }
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => navigate('/employees')}>
+              Directory
+            </Button>
+            <Button variant="primary" onClick={() => navigate('/supervisor/rate')}>
+              Rate Staff
+            </Button>
+          </>
+        }
+      />
 
       {/* 1. Top Metrics Cards — Option 1: label → metric → caption (no icons) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

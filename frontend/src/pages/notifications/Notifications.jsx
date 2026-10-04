@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
-import { Button, Badge, Skeleton, EmptyState, Card } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, PageHeader } from '../../components/ui';
 import { useToast } from '../../context/ToastContext';
 import { Bell, CheckCheck, AlertCircle } from 'lucide-react';
 
@@ -36,28 +36,24 @@ export default function Notifications() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            Notifications
-          </h1>
-          <p className="text-sm text-ink-2 mt-1">
-            In-app alerts for summaries, training, and milestones
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && <Badge variant="accent">{unreadCount} unread</Badge>}
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={CheckCheck}
-            disabled={unreadCount === 0 || readAllMutation.isPending}
-            onClick={() => readAllMutation.mutate()}
-          >
-            Mark all read
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        title="Notifications"
+        subtitle="In-app alerts for summaries, training, and milestones"
+        actions={
+          <>
+            {unreadCount > 0 && <Badge variant="accent">{unreadCount} unread</Badge>}
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={CheckCheck}
+              disabled={unreadCount === 0 || readAllMutation.isPending}
+              onClick={() => readAllMutation.mutate()}
+            >
+              Mark all read
+            </Button>
+          </>
+        }
+      />
 
       <Card padded={false} className="overflow-hidden">
         {isLoading ? (
