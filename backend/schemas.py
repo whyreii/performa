@@ -306,6 +306,13 @@ class RiskExplanationResponse(BaseModel):
     probabilities: dict[str, float]
     feature_importances: dict[str, float]
     flagged_competencies: list[str]
+    # Local (exact Shapley) + global (permutation) explainability. Additive fields;
+    # see backend/ml/explain.py. shap_target_class is the tier being attributed.
+    shap_values: dict[str, float] = {}
+    shap_base_value: float = 0.0
+    shap_target_class: str = ""
+    permutation_importances: dict[str, float] = {}
+    explanation_method: str = ""
 
 
 class RegularizationRecommendationResponse(BaseModel):

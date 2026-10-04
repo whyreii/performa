@@ -26,6 +26,7 @@ from ..auth import get_current_user, require_role
 from ..audit import record_activity
 from ..database import get_db
 from ..gemini import generate_performance_rationales
+from ..ml.explain import explain_prediction
 from ..ml.predictor import predict_employee_risk
 from ..models import (
     EvaluationAuditLog,
@@ -327,15 +328,17 @@ async def get_risk_explanation(
             detail="No evaluations recorded for this employee",
         )
 
+    scores = _scores_from_evaluation(latest)
     try:
-        result = predict_employee_risk(_scores_from_evaluation(latest))
+        result = predict_employee_risk(scores)
+        explanation = explain_prediction(scores)
     except FileNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AI risk model is unavailable. Please contact the administrator.",
         )
 
-    return RiskExplanationResponse(**result)
+    return RiskExplanationResponse(**result, **explanation)
 
 
 @router.get(
