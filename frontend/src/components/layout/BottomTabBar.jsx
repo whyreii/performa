@@ -28,7 +28,7 @@ export default function BottomTabBar() {
               key={tab.path}
               to={tab.path}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center py-1.5 px-1 rounded-nav text-12 font-medium transition-colors ${
+                `flex flex-col items-center justify-center py-2 px-1 min-h-11 rounded-nav text-12 font-medium transition-colors ${
                   isActive ? 'text-accent font-semibold' : 'text-ink-3 hover:text-ink'
                 }`
               }

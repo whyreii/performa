@@ -84,6 +84,7 @@ export default function Notifications() {
               >
                 <div className="flex items-start gap-3 min-w-0">
                   <span
+                    aria-hidden="true"
                     className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
                       n.is_read ? 'bg-ink-3/30' : 'bg-accent'
                     }`}
@@ -91,6 +92,7 @@ export default function Notifications() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm text-ink">{n.title}</span>
+                      <span className="sr-only">{n.is_read ? 'Read' : 'Unread'}</span>
                       {n.category && <Badge variant="neutral">{n.category}</Badge>}
                     </div>
                     {n.body && <p className="text-xs text-ink-2 mt-0.5">{n.body}</p>}

@@ -549,12 +549,18 @@ function CreateUserModal({ onClose, onSuccess }) {
           />
 
           <div>
-            <label className="block text-ink-2 font-medium mb-1.5">
+            <div id="role-group-label" className="block text-ink-2 font-medium mb-1.5">
               Assigned System Role *
-            </label>
-            <div className="grid grid-cols-3 gap-2">
+            </div>
+            <div
+              role="radiogroup"
+              aria-labelledby="role-group-label"
+              className="grid grid-cols-3 gap-2"
+            >
               <button
                 type="button"
+                role="radio"
+                aria-checked={role === 'employer'}
                 onClick={() => setRole('employer')}
                 className={`p-3 rounded-ctl border text-center transition-all ${
                   role === 'employer'
@@ -568,6 +574,8 @@ function CreateUserModal({ onClose, onSuccess }) {
 
               <button
                 type="button"
+                role="radio"
+                aria-checked={role === 'supervisor'}
                 onClick={() => setRole('supervisor')}
                 className={`p-3 rounded-ctl border text-center transition-all ${
                   role === 'supervisor'
@@ -581,6 +589,8 @@ function CreateUserModal({ onClose, onSuccess }) {
 
               <button
                 type="button"
+                role="radio"
+                aria-checked={role === 'probationary_employee'}
                 onClick={() => setRole('probationary_employee')}
                 className={`p-3 rounded-ctl border text-center transition-all ${
                   role === 'probationary_employee'

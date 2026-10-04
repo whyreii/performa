@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { BarChart3, LogOut, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { sidebarNav } from '../../config/nav';
@@ -7,7 +7,6 @@ import { getInitials } from '../../utils/format';
 
 export default function Sidebar({ onOpenCommandPalette }) {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   // Remember collapsed state in localStorage
   const [collapsed, setCollapsed] = useState(() => {
@@ -28,6 +27,14 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
   const role = user?.role;
   const navItems = sidebarNav(role);
+  const homePath =
+    role === 'admin'
+      ? '/admin/users'
+      : role === 'probationary_employee'
+      ? '/employee/dashboard'
+      : role === 'supervisor'
+      ? '/supervisor/dashboard'
+      : '/dashboard';
 
   // Live Philippine Standard Time (Asia/Manila)
   const [manilaTime, setManilaTime] = useState('');
@@ -57,14 +64,9 @@ export default function Sidebar({ onOpenCommandPalette }) {
     >
       {/* Brand Header */}
       <div className={`flex items-center ${collapsed ? 'flex-col gap-2 mb-3' : 'justify-between mb-3 h-10'}`}>
-        <div
-          onClick={() => {
-            if (role === 'admin') navigate('/admin/users');
-            else if (role === 'probationary_employee') navigate('/employee/dashboard');
-            else if (role === 'supervisor') navigate('/supervisor/dashboard');
-            else navigate('/dashboard');
-          }}
-          className={`flex items-center gap-3 cursor-pointer group min-w-0 ${collapsed ? 'justify-center' : ''}`}
+        <Link
+          to={homePath}
+          className={`flex items-center gap-3 group min-w-0 ${collapsed ? 'justify-center' : ''}`}
           title="Performa Home"
         >
           <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform">
@@ -80,7 +82,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
               </span>
             </div>
           )}
-        </div>
+        </Link>
 
         {/* Collapse toggle */}
         <button
