@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { interventionApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, Skeleton, EmptyState, Card, PageHeader } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function EmployeeTraining() {
@@ -18,11 +18,10 @@ export default function EmployeeTraining() {
   });
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      <PageHeader
+    <Page
         title="Assigned Training Interventions"
         subtitle="Targeted Learning Modules to Close Competency Gaps Before Day 150 Appraisal"
-      />
+    >
 
       {/* Recommended Modules List */}
       <section className="space-y-4">
@@ -93,6 +92,6 @@ export default function EmployeeTraining() {
           </div>
         )}
       </section>
-    </div>
+    </Page>
   );
 }

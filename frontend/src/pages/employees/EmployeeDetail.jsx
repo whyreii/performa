@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, CardSkeleton, Modal, EmptyState, textareaClass } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, CardSkeleton, Page, Modal, EmptyState, textareaClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -307,7 +307,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
   const canRate = user?.role === 'supervisor' || user?.role === 'employer';
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150 print-sheet">
+    <Page printSheet header={false}>
       {/* Print-only official document header */}
       <div className="print-only mb-6 pb-4 border-b-2 border-black">
         <p className="text-center text-12 font-semibold tracking-widest uppercase">
@@ -1036,6 +1036,6 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </Button>
             </div>
       </Modal>
-    </div>
+    </Page>
   );
 }

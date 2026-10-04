@@ -11,7 +11,7 @@ import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import TextField from '../../components/ui/TextField';
 import Tabs from '../../components/ui/Tabs';
-import PageHeader from '../../components/ui/PageHeader';
+import Page from '../../components/ui/Page';
 import {
   Users,
   UserPlus,
@@ -103,8 +103,7 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      <PageHeader
+    <Page
         kicker="IT & System Administration"
         title="Account Management"
         subtitle={
@@ -118,7 +117,7 @@ export default function UserManagement() {
             Create User Account
           </Button>
         }
-      />
+    >
 
       {/* Action feedback toast */}
       {actionFeedback && (
@@ -448,7 +447,7 @@ export default function UserManagement() {
           }}
         />
       )}
-    </div>
+    </Page>
   );
 }
 

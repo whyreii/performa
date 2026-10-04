@@ -20,6 +20,7 @@ From the de-vibe work:
 7. No icon-on-heading.
 8. Accent = identity only; colour carries status.
 9. Type is **IBM Plex Sans + IBM Plex Mono only** — no serif, no third family.
+10. One page wrapper. Every routed page renders `Page` (`components/ui/Page.jsx`); the per-page vertical rhythm (24px) + fade-in live there. The max-width/padding "gallery wall" lives **once** in `AppShell.jsx` — `Page` never declares it (no double grid).
 
 ---
 
@@ -173,5 +174,7 @@ Verified: `npm run build` 0 errors; `pytest` 79 passed, 3 skipped; runtime — 7
 - Counts: `<Card>` 7 → 31 · `<Modal>` 1 → 8 · `<EmptyState>` 1 → 8 · `<Tabs>` 0 → 2 · `<TextField>` 0 → 15 · input literals 28 → 13 · `role="dialog"` 8 → 1.
 
 **Phase G — eslint guardrail (2026-10-04):** added three `no-restricted-syntax` selectors to `frontend/eslint.config.js` (no new dependency; runs in the existing `npm run lint` CI step): (1) no arbitrary `text-[…px]`; (2) no `shadow-sm` on `rounded-float` cards; (3) no `uppercase` micro-label kickers on `span`/`div` (table + print/legal headers stay allowed). Verified: `npm run lint` is clean on the tree, and **prove-it-bites** (a scratch file with the banned patterns fails lint while the allowed patterns pass).
+
+**Page wrapper (2026-10-04):** added `components/ui/Page.jsx` and migrated all 14 routed pages off the hand-copied `space-y-6 animate-in fade-in duration-150` root div (12 plain pages + `AuditTrail` via `aboveHeader` for its print-only DOLE header + `EmployeeDetail` via `printSheet header={false}`). `Page` owns rhythm + fade + optional `PageHeader`; it declares **no** max-width/padding — the grid stays once in `AppShell.jsx:79`, which wraps both the content and the `PageSkeleton` fallback. Net DOM nodes added: 0. Guarded by `backend/tests/guardrails/test_page_wrapper.py` (no page hand-rolls the wrapper; every page uses `<Page>`; `Page` defines no grid).
 
 All phases (A–G) complete.

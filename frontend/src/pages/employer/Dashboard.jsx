@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, PageHeader, Surface } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, Page, Surface } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -89,8 +89,7 @@ export default function Dashboard() {
   }, [activeProbationers]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      <PageHeader
+    <Page
         title="Dashboard"
         subtitle={
           <>
@@ -107,7 +106,7 @@ export default function Dashboard() {
             </Button>
           </>
         }
-      />
+    >
 
       {/* 1. Top Metrics Cards — Option 1: label → metric → caption (no icons) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -372,6 +371,6 @@ export default function Dashboard() {
           </div>
         )}
       </Card>
-    </div>
+    </Page>
   );
 }

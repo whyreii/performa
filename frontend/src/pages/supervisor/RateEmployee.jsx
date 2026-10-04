@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, kpiApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, StatusDot, Skeleton, Modal, Card, PageHeader } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, Skeleton, Modal, Card, Page } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { TARGET, PROBATION_DAYS } from '../../config/domain';
 import {
@@ -237,11 +237,10 @@ export default function RateEmployee() {
   const daysElapsed = selectedEmployee ? getDaysElapsed(selectedEmployee.start_date) : 0;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      <PageHeader
+    <Page
         title="Rate Probationary Employee"
         subtitle={`Article 296 Evidentiary Due Process Matrix · Target ${thresholdTarget.toFixed(1)} Standard`}
-      />
+    >
 
       {error && (
         <div
@@ -480,6 +479,6 @@ export default function RateEmployee() {
               </Button>
             </div>
       </Modal>
-    </div>
+    </Page>
   );
 }

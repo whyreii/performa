@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { authApi, getApiErrorMessage } from '../../api';
 import { activateOnKey } from '../../utils/a11y';
-import { Button, Badge, TextField, Card, PageHeader } from '../../components/ui';
+import { Button, Badge, TextField, Card, Page } from '../../components/ui';
 import {
   Building,
   CheckCircle2,
@@ -144,11 +144,10 @@ export default function Settings() {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      <PageHeader
+    <Page
         title="Settings & Appearance"
         subtitle="Configure system appearance, statutory alerts, and account credentials."
-      />
+    >
 
       {/* 1. Account Profile Card */}
       <Card>
@@ -401,6 +400,6 @@ export default function Settings() {
           </Button>
         </form>
       </Card>
-    </div>
+    </Page>
   );
 }

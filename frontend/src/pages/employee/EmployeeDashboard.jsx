@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, MilestonePill, Skeleton, Card, PageHeader } from '../../components/ui';
+import { Button, Badge, ScoreMeter, MilestonePill, Skeleton, Card, Page } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import {
@@ -78,8 +78,7 @@ export default function EmployeeDashboard() {
   const progressPct = Math.min(100, Math.round((daysElapsed / PROBATION_DAYS) * 100));
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      <PageHeader
+    <Page
         title="My Performance Scorecard"
         subtitle={
           <>
@@ -88,7 +87,7 @@ export default function EmployeeDashboard() {
           </>
         }
         actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}
-      />
+    >
 
       {/* 1. Probation Status & Timeline Progress Banner */}
       <Card className="sm:p-7 space-y-5">
@@ -295,6 +294,6 @@ export default function EmployeeDashboard() {
           </div>
         </Card>
       )}
-    </div>
+    </Page>
   );
 }

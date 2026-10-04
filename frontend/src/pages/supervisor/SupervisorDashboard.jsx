@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card, PageHeader } from '../../components/ui';
+import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card, Page } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -35,8 +35,7 @@ export default function SupervisorDashboard() {
   }, [employees]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      <PageHeader
+    <Page
         title="Supervisor Workspace"
         subtitle={
           <>
@@ -53,7 +52,7 @@ export default function SupervisorDashboard() {
             </Button>
           </>
         }
-      />
+    >
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -168,6 +167,6 @@ export default function SupervisorDashboard() {
           </div>
         )}
       </Card>
-    </div>
+    </Page>
   );
 }

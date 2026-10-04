@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
-import { Button, Badge, Skeleton, EmptyState, Card, PageHeader } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { Bell, CheckCheck, AlertCircle } from 'lucide-react';
@@ -63,8 +63,7 @@ export default function Notifications() {
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      <PageHeader
+    <Page
         title="Notifications"
         subtitle={copy.subtitle}
         actions={
@@ -81,7 +80,7 @@ export default function Notifications() {
             </Button>
           </>
         }
-      />
+    >
 
       <Card padded={false} className="overflow-hidden">
         {isLoading ? (
@@ -151,6 +150,6 @@ export default function Notifications() {
           </div>
         )}
       </Card>
-    </div>
+    </Page>
   );
 }

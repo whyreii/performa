@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { employeeApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, MilestonePill, Skeleton, Tabs, EmptyState, Card, PageHeader } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Tabs, EmptyState, Card, Page } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -167,8 +167,7 @@ export default function Employees() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      <PageHeader
+    <Page
         title="Employee Directory"
         subtitle={
           <>
@@ -182,7 +181,7 @@ export default function Employees() {
             </Button>
           ) : null
         }
-      />
+    >
 
       {/* Tabs and Search Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
@@ -537,6 +536,6 @@ export default function Employees() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
       />
-    </div>
+    </Page>
   );
 }

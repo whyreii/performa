@@ -4,7 +4,7 @@ import { evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
-import { Button, Badge, Skeleton, EmptyState, Card, PageHeader } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
 import {
   History,
   Printer,
@@ -60,23 +60,22 @@ export default function AuditTrail() {
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      {/* Print-Only Official DOLE Exhibit Header */}
-      <div hidden className="print-only mb-6 pb-4 border-b-2 border-black text-black">
-        <div className="text-center space-y-1">
-          <p className="text-xs uppercase tracking-widest font-semibold">Republic of the Philippines</p>
-          <p className="text-xs font-semibold">DEPARTMENT OF LABOR AND EMPLOYMENT</p>
-          <p className="text-base font-bold uppercase tracking-tight mt-1">
-            Article 296 Statutory Evaluation Audit Exhibit
-          </p>
-          <p className="text-12 text-gray-600">
-            Tenant: {orgLabel} · Generated: {formatDate(new Date())} (Asia/Manila)
-          </p>
-        </div>
-      </div>
-
-      <PageHeader
-        className="no-print"
+    <Page
+        aboveHeader={
+          <div hidden className="print-only mb-6 pb-4 border-b-2 border-black text-black">
+            <div className="text-center space-y-1">
+              <p className="text-xs uppercase tracking-widest font-semibold">Republic of the Philippines</p>
+              <p className="text-xs font-semibold">DEPARTMENT OF LABOR AND EMPLOYMENT</p>
+              <p className="text-base font-bold uppercase tracking-tight mt-1">
+                Article 296 Statutory Evaluation Audit Exhibit
+              </p>
+              <p className="text-12 text-gray-600">
+                Tenant: {orgLabel} · Generated: {formatDate(new Date())} (Asia/Manila)
+              </p>
+            </div>
+          </div>
+        }
+        headerClassName="no-print"
         title="Audit Trail & Compliance"
         subtitle="Article 296 Evidentiary Due Process Logs · Immutable & Append-Only"
         actions={
@@ -84,7 +83,7 @@ export default function AuditTrail() {
             Print Compliance Log
           </Button>
         }
-      />
+    >
 
       {/* DOLE Evidentiary Standards Banner */}
       <Card padded={false} className="p-5 space-y-2 no-print">
@@ -270,6 +269,6 @@ export default function AuditTrail() {
           </div>
         </div>
       </div>
-    </div>
+    </Page>
   );
 }

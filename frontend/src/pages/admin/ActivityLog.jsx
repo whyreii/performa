@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
-import { Button, Badge, Skeleton, EmptyState, Card, PageHeader } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
 import { History, AlertCircle } from 'lucide-react';
 
 export default function ActivityLog() {
@@ -18,11 +18,10 @@ export default function ActivityLog() {
   });
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      <PageHeader
+    <Page
         title="System Activity Log"
         subtitle="User actions across the tenant · newest first"
-      />
+    >
 
       <Card padded={false} className="overflow-hidden">
         {isLoading ? (
@@ -90,6 +89,6 @@ export default function ActivityLog() {
           Showing {entries.length} activity entries
         </footer>
       </Card>
-    </div>
+    </Page>
   );
 }
