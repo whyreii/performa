@@ -30,7 +30,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-accent font-semibold text-sm py-1 -ml-1 active:scale-95 transition-transform"
+          className="flex items-center gap-1.5 text-accent font-semibold text-sm py-1 -ml-1 active:scale-95 transition-transform ease-spring"
         >
           <ChevronLeft className="w-5 h-5" />
           <span>Back</span>

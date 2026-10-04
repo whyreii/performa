@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { interventionApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
+import { Button, Badge, EmptyState, Card, CardSkeleton, Page } from '../../components/ui';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function EmployeeTraining() {
@@ -26,9 +26,9 @@ export default function EmployeeTraining() {
       {/* Recommended Modules List */}
       <section className="space-y-4">
         {isLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-28 w-full" />
-            <Skeleton className="h-28 w-full" />
+          <div className="space-y-4">
+            <CardSkeleton />
+            <CardSkeleton />
           </div>
         ) : isError ? (
           <Card padded={false} className="p-10 text-center space-y-3">

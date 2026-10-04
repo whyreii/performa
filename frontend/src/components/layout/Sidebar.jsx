@@ -48,7 +48,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
   return (
     <aside
-      className={`hidden lg:flex flex-col sticky top-0 h-screen bg-side border-r border-line shadow-side z-20 transition-all duration-performa ${
+      className={`hidden lg:flex flex-col sticky top-0 h-screen bg-side border-r border-line shadow-side z-20 transition-all duration-performa ease-spring ${
         collapsed ? 'w-[72px] px-2 py-4' : 'w-[250px] p-4'
       }`}
       aria-label="Main Navigation"
@@ -60,7 +60,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
           className={`flex items-center gap-3 group min-w-0 ${collapsed ? 'justify-center' : ''}`}
           title="Performa Home"
         >
-          <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+          <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform ease-spring">
             <BarChart3 className="w-4 h-4" />
           </div>
           {!collapsed && (

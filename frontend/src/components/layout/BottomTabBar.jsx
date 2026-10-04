@@ -39,7 +39,7 @@ export default function BottomTabBar() {
               {({ isActive }) => (
                 <>
                   <Icon
-                    className={`w-5 h-5 mb-0.5 transition-transform ${
+                    className={`w-5 h-5 mb-0.5 transition-transform ease-spring ${
                       isActive ? 'scale-110' : ''
                     }`}
                   />

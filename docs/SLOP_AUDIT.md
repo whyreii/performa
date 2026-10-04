@@ -21,6 +21,8 @@ From the de-vibe work:
 8. Accent = identity only; colour carries status.
 9. Type is **IBM Plex Sans + IBM Plex Mono only** — no serif, no third family.
 10. One page wrapper. Every routed page renders `Page` (`components/ui/Page.jsx`); the per-page vertical rhythm (24px) + fade-in live there. The max-width/padding "gallery wall" lives **once** in `AppShell.jsx` — `Page` never declares it (no double grid). Direct children of `Page` must **not** add their own `mt-*`/`pt-*` — the 24px gap is owned solely by `Page` (a top-level row that pads itself drifts off the wall).
+11. The frame never moves. A card/list that loads asynchronously renders `CardSkeleton` (or a skeleton **inside** the real `Card`) with stubs sized to the loaded content, so the surface/height is reserved and nothing shifts when data arrives.
+12. Motion easing: use `--ease` for color/opacity transitions; use the `.ease-spring` utility (guarded by `@supports`, falls back to `--ease`) **only** for transform/position transitions — never on color.
 
 ---
 

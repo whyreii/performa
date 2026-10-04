@@ -73,7 +73,7 @@ export default function Login() {
               <button
                 key={p}
                 onClick={() => setPalette(p)}
-                className={`w-6 h-6 rounded-full border transition-transform ${
+                className={`w-6 h-6 rounded-full border transition-transform ease-spring ${
                   palette === p ? 'border-ink scale-110 shadow-sm' : 'border-line hover:scale-105'
                 }`}
                 title={`Switch to ${p} theme`}

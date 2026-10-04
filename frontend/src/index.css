@@ -64,6 +64,19 @@
   }
 }
 
+/* Spring easing for transform/position transitions. Falls back to the standard
+   --ease curve where `linear()` is unsupported. Do NOT use on color transitions. */
+@layer utilities {
+  .ease-spring {
+    transition-timing-function: var(--ease);
+  }
+  @supports (transition-timing-function: linear(0, 1)) {
+    .ease-spring {
+      transition-timing-function: var(--ease-spring);
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
