@@ -158,7 +158,7 @@ export default function UserManagement() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Role Filters */}
         <Tabs
           ariaLabel="Filter by role"

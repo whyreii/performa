@@ -184,7 +184,7 @@ export default function Employees() {
     >
 
       {/* Tabs and Search Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Segmented Control Tabs */}
         <Tabs
           ariaLabel="Employee filters"
@@ -242,7 +242,7 @@ export default function Employees() {
 
       {/* Article 296 Statutory Milestone Quick Filter Pills (active probationers only) */}
       {activeTab === 'prob' && (
-      <div className="flex flex-wrap items-center gap-2 pt-1 pb-1">
+      <div className="flex flex-wrap items-center gap-2">
         <span className="text-12 font-semibold text-ink-3 mr-1">Milestone Triage:</span>
 
         <button

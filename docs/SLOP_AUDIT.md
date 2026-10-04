@@ -20,7 +20,7 @@ From the de-vibe work:
 7. No icon-on-heading.
 8. Accent = identity only; colour carries status.
 9. Type is **IBM Plex Sans + IBM Plex Mono only** — no serif, no third family.
-10. One page wrapper. Every routed page renders `Page` (`components/ui/Page.jsx`); the per-page vertical rhythm (24px) + fade-in live there. The max-width/padding "gallery wall" lives **once** in `AppShell.jsx` — `Page` never declares it (no double grid).
+10. One page wrapper. Every routed page renders `Page` (`components/ui/Page.jsx`); the per-page vertical rhythm (24px) + fade-in live there. The max-width/padding "gallery wall" lives **once** in `AppShell.jsx` — `Page` never declares it (no double grid). Direct children of `Page` must **not** add their own `mt-*`/`pt-*` — the 24px gap is owned solely by `Page` (a top-level row that pads itself drifts off the wall).
 
 ---
 
