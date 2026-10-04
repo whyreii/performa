@@ -4,11 +4,37 @@ import { notificationApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
 import { Button, Badge, Skeleton, EmptyState, Card, PageHeader } from '../../components/ui';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { Bell, CheckCheck, AlertCircle } from 'lucide-react';
+
+// Copy reflects what each role actually receives (backend notification
+// categories): Employer → statutory milestone alerts; Supervisor → Day 150 for
+// their reports; Employee → monthly summaries + training; Admin → system/account
+// only (the Admin is view-only and receives no performance alerts).
+const COPY_BY_ROLE = {
+  admin: {
+    subtitle: 'System and account notifications',
+    empty: 'System and account notifications will appear here.',
+  },
+  employer: {
+    subtitle: 'Statutory milestone alerts for your probationary employees',
+    empty: 'You will be alerted here when an employee reaches a Day 150, 165, or 178 milestone.',
+  },
+  supervisor: {
+    subtitle: 'Day 150 review alerts for your direct reports',
+    empty: 'You will be alerted here when a direct report reaches the Day 150 performance review.',
+  },
+  probationary_employee: {
+    subtitle: 'Monthly performance summaries and training updates',
+    empty: 'You will be alerted here when a performance summary or training plan is shared with you.',
+  },
+};
 
 export default function Notifications() {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const { user } = useAuth();
+  const copy = COPY_BY_ROLE[user?.role] || COPY_BY_ROLE.probationary_employee;
 
   const {
     data: notifications = [],
@@ -40,7 +66,7 @@ export default function Notifications() {
     <div className="space-y-6 animate-in fade-in duration-150">
       <PageHeader
         title="Notifications"
-        subtitle="In-app alerts for summaries, training, and milestones"
+        subtitle={copy.subtitle}
         actions={
           <>
             {unreadCount > 0 && <Badge variant="accent">{unreadCount} unread</Badge>}
@@ -80,7 +106,7 @@ export default function Notifications() {
           </div>
         ) : notifications.length === 0 ? (
           <EmptyState icon={Bell} title="No notifications">
-            You will be alerted here when new summaries or training plans arrive.
+            {copy.empty}
           </EmptyState>
         ) : (
           <div className="divide-y divide-line">
