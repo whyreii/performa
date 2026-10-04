@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { BarChart3, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
-import { TextField } from '../../components/ui';
+import { TextField, Surface } from '../../components/ui';
 
 export default function Login() {
   const { login } = useAuth();
@@ -97,7 +97,7 @@ export default function Login() {
 
       {/* Main Login Card */}
       <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-[420px] bg-surface border border-line rounded-float p-6 sm:p-8 shadow-pop transition-colors duration-performa">
+        <Surface elevated className="w-full max-w-[420px] p-6 sm:p-8 transition-colors duration-performa">
           <div className="text-center mb-6">
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">Sign in to Performa</h1>
             <p className="text-sm text-ink-2 mt-1.5">
@@ -204,7 +204,7 @@ export default function Login() {
               </button>
             </div>
           </div>
-        </div>
+        </Surface>
       </main>
 
       {/* Footer info */}

@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { useDocumentTitle } from './hooks/useDocumentTitle';
+import { Surface } from './components/ui';
 
 // Route-level code splitting: each page is loaded on demand.
 const Login = lazy(() => import('./pages/auth/Login'));
@@ -110,7 +111,7 @@ function ProtectedRoute({ children, allowedRoles }) {
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-surface border border-line rounded-float p-6 text-center">
+        <Surface className="max-w-md w-full p-6 text-center">
           <h2 className="text-lg font-semibold text-bad mb-2">Access Forbidden (403)</h2>
           <p className="text-sm text-ink-2 mb-4">
             Your account ({user?.role}) does not have permission to view this page.
@@ -121,7 +122,7 @@ function ProtectedRoute({ children, allowedRoles }) {
           >
             Go to my dashboard
           </Link>
-        </div>
+        </Surface>
       </div>
     );
   }

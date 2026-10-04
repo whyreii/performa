@@ -138,22 +138,22 @@ export default function UserManagement() {
 
       {/* Metric Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 rounded-float bg-surface border border-line space-y-1 shadow-xs">
+        <Card padded={false} className="p-4 space-y-1">
           <span className="text-xs text-ink-3">Total Accounts</span>
           <div className="text-2xl font-bold font-mono text-ink">{counts.all}</div>
-        </div>
-        <div className="p-4 rounded-float bg-surface border border-line space-y-1 shadow-xs">
+        </Card>
+        <Card padded={false} className="p-4 space-y-1">
           <span className="text-xs text-ink-3">Employers</span>
           <div className="text-2xl font-bold font-mono text-accent">{counts.employer}</div>
-        </div>
-        <div className="p-4 rounded-float bg-surface border border-line space-y-1 shadow-xs">
+        </Card>
+        <Card padded={false} className="p-4 space-y-1">
           <span className="text-xs text-ink-3">Supervisors</span>
           <div className="text-2xl font-bold font-mono text-good">{counts.supervisor}</div>
-        </div>
-        <div className="p-4 rounded-float bg-surface border border-line space-y-1 shadow-xs">
+        </Card>
+        <Card padded={false} className="p-4 space-y-1">
           <span className="text-xs text-ink-3">Probationary Staff</span>
           <div className="text-2xl font-bold font-mono text-ink">{counts.employee}</div>
-        </div>
+        </Card>
       </div>
 
       {/* Filter and Search Bar */}

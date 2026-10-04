@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, PageHeader } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, PageHeader, Surface } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -177,7 +177,7 @@ export default function Dashboard() {
 
       {/* 2. Critical Milestones Banner (If any probationers >= Day 150) */}
       {urgentProbationers.length > 0 && (
-        <section className="bg-warn/6 border border-line rounded-float p-5">
+        <Surface as="section" tone="warn" className="p-5">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
               <div>
@@ -198,7 +198,7 @@ export default function Dashboard() {
               Review now
             </Button>
           </div>
-        </section>
+        </Surface>
       )}
 
       {/* 3. Active Probationers Pipeline Table */}

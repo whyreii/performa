@@ -115,10 +115,7 @@ export default function Rubrics() {
       {/* Rubrics Grid */}
       <div className="space-y-6">
         {rubrics.map((rubric) => (
-          <div
-            key={rubric.id}
-            className="bg-surface border border-line rounded-float p-6 space-y-4"
-          >
+          <Card key={rubric.id} className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-line">
               <div>
                 <h2 className="text-base font-semibold text-ink">{rubric.name}</h2>
@@ -169,7 +166,7 @@ export default function Rubrics() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

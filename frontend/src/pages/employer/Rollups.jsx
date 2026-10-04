@@ -177,7 +177,7 @@ export default function Rollups() {
             <Skeleton className="h-28 w-full" />
           </div>
         ) : isError ? (
-          <div className="p-8 bg-surface border border-line rounded-float text-center space-y-3">
+          <Card padded={false} className="p-8 text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
             <h3 className="text-sm font-semibold text-ink">Failed to load pending plans</h3>
             <p className="text-xs text-ink-3">
@@ -186,7 +186,7 @@ export default function Rollups() {
             <Button variant="secondary" size="sm" onClick={() => refetch()}>
               Retry
             </Button>
-          </div>
+          </Card>
         ) : pendingPlans.length === 0 ? (
           <EmptyState icon={FileCheck2} title="No pending intervention approvals">
             All training recommendations have been processed. Click "Generate Rollup" to run the 30-day Gemini evaluation rollup on an active probationer.
@@ -271,13 +271,13 @@ export default function Rollups() {
             <Skeleton className="h-14 w-full" />
           </div>
         ) : isSummariesError ? (
-          <div className="p-6 bg-surface border border-line rounded-float text-center text-xs text-bad">
+          <Card padded={false} className="p-6 text-center text-xs text-bad">
             Unable to load monthly summaries right now. Please retry.
-          </div>
+          </Card>
         ) : summaries.length === 0 ? (
-          <div className="p-6 bg-surface border border-line rounded-float text-center text-xs text-ink-3">
+          <Card padded={false} className="p-6 text-center text-xs text-ink-3">
             No monthly summaries generated yet. Run a rollup above.
-          </div>
+          </Card>
         ) : (
           <Card padded={false} className="divide-y divide-line">
             {summaries.map((summary) => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import Surface from './ui/Surface';
 
 /**
  * Top-level React error boundary.
@@ -31,7 +32,7 @@ export default class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-bg text-ink p-6">
-          <div className="max-w-md w-full bg-surface border border-line rounded-float p-8 text-center space-y-4">
+          <Surface className="max-w-md w-full p-8 text-center space-y-4">
             <h1 className="text-lg font-semibold text-ink">Something went wrong</h1>
             <p className="text-xs text-ink-3">
               The application hit an unexpected error. Your data has not been affected.
@@ -50,7 +51,7 @@ export default class ErrorBoundary extends React.Component {
             >
               Reload Application
             </button>
-          </div>
+          </Surface>
         </div>
       );
     }

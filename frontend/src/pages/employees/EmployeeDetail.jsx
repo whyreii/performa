@@ -237,7 +237,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
   if (isEmpError || !employee) {
     return (
-      <div className="bg-surface border border-line rounded-float p-12 text-center space-y-4">
+      <Card padded={false} className="p-12 text-center space-y-4">
         <ShieldAlert className="w-10 h-10 text-bad mx-auto" />
         <h2 className="text-lg font-semibold text-ink">Employee profile not found</h2>
         <p className="text-xs text-ink-3">
@@ -253,7 +253,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         >
           {user?.role === 'probationary_employee' ? 'Back to My Scorecard' : 'Back to Directory'}
         </Button>
-      </div>
+      </Card>
     );
   }
 

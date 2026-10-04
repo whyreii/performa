@@ -32,7 +32,7 @@ export default function EmployeeTraining() {
             <Skeleton className="h-28 w-full" />
           </div>
         ) : isError ? (
-          <div className="p-10 bg-surface border border-line rounded-float text-center space-y-3">
+          <Card padded={false} className="p-10 text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
             <h3 className="text-base font-semibold text-ink">Failed to load your training plans</h3>
             <p className="text-xs text-ink-3 max-w-sm mx-auto">
@@ -41,7 +41,7 @@ export default function EmployeeTraining() {
             <Button variant="secondary" size="sm" onClick={() => refetch()}>
               Retry
             </Button>
-          </div>
+          </Card>
         ) : plans.length === 0 ? (
           <EmptyState icon={CheckCircle2} title="No required training interventions">
             Your weekly competency evaluations currently meet or exceed required performance standards.
