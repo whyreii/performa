@@ -21,7 +21,7 @@ export default function Badge({
   };
 
   const sizes = {
-    sm: 'text-[11px] leading-none px-2 py-0.5 font-mono',
+    sm: 'text-12 leading-none px-2 py-0.5 font-mono',
     md: 'text-xs leading-none px-2.5 py-1',
   };
 

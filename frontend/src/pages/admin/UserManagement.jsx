@@ -1,19 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, getApiErrorMessage } from '../../api';
-import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/datetime';
 import { getInitials } from '../../utils/format';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import StatusDot from '../../components/ui/StatusDot';
 import Skeleton from '../../components/ui/Skeleton';
+import Card from '../../components/ui/Card';
+import Modal from '../../components/ui/Modal';
+import TextField from '../../components/ui/TextField';
+import Tabs from '../../components/ui/Tabs';
 import {
   Users,
   UserPlus,
   KeyRound,
-  ShieldCheck,
   UserX,
   UserCheck,
   Search,
@@ -105,9 +106,8 @@ export default function UserManagement() {
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-5 border-b border-line">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-accent font-mono uppercase tracking-wider mb-1">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>IT & System Administration</span>
+          <div className="text-xs font-semibold text-accent font-mono mb-1">
+            IT &amp; System Administration
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
             Account Management
@@ -166,60 +166,17 @@ export default function UserManagement() {
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
         {/* Role Filters */}
-        <div role="tablist" aria-label="Filter by role" className="inline-flex flex-wrap p-1 rounded-nav bg-hover border border-line">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={selectedRole === 'all'}
-            onClick={() => setSelectedRole('all')}
-            className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
-              selectedRole === 'all'
-                ? 'bg-surface text-ink shadow-xs font-semibold'
-                : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            All ({counts.all})
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={selectedRole === 'employer'}
-            onClick={() => setSelectedRole('employer')}
-            className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
-              selectedRole === 'employer'
-                ? 'bg-surface text-ink shadow-xs font-semibold'
-                : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            Employers ({counts.employer})
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={selectedRole === 'supervisor'}
-            onClick={() => setSelectedRole('supervisor')}
-            className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
-              selectedRole === 'supervisor'
-                ? 'bg-surface text-ink shadow-xs font-semibold'
-                : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            Supervisors ({counts.supervisor})
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={selectedRole === 'probationary_employee'}
-            onClick={() => setSelectedRole('probationary_employee')}
-            className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
-              selectedRole === 'probationary_employee'
-                ? 'bg-surface text-ink shadow-xs font-semibold'
-                : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            Probationary ({counts.employee})
-          </button>
-        </div>
+        <Tabs
+          ariaLabel="Filter by role"
+          value={selectedRole}
+          onChange={setSelectedRole}
+          tabs={[
+            { id: 'all', label: 'All', count: counts.all },
+            { id: 'employer', label: 'Employers', count: counts.employer },
+            { id: 'supervisor', label: 'Supervisors', count: counts.supervisor },
+            { id: 'probationary_employee', label: 'Probationary', count: counts.employee },
+          ]}
+        />
 
         {/* Search Input */}
         <div className="relative w-full sm:w-64 min-w-0">
@@ -236,7 +193,7 @@ export default function UserManagement() {
       </div>
 
       {/* Accounts Table */}
-      <section className="bg-surface border border-line rounded-float overflow-hidden shadow-sm">
+      <Card padded={false} className="overflow-hidden">
         {/* Mobile & Tablet stacked cards (< lg) */}
         <div className="lg:hidden divide-y divide-line">
           {isLoading ? (
@@ -271,12 +228,12 @@ export default function UserManagement() {
                         <div className="font-semibold text-xs text-ink flex items-center gap-1.5 truncate">
                           <span className="truncate">{u.full_name}</span>
                           {isCurrent && (
-                            <span className="font-mono text-[10px] text-accent font-normal shrink-0">
+                            <span className="font-mono text-12 text-accent font-normal shrink-0">
                               (You)
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] text-ink-3 font-mono truncate block">
+                        <span className="text-12 text-ink-3 font-mono truncate block">
                           {u.email}
                         </span>
                       </div>
@@ -288,14 +245,10 @@ export default function UserManagement() {
 
                   <div className="flex items-center justify-between text-xs pt-1 border-t border-line/60">
                     <div className="flex items-center gap-1.5 font-medium">
-                      <StatusDot
-                        status={u.is_active ? 'active' : 'terminated'}
-                        size="sm"
-                      />
-                      <span className={u.is_active ? 'text-ink-2' : 'text-ink-3'}>
+                      <span className={u.is_active ? 'text-good' : 'text-ink-3'}>
                         {u.is_active ? 'Active' : 'Deactivated'}
                       </span>
-                      <span className="text-ink-3 font-mono text-[11px] ml-1">
+                      <span className="text-ink-3 font-mono text-12 ml-1">
                         · {u.created_at ? formatDate(u.created_at) : '—'}
                       </span>
                     </div>
@@ -306,7 +259,7 @@ export default function UserManagement() {
                         size="sm"
                         leftIcon={KeyRound}
                         onClick={() => setResetPasswordUser(u)}
-                        className="h-7 px-2 text-[11px]"
+                        className="h-7 px-2 text-12"
                         title="Reset password"
                       >
                         Reset
@@ -323,7 +276,7 @@ export default function UserManagement() {
                             })
                           }
                           isLoading={statusMutation.isPending}
-                          className={`h-7 px-2 text-[11px] ${
+                          className={`h-7 px-2 text-12 ${
                             u.is_active ? 'text-bad hover:bg-bad/10' : 'text-good hover:bg-good/10'
                           }`}
                           title={u.is_active ? 'Deactivate account' : 'Reactivate account'}
@@ -343,7 +296,7 @@ export default function UserManagement() {
         <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-line bg-hover/40 text-ink-3 font-mono uppercase text-[11px] tracking-wider">
+              <tr className="border-b border-line bg-hover/40 text-ink-3 font-mono uppercase text-12 tracking-wider">
                 <th className="py-3 px-4">User</th>
                 <th className="py-3 px-4">Role</th>
                 <th className="py-3 px-4">Status</th>
@@ -395,12 +348,12 @@ export default function UserManagement() {
                             <div className="font-semibold text-ink flex items-center gap-1.5">
                               <span className="truncate">{u.full_name}</span>
                               {isCurrent && (
-                                <span className="font-mono text-[10px] text-accent font-normal">
+                                <span className="font-mono text-12 text-accent font-normal">
                                   (You)
                                 </span>
                               )}
                             </div>
-                            <span className="text-[11px] text-ink-3 font-mono truncate block">
+                            <span className="text-12 text-ink-3 font-mono truncate block">
                               {u.email}
                             </span>
                           </div>
@@ -414,19 +367,13 @@ export default function UserManagement() {
 
                       {/* Active Status */}
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-1.5 font-medium">
-                          <StatusDot
-                            status={u.is_active ? 'active' : 'terminated'}
-                            size="sm"
-                          />
-                          <span className={u.is_active ? 'text-ink-2' : 'text-ink-3'}>
-                            {u.is_active ? 'Active' : 'Deactivated'}
-                          </span>
-                        </div>
+                        <span className={`font-medium ${u.is_active ? 'text-good' : 'text-ink-3'}`}>
+                          {u.is_active ? 'Active' : 'Deactivated'}
+                        </span>
                       </td>
 
                       {/* Created At */}
-                      <td className="py-3 px-4 text-ink-3 font-mono text-[11px]">
+                      <td className="py-3 px-4 text-ink-3 font-mono text-12">
                         {u.created_at ? formatDate(u.created_at) : '—'}
                       </td>
 
@@ -438,7 +385,7 @@ export default function UserManagement() {
                             size="sm"
                             leftIcon={KeyRound}
                             onClick={() => setResetPasswordUser(u)}
-                            className="h-7 px-2 text-[11px]"
+                            className="h-7 px-2 text-12"
                             title="Reset password"
                           >
                             Reset
@@ -456,7 +403,7 @@ export default function UserManagement() {
                                 })
                               }
                               isLoading={statusMutation.isPending}
-                              className={`h-7 px-2 text-[11px] ${
+                              className={`h-7 px-2 text-12 ${
                                 u.is_active ? 'text-bad hover:bg-bad/10' : 'text-good hover:bg-good/10'
                               }`}
                               title={u.is_active ? 'Deactivate account' : 'Reactivate account'}
@@ -473,7 +420,7 @@ export default function UserManagement() {
             </tbody>
           </table>
         </div>
-      </section>
+      </Card>
 
       {/* Modal 1: Create User Account */}
       {isCreateModalOpen && (
@@ -521,8 +468,6 @@ function CreateUserModal({ onClose, onSuccess }) {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEscapeKey(onClose);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!fullName.trim() || !email.trim() || !password) {
@@ -552,15 +497,10 @@ function CreateUserModal({ onClose, onSuccess }) {
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
-    >
-      <div className="w-full max-w-md bg-surface border border-line rounded-float p-6 shadow-pop space-y-4">
+    <Modal isOpen onClose={onClose} labelledBy="create-user-title" maxWidth="max-w-md">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink">Create User Account</h2>
+            <h2 id="create-user-title" className="text-base font-semibold text-ink">Create User Account</h2>
             <p className="text-xs text-ink-3">Provision credentials and assign system role</p>
           </div>
           <button
@@ -581,51 +521,38 @@ function CreateUserModal({ onClose, onSuccess }) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div>
-            <label className="block text-ink-2 font-medium mb-1" htmlFor="m_name">
-              Full Name *
-            </label>
-            <input
-              id="m_name"
-              type="text"
-              required
-              placeholder="e.g. Maria Santos"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full h-9 px-3 rounded-ctl border border-line bg-transparent text-ink placeholder:text-ink-3 focus:outline-none focus:border-accent transition-colors"
-            />
-          </div>
+          <TextField
+            id="m_name"
+            label="Full Name *"
+            type="text"
+            required
+            placeholder="e.g. Maria Santos"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
 
-          <div>
-            <label className="block text-ink-2 font-medium mb-1" htmlFor="m_email">
-              Work Email Address *
-            </label>
-            <input
-              id="m_email"
-              type="email"
-              required
-              placeholder="name@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-9 px-3 rounded-ctl border border-line bg-transparent text-ink placeholder:text-ink-3 focus:outline-none focus:border-accent transition-colors font-mono"
-            />
-          </div>
+          <TextField
+            id="m_email"
+            label="Work Email Address *"
+            type="email"
+            required
+            placeholder="name@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="[&_input]:font-mono"
+          />
 
-          <div>
-            <label className="block text-ink-2 font-medium mb-1" htmlFor="m_pass">
-              Initial Password * (min 8 characters)
-            </label>
-            <input
-              id="m_pass"
-              type="password"
-              required
-              minLength={8}
-              placeholder="••••••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-9 px-3 rounded-ctl border border-line bg-transparent text-ink placeholder:text-ink-3 focus:outline-none focus:border-accent transition-colors font-mono"
-            />
-          </div>
+          <TextField
+            id="m_pass"
+            label="Initial Password * (min 8 characters)"
+            type="password"
+            required
+            minLength={8}
+            placeholder="••••••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="[&_input]:font-mono"
+          />
 
           <div>
             <label className="block text-ink-2 font-medium mb-1.5">
@@ -642,7 +569,7 @@ function CreateUserModal({ onClose, onSuccess }) {
                 }`}
               >
                 <div className="font-semibold">Employer</div>
-                <div className="text-[10px] text-ink-3 mt-0.5">Business Owner</div>
+                <div className="text-12 text-ink-3 mt-0.5">Business Owner</div>
               </button>
 
               <button
@@ -655,7 +582,7 @@ function CreateUserModal({ onClose, onSuccess }) {
                 }`}
               >
                 <div className="font-semibold">Supervisor</div>
-                <div className="text-[10px] text-ink-3 mt-0.5">Rating Evaluator</div>
+                <div className="text-12 text-ink-3 mt-0.5">Rating Evaluator</div>
               </button>
 
               <button
@@ -668,7 +595,7 @@ function CreateUserModal({ onClose, onSuccess }) {
                 }`}
               >
                 <div className="font-semibold">Employee</div>
-                <div className="text-[10px] text-ink-3 mt-0.5">Probationary Staff</div>
+                <div className="text-12 text-ink-3 mt-0.5">Probationary Staff</div>
               </button>
             </div>
           </div>
@@ -682,8 +609,7 @@ function CreateUserModal({ onClose, onSuccess }) {
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -694,8 +620,6 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEscapeKey(onClose);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -717,15 +641,10 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
-    >
-      <div className="w-full max-w-sm bg-surface border border-line rounded-float p-6 shadow-pop space-y-4">
+    <Modal isOpen onClose={onClose} labelledBy="reset-pass-title" maxWidth="max-w-sm">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink">Reset Password</h2>
+            <h2 id="reset-pass-title" className="text-base font-semibold text-ink">Reset Password</h2>
             <p className="text-xs text-ink-3 font-mono truncate">{user.email}</p>
           </div>
           <button
@@ -746,21 +665,17 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div>
-            <label className="block text-ink-2 font-medium mb-1" htmlFor="r_pass">
-              New Password * (min 8 characters)
-            </label>
-            <input
-              id="r_pass"
-              type="password"
-              required
-              minLength={8}
-              placeholder="Enter new secure password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-9 px-3 rounded-ctl border border-line bg-transparent text-ink placeholder:text-ink-3 focus:outline-none focus:border-accent transition-colors font-mono"
-            />
-          </div>
+          <TextField
+            id="r_pass"
+            label="New Password * (min 8 characters)"
+            type="password"
+            required
+            minLength={8}
+            placeholder="Enter new secure password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="[&_input]:font-mono"
+          />
 
           <div className="pt-3 border-t border-line flex justify-end gap-2">
             <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>
@@ -771,7 +686,6 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }

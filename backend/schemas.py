@@ -11,11 +11,12 @@ SQLAlchemy ORM instances.
 """
 from __future__ import annotations
 
+import re
 import uuid
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .models import (
     CompetencyEnum,
@@ -27,6 +28,21 @@ from .models import (
 
 
 # ---------------------------------------------------------------------------
+# Shared validators
+# ---------------------------------------------------------------------------
+# Dependency-free email format check (pydantic's EmailStr needs the optional
+# `email-validator` package, which is not a project dependency). Rejects values
+# without a local part, domain, or TLD; does not do DNS/existence checks.
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$")
+
+
+def validate_email(value: str) -> str:
+    if not _EMAIL_RE.match(value):
+        raise ValueError("Invalid email address")
+    return value
+
+
+# ---------------------------------------------------------------------------
 # User / Auth
 # ---------------------------------------------------------------------------
 class UserBase(BaseModel):
@@ -35,6 +51,11 @@ class UserBase(BaseModel):
     role: UserRole
     organization_id: str = Field(..., max_length=100)
     is_active: bool = True
+
+    @field_validator("email")
+    @classmethod
+    def _check_email(cls, value: str) -> str:
+        return validate_email(value)
 
 
 class UserCreate(UserBase):

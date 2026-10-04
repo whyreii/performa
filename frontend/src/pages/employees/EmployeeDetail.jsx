@@ -4,26 +4,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, Modal, EmptyState, textareaClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET } from '../../config/domain';
 import { getInitials } from '../../utils/format';
-import { useEscapeKey } from '../../hooks/useEscapeKey';
 import {
   ArrowLeft,
-  Calendar,
   Building,
   Mail,
   Award,
   ShieldAlert,
   CheckCircle2,
-  Clock,
   AlertTriangle,
   History,
-  UserCheck,
-  UserX,
   Download,
-  TrendingUp,
   FileText,
   ArrowRight,
 } from 'lucide-react';
@@ -47,8 +41,6 @@ export default function EmployeeDetail() {
   const [selectedStatus, setSelectedStatus] = useState('regularized');
   const [statusReason, setStatusReason] = useState('');
   const [actionError, setActionError] = useState('');
-
-  useEscapeKey(() => setIsDeactivateModalOpen(false), isDeactivateModalOpen);
 
   // Fetch employee profile
   const {
@@ -268,6 +260,10 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
   const daysElapsed = getDaysElapsed(employee.start_date);
   const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
   const progressPct = Math.min(100, Math.round((daysElapsed / PROBATION_DAYS) * 100));
+  const reachedMilestone =
+    [MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, PROBATION_DAYS]
+      .filter((m) => m <= daysElapsed)
+      .pop() || null;
 
   const canManageStatus = user?.role === 'employer';
   const canRate = user?.role === 'supervisor' || user?.role === 'employer';
@@ -276,16 +272,16 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
     <div className="space-y-8 animate-in fade-in duration-150 print-sheet">
       {/* Print-only official document header */}
       <div className="print-only mb-6 pb-4 border-b-2 border-black">
-        <p className="text-center text-[11px] font-semibold tracking-widest uppercase">
+        <p className="text-center text-12 font-semibold tracking-widest uppercase">
           Republic of the Philippines
         </p>
         <h1 className="text-center text-lg font-bold mt-1">
           Probationary Performance Evaluation Report
         </h1>
-        <p className="text-center text-[11px] mt-1">
+        <p className="text-center text-12 mt-1">
             Labor Code of the Philippines · Article 296 · {user?.organization_name || user?.organization_id || ''}
         </p>
-        <div className="mt-3 text-[11px] leading-relaxed">
+        <div className="mt-3 text-12 leading-relaxed">
           <p>
             <b>Employee:</b> {employee.user?.full_name}
           </p>
@@ -322,7 +318,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       </div>
 
       {/* 1. Header Profile Banner */}
-      <section className="bg-surface border border-line rounded-float p-6 sm:p-7 shadow-sm">
+      <Card className="p-6 sm:p-7">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-line">
           <div className="flex items-start gap-4 shrink-0">
             <div className="w-14 h-14 rounded-full bg-accent/15 border border-accent/25 text-accent font-semibold text-16 flex items-center justify-center shrink-0">
@@ -437,94 +433,90 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             </Button>
           )}
         </div>
-      </section>
+      </Card>
 
-      {/* 2. Article 296 Statutory 180-Day Tracker */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-5">
+      {/* 2. Statutory deadline scale (Article 296) */}
+      <Card className="space-y-5">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h2 className="text-16 font-semibold text-ink flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-accent" />
-              <span>Article 296 Statutory Probation Tracker</span>
-            </h2>
-            <p className="text-12 text-ink-3 mt-0.5">
-              Strict {PROBATION_DAYS}-day limitation calculated under Asia/Manila standard time
-            </p>
+            <h2 className="text-16 font-semibold text-ink">Probation timeline</h2>
+            <p className="text-12 text-ink-3 mt-0.5">Art. 296 · Asia/Manila</p>
           </div>
-
           <div className="font-mono text-12 text-ink">
             <b>Day {daysElapsed}</b> / {PROBATION_DAYS} ({daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining)
           </div>
         </div>
 
-        {/* Timeline Progress Bar */}
-        <div className="space-y-2">
-          <div className="relative h-3 w-full bg-hover border border-line rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${
-                daysElapsed >= MILESTONE_CRITICAL
-                  ? 'bg-bad'
-                  : daysElapsed >= MILESTONE_NOTICE
-                  ? 'bg-notice'
-                  : daysElapsed >= MILESTONE_REVIEW
-                  ? 'bg-warn'
-                  : 'bg-accent'
-              }`}
-              style={{ width: `${progressPct}%` }}
+        {/* Deadline scale: hairline track, Day 150-180 window, ticks, today marker */}
+        <div
+          className="relative h-[42px]"
+          role="img"
+          aria-label={`Day ${daysElapsed} of ${PROBATION_DAYS}. Milestones at Day ${MILESTONE_REVIEW} review, Day ${MILESTONE_NOTICE} notice, Day ${MILESTONE_CRITICAL} critical, and Day ${PROBATION_DAYS} deadline.`}
+        >
+          <div className="absolute left-0 right-0 top-[21px] h-px bg-line" />
+          <div
+            className="absolute top-[18px] h-[7px] bg-warn/10"
+            style={{ left: `${(MILESTONE_REVIEW / PROBATION_DAYS) * 100}%`, right: 0 }}
+          />
+          {[MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL].map((m) => (
+            <span
+              key={m}
+              className="absolute top-[17px] w-px h-[9px] bg-ink-3"
+              style={{ left: `${(m / PROBATION_DAYS) * 100}%` }}
             />
-          </div>
-
-          {/* Milestone markers */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-12 font-mono">
-            <div className="p-3 rounded-ctl bg-hover border border-line">
-              <span className="text-ink-3 block">Start (Day 0)</span>
-              <span className="font-semibold text-ink">{formatDate(employee.start_date)}</span>
-            </div>
-
-            <div className="p-3 rounded-ctl bg-hover border border-line">
-              <span className="text-warn block">Day {MILESTONE_REVIEW} (Review Due)</span>
-              <span className="font-semibold text-ink">
-                {formatDate(milestoneDate(employee.start_date, MILESTONE_REVIEW))}
-              </span>
-            </div>
-
-            <div className="p-3 rounded-ctl bg-hover border border-line">
-              <span className="text-notice block">Day {MILESTONE_NOTICE} (Notice Due)</span>
-              <span className="font-semibold text-ink">
-                {formatDate(milestoneDate(employee.start_date, MILESTONE_NOTICE))}
-              </span>
-            </div>
-
-            <div className="p-3 rounded-ctl bg-hover border border-line">
-              <span className="text-bad block">Day {PROBATION_DAYS} (Deadline)</span>
-              <span className="font-semibold text-ink">{formatDate(employee.day_180_date)}</span>
-            </div>
+          ))}
+          <span className="absolute top-[15px] w-0.5 h-[14px] bg-ink" style={{ left: `${progressPct}%` }} />
+          <span
+            className={`absolute top-0 font-mono text-12 text-ink whitespace-nowrap ${
+              progressPct > 88 ? '-translate-x-full' : '-translate-x-1/2'
+            }`}
+            style={{ left: `${progressPct}%` }}
+          >
+            Day {daysElapsed}
+          </span>
+          <div className="absolute bottom-0 left-0 right-0 flex justify-between font-mono text-12 text-ink-3">
+            <span>Day 0</span>
+            <span>Day {PROBATION_DAYS}</span>
           </div>
         </div>
-      </section>
+
+        {/* Milestone ledger */}
+        <ul className="border-t border-line">
+          {[
+            { m: 0, label: 'Start (Day 0)', tone: 'text-ink-3', date: formatDate(employee.start_date) },
+            { m: MILESTONE_REVIEW, label: `Day ${MILESTONE_REVIEW} · Review`, tone: 'text-warn', date: formatDate(milestoneDate(employee.start_date, MILESTONE_REVIEW)) },
+            { m: MILESTONE_NOTICE, label: `Day ${MILESTONE_NOTICE} · Notice`, tone: 'text-notice', date: formatDate(milestoneDate(employee.start_date, MILESTONE_NOTICE)) },
+            { m: MILESTONE_CRITICAL, label: `Day ${MILESTONE_CRITICAL} · Critical`, tone: 'text-bad', date: formatDate(milestoneDate(employee.start_date, MILESTONE_CRITICAL)) },
+            { m: PROBATION_DAYS, label: `Day ${PROBATION_DAYS} · Deadline`, tone: 'text-bad', date: formatDate(employee.day_180_date) },
+          ].map(({ m, label, tone, date }) => (
+            <li
+              key={m}
+              className="flex items-baseline justify-between gap-4 py-2.5 border-b border-line last:border-b-0"
+            >
+              <span className={`text-14 ${tone}${m === reachedMilestone ? ' font-semibold' : ''}`}>{label}</span>
+              <span className="font-mono text-14 text-ink">{date}</span>
+            </li>
+          ))}
+        </ul>
+      </Card>
 
       {/* 3. Performance Scorecard & 5 Competencies */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-6">
+      <Card className="space-y-6">
         <div className="flex items-center justify-between pb-4 border-b border-line">
           <div>
-            <h2 className="text-16 font-semibold text-ink flex items-center gap-2">
-              <Award className="w-4 h-4 text-accent" />
-              <span>Competency Scorecard & Benchmarks</span>
-            </h2>
-            <p className="text-12 text-ink-3 mt-0.5">
-              The 5 statutory performance competencies with 4.0 regularizing target
-            </p>
+            <h2 className="text-16 font-semibold text-ink">Scorecard</h2>
+            <p className="text-12 text-ink-3 mt-0.5">5 competencies · target 4.0</p>
           </div>
 
           {scorecard?.latest_evaluation_date ? (
-            <div>
+            <div className="text-right">
               <span className="text-12 text-ink-3 block">Overall Average</span>
               <span className="text-22 font-bold font-mono text-ink">
                 {Number(scorecard.overall_score).toFixed(1)} / 5.0
               </span>
             </div>
           ) : (
-            <Badge variant="neutral">Initial Evaluations Pending</Badge>
+            <span className="text-12 text-ink-3">Initial evaluations pending</span>
           )}
         </div>
 
@@ -535,46 +527,41 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             <Skeleton className="h-8 w-full" />
           </div>
         ) : isScoreError ? (
-          <div className="py-8 text-center text-xs text-bad">
-            Unable to load the scorecard right now. Please retry.
-          </div>
+          <p className="py-8 text-center text-14 text-bad">Unable to load the scorecard right now. Please retry.</p>
         ) : !scorecard || !scorecard.competencies || scorecard.competencies.length === 0 ? (
-          <div className="py-8 text-center text-xs text-ink-3">
-            No evaluations have been submitted for this employee yet.
-          </div>
+          <p className="py-8 text-center text-14 text-ink-3">No evaluations have been submitted for this employee yet.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <ul>
             {scorecard.competencies.map((comp) => (
-              <div key={comp.key} className="p-4 rounded-ctl bg-hover/60 border border-line space-y-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="font-semibold text-14 text-ink block">{comp.label}</span>
+              <li key={comp.key} className="py-3 border-b border-line last:border-b-0">
+                <div className="flex items-baseline justify-between gap-4">
+                  <div className="min-w-0">
+                    <span className="text-14 font-medium text-ink block">{comp.label}</span>
                     <span className="text-12 text-ink-3 block">
                       {COMPETENCY_DESCRIPTIONS[comp.key] || 'Statutory competency'}
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-14 text-ink shrink-0 ml-2">
+                  <span className="font-mono font-semibold text-14 text-ink shrink-0">
                     {Number(comp.score).toFixed(1)}
                   </span>
                 </div>
-                <ScoreMeter score={comp.score} target={comp.target} />
-              </div>
+                <div className="mt-2">
+                  <ScoreMeter score={comp.score} target={comp.target} />
+                </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </section>
+      </Card>
 
       {/* 3b. Monthly KPI Trend */}
       {trend.length > 0 && (
-        <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
+        <Card className="space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-line">
-            <h2 className="text-base font-semibold text-ink flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-accent" />
-              <span>Monthly KPI Trend</span>
-            </h2>
-            <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold text-ink">Monthly KPI Trend</h2>
+            <div className="flex items-center gap-3">
               <span className="text-12 font-mono text-ink-3">Target &gt;= {overallTarget.toFixed(2)}</span>
-              <Badge variant="neutral">{trend.length} months</Badge>
+              <span className="text-12 text-ink-3">{trend.length} months</span>
             </div>
           </div>
           <div className="space-y-3">
@@ -603,18 +590,15 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </div>
             ))}
           </div>
-        </section>
+        </Card>
       )}
 
       {/* 3c. Regularization Recommendation */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
+      <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-accent" />
-              <span>Regularization Recommendation</span>
-            </h2>
-            <p className="text-xs text-ink-3 mt-0.5">
+            <h2 className="text-base font-semibold text-ink">Regularization Recommendation</h2>
+            <p className="text-12 text-ink-3 mt-0.5">
               AI-assisted decision support at the mid-5th month
             </p>
           </div>
@@ -636,7 +620,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           )}
         </div>
         {!hasEvaluations ? (
-          <div className="text-xs text-ink-3 space-y-2">
+          <div className="text-14 text-ink-3 space-y-2">
             <p>
               No weekly evaluations recorded yet. A supervisor must submit at least one
               weekly rating before generating AI decision support.
@@ -653,36 +637,34 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </div>
         ) : regularization ? (
           <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3">
               <Badge variant={regularization.recommendation === 'Regularize' ? 'ok' : 'bad'}>
                 {regularization.recommendation}
               </Badge>
-              <Badge variant="neutral">{regularization.status_classification}</Badge>
-              <span className="font-mono text-xs text-ink-3">
+              <span className="text-14 text-ink-2">{regularization.status_classification}</span>
+              <span className="font-mono text-12 text-ink-3">
                 Avg {Number(regularization.overall_average).toFixed(2)}
               </span>
             </div>
             {regularization.rationale && (
-              <p className="text-xs text-ink-2 bg-hover/50 p-3 rounded-ctl border border-line">
-                {regularization.rationale}
-              </p>
+              <p className="text-14 text-ink-2 leading-relaxed">{regularization.rationale}</p>
             )}
           </div>
         ) : (
-          <p className="text-xs text-ink-3">
+          <p className="text-14 text-ink-3">
             Evaluations recorded. Click "Generate" to run the Random Forest classifier and
             Gemini decision rationale.
           </p>
         )}
-      </section>
+      </Card>
 
       {/* 3d. ML Risk Explanation (feature importances) */}
       {riskExplanation && (
-        <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-3">
+        <Card className="space-y-3">
           <div className="flex items-center justify-between pb-3 border-b border-line">
             <div>
               <h2 className="text-base font-semibold text-ink">ML Risk Explanation</h2>
-              <p className="text-xs text-ink-3 mt-0.5">
+              <p className="text-12 text-ink-3 mt-0.5">
                 Feature importance for legal defensibility
               </p>
             </div>
@@ -707,30 +689,27 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </div>
             ))}
           </div>
-        </section>
+        </Card>
       )}
 
       {/* 4. Immutable Evaluation History Audit Trail */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
+      <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink flex items-center gap-2">
-              <History className="w-4 h-4 text-accent" />
-              <span>Immutable Weekly Evaluation History</span>
-            </h2>
-            <p className="text-xs text-ink-3 mt-0.5">
-              Append-only audit trail meeting Article 296 evidentiary due process
+            <h2 className="text-base font-semibold text-ink">Evaluation history</h2>
+            <p className="text-12 text-ink-3 mt-0.5">
+              Append-only · one row per change
             </p>
           </div>
-          <Badge variant="neutral">{auditLogs.length} Records</Badge>
+          <span className="font-mono text-12 text-ink-3">{auditLogs.length} records</span>
         </div>
 
         {isAuditLoading ? (
           <Skeleton className="h-24 w-full" />
         ) : auditLogs.length === 0 ? (
-          <div className="py-8 text-center text-xs text-ink-3">
+          <EmptyState icon={History} title="No evaluations yet">
             No evaluations submitted yet for this employee.
-          </div>
+          </EmptyState>
         ) : (
           <div className="divide-y divide-line">
             {auditLogs.map((log) => {
@@ -742,9 +721,9 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                       <span className="font-semibold text-ink">
                         {log.evaluator_name || 'Evaluator'}
                       </span>
-                      <Badge variant="accent">
+                      <span className="text-ink-2">
                         {log.competency?.replace(/_/g, ' ') || 'score'}
-                      </Badge>
+                      </span>
                     </div>
                     <span className="font-mono text-ink-3">{formatDate(log.created_at)}</span>
                   </div>
@@ -761,15 +740,15 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             })}
           </div>
         )}
-      </section>
+      </Card>
 
       {/* Print-only signature block */}
       <div className="print-only mt-10 pt-6 border-t-2 border-black">
-        <p className="text-[11px] mb-8 leading-relaxed">
+        <p className="text-12 mb-8 leading-relaxed">
           This report is generated from the Performa evidentiary audit trail and is valid for
           Article 296 due-process documentation when printed directly from the system.
         </p>
-        <div className="grid grid-cols-2 gap-x-12 gap-y-12 text-[11px]">
+        <div className="grid grid-cols-2 gap-x-12 gap-y-12 text-12">
           <div className="border-t border-black pt-1">
             <b>Immediate Supervisor / Evaluator</b>
             <span className="block">Signature over printed name</span>
@@ -790,20 +769,13 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       </div>
 
       {/* Status Transition Modal */}
-      {isDeactivateModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Update probationary status"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
-          onClick={() => setIsDeactivateModalOpen(false)}
-        >
-          <div
-            className="w-full max-w-md bg-surface border border-line rounded-float shadow-pop p-6 space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-line pb-3">
-              <h3 className="text-base font-semibold text-ink">Update Probationary Status</h3>
+      <Modal
+        isOpen={isDeactivateModalOpen}
+        onClose={() => setIsDeactivateModalOpen(false)}
+        labelledBy="status-modal-title"
+      >
+        <div className="flex items-center justify-between border-b border-line pb-3">
+          <h3 id="status-modal-title" className="text-base font-semibold text-ink">Update Probationary Status</h3>
               <button
                 type="button"
                 onClick={() => setIsDeactivateModalOpen(false)}
@@ -842,7 +814,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 />
                 <div>
                   <span className="font-semibold text-xs block text-ok">Confer Regular Status</span>
-                  <span className="text-[11px] text-ink-3 block">
+                  <span className="text-12 text-ink-3 block">
                     Employee has passed probationary standards.
                   </span>
                 </div>
@@ -864,7 +836,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 />
                 <div>
                   <span className="font-semibold text-xs block text-bad">Non-Regularize / Terminate</span>
-                  <span className="text-[11px] text-ink-3 block">
+                  <span className="text-12 text-ink-3 block">
                     Due to failure to meet initial probationary standards.
                   </span>
                 </div>
@@ -883,9 +855,9 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   value={statusReason}
                   onChange={(e) => setStatusReason(e.target.value)}
                   placeholder="State the documented, performance-based justification for non-regularization..."
-                  className="w-full p-3 text-xs border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 focus:outline-none focus:border-accent transition-colors"
+                  className={textareaClass}
                 />
-                <p className="text-[11px] text-ink-3 mt-1 font-mono">
+                <p className="text-12 text-ink-3 mt-1 font-mono">
                   {statusReason.length} / 500 characters
                 </p>
               </div>
@@ -916,9 +888,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 Confirm Decision
               </Button>
             </div>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

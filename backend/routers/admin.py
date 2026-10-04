@@ -5,7 +5,7 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +22,7 @@ from ..models import (
     User,
     UserRole,
 )
-from ..schemas import ActivityLogResponse, UserResponse
+from ..schemas import ActivityLogResponse, UserResponse, validate_email
 from .kpi import INDUSTRY_TEMPLATES
 
 router = APIRouter(prefix="/api/admin", tags=["Admin User Management"])
@@ -35,6 +35,11 @@ class AdminCreateUserRequest(BaseModel):
     full_name: str = Field(..., max_length=255)
     password: str = Field(..., min_length=8, max_length=128)
     role: UserRole
+
+    @field_validator("email")
+    @classmethod
+    def _check_email(cls, value: str) -> str:
+        return validate_email(value)
 
 
 class AdminUpdateStatusRequest(BaseModel):

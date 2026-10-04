@@ -3,14 +3,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { manilaTodayISO, addDays, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS } from '../../config/domain';
-import { useEscapeKey } from '../../hooks/useEscapeKey';
-import { Button } from '../ui';
-import { X, UserPlus, AlertCircle, Calendar, ShieldCheck, UserCog } from 'lucide-react';
+import { Button, Modal, TextField } from '../ui';
+import { X, AlertCircle, UserCog } from 'lucide-react';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
   const queryClient = useQueryClient();
-
-  useEscapeKey(onClose, isOpen);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -95,33 +92,23 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
     });
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Onboard probationary employee"
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
-      onClick={onClose}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      label="Onboard probationary employee"
+      maxWidth="max-w-lg"
+      panelClassName="sm:p-7"
     >
-      <div
-        className="w-full max-w-lg bg-surface border border-line rounded-float shadow-pop overflow-hidden p-6 sm:p-7"
-        onClick={(e) => e.stopPropagation()}
-      >
         <div className="flex items-center justify-between pb-4 mb-5 border-b border-line">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-nav bg-accent/10 text-accent flex items-center justify-center">
-              <UserPlus className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-ink">Onboard Probationary Employee</h2>
-              <p className="text-xs text-ink-3">Article 296 Statutory 180-Day Timeline</p>
-            </div>
+          <div>
+            <h2 className="text-lg font-semibold text-ink">Onboard Probationary Employee</h2>
+            <p className="text-xs text-ink-3">Article 296 Statutory 180-Day Timeline</p>
           </div>
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close"
             className="p-1 rounded-ctl text-ink-3 hover:text-ink hover:bg-hover transition-colors"
           >
             <X className="w-4 h-4" />
@@ -136,50 +123,37 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-ink-2 mb-1" htmlFor="m_name">
-              Full Name *
-            </label>
-            <input
-              id="m_name"
-              type="text"
-              required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="e.g. Maria Clara Santos"
-              className="w-full h-9 px-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:border-accent transition-colors"
-            />
-          </div>
+          <TextField
+            id="m_name"
+            label="Full Name *"
+            type="text"
+            required
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="e.g. Maria Clara Santos"
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-ink-2 mb-1" htmlFor="m_email">
-                Work Email *
-              </label>
-              <input
-                id="m_email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@acme.com"
-                className="w-full h-9 px-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:border-accent transition-colors"
-              />
-            </div>
+            <TextField
+              id="m_email"
+              label="Work Email *"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@acme.com"
+            />
 
             <div>
-              <label className="block text-xs font-medium text-ink-2 mb-1" htmlFor="m_dept">
-                Department *
-              </label>
-              <input
+              <TextField
                 id="m_dept"
+                label="Department *"
                 type="text"
                 list="department-suggestions"
                 required
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
                 placeholder="e.g. Engineering"
-                className="w-full h-9 px-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:border-accent transition-colors"
               />
               <datalist id="department-suggestions">
                 <option value="Engineering" />
@@ -192,34 +166,25 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-ink-2 mb-1" htmlFor="m_title">
-                Job Title *
-              </label>
-              <input
-                id="m_title"
-                type="text"
-                required
-                value={jobTitle}
-                onChange={(e) => setJobTitle(e.target.value)}
-                placeholder="e.g. Junior Systems Dev"
-                className="w-full h-9 px-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:border-accent transition-colors"
-              />
-            </div>
+            <TextField
+              id="m_title"
+              label="Job Title *"
+              type="text"
+              required
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+              placeholder="e.g. Junior Systems Dev"
+            />
 
-            <div>
-              <label className="block text-xs font-medium text-ink-2 mb-1" htmlFor="m_start">
-                Start Date (Asia/Manila) *
-              </label>
-              <input
-                id="m_start"
-                type="date"
-                required
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full h-9 px-3 border border-line rounded-field bg-transparent text-ink text-sm focus:outline-none focus:border-accent transition-colors font-mono"
-              />
-            </div>
+            <TextField
+              id="m_start"
+              label="Start Date (Asia/Manila) *"
+              type="date"
+              required
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="[&_input]:font-mono"
+            />
           </div>
 
           <div>
@@ -250,7 +215,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
               </select>
             </div>
             {!isSupervisorsLoading && supervisors.length === 0 && (
-              <p className="text-[11px] text-warn mt-1">
+              <p className="text-12 text-warn mt-1">
                 Create a Supervisor account first before onboarding an employee.
               </p>
             )}
@@ -259,23 +224,17 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           {/* Statutory 180-Day Calculation Banner */}
           <div className="p-3 rounded-ctl bg-hover border border-line text-xs space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-ink-3 flex items-center gap-1 font-mono text-[11px]">
-                <Calendar className="w-3.5 h-3.5 text-accent" />
-                <span>Statutory 180-Day Cap</span>
-              </span>
+              <span className="text-ink-3 font-mono text-12">Statutory 180-Day Cap</span>
               <span className="font-semibold text-accent font-mono">{day180Preview}</span>
             </div>
-            <p className="text-[11px] text-ink-3 leading-relaxed">
+            <p className="text-12 text-ink-3 leading-relaxed">
               Under Art. 296, the employee will automatically regularize if retained past Day 180 without formal notice.
             </p>
           </div>
 
           {/* Initial Password Notice */}
           <div className="flex items-center justify-between pt-2 text-xs text-ink-3">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-ok" />
-              <span>Initial login password:</span>
-            </span>
+            <span>Initial login password:</span>
             <span className="font-mono font-medium text-ink">Password123!</span>
           </div>
 
@@ -292,7 +251,6 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }

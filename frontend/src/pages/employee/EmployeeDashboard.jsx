@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, MilestonePill, Skeleton } from '../../components/ui';
+import { Button, Badge, ScoreMeter, MilestonePill, Skeleton, Card } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import {
@@ -97,10 +97,10 @@ export default function EmployeeDashboard() {
       </header>
 
       {/* 1. Probation Status & Timeline Progress Banner */}
-      <section className="bg-surface border border-line rounded-float p-6 sm:p-7 shadow-sm space-y-5">
+      <Card className="sm:p-7 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
           <div>
-            <span className="text-[11px] font-mono text-accent uppercase tracking-wider block mb-0.5">
+            <span className="text-12 font-mono text-accent block mb-0.5">
               Philippine Labor Code Article 296
             </span>
             <h2 className="text-lg font-semibold text-ink">Probationary Period Timeline</h2>
@@ -142,36 +142,28 @@ export default function EmployeeDashboard() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 text-xs">
-            <div className="p-3 rounded-ctl bg-hover/70 border border-line space-y-1">
-              <span className="text-ink-3 block font-mono text-[11px]">Milestone 1</span>
-              <span className="font-semibold text-ink block">Day {MILESTONE_REVIEW} Appraisal</span>
-              <p className="text-[11px] text-ink-3">Comprehensive 5th-month evaluation.</p>
+          <div className="pt-3">
+            <div className="flex items-baseline justify-between gap-4 py-2.5 border-b border-line">
+              <span className="text-14 font-medium text-ink">Day {MILESTONE_REVIEW} Appraisal</span>
+              <span className="text-12 text-ink-3">Comprehensive 5th-month evaluation</span>
             </div>
-
-            <div className="p-3 rounded-ctl bg-hover/70 border border-line space-y-1">
-              <span className="text-ink-3 block font-mono text-[11px]">Milestone 2</span>
-              <span className="font-semibold text-ink block">Day {MILESTONE_NOTICE} Notice Window</span>
-              <p className="text-[11px] text-ink-3">Statutory 15-day notice threshold.</p>
+            <div className="flex items-baseline justify-between gap-4 py-2.5 border-b border-line">
+              <span className="text-14 font-medium text-ink">Day {MILESTONE_NOTICE} Notice Window</span>
+              <span className="text-12 text-ink-3">Statutory 15-day notice threshold</span>
             </div>
-
-            <div className="p-3 rounded-ctl bg-hover/70 border border-line space-y-1">
-              <span className="text-ink-3 block font-mono text-[11px]">Milestone 3</span>
-              <span className="font-semibold text-ink block">Day {PROBATION_DAYS} Regularization</span>
-              <p className="text-[11px] text-ink-3">Permanent employment conferment.</p>
+            <div className="flex items-baseline justify-between gap-4 py-2.5">
+              <span className="text-14 font-medium text-ink">Day {PROBATION_DAYS} Regularization</span>
+              <span className="text-12 text-ink-3">Permanent employment conferment</span>
             </div>
           </div>
         </div>
-      </section>
+      </Card>
 
       {/* 2. Competency Scores Breakdown */}
-      <section className="bg-surface border border-line rounded-float p-6 sm:p-7 shadow-sm space-y-6">
+      <Card className="sm:p-7 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink flex items-center gap-2">
-              <Award className="w-4 h-4 text-accent" />
-              <span>Competency Standing vs Regularizing Target</span>
-            </h2>
+            <h2 className="text-base font-semibold text-ink">Competency Standing vs Regularizing Target</h2>
             <p className="text-xs text-ink-3 mt-0.5">
               Minimum 4.0 average required across all 5 legal competencies
             </p>
@@ -185,7 +177,7 @@ export default function EmployeeDashboard() {
               </span>
             </div>
           ) : (
-            <Badge variant="neutral">Initial Evaluations Pending</Badge>
+            <span className="text-12 text-ink-3">Initial evaluations pending</span>
           )}
         </div>
 
@@ -200,35 +192,37 @@ export default function EmployeeDashboard() {
             No evaluations have been submitted for you yet.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <ul>
             {scorecard.competencies.map((c) => (
-              <div key={c.key} className="p-4 rounded-ctl bg-hover/60 border border-line space-y-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="font-semibold text-sm text-ink block">{c.label}</span>
-                    <span className="text-xs text-ink-3 block">
+              <li key={c.key} className="py-3 border-b border-line last:border-b-0">
+                <div className="flex items-baseline justify-between gap-4">
+                  <div className="min-w-0">
+                    <span className="text-14 font-medium text-ink block">{c.label}</span>
+                    <span className="text-12 text-ink-3 block">
                       {COMPETENCY_DESCRIPTIONS[c.key] || 'Statutory competency'}
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-sm text-ink ml-2">
+                  <span className="font-mono font-semibold text-14 text-ink shrink-0">
                     {Number(c.score).toFixed(1)}
                   </span>
                 </div>
-                <ScoreMeter score={c.score} target={c.target} />
-              </div>
+                <div className="mt-2">
+                  <ScoreMeter score={c.score} target={c.target} />
+                </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </section>
+      </Card>
 
       {/* 3. Feedback Notes & Evidentiary Log */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
+      <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
             <h2 className="text-base font-semibold text-ink">Evaluation Audit Trail</h2>
             <p className="text-xs text-ink-3">Append-only record of every competency score change</p>
           </div>
-          <Badge variant="neutral">{auditLogs.length} Records</Badge>
+          <span className="font-mono text-12 text-ink-3">{auditLogs.length} records</span>
         </div>
 
         {isAuditLoading ? (
@@ -248,9 +242,9 @@ export default function EmployeeDashboard() {
                       <span className="font-semibold text-ink">
                         {log.evaluator_name || 'Evaluator'}
                       </span>
-                      <Badge variant="accent">
+                      <span className="text-ink-2">
                         {log.competency?.replace(/_/g, ' ') || 'score'}
-                      </Badge>
+                      </span>
                     </div>
                     <span className="font-mono text-ink-3">{formatDate(log.created_at)}</span>
                   </div>
@@ -267,10 +261,10 @@ export default function EmployeeDashboard() {
             })}
           </div>
         )}
-      </section>
+      </Card>
       {/* Monthly Summaries requiring acknowledgement */}
       {mySummaries.length > 0 && (
-        <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
+        <Card className="space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-line">
             <div>
               <h2 className="text-base font-semibold text-ink">Monthly Performance Summaries</h2>
@@ -305,7 +299,7 @@ export default function EmployeeDashboard() {
               </div>
             ))}
           </div>
-        </section>
+        </Card>
       )}
     </div>
   );

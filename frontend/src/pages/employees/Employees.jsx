@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { employeeApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Tabs, EmptyState, Card } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -19,8 +19,6 @@ import {
   X,
   Filter,
   Flame,
-  Clock,
-  CheckCircle2,
 } from 'lucide-react';
 
 export default function Employees() {
@@ -198,52 +196,16 @@ export default function Employees() {
       {/* Tabs and Search Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
         {/* Segmented Control Tabs */}
-        <div role="tablist" aria-label="Employee filters" className="inline-flex p-1 rounded-nav bg-hover border border-line">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'all'}
-            onClick={() => setActiveTab('all')}
-            className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
-              activeTab === 'all'
-                ? 'bg-surface text-ink shadow-xs font-semibold'
-                : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <span>All Staff</span>
-            <span className="ml-1.5 font-mono text-[11px] text-ink-3">({counts.all})</span>
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'prob'}
-            onClick={() => setActiveTab('prob')}
-            className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
-              activeTab === 'prob'
-                ? 'bg-surface text-ink shadow-xs font-semibold'
-                : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <span>Probationary</span>
-            <span className="ml-1.5 font-mono text-[11px] text-ink-3">({counts.prob})</span>
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'reg'}
-            onClick={() => setActiveTab('reg')}
-            className={`px-3 py-1.5 rounded-ctl text-xs font-medium transition-all ${
-              activeTab === 'reg'
-                ? 'bg-surface text-ink shadow-xs font-semibold'
-                : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <span>Regularized</span>
-            <span className="ml-1.5 font-mono text-[11px] text-ink-3">({counts.reg})</span>
-          </button>
-        </div>
+        <Tabs
+          ariaLabel="Employee filters"
+          value={activeTab}
+          onChange={setActiveTab}
+          tabs={[
+            { id: 'all', label: 'All Staff', count: counts.all },
+            { id: 'prob', label: 'Probationary', count: counts.prob },
+            { id: 'reg', label: 'Regularized', count: counts.reg },
+          ]}
+        />
 
         {/* Search & Filters */}
         <div className="flex flex-wrap items-center gap-2">
@@ -264,6 +226,7 @@ export default function Employees() {
           <select
             value={selectedDept}
             onChange={(e) => setSelectedDept(e.target.value)}
+            aria-label="Filter by department"
             className="h-8 px-2.5 rounded-ctl border border-line bg-surface text-ink text-xs focus:outline-none focus:border-accent transition-colors shadow-xs cursor-pointer"
           >
             <option value="all">All Departments</option>
@@ -290,10 +253,7 @@ export default function Employees() {
       {/* Article 296 Statutory Milestone Quick Filter Pills (active probationers only) */}
       {activeTab === 'prob' && (
       <div className="flex flex-wrap items-center gap-2 pt-1 pb-1">
-        <span className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider flex items-center gap-1.5 mr-1">
-          <Clock className="w-3.5 h-3.5 text-accent" />
-          <span>Milestone Triage:</span>
-        </span>
+        <span className="text-12 font-semibold text-ink-3 mr-1">Milestone Triage:</span>
 
         <button
           type="button"
@@ -329,7 +289,6 @@ export default function Employees() {
               : 'bg-warn/10 border border-warn/30 text-warn hover:bg-warn/20'
           }`}
         >
-          <AlertCircle className="w-3.5 h-3.5" />
           <span>Day {MILESTONE_NOTICE} Notice ({milestoneCounts.notice165})</span>
         </button>
 
@@ -342,7 +301,6 @@ export default function Employees() {
               : 'bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20'
           }`}
         >
-          <Clock className="w-3.5 h-3.5" />
           <span>Day {MILESTONE_REVIEW} Review ({milestoneCounts.appraisal150})</span>
         </button>
 
@@ -355,14 +313,13 @@ export default function Employees() {
               : 'bg-good/10 border border-good/30 text-good hover:bg-good/20'
           }`}
         >
-          <CheckCircle2 className="w-3.5 h-3.5" />
           <span>On Track (&lt; Day {MILESTONE_REVIEW}) ({milestoneCounts.nominal})</span>
         </button>
       </div>
       )}
 
       {/* Directory Table */}
-      <div className="bg-surface border border-line rounded-float shadow-sm overflow-hidden">
+      <Card padded={false} className="overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-4">
             <Skeleton className="h-10 w-full" />
@@ -382,16 +339,19 @@ export default function Employees() {
             </Button>
           </div>
         ) : filteredEmployees.length === 0 ? (
-          <div className="py-14 text-center space-y-2">
-            <Users className="w-10 h-10 text-ink-3/40 mx-auto" />
-            <h3 className="text-base font-medium text-ink">No employees match</h3>
-            <p className="text-xs text-ink-3">Try adjusting your filters or search keywords.</p>
-            {hasActiveFilters && (
-              <Button variant="subtle" size="sm" onClick={clearFilters} className="mt-2">
-                Clear Filters
-              </Button>
-            )}
-          </div>
+          <EmptyState
+            icon={Users}
+            title="No employees match"
+            action={
+              hasActiveFilters ? (
+                <Button variant="subtle" size="sm" onClick={clearFilters}>
+                  Clear Filters
+                </Button>
+              ) : undefined
+            }
+          >
+            Try adjusting your filters or search keywords.
+          </EmptyState>
         ) : (
           <>
             {/* Mobile: stacked cards (table columns clip below lg) */}
@@ -428,10 +388,7 @@ export default function Employees() {
                         {emp.job_title} · {emp.department}
                       </span>
                       {isRegular ? (
-                        <span className="text-ok flex items-center gap-1 shrink-0">
-                          <StatusDot status="active" />
-                          <span>Permanent Regular</span>
-                        </span>
+                        <span className="text-ok shrink-0">Permanent Regular</span>
                       ) : (
                         <span className="font-mono text-ink-3 shrink-0">
                           Day {daysElapsed} · {daysRemaining}d left
@@ -466,7 +423,7 @@ export default function Employees() {
             <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-line text-[11px] font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
+                <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
                   <th className="py-3 px-4">
                     <button
                       type="button"
@@ -532,27 +489,16 @@ export default function Employees() {
                       {/* Probation timeline bar */}
                       <td className="py-3 px-4 min-w-[150px]">
                         {emp.status === 'regularized' ? (
-                          <span className="text-xs font-medium text-ok flex items-center gap-1">
-                            <StatusDot status="active" />
-                            <span>Permanent Regular</span>
-                          </span>
+                          <span className="text-12 font-medium text-ok">Permanent Regular</span>
                         ) : (
                           <div className="space-y-1">
                             <div className="flex justify-between text-xs text-ink-2 font-mono">
                               <span>Day {daysElapsed}</span>
-                              <span className="text-ink-3 text-[11px]">{daysRemaining}d left</span>
+                              <span className="text-ink-3 text-12">{daysRemaining}d left</span>
                             </div>
                             <div className="h-1.5 w-full bg-line rounded-full overflow-hidden">
                               <div
-                                className={`h-full rounded-full transition-all ${
-                                  daysElapsed >= MILESTONE_CRITICAL
-                                    ? 'bg-bad'
-                                    : daysElapsed >= MILESTONE_NOTICE
-                                    ? 'bg-notice'
-                                    : daysElapsed >= MILESTONE_REVIEW
-                                    ? 'bg-warn'
-                                    : 'bg-accent'
-                                }`}
+                                className="h-full rounded-full transition-all bg-ink-3"
                                 style={{ width: `${progressPct}%` }}
                               />
                             </div>
@@ -588,7 +534,7 @@ export default function Employees() {
           </span>
           <span>Asia/Manila (UTC+8)</span>
         </footer>
-      </div>
+      </Card>
 
       {/* Onboard Modal */}
       <AddEmployeeModal

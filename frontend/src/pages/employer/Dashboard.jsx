@@ -2,16 +2,14 @@ import React, { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
 import { activateOnKey } from '../../utils/a11y';
 import {
   ChevronRight,
-  TrendingUp,
   ArrowRight,
-  ShieldAlert,
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -97,10 +95,10 @@ export default function Dashboard() {
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
         <div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            Executive Overview
+            Dashboard
           </h1>
           <p className="text-sm text-ink-2 mt-1">
-            Probationary Pipeline & Statutory Due Process Tracker ·{' '}
+            Probationary pipeline ·{' '}
             <span className="font-mono text-ink">Acme PH</span>
           </p>
         </div>
@@ -124,7 +122,7 @@ export default function Dashboard() {
       {/* 1. Top Metrics Cards — Option 1: label → metric → caption (no icons) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Active Probationers */}
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm flex flex-col gap-2">
+        <div className="p-5 rounded-ctl bg-surface border border-line flex flex-col gap-2">
           <span className="text-14 font-semibold text-ink">Active Probationers</span>
           <div className="flex items-baseline gap-2">
             <span className="text-30 font-bold font-mono text-ink">{stats.totalActive}</span>
@@ -133,14 +131,9 @@ export default function Dashboard() {
           <p className="text-12 text-ink-2">Under {PROBATION_DAYS}-day evaluation</p>
         </div>
 
-        {/* Milestone Alerts — tone dot only when the count signals action */}
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm flex flex-col gap-2">
-          <span className="text-14 font-semibold text-ink inline-flex items-center gap-1.5">
-            {stats.criticalMilestones > 0 && (
-              <span className="w-1.5 h-1.5 rounded-full bg-warn shrink-0" aria-hidden="true" />
-            )}
-            Milestone Alerts
-          </span>
+        {/* Milestone Alerts — tone number only when the count signals action */}
+        <div className="p-5 rounded-ctl bg-surface border border-line flex flex-col gap-2">
+          <span className="text-14 font-semibold text-ink">Milestone Alerts</span>
           <div className="flex items-baseline gap-2">
             <span
               className={`text-30 font-bold font-mono ${
@@ -157,7 +150,7 @@ export default function Dashboard() {
         </div>
 
         {/* Regularizing Benchmark */}
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm flex flex-col gap-2">
+        <div className="p-5 rounded-ctl bg-surface border border-line flex flex-col gap-2">
           <span className="text-14 font-semibold text-ink">Regularizing Target</span>
           <div className="flex items-baseline gap-2">
             <span className="text-30 font-bold font-mono text-ink">4.0</span>
@@ -167,7 +160,7 @@ export default function Dashboard() {
         </div>
 
         {/* AI Training Plans */}
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm flex flex-col gap-2">
+        <div className="p-5 rounded-ctl bg-surface border border-line flex flex-col gap-2">
           <span className="text-14 font-semibold text-ink">AI Training Plans</span>
           <div className="flex items-baseline gap-2">
             <span
@@ -196,13 +189,12 @@ export default function Dashboard() {
         <section className="bg-warn/6 border border-line rounded-float p-5">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
-              <ShieldAlert className="w-5 h-5 text-warn shrink-0" />
               <div>
                 <h3 className="text-sm font-semibold text-ink">
-                  Article 296 Statutory Milestone Action Required
+                  {urgentProbationers.length} to review
                 </h3>
                 <p className="text-xs text-ink-2">
-                  {urgentProbationers.length} probationary {urgentProbationers.length === 1 ? 'employee requires' : 'employees require'} statutory review decisions — see the pipeline below.
+                  Day {MILESTONE_REVIEW} · {MILESTONE_NOTICE} · {MILESTONE_CRITICAL} under Art. 296 — decisions due before Day {PROBATION_DAYS}.
                 </p>
               </div>
             </div>
@@ -219,10 +211,10 @@ export default function Dashboard() {
       )}
 
       {/* 3. Active Probationers Pipeline Table */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
+      <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink">Active Probationary Pipeline</h2>
+            <h2 className="text-base font-semibold text-ink">Pipeline</h2>
             <p className="text-xs text-ink-3">Live timeline progress tracking toward Day {PROBATION_DAYS}</p>
           </div>
           <Button
@@ -248,7 +240,7 @@ export default function Dashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-line text-[11px] font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
+                <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
                   <th className="py-2.5 px-3">Employee</th>
                   <th className="py-2.5 px-3">Department</th>
                   <th className="py-2.5 px-3">{PROBATION_DAYS}-Day Tracker</th>
@@ -271,14 +263,14 @@ export default function Dashboard() {
                     >
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-accent/15 text-accent font-semibold text-[11px] flex items-center justify-center shrink-0">
+                          <div className="w-7 h-7 rounded-full bg-accent/15 text-accent font-semibold text-12 flex items-center justify-center shrink-0">
                             {getInitials(emp.user?.full_name)}
                           </div>
                           <div>
                             <span className="font-semibold text-ink block truncate">
                               {emp.user?.full_name}
                             </span>
-                            <span className="text-[11px] text-ink-3 block font-mono">
+                            <span className="text-12 text-ink-3 block font-mono">
                               {emp.job_title}
                             </span>
                           </div>
@@ -289,21 +281,13 @@ export default function Dashboard() {
 
                       <td className="py-3 px-3 min-w-[150px]">
                         <div className="space-y-1">
-                          <div className="flex justify-between font-mono text-[11px] text-ink-2">
+                          <div className="flex justify-between font-mono text-12 text-ink-2">
                             <span>Day {days}</span>
                             <span className="text-ink-3">{Math.max(0, PROBATION_DAYS - days)}d left</span>
                           </div>
                           <div className="h-1.5 w-full bg-line rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all ${
-              days >= MILESTONE_CRITICAL
-                ? 'bg-bad'
-                : days >= MILESTONE_NOTICE
-                ? 'bg-notice'
-                : days >= MILESTONE_REVIEW
-                ? 'bg-warn'
-                : 'bg-accent'
-                              }`}
+                              className="h-full rounded-full transition-all bg-ink-3"
                               style={{ width: `${progressPct}%` }}
                             />
                           </div>
@@ -324,16 +308,13 @@ export default function Dashboard() {
             </table>
           </div>
         )}
-      </section>
+      </Card>
 
       {/* 4. AI Interventions & ML Course Recommendations Preview */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
+      <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-accent" />
-              <span>AI Training Recommendations & Rollups</span>
-            </h2>
+            <h2 className="text-base font-semibold text-ink">AI Training Recommendations & Rollups</h2>
             <p className="text-xs text-ink-3">
               Automated Random Forest course assignments for identified competency gaps
             </p>
@@ -358,41 +339,36 @@ export default function Dashboard() {
             All probationary employees are performing at or above benchmark. No active intervention plans required.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {plans.slice(0, 3).map((plan) => (
-              <div
-                key={plan.id}
-                className="p-4 rounded-ctl bg-hover/60 border border-line space-y-2"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <Badge
-                    variant={
-                      plan.status === 'approved'
-                        ? 'ok'
-                        : plan.status === 'rejected'
-                        ? 'bad'
-                        : 'accent'
-                    }
-                  >
-                    {plan.status?.replace(/_/g, ' ')}
-                  </Badge>
-                  <span className="font-mono text-[11px] text-ink-3 truncate">
-                    {plan.default_timeline || '—'}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-semibold text-xs text-ink block truncate">
-                    {plan.intervention_title}
-                  </span>
-                  <p className="text-[11px] text-ink-2 line-clamp-2 mt-0.5">
+          <div className="divide-y divide-line">
+            {plans.slice(0, 3).map((plan) => {
+              const tone =
+                plan.status === 'approved'
+                  ? 'text-good'
+                  : plan.status === 'rejected'
+                  ? 'text-bad'
+                  : 'text-ink-3';
+              return (
+                <div key={plan.id} className="py-3 first:pt-0 last:pb-0">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-14 font-medium text-ink truncate">
+                      {plan.intervention_title}
+                    </span>
+                    <span className="font-mono text-12 text-ink-3 shrink-0">
+                      {plan.default_timeline || '—'}
+                    </span>
+                  </div>
+                  <p className="text-12 text-ink-2 mt-1 line-clamp-2">
                     {plan.rationale || plan.competency?.replace(/_/g, ' ')}
                   </p>
+                  <span className={`text-12 mt-1 inline-block capitalize ${tone}`}>
+                    {plan.status?.replace(/_/g, ' ')}
+                  </span>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
-      </section>
+      </Card>
     </div>
   );
 }

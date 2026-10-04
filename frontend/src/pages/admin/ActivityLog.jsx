@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
-import { Button, Badge, Skeleton } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card } from '../../components/ui';
 import { History, AlertCircle } from 'lucide-react';
 
 export default function ActivityLog() {
@@ -30,7 +30,7 @@ export default function ActivityLog() {
         </div>
       </header>
 
-      <section className="bg-surface border border-line rounded-float shadow-sm overflow-hidden">
+      <Card padded={false} className="overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-3">
             <Skeleton className="h-12 w-full" />
@@ -48,18 +48,14 @@ export default function ActivityLog() {
             </Button>
           </div>
         ) : entries.length === 0 ? (
-          <div className="py-14 text-center space-y-2">
-            <History className="w-10 h-10 text-ink-3/40 mx-auto" />
-            <h3 className="text-base font-medium text-ink">No activity recorded</h3>
-            <p className="text-xs text-ink-3">
-              Logins and record changes will appear here.
-            </p>
-          </div>
+          <EmptyState icon={History} title="No activity recorded">
+            Logins and record changes will appear here.
+          </EmptyState>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-line text-[11px] font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
+                <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
                   <th className="py-3 px-4">Timestamp (Asia/Manila)</th>
                   <th className="py-3 px-4">Actor</th>
                   <th className="py-3 px-4">Action</th>
@@ -98,7 +94,7 @@ export default function ActivityLog() {
         <footer className="p-3 border-t border-line text-xs text-ink-3 font-mono">
           Showing {entries.length} activity entries
         </footer>
-      </section>
+      </Card>
     </div>
   );
 }

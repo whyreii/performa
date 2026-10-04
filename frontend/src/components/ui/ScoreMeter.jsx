@@ -30,7 +30,7 @@ export default function ScoreMeter({
         <div className="flex justify-between items-center text-xs mb-1.5">
           <span className="font-mono font-medium text-ink">
             {clampedScore.toFixed(1)}{' '}
-            <span className="text-ink-3 font-normal text-[11px]">/ {max.toFixed(1)}</span>
+            <span className="text-ink-3 font-normal text-12">/ {max.toFixed(1)}</span>
           </span>
           <span className={`font-mono text-xs ${textColor}`}>
             {clampedScore >= target

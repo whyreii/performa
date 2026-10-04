@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
-import { Button, Badge, Skeleton } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card } from '../../components/ui';
 import { useToast } from '../../context/ToastContext';
 import { Bell, CheckCheck, AlertCircle } from 'lucide-react';
 
@@ -59,7 +59,7 @@ export default function Notifications() {
         </div>
       </header>
 
-      <section className="bg-surface border border-line rounded-float shadow-sm overflow-hidden">
+      <Card padded={false} className="overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-3">
             <Skeleton className="h-14 w-full" />
@@ -74,13 +74,9 @@ export default function Notifications() {
             </p>
           </div>
         ) : notifications.length === 0 ? (
-          <div className="py-14 text-center space-y-2">
-            <Bell className="w-10 h-10 text-ink-3/40 mx-auto" />
-            <h3 className="text-base font-medium text-ink">No notifications</h3>
-            <p className="text-xs text-ink-3">
-              You will be alerted here when new summaries or training plans arrive.
-            </p>
-          </div>
+          <EmptyState icon={Bell} title="No notifications">
+            You will be alerted here when new summaries or training plans arrive.
+          </EmptyState>
         ) : (
           <div className="divide-y divide-line">
             {notifications.map((n) => (
@@ -102,7 +98,7 @@ export default function Notifications() {
                       {n.category && <Badge variant="neutral">{n.category}</Badge>}
                     </div>
                     {n.body && <p className="text-xs text-ink-2 mt-0.5">{n.body}</p>}
-                    <span className="text-[11px] text-ink-3 font-mono mt-1 block">
+                    <span className="text-12 text-ink-3 font-mono mt-1 block">
                       {n.created_at ? formatDate(n.created_at, { withTime: true, seconds: false }) : ''}
                     </span>
                   </div>
@@ -121,7 +117,7 @@ export default function Notifications() {
             ))}
           </div>
         )}
-      </section>
+      </Card>
     </div>
   );
 }

@@ -3,17 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, MilestonePill, StatusDot, Skeleton } from '../../components/ui';
+import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
 import {
   Users,
   Award,
-  Calendar,
   AlertTriangle,
   ChevronRight,
-  Target,
   CheckCircle2,
 } from 'lucide-react';
 
@@ -68,38 +66,29 @@ export default function SupervisorDashboard() {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs text-ink-3">
-            <span>Direct Reports</span>
-            <Users className="w-4 h-4 text-accent" />
-          </div>
+        <div className="p-5 rounded-ctl bg-surface border border-line space-y-2">
+          <span className="text-xs text-ink-3">Direct Reports</span>
           <div className="text-2xl font-bold font-mono text-ink">
             {activeProbationers.length}
           </div>
-          <p className="text-[11px] text-ink-2">Assigned probationary staff</p>
+          <p className="text-12 text-ink-2">Assigned probationary staff</p>
         </div>
 
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs text-ink-3">
-            <span>Passing Target</span>
-            <Target className="w-4 h-4 text-ok" />
-          </div>
+        <div className="p-5 rounded-ctl bg-surface border border-line space-y-2">
+          <span className="text-xs text-ink-3">Passing Target</span>
           <div className="text-2xl font-bold font-mono text-ink">4.0 / 5.0</div>
-          <p className="text-[11px] text-ink-2">Statutory regularizing standard</p>
+          <p className="text-12 text-ink-2">Statutory regularizing standard</p>
         </div>
 
-        <div className="p-5 rounded-ctl bg-surface border border-line shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs text-ink-3">
-            <span>Review Frequency</span>
-            <Calendar className="w-4 h-4 text-accent" />
-          </div>
+        <div className="p-5 rounded-ctl bg-surface border border-line space-y-2">
+          <span className="text-xs text-ink-3">Review Frequency</span>
           <div className="text-2xl font-bold font-mono text-ink">Weekly</div>
-          <p className="text-[11px] text-ink-2">Mandatory evidentiary due process</p>
+          <p className="text-12 text-ink-2">Mandatory evidentiary due process</p>
         </div>
       </div>
 
       {/* Assigned Probationers Table */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4">
+      <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
             <h2 className="text-base font-semibold text-ink">Assigned Probationary Staff</h2>
@@ -120,10 +109,9 @@ export default function SupervisorDashboard() {
             </p>
           </div>
         ) : activeProbationers.length === 0 ? (
-          <div className="py-10 text-center space-y-2 text-ink-3">
-            <Users className="w-8 h-8 mx-auto text-ink-3/40" />
-            <p className="text-xs">No active probationary staff assigned to your workspace.</p>
-          </div>
+          <EmptyState icon={Users} title="No active probationary staff">
+            No active probationary staff assigned to your workspace.
+          </EmptyState>
         ) : (
           <div className="divide-y divide-line">
             {activeProbationers.map((emp) => {
@@ -151,15 +139,13 @@ export default function SupervisorDashboard() {
 
                   <div className="flex items-center gap-3 sm:gap-4 flex-wrap sm:flex-nowrap shrink-0">
                     <div className="min-w-[130px] space-y-1">
-                      <div className="flex justify-between font-mono text-[11px] text-ink-2">
+                      <div className="flex justify-between font-mono text-12 text-ink-2">
                         <span>Day {days}</span>
                         <span className="text-ink-3">{Math.max(0, PROBATION_DAYS - days)}d left</span>
                       </div>
                       <div className="h-1.5 w-full bg-line rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all ${
-                            days >= MILESTONE_CRITICAL ? 'bg-bad' : days >= MILESTONE_NOTICE ? 'bg-notice' : days >= MILESTONE_REVIEW ? 'bg-warn' : 'bg-accent'
-                          }`}
+                          className="h-full rounded-full transition-all bg-ink-3"
                           style={{ width: `${progressPct}%` }}
                         />
                       </div>
@@ -190,7 +176,7 @@ export default function SupervisorDashboard() {
             })}
           </div>
         )}
-      </section>
+      </Card>
     </div>
   );
 }

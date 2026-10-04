@@ -109,6 +109,29 @@
 
 ---
 
+## K. Pre-T3 Invariant Findings (focused pass, 2026-10-04)
+> [!NOTE]
+> Scope: the 8 frontend hotspots (EmployeeDetail, UserManagement, EmployeeDashboard, RateEmployee, Dashboard, Settings, Employees, AuditTrail) plus `config/domain.js`, `utils/datetime.js`, `tailwind.config.js`. Checked only against invariants (`AGENTS.md` §1, `ARCHITECTURE.md` §2/§6a). **Findings only. No code changed.**
+
+56. **P1** `RateEmployee.jsx:353` — scale legend says **"3.0 Minimum Pass"**. Contradicts the 4.0 / 5.0 regularizing standard (`ARCHITECTURE.md` §2, §6a-2). A panelist will ask about this.
+57. **P1** `RateEmployee.jsx:294-295, 316, 326, 379-384` — pass/fail and the "Target" chip are hardcoded to `4.0`. The page never fetches `kpi-rubrics`, so an employer target of 4.5 (allowed by §6a-2) is ignored and a 4.2 shows "Meets". The client-side bands also reuse the RF label "Critical Gap" for a `< 3.0` cut the Random Forest didn't produce. "Developing" isn't one of the §2 statuses either.
+58. **P1** `EmployeeDetail.jsx:579, 586, 593` — monthly trend pass color and the `left: '80%'` marker are hardcoded to 4.0. They ignore per-competency targets (the scorecard's `ScoreMeter` already uses `comp.target`).
+59. **P2** No 4.0 constant exists in `config/domain.js`. Item 24 says the benchmark is "anchored in `config/domain.js`", but it isn't. The value is written out directly at `Dashboard.jsx:161`, `SupervisorDashboard.jsx:86`, `RateEmployee.jsx:61-65, 281`, and `Rubrics.jsx:20-76`.
+60. **P1** Inline day math (invariant §1.2: "never re-implement day math inline"):
+    - `EmployeeDetail.jsx:211-212` builds the Day 150/165 dates with `new Date(employee.start_date)`, which parses as **UTC midnight**. That's inconsistent with `:478, :487`, which use `parseDateOnly`. Same screen, two conventions.
+    - `EmployeeDetail.jsx:478, 487` use `+ N * 86400000`.
+    - `AddEmployeeModal.jsx:42` uses `setDate(+180)` (also item 19).
+    - `utils/datetime.js` has no `addDays` helper, so every caller rolls its own.
+    - UNVERIFIED impact: correct for browsers in UTC+8. A browser in a negative-offset or DST zone may show off-by-one dates.
+61. **P2** `config/domain.js` exports `PROBATION_DAYS` and `MILESTONE_*`, but only `MilestonePill.jsx` imports them. The literals 150/165/178/180 and the same urgency-color ladder are copied in `Dashboard.jsx:60-62, 84, 265, 297, 302-306`, `SupervisorDashboard.jsx:130, 155, 160`, `EmployeeDashboard.jsx:76-77, 132-136`, `Employees.jsx:87-89, 109-112, 400-401, 447-451, 497-498, 547-551`, and `EmployeeDetail.jsx:455-461`.
+62. **P1** `Settings.jsx:384-450` — switches for "Mandatory" Day 150/165/178 alerts, saved to localStorage (extends item 20). The backend **never sends these alerts**: the guardrail `test_time.py` milestone test is `xfail(strict=True)`. So the UI presents a feature that doesn't exist, and letting users turn off "mandatory", fixed thresholds (§6a-4) contradicts itself.
+63. **P2** `AuditTrail.jsx:71` — the printed DOLE header hardcodes `"Acme Philippines Corp. (acme-ph)"`. This violates invariant §1.10 (no fake data) and prints the wrong company for any other tenant.
+64. **P3** `ok` and `good` are aliases. Both map to `--good` (`tailwind.config.js:38-39`). Not a bug; pick one name when restyling.
+
+**Recommended order before T3+ UI work:** 56 → 57/58 (read targets from the API) → 60 (add a shared `addDays` helper) → 62 (owner decision: hide the switches, or label them "coming soon" until alerts are wired). Items 59/61/63 can be folded into the restyle PRs.
+
+---
+
 ## 📊 Summary Scorecard
 
 | Status | Count | Description |
@@ -116,5 +139,5 @@
 | ✅ **Fixed** | **25** | Code, date, regex, pluralization, a11y, print styles, toasts, and manuscript RBAC write-lock resolved |
 | 🛡️ **Preserved** | **4** | Core thesis pillars (XAI Random Forest, 4.0 benchmark, dual audit trails) protected |
 | ◐ **Partial** | **1** | Modal focus trapping / dialog attributes across remaining pages |
-| 📋 **Open** | **25** | Remaining UX consistency and mobile responsive polish items |
-| **Total Items Audited** | **55** | Comprehensive static + dynamic coverage |
+| 📋 **Open** | **34** | Remaining UX consistency and mobile responsive polish items + 9 pre-T3 invariant findings (§K) |
+| **Total Items Audited** | **64** | Comprehensive static + dynamic coverage |

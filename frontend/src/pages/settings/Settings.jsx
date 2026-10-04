@@ -3,17 +3,12 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { authApi, getApiErrorMessage } from '../../api';
 import { activateOnKey } from '../../utils/a11y';
-import { Button, Badge } from '../../components/ui';
+import { Button, Badge, TextField, Card } from '../../components/ui';
 import {
-  User,
-  Palette,
-  Bell,
-  Lock,
   Building,
   CheckCircle2,
   AlertCircle,
   ShieldAlert,
-  ShieldCheck,
 } from 'lucide-react';
 
 export default function Settings() {
@@ -163,16 +158,11 @@ export default function Settings() {
       </header>
 
       {/* 1. Account Profile Card */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm">
+      <Card>
         <div className="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-line">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-nav bg-accent/10 text-accent flex items-center justify-center">
-              <User className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-ink">User Profile & Tenant</h2>
-              <p className="text-xs text-ink-3">Your credentials and organization context</p>
-            </div>
+          <div>
+            <h2 className="text-base font-semibold text-ink">User Profile & Tenant</h2>
+            <p className="text-xs text-ink-3">Your credentials and organization context</p>
           </div>
           <Button
             variant="secondary"
@@ -188,39 +178,25 @@ export default function Settings() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-ctl bg-hover border border-line">
-            <span className="text-[11px] text-ink-3 uppercase tracking-wider font-mono block mb-1">
-              Full Name
-            </span>
-            <span className="text-sm font-semibold text-ink">{user?.full_name || 'User'}</span>
+        <div>
+          <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
+            <span className="text-14 text-ink-3">Full Name</span>
+            <span className="text-14 font-semibold text-ink">{user?.full_name || 'User'}</span>
           </div>
-
-          <div className="p-4 rounded-ctl bg-hover border border-line">
-            <span className="text-[11px] text-ink-3 uppercase tracking-wider font-mono block mb-1">
-              Work Email
-            </span>
-            <span className="text-sm font-mono text-ink truncate block">{user?.email}</span>
+          <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
+            <span className="text-14 text-ink-3">Work Email</span>
+            <span className="text-14 font-mono text-ink truncate">{user?.email}</span>
           </div>
-
-          <div className="p-4 rounded-ctl bg-hover border border-line">
-            <span className="text-[11px] text-ink-3 uppercase tracking-wider font-mono block mb-1">
-              Platform Role
-            </span>
-            <span className="text-sm font-semibold text-accent capitalize">
+          <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
+            <span className="text-14 text-ink-3">Platform Role</span>
+            <span className="text-14 font-semibold text-accent capitalize">
               {user?.role?.replace(/_/g, ' ')}
             </span>
           </div>
-
-          <div className="p-4 rounded-ctl bg-hover border border-line">
-            <span className="text-[11px] text-ink-3 uppercase tracking-wider font-mono block mb-1">
-              Organization
-            </span>
-            <span className="text-sm font-semibold text-ink flex items-center gap-1.5 truncate">
-              <Building className="w-3.5 h-3.5 text-ink-3 shrink-0" />
-              <span>
-                {user?.organization_name || user?.organization_id || '—'}
-              </span>
+          <div className="flex items-baseline justify-between gap-4 py-3">
+            <span className="text-14 text-ink-3">Organization</span>
+            <span className="text-14 font-semibold text-ink truncate">
+              {user?.organization_name || user?.organization_id || '—'}
             </span>
           </div>
         </div>
@@ -239,49 +215,35 @@ export default function Settings() {
                 {profileStatus.message}
               </div>
             )}
-            <div>
-              <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="p_name">
-                Full Name
-              </label>
-              <input
-                id="p_name"
-                type="text"
-                value={profileName}
-                onChange={(e) => setProfileName(e.target.value)}
-                className="w-full h-10 px-3 border border-line rounded-field bg-transparent text-ink text-sm focus:outline-none focus:border-accent transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="p_email">
-                Work Email
-              </label>
-              <input
-                id="p_email"
-                type="email"
-                value={profileEmail}
-                onChange={(e) => setProfileEmail(e.target.value)}
-                className="w-full h-10 px-3 border border-line rounded-field bg-transparent text-ink text-sm font-mono focus:outline-none focus:border-accent transition-colors"
-              />
-            </div>
+            <TextField
+              id="p_name"
+              label="Full Name"
+              type="text"
+              value={profileName}
+              onChange={(e) => setProfileName(e.target.value)}
+            />
+            <TextField
+              id="p_email"
+              label="Work Email"
+              type="email"
+              value={profileEmail}
+              onChange={(e) => setProfileEmail(e.target.value)}
+              className="[&_input]:font-mono"
+            />
             <Button type="submit" variant="primary" isLoading={isSavingProfile}>
               Save Changes
             </Button>
           </form>
         )}
-      </section>
+      </Card>
 
       {/* 2. Theme & Palette Selection */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-line">
-          <div className="w-9 h-9 rounded-nav bg-accent/10 text-accent flex items-center justify-center">
-            <Palette className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-semibold text-ink">Design Theme & Palette</h2>
-            <p className="text-xs text-ink-3">
-              Switch between 5 curated semantic color systems. Persisted across sessions.
-            </p>
-          </div>
+      <Card>
+        <div className="mb-6 pb-4 border-b border-line">
+          <h2 className="text-base font-semibold text-ink">Design Theme & Palette</h2>
+          <p className="text-xs text-ink-3">
+            Switch between 5 curated semantic color systems. Persisted across sessions.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -313,11 +275,11 @@ export default function Settings() {
                     />
                     <span className="font-semibold text-sm text-ink">{p.name}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     {isSelected && (
-                      <Badge variant="accent" size="sm">Active</Badge>
+                      <span className="text-12 font-semibold text-accent">Active</span>
                     )}
-                    <Badge variant={p.type === 'Dark' ? 'accent' : 'neutral'}>{p.type}</Badge>
+                    <span className="text-12 text-ink-3">{p.type}</span>
                   </div>
                 </div>
                 <p className="text-xs text-ink-2 leading-relaxed">{p.desc}</p>
@@ -325,28 +287,20 @@ export default function Settings() {
             );
           })}
         </div>
-      </section>
+      </Card>
 
       {/* 3. Article 296 Statutory Alert Protocols (mandatory, system-dispatched) */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm">
+      <Card>
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-line flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-nav bg-warn/10 text-warn flex items-center justify-center">
-              <Bell className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-ink">
-                Article 296 Statutory Alert Protocols
-              </h2>
-              <p className="text-xs text-ink-3">
-                Mandatory · System Active — dispatched automatically in Asia/Manila against the strict 180-day cap
-              </p>
-            </div>
+          <div>
+            <h2 className="text-base font-semibold text-ink">
+              Article 296 Statutory Alert Protocols
+            </h2>
+            <p className="text-xs text-ink-3">
+              Mandatory · System Active — dispatched automatically in Asia/Manila against the strict 180-day cap
+            </p>
           </div>
-          <span className="text-xs font-medium text-ok flex items-center gap-1">
-            <ShieldCheck className="w-4 h-4" />
-            <span>System Active</span>
-          </span>
+          <span className="text-xs font-medium text-ok">System Active</span>
         </div>
 
         <div className="space-y-4">
@@ -360,10 +314,7 @@ export default function Settings() {
                 Triggers when an employee reaches 150 days of probation. Alerts HR and supervisors to schedule the formal 5th-month performance appraisal.
               </p>
             </div>
-            <span className="text-xs font-medium text-ok flex items-center gap-1 shrink-0 mt-1">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Active</span>
-            </span>
+            <span className="text-xs font-medium text-ok shrink-0 mt-1">Active</span>
           </div>
 
           <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
@@ -378,10 +329,7 @@ export default function Settings() {
                 Guarantees the required 15-day notice buffer before Day 180. Alerts employers if any employee under target is in jeopardy of termination or regularization.
               </p>
             </div>
-            <span className="text-xs font-medium text-ok flex items-center gap-1 shrink-0 mt-1">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Active</span>
-            </span>
+            <span className="text-xs font-medium text-ok shrink-0 mt-1">Active</span>
           </div>
 
           <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
@@ -396,24 +344,16 @@ export default function Settings() {
                 Final alert: under Philippine law, working on Day 181 confers automatic permanent regular status. Immediate action required.
               </p>
             </div>
-            <span className="text-xs font-medium text-ok flex items-center gap-1 shrink-0 mt-1">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Active</span>
-            </span>
+            <span className="text-xs font-medium text-ok shrink-0 mt-1">Active</span>
           </div>
         </div>
-      </section>
+      </Card>
 
       {/* 4. Security & Password Update */}
-      <section className="bg-surface border border-line rounded-float p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-line">
-          <div className="w-9 h-9 rounded-nav bg-accent/10 text-accent flex items-center justify-center">
-            <Lock className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-semibold text-ink">Security & Password</h2>
-            <p className="text-xs text-ink-3">Update your password or manage credentials</p>
-          </div>
+      <Card>
+        <div className="mb-6 pb-4 border-b border-line">
+          <h2 className="text-base font-semibold text-ink">Security & Password</h2>
+          <p className="text-xs text-ink-3">Update your password or manage credentials</p>
         </div>
 
         {passwordStatus.message && (
@@ -434,53 +374,38 @@ export default function Settings() {
         )}
 
         <form onSubmit={handlePasswordSubmit} className="max-w-md space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="currPass">
-              Current Password
-            </label>
-            <input
-              id="currPass"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full h-10 px-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:border-accent transition-colors"
-            />
-          </div>
+          <TextField
+            id="currPass"
+            label="Current Password"
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="••••••••"
+          />
 
-          <div>
-            <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="newPass">
-              New Password
-            </label>
-            <input
-              id="newPass"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="At least 8 characters"
-              className="w-full h-10 px-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:border-accent transition-colors"
-            />
-          </div>
+          <TextField
+            id="newPass"
+            label="New Password"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="At least 8 characters"
+          />
 
-          <div>
-            <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="confPass">
-              Confirm New Password
-            </label>
-            <input
-              id="confPass"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full h-10 px-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:border-accent transition-colors"
-            />
-          </div>
+          <TextField
+            id="confPass"
+            label="Confirm New Password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="••••••••"
+          />
 
           <Button type="submit" variant="primary" isLoading={isUpdatingPassword} className="mt-2">
             Update Password
           </Button>
         </form>
-      </section>
+      </Card>
     </div>
   );
 }

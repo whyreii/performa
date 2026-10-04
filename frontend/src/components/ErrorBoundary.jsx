@@ -31,14 +31,14 @@ export default class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-bg text-ink p-6">
-          <div className="max-w-md w-full bg-surface border border-line rounded-float p-8 text-center space-y-4 shadow-sm">
+          <div className="max-w-md w-full bg-surface border border-line rounded-float p-8 text-center space-y-4">
             <h1 className="text-lg font-semibold text-ink">Something went wrong</h1>
             <p className="text-xs text-ink-3">
               The application hit an unexpected error. Your data has not been affected.
             </p>
 
             {import.meta.env.DEV && this.state.error && (
-              <pre className="text-left text-[11px] font-mono text-bad bg-bad/8 border border-line rounded-ctl p-3 overflow-auto max-h-40 whitespace-pre-wrap">
+              <pre className="text-left text-12 font-mono text-bad bg-bad/8 border border-line rounded-ctl p-3 overflow-auto max-h-40 whitespace-pre-wrap">
                 {String(this.state.error?.message || this.state.error)}
               </pre>
             )}

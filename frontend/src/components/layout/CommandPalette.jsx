@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Search, Settings, Palette, X, Bell, ArrowUp, ArrowDown } from 'lucide-react';
 import { commandNav } from '../../config/nav';
+import { Modal } from '../ui';
 
 export default function CommandPalette({ isOpen, onClose }) {
   const [query, setQuery] = useState('');
@@ -75,21 +76,9 @@ export default function CommandPalette({ isOpen, onClose }) {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Command palette"
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-start justify-center pt-[12vh] p-4 animate-in fade-in duration-150"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-xl bg-side border border-line rounded-float shadow-pop overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={handleKeyDown}
-      >
+    <Modal isOpen={isOpen} onClose={onClose} label="Command palette" maxWidth="max-w-xl" padded={false} panelClassName="overflow-hidden">
+      <div onKeyDown={handleKeyDown}>
         {/* Search Input Bar */}
         <div className="relative flex items-center border-b border-line px-4 transition-colors focus-within:border-accent">
           <Search className="w-5 h-5 text-ink-3 shrink-0" />
@@ -102,11 +91,13 @@ export default function CommandPalette({ isOpen, onClose }) {
               setSelectedIndex(0);
             }}
             placeholder="Type a command or search..."
+            aria-label="Search commands"
             className="w-full h-14 px-3 bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none"
           />
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close command palette"
             className="p-1 rounded-ctl text-ink-3 hover:text-ink hover:bg-hover transition-colors"
           >
             <X className="w-4 h-4" />
@@ -139,7 +130,7 @@ export default function CommandPalette({ isOpen, onClose }) {
                     <Icon className="w-4 h-4 text-ink-3 shrink-0" />
                     <span>{item.label}</span>
                   </div>
-                  <span className="font-mono text-[10px] text-ink-3 uppercase tracking-wider">
+                  <span className="font-mono text-12 text-ink-3">
                     {item.category}
                   </span>
                 </div>
@@ -149,7 +140,7 @@ export default function CommandPalette({ isOpen, onClose }) {
         </div>
 
         {/* Footer shortcuts hint */}
-        <div className="px-4 py-2 border-t border-line flex items-center justify-between text-[11px] text-ink-3 font-mono bg-surface/30">
+        <div className="px-4 py-2 border-t border-line flex items-center justify-between text-12 text-ink-3 font-mono bg-surface/30">
           <span className="inline-flex items-center gap-1">
             Navigate with
             <ArrowUp className="w-3 h-3" />
@@ -159,6 +150,6 @@ export default function CommandPalette({ isOpen, onClose }) {
           <span>Esc to close</span>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

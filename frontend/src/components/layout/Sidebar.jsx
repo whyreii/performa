@@ -75,7 +75,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
               <span className="font-semibold text-base tracking-tight text-ink block leading-none">
                 Performa
               </span>
-              <span className="text-[11px] text-ink-3 tracking-normal font-mono block mt-0.5">
+              <span className="text-12 text-ink-3 tracking-normal font-mono block mt-0.5">
                 Acme PH
               </span>
             </div>
@@ -98,7 +98,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
       {/* Manila Time Clock (Article 296 Timezone Anchor) */}
       {!collapsed && manilaTime && (
-        <div className="mb-3 px-2.5 py-1.5 rounded-ctl bg-hover/50 border border-line/60 flex items-center justify-between text-[11px] font-mono text-ink-3">
+        <div className="mb-3 px-2.5 py-1.5 rounded-ctl bg-hover/50 border border-line/60 flex items-center justify-between text-12 font-mono text-ink-3">
           <span className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-good animate-pulse" />
             <span>Manila (UTC+8)</span>
@@ -114,11 +114,11 @@ export default function Sidebar({ onOpenCommandPalette }) {
           onClick={onOpenCommandPalette}
           className="w-full h-9 mb-4 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-between text-xs transition-colors shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
-          <div className="flex items-center gap-2">
-            <Search className="w-3.5 h-3.5" />
-            <span>Search / Commands...</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <Search className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Search / Commands...</span>
           </div>
-          <kbd className="font-mono text-[10px] px-1.5 py-0.5 rounded border border-line text-ink-3 bg-bg">
+          <kbd className="font-mono text-12 px-1.5 py-0.5 rounded border border-line text-ink-3 bg-bg shrink-0">
             Ctrl+K
           </kbd>
         </button>
@@ -128,6 +128,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
           onClick={onOpenCommandPalette}
           className="w-8 h-8 mx-auto mb-3 shrink-0 rounded-ctl border border-line bg-surface/50 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           title="Command Palette (Ctrl+K)"
+          aria-label="Search / commands"
         >
           <Search className="w-4 h-4" />
         </button>
@@ -136,7 +137,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
       {/* Navigation Section */}
       <div className="flex-1 overflow-y-auto space-y-1 py-1">
         {!collapsed && (
-          <div className="text-[11px] font-medium uppercase tracking-wider text-ink-3 px-2 py-1.5">
+          <div className="text-12 font-medium text-ink-3 px-2 py-1.5">
             Navigation
           </div>
         )}
@@ -181,7 +182,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
               <div className="font-semibold text-xs text-ink truncate leading-tight">
                 {user?.full_name || 'User'}
               </div>
-              <div className="text-[11px] text-ink-3 truncate capitalize">
+              <div className="text-12 text-ink-3 truncate capitalize">
                 {user?.role?.replace(/_/g, ' ')}
               </div>
             </div>

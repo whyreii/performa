@@ -1,8 +1,8 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { interventionApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, Skeleton } from '../../components/ui';
-import { Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Button, Badge, Skeleton, EmptyState, Card } from '../../components/ui';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function EmployeeTraining() {
   // Fetch the employee's own assigned intervention plans
@@ -36,7 +36,7 @@ export default function EmployeeTraining() {
             <Skeleton className="h-28 w-full" />
           </div>
         ) : isError ? (
-          <div className="p-10 bg-surface border border-line rounded-float text-center space-y-3 shadow-sm">
+          <div className="p-10 bg-surface border border-line rounded-float text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
             <h3 className="text-base font-semibold text-ink">Failed to load your training plans</h3>
             <p className="text-xs text-ink-3 max-w-sm mx-auto">
@@ -47,30 +47,26 @@ export default function EmployeeTraining() {
             </Button>
           </div>
         ) : plans.length === 0 ? (
-          <div className="p-12 bg-surface border border-line rounded-float text-center space-y-3 shadow-sm">
-            <div className="w-12 h-12 rounded-full bg-ok/10 text-ok flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-semibold text-ink">No required training interventions</h3>
-            <p className="text-xs text-ink-3 max-w-sm mx-auto">
-              Your weekly competency evaluations currently meet or exceed required performance standards.
-            </p>
-          </div>
+          <EmptyState icon={CheckCircle2} title="No required training interventions">
+            Your weekly competency evaluations currently meet or exceed required performance standards.
+          </EmptyState>
         ) : (
           <div className="space-y-4">
             {plans.map((plan) => (
-              <div
+              <Card
                 key={plan.id}
-                className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-3 hover:border-ink-3 transition-colors"
+                className="space-y-3 hover:border-ink-3 transition-colors"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-baseline gap-2">
                       <h3 className="text-base font-semibold text-ink">
                         {plan.intervention_title}
                       </h3>
-                      <Badge variant="accent">{plan.competency?.replace(/_/g, ' ')}</Badge>
-                      <Badge variant="neutral">{plan.intervention_type}</Badge>
+                      <span className="text-12 text-ink-3">
+                        {plan.competency?.replace(/_/g, ' ')}
+                        {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-ink-3 font-mono">
                       <span>Duration: {plan.default_timeline || '4 hours'}</span>
@@ -90,14 +86,13 @@ export default function EmployeeTraining() {
 
                 {plan.rationale && (
                   <div className="p-4 rounded-ctl bg-hover/70 border border-line text-xs text-ink-2 space-y-1">
-                    <span className="font-semibold text-accent flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-mono">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Coaching Guidance</span>
+                    <span className="font-semibold text-accent text-12 font-mono">
+                      Coaching Guidance
                     </span>
                     <p className="leading-relaxed">{plan.rationale}</p>
                   </div>
                 )}
-              </div>
+              </Card>
             ))}
           </div>
         )}

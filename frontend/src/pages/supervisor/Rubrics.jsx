@@ -1,8 +1,8 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { kpiApi } from '../../api';
-import { Target, ShieldCheck, Award, BookOpen, AlertCircle } from 'lucide-react';
-import { Badge } from '../../components/ui';
+import { Target, Award, BookOpen, AlertCircle } from 'lucide-react';
+import { Card } from '../../components/ui';
 
 export default function Rubrics() {
   const { data: dbRubrics = [], isError: isRubricsError } = useQuery({
@@ -105,44 +105,43 @@ export default function Rubrics() {
       )}
 
       {/* Legal Banner */}
-      <section className="bg-surface border border-line rounded-float p-5 space-y-2 shadow-sm">
-        <div className="flex items-center gap-2 text-accent font-semibold text-xs">
-          <ShieldCheck className="w-4 h-4" />
-          <span className="uppercase tracking-wider font-mono text-[11px]">
+      <Card padded={false} className="p-5 space-y-2">
+        <div className="text-accent font-semibold text-xs">
+          <span className="font-mono text-12">
             Statutory Legal Basis (Aliling v. Feliciano / Tamson Doctrine)
           </span>
         </div>
         <p className="text-xs text-ink-2 leading-relaxed">
           In Philippine labor law, reasonable standards of performance must be made known to the employee at the time of engagement (Day 1). Ratings assigned in weekly evaluations directly enforce these communicated criteria.
         </p>
-      </section>
+      </Card>
 
       {/* Rubrics Grid */}
       <div className="space-y-6">
         {rubrics.map((rubric) => (
           <div
             key={rubric.id}
-            className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-4"
+            className="bg-surface border border-line rounded-float p-6 space-y-4"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-line">
               <div>
                 <h2 className="text-base font-semibold text-ink">{rubric.name}</h2>
                 <p className="text-xs text-ink-3 mt-0.5">{rubric.desc}</p>
               </div>
-              <div className="flex items-center gap-2 self-start sm:self-center font-mono text-xs">
-                <Badge variant="neutral">
+              <div className="flex items-center gap-3 self-start sm:self-center font-mono text-12 text-ink-3">
+                <span>
                   Weight:{' '}
                   {rubricMap[rubric.competency]
                     ? `${Math.round(rubricMap[rubric.competency].weight * 100)}%`
                     : rubric.weight}
-                </Badge>
-                <Badge variant="ok">
+                </span>
+                <span>
                   Target:{' '}
                   {rubricMap[rubric.competency]
                     ? rubricMap[rubric.competency].target_score.toFixed(1)
                     : rubric.target}{' '}
                   / 5.0
-                </Badge>
+                </span>
               </div>
             </div>
 
@@ -159,7 +158,7 @@ export default function Rubrics() {
                   <div className="flex items-center justify-between font-mono">
                     <span className="font-bold text-ink">{lvl.score}</span>
                     <span
-                      className={`text-[10px] font-sans font-semibold px-1.5 py-0.5 rounded ${
+                      className={`text-12 font-sans font-semibold px-1.5 py-0.5 rounded ${
                         lvl.title.includes('Target')
                           ? 'bg-ok/20 text-ok'
                           : lvl.title.includes('Unsatisfactory')
@@ -170,7 +169,7 @@ export default function Rubrics() {
                       {lvl.title}
                     </span>
                   </div>
-                  <p className="text-[11px] text-ink-2 leading-relaxed">{lvl.text}</p>
+                  <p className="text-12 text-ink-2 leading-relaxed">{lvl.text}</p>
                 </div>
               ))}
             </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { BarChart3, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
+import { TextField } from '../../components/ui';
 
 export default function Login() {
   const { login } = useAuth();
@@ -112,21 +113,16 @@ export default function Login() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="email">
-                Work Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@company.com"
-                required
-                className="w-full h-10 px-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:border-accent transition-colors"
-              />
-            </div>
+            <TextField
+              id="email"
+              label="Work Email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@company.com"
+              required
+            />
 
             <div>
               <div className="flex justify-between items-center mb-1.5">

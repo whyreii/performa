@@ -3,9 +3,9 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, kpiApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, StatusDot, Skeleton } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, Skeleton, Modal, Card } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
-import { TARGET } from '../../config/domain';
+import { TARGET, PROBATION_DAYS } from '../../config/domain';
 import {
   Award,
   AlertTriangle,
@@ -13,7 +13,6 @@ import {
   Calendar,
   Building,
   User,
-  ShieldAlert,
   ArrowRight,
   Info,
 } from 'lucide-react';
@@ -259,7 +258,7 @@ export default function RateEmployee() {
       )}
 
       {/* Employee Selector Bar */}
-      <section className="bg-surface border border-line rounded-float p-5 shadow-sm space-y-4">
+      <Card padded={false} className="p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex-1 max-w-md">
             <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="empSelect">
@@ -288,21 +287,23 @@ export default function RateEmployee() {
           </div>
 
           {selectedEmployee && (
-            <div className="flex items-center gap-3 p-3 rounded-ctl bg-hover border border-line text-xs">
-              <div>
-                <span className="text-ink-3 block">Probation Timeline</span>
+            <div className="flex items-center gap-6 text-12">
+              <span className="text-ink-3">
+                Probation timeline{' '}
                 <span className="font-mono font-semibold text-ink">
-                  Day {daysElapsed} of 180
+                  Day {daysElapsed} of {PROBATION_DAYS}
                 </span>
-              </div>
-              <div className="border-l border-line pl-3">
-                <span className="text-ink-3 block">Threshold Target</span>
-                <span className="font-mono font-semibold text-accent">{thresholdTarget.toFixed(1)} / 5.0</span>
-              </div>
+              </span>
+              <span className="text-ink-3">
+                Target{' '}
+                <span className="font-mono font-semibold text-accent">
+                  {thresholdTarget.toFixed(1)} / 5.0
+                </span>
+              </span>
             </div>
           )}
         </div>
-      </section>
+      </Card>
 
       {/* Rating Form */}
       <form onSubmit={handleOpenConfirm} className="space-y-6">
@@ -314,32 +315,35 @@ export default function RateEmployee() {
             const isMeets = currentScore >= target;
 
             return (
-              <div
+              <Card
                 key={comp.key}
-                className="bg-surface border border-line rounded-float p-5 sm:p-6 shadow-sm space-y-4"
+                padded={false}
+                className="p-5 sm:p-6 space-y-4"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-0.5">
-                    <span className="text-[11px] font-mono font-semibold text-accent uppercase tracking-wider">
+                    <span className="text-12 font-mono font-semibold text-accent">
                       Competency {idx + 1} of 5
                     </span>
                     <h3 className="text-base font-semibold text-ink">{comp.label}</h3>
                     <p className="text-xs text-ink-2 leading-relaxed">{comp.desc}</p>
                   </div>
 
-                  <div className="flex items-center gap-2 self-start sm:self-center">
-                    <span className="font-mono text-lg font-bold text-ink">
+                  <div className="flex items-baseline gap-2 self-start sm:self-center">
+                    <span
+                      className={`font-mono text-lg font-bold ${
+                        isMeets ? 'text-good' : 'text-warn'
+                      }`}
+                    >
                       {currentScore.toFixed(1)}
                     </span>
-                    <Badge variant={isMeets ? 'ok' : 'warn'}>
-                      {isMeets ? 'Meets Target' : 'Below Target'}
-                    </Badge>
+                    <span className="text-12 text-ink-3">target {target.toFixed(1)}</span>
                   </div>
                 </div>
 
                 {/* Score Selector Scale (1.0 to 5.0) */}
                 <div className="pt-2">
-                  <div className="flex items-center justify-between gap-0.5 sm:gap-2 overflow-x-auto pt-3 pb-1 sm:pb-0 scrollbar-none">
+                  <div className="grid grid-cols-9 gap-1 sm:gap-1.5 pt-3">
                     {[1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0].map((score) => {
                       const isSelected = currentScore === score;
                       const isTarget = score === target;
@@ -348,38 +352,34 @@ export default function RateEmployee() {
                           key={score}
                           type="button"
                           onClick={() => handleRatingChange(comp.key, score)}
-                          className={`min-w-[30px] sm:min-w-0 flex-1 h-9 px-0 text-[11px] sm:text-xs rounded-ctl border font-mono font-medium transition-all relative shrink-0 sm:shrink ${
+                          aria-pressed={isSelected}
+                          aria-label={`Score ${score.toFixed(1)}${isTarget ? ' (regularizing target)' : ''}`}
+                          className={`h-9 rounded-ctl border font-mono text-12 font-medium transition-colors ${
                             isSelected
-                              ? 'bg-accent text-accent-foreground border-accent shadow-xs scale-105 z-10'
+                              ? 'bg-accent text-accent-foreground border-accent'
+                              : isTarget
+                              ? 'border-accent/50 text-ink hover:border-accent'
                               : 'bg-hover/80 text-ink border-line hover:border-ink-3'
                           }`}
                         >
-                          <span>{score.toFixed(1)}</span>
-                          {isTarget && (
-                            <span
-                              className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] font-sans font-bold text-ink-3 bg-bg px-1 rounded shadow-xs"
-                              title="Target Regularizing Benchmark"
-                            >
-                              Target
-                            </span>
-                          )}
+                          {score.toFixed(1)}
                         </button>
                       );
                     })}
                   </div>
-                  <div className="flex justify-between text-[11px] text-ink-3 mt-1.5 px-0.5 font-mono">
+                  <div className="flex justify-between text-12 text-ink-3 mt-1.5 font-mono">
                     <span>1.0 Unsatisfactory</span>
-                    <span>{TARGET.toFixed(1)} Regularizing Standard</span>
+                    <span>{target.toFixed(1)} Regularizing Standard</span>
                     <span>5.0 Exceptional</span>
                   </div>
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
 
         {/* Behavioral Remarks & Summary Card */}
-        <section className="bg-surface border border-line rounded-float p-6 shadow-sm space-y-5">
+        <Card className="space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
             <div>
               <h3 className="text-base font-semibold text-ink">Overall Evaluation Summary</h3>
@@ -390,7 +390,7 @@ export default function RateEmployee() {
 
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <span className="text-[11px] text-ink-3 font-mono block">Overall Score</span>
+                <span className="text-12 text-ink-3 font-mono block">Overall Score</span>
                 <span className="text-2xl font-bold font-mono text-ink">
                   {overallAverage.toFixed(1)} <span className="text-xs text-ink-3">/ 5.0</span>
                 </span>
@@ -408,7 +408,7 @@ export default function RateEmployee() {
               <label className="text-xs font-semibold text-ink" htmlFor="remarks">
                 Evidentiary Behavioral Remarks *
               </label>
-              <span className="text-[11px] text-ink-3 font-mono">
+              <span className="text-12 text-ink-3 font-mono">
                 {remarks.length} / 500 characters
               </span>
             </div>
@@ -422,7 +422,7 @@ export default function RateEmployee() {
               placeholder="Detail specific behavioral evidence, projects completed, coaching provided, and concrete milestones achieved this week..."
               className="w-full p-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:border-accent transition-colors"
             />
-            <p className="text-[11px] text-ink-3 mt-1.5 leading-relaxed flex items-center gap-1.5">
+            <p className="text-12 text-ink-3 mt-1.5 leading-relaxed flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-accent shrink-0" />
               <span>
                 Required under Philippine Labor Code Article 296 to sustain any regularizing or non-regularizing action before DOLE.
@@ -435,32 +435,22 @@ export default function RateEmployee() {
               Submit Evaluation
             </Button>
           </div>
-        </section>
+        </Card>
       </form>
 
       {/* Immutable Confirmation Modal */}
-      {isConfirmModalOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
-          onClick={() => setIsConfirmModalOpen(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="confirm-eval-title"
-            className="w-full max-w-lg bg-surface border border-line rounded-float shadow-pop p-6 sm:p-7 space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 pb-3 border-b border-line">
-              <div className="w-9 h-9 rounded-nav bg-warn/10 text-warn flex items-center justify-center shrink-0">
-                <ShieldAlert className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 id="confirm-eval-title" className="text-base font-semibold text-ink">
-                  Confirm Immutable Evaluation Submission
-                </h3>
-                <p className="text-xs text-ink-3">Article 296 Evidentiary Logging</p>
-              </div>
+      <Modal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        labelledBy="confirm-eval-title"
+        maxWidth="max-w-lg"
+        panelClassName="sm:p-7"
+      >
+            <div className="pb-3 border-b border-line">
+              <h3 id="confirm-eval-title" className="text-base font-semibold text-ink">
+                Confirm Immutable Evaluation Submission
+              </h3>
+              <p className="text-xs text-ink-3">Article 296 Evidentiary Logging</p>
             </div>
 
             <p className="text-xs text-ink-2 leading-relaxed">
@@ -493,9 +483,7 @@ export default function RateEmployee() {
                 Confirm & Record
               </Button>
             </div>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

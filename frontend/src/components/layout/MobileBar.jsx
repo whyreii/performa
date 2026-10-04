@@ -76,7 +76,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
                   : '#edf2ee',
             }}
           />
-          <span className="text-[11px]">{palette}</span>
+          <span className="text-12">{palette}</span>
         </button>
 
         {/* User initials */}

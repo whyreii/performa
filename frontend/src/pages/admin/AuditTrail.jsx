@@ -4,10 +4,9 @@ import { evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
-import { Button, Badge, Skeleton } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card } from '../../components/ui';
 import {
   History,
-  ShieldCheck,
   Printer,
   Search,
   Filter,
@@ -70,7 +69,7 @@ export default function AuditTrail() {
           <h1 className="text-base font-bold uppercase tracking-tight mt-1">
             Article 296 Statutory Evaluation Audit Exhibit
           </h1>
-          <p className="text-[10px] text-gray-600">
+          <p className="text-12 text-gray-600">
             Tenant: {orgLabel} · Generated: {formatDate(new Date())} (Asia/Manila)
           </p>
         </div>
@@ -99,17 +98,16 @@ export default function AuditTrail() {
       </header>
 
       {/* DOLE Evidentiary Standards Banner */}
-      <section className="bg-surface border border-line rounded-float p-5 shadow-sm space-y-2 no-print">
-        <div className="flex items-center gap-2 text-accent font-semibold text-xs">
-          <ShieldCheck className="w-4 h-4" />
-          <span className="uppercase tracking-wider font-mono text-[11px]">
+      <Card padded={false} className="p-5 space-y-2 no-print">
+        <div className="text-accent font-semibold text-xs">
+          <span className="font-mono text-12">
             Statutory Legal Standard · Republic of the Philippines
           </span>
         </div>
         <p className="text-xs text-ink-2 leading-relaxed">
           Under Philippine Labor Code Article 296 and established Supreme Court doctrine, employers carry the burden of proof in probationary disputes. Every score entry and modification below is logged with exact timestamps (Asia/Manila) and evaluator credentials for permanent due process records.
         </p>
-      </section>
+      </Card>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 no-print">
@@ -131,6 +129,7 @@ export default function AuditTrail() {
           <select
             value={competencyFilter}
             onChange={(e) => setCompetencyFilter(e.target.value)}
+            aria-label="Filter by competency"
             className="h-8 px-2.5 rounded-ctl border border-line bg-surface text-ink text-xs focus:outline-none focus:border-accent transition-colors shadow-xs cursor-pointer"
           >
             <option value="all">All Competencies</option>
@@ -144,7 +143,7 @@ export default function AuditTrail() {
       </div>
 
       {/* Audit Log Table */}
-      <section className="bg-surface border border-line rounded-float shadow-sm overflow-hidden">
+      <Card padded={false} className="overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-3">
             <Skeleton className="h-12 w-full" />
@@ -163,18 +162,14 @@ export default function AuditTrail() {
             </Button>
           </div>
         ) : filteredLogs.length === 0 ? (
-          <div className="py-14 text-center space-y-2">
-            <History className="w-10 h-10 text-ink-3/40 mx-auto" />
-            <h3 className="text-base font-medium text-ink">No audit entries found</h3>
-            <p className="text-xs text-ink-3">
-              Weekly evaluations submitted by supervisors will appear here automatically.
-            </p>
-          </div>
+          <EmptyState icon={History} title="No audit entries found">
+            Weekly evaluations submitted by supervisors will appear here automatically.
+          </EmptyState>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-line text-[11px] font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
+                <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
                   <th className="py-3 px-4">Timestamp (Asia/Manila)</th>
                   <th className="py-3 px-4">Evaluator</th>
                   <th className="py-3 px-4">Competency</th>
@@ -206,7 +201,7 @@ export default function AuditTrail() {
                               <ArrowRight className="w-3 h-3 text-ink-3" />
                             </>
                           ) : (
-                            <span className="text-ink-3 text-[10px]">Initial -&gt;</span>
+                            <span className="text-ink-3 text-12">Initial -&gt;</span>
                           )}
                           <span className="font-bold text-ink text-sm">
                             {log.new_score?.toFixed(1)}
@@ -214,10 +209,7 @@ export default function AuditTrail() {
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="inline-flex items-center gap-1.5 text-ok text-[11px] font-sans">
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          <span>Append-only</span>
-                        </span>
+                        <span className="text-ok text-12">Append-only</span>
                       </td>
                     </tr>
                   );
@@ -257,11 +249,11 @@ export default function AuditTrail() {
           )}
             <span className="hidden sm:inline">{orgLabel} · Legal Archive</span>
         </footer>
-      </section>
+      </Card>
 
       {/* Print-Only Official Certification & Signatures */}
       <div className="print-only mt-8 pt-6 border-t-2 border-black text-black space-y-6">
-        <p className="text-[10px] italic leading-relaxed text-gray-700">
+        <p className="text-12 italic leading-relaxed text-gray-700">
           Official Attestation: This evidentiary exhibit is generated directly from the immutable, append-only
           audit log of the Performa Capstone Platform pursuant to Article 296 of the Philippine Labor Code.
           Every weekly competency rating, score delta, and rater identity is permanently preserved for DOLE/NLRC
@@ -272,17 +264,17 @@ export default function AuditTrail() {
           <div>
             <div className="border-b border-black mb-1 w-full h-10" />
             <p className="font-semibold text-xs">Evaluator Signature</p>
-            <p className="text-[10px] text-gray-600">Supervisor / Designated Rater</p>
+            <p className="text-12 text-gray-600">Supervisor / Designated Rater</p>
           </div>
           <div>
             <div className="border-b border-black mb-1 w-full h-10" />
             <p className="font-semibold text-xs">Employee Acknowledgment</p>
-            <p className="text-[10px] text-gray-600">Probationary Staff</p>
+            <p className="text-12 text-gray-600">Probationary Staff</p>
           </div>
           <div>
             <div className="border-b border-black mb-1 w-full h-10" />
             <p className="font-semibold text-xs">Employer / HR Attestation</p>
-            <p className="text-[10px] text-gray-600">Managing Authority</p>
+            <p className="text-12 text-gray-600">Managing Authority</p>
           </div>
         </div>
       </div>

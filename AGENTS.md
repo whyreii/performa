@@ -106,7 +106,7 @@ The invariants in §1 and the facts in `ARCHITECTURE.md` are enforced by tests a
 
 - **Tests**: `backend/tests/guardrails/` (competencies, RBAC matrix, audit, time, Gemini scope, human-in-the-loop, ML order, docs consistency, snapshot).
 - **Backend lint**: `python -m ruff check backend` (flake8-datetimez `DTZ` — no naive `datetime.now()`/`datetime.utcnow()` in business code). Config: `ruff.toml`.
-- **Frontend lint**: `cd frontend && npm run lint` (no `.toISOString()` outside `src/utils/datetime.js`; no `.replace('_', ' ')`). Config: `frontend/eslint.config.js`.
+- **Frontend lint**: `cd frontend && npm run lint` (no `.toISOString()` outside `src/utils/datetime.js`; no `.replace('_', ' ')`; no arbitrary `text-[…px]`; no `shadow-sm` on `rounded-float` cards; no `uppercase` kickers on `span`/`div`). Config: `frontend/eslint.config.js`.
 
 Rules:
 - Never edit, skip, weaken, or delete a guardrail test to get a pass.

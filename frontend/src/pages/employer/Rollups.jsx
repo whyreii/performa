@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
-import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton } from '../../components/ui';
+import { Button, Badge, Skeleton, Modal, EmptyState, Card } from '../../components/ui';
 import {
   FileCheck2,
   Sparkles,
@@ -29,8 +28,6 @@ export default function Rollups() {
   const [selectedEmpId, setSelectedEmpId] = useState('');
   const [monthNumber, setMonthNumber] = useState(1);
   const [actionMessage, setActionMessage] = useState({ type: '', text: '' });
-
-  useEscapeKey(() => setIsGenerateModalOpen(false), isGenerateModalOpen);
 
   // Fetch pending interventions
   const {
@@ -140,10 +137,10 @@ export default function Rollups() {
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
         <div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            Monthly Rollups & AI Sign-Off
+            Rollups
           </h1>
           <p className="text-sm text-ink-2 mt-1">
-            Gemini Performance Summaries & Random Forest Course Recommendations
+            Gemini summaries · Random Forest recommendations
           </p>
         </div>
 
@@ -178,7 +175,7 @@ export default function Rollups() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-ink">Pending Employer Approvals</h2>
+            <h2 className="text-base font-semibold text-ink">Pending approvals</h2>
             <Badge variant="warn">{pendingPlans.length} Pending</Badge>
           </div>
           <span className="text-xs text-ink-3">Article 296 Evidentiary Support</span>
@@ -201,30 +198,27 @@ export default function Rollups() {
             </Button>
           </div>
         ) : pendingPlans.length === 0 ? (
-          <div className="p-12 bg-surface border border-line rounded-float text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-accent/10 text-accent flex items-center justify-center mx-auto">
-              <FileCheck2 className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-semibold text-ink">No pending intervention approvals</h3>
-            <p className="text-xs text-ink-3 max-w-md mx-auto">
-              All training recommendations have been processed. Click "Generate Rollup" to run the 30-day Gemini evaluation rollup on an active probationer.
-            </p>
-          </div>
+          <EmptyState icon={FileCheck2} title="No pending intervention approvals">
+            All training recommendations have been processed. Click "Generate Rollup" to run the 30-day Gemini evaluation rollup on an active probationer.
+          </EmptyState>
         ) : (
           <div className="space-y-4">
             {pendingPlans.map((plan) => (
-              <div
+              <Card
                 key={plan.id}
-                className="bg-surface border border-line rounded-float p-5 sm:p-6 shadow-sm space-y-4 hover:border-ink-3 transition-colors"
+                padded={false}
+                className="p-5 sm:p-6 space-y-4 hover:border-ink-3 transition-colors"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-baseline gap-2">
                       <span className="font-semibold text-base text-ink">
                         {plan.intervention_title}
                       </span>
-                      <Badge variant="accent">{plan.competency?.replace(/_/g, ' ')}</Badge>
-                      <Badge variant="neutral">{plan.intervention_type}</Badge>
+                      <span className="text-12 text-ink-3">
+                        {plan.competency?.replace(/_/g, ' ')}
+                        {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-ink-3 font-mono">
                       <span>Timeline: {plan.default_timeline || '4 hours'}</span>
@@ -263,14 +257,13 @@ export default function Rollups() {
                 {/* AI Rationale by Gemini */}
                 {plan.rationale && (
                   <div className="p-4 rounded-ctl bg-hover/70 border border-line text-xs text-ink-2 space-y-1">
-                    <span className="font-semibold text-accent flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-mono">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Gemini Performance Rationale</span>
+                    <span className="font-semibold text-accent text-12 font-mono">
+                      Gemini Performance Rationale
                     </span>
                     <p className="leading-relaxed">{plan.rationale}</p>
                   </div>
                 )}
-              </div>
+              </Card>
             ))}
           </div>
         )}
@@ -279,7 +272,7 @@ export default function Rollups() {
       {/* Monthly Summaries (dispatch for acknowledgement) */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-ink">Monthly Summaries</h2>
+          <h2 className="text-base font-semibold text-ink">Monthly summaries</h2>
           <span className="text-xs text-ink-3">Dispatch to employees for digital acknowledgement</span>
         </div>
         {isSummariesLoading ? (
@@ -296,7 +289,7 @@ export default function Rollups() {
             No monthly summaries generated yet. Run a rollup above.
           </div>
         ) : (
-          <div className="bg-surface border border-line rounded-float divide-y divide-line shadow-sm">
+          <Card padded={false} className="divide-y divide-line">
             {summaries.map((summary) => {
               const emp = employees.find((e) => e.id === summary.employee_id);
               return (
@@ -335,28 +328,19 @@ export default function Rollups() {
                 </div>
               );
             })}
-          </div>
+          </Card>
         )}
       </section>
 
       {/* Generate Rollup Modal */}
-      {isGenerateModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Generate monthly rollup"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
-          onClick={() => setIsGenerateModalOpen(false)}
-        >
-          <div
-            className="w-full max-w-md bg-surface border border-line rounded-float shadow-pop p-6 space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
+      <Modal
+        isOpen={isGenerateModalOpen}
+        onClose={() => setIsGenerateModalOpen(false)}
+        label="Generate monthly rollup"
+        maxWidth="max-w-md"
+      >
             <div className="flex items-center justify-between pb-3 border-b border-line">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-accent" />
-                <h3 className="text-base font-semibold text-ink">Generate 30-Day Rollup</h3>
-              </div>
+              <h3 className="text-base font-semibold text-ink">Generate 30-Day Rollup</h3>
               <button
                 type="button"
                 onClick={() => setIsGenerateModalOpen(false)}
@@ -409,7 +393,7 @@ export default function Rollups() {
               </div>
 
               {selectedEmp && (
-                <div className="flex items-center justify-between gap-2 text-[11px] text-ink-3">
+                <div className="flex items-center justify-between gap-2 text-12 text-ink-3">
                   <span>
                     {selectedEmp.user?.full_name} · Day {getDaysElapsed(selectedEmp.start_date)} of 180
                   </span>
@@ -450,9 +434,7 @@ export default function Rollups() {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

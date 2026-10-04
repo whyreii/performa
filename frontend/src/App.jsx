@@ -1,9 +1,10 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { useDocumentTitle } from './hooks/useDocumentTitle';
 
 // Route-level code splitting: each page is loaded on demand.
 const Login = lazy(() => import('./pages/auth/Login'));
@@ -29,6 +30,38 @@ function RouteFallback() {
       <div className="w-8 h-8 rounded-full border-2 border-line border-t-accent animate-spin" />
     </div>
   );
+}
+
+// Per-route document titles (WCAG 2.4.2). Longest/most-specific paths first.
+const ROUTE_TITLES = [
+  ['/employees/', 'Employee Detail'],
+  ['/admin/users', 'User Accounts'],
+  ['/admin/activity', 'Activity Log'],
+  ['/supervisor/dashboard', 'Supervisor Dashboard'],
+  ['/supervisor/rate', 'Rate Employee'],
+  ['/supervisor/rubrics', 'KPI Rubrics'],
+  ['/employee/dashboard', 'My Scorecard'],
+  ['/employee/training', 'Training Plans'],
+  ['/employees', 'Employee Directory'],
+  ['/dashboard', 'Dashboard'],
+  ['/rollups', 'Rollups & AI Plans'],
+  ['/audits', 'Audit Trail'],
+  ['/notifications', 'Notifications'],
+  ['/settings', 'Settings'],
+  ['/login', 'Sign in'],
+];
+
+function titleForPath(pathname) {
+  const match = ROUTE_TITLES.find(
+    ([path]) => pathname === path || pathname.startsWith(path.endsWith('/') ? path : `${path}/`)
+  );
+  return match ? match[1] : null;
+}
+
+function RouteTitle() {
+  const location = useLocation();
+  useDocumentTitle(titleForPath(location.pathname));
+  return null;
 }
 
 // Create TanStack Query client with sensible defaults
@@ -103,6 +136,7 @@ export default function App() {
         <AuthProvider>
           <ToastProvider>
             <BrowserRouter>
+              <RouteTitle />
               <Suspense fallback={<RouteFallback />}>
               <Routes>
               {/* Public route */}
