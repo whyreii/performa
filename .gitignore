@@ -8,6 +8,7 @@ env/
 venv/
 .venv/
 *.joblib
+backend/ml/models/metrics.json
 node_modules/
 dist/
 dist-ssr/
