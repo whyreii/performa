@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, MilestonePill, Skeleton, Card } from '../../components/ui';
+import { Button, Badge, ScoreMeter, MilestonePill, Skeleton, Card, PageHeader } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import {
@@ -79,22 +79,16 @@ export default function EmployeeDashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            My Performance Scorecard
-          </h1>
-          <p className="text-sm text-ink-2 mt-1">
-            Probationary Milestone Tracker & Weekly Evaluations ·{' '}
+      <PageHeader
+        title="My Performance Scorecard"
+        subtitle={
+          <>
+            Probationary Milestone Tracker &amp; Weekly Evaluations ·{' '}
             <span className="font-mono text-ink">Acme PH</span>
-          </p>
-        </div>
-
-        {myProfile && (
-          <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} />
-        )}
-      </header>
+          </>
+        }
+        actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}
+      />
 
       {/* 1. Probation Status & Timeline Progress Banner */}
       <Card className="sm:p-7 space-y-5">

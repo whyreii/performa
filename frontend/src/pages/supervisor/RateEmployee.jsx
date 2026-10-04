@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, kpiApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, StatusDot, Skeleton, Modal, Card } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, Skeleton, Modal, Card, PageHeader } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { TARGET, PROBATION_DAYS } from '../../config/domain';
 import {
@@ -238,17 +238,10 @@ export default function RateEmployee() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-150">
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            Rate Probationary Employee
-          </h1>
-          <p className="text-sm text-ink-2 mt-1">
-            Article 296 Evidentiary Due Process Matrix · Target {thresholdTarget.toFixed(1)} Standard
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title="Rate Probationary Employee"
+        subtitle={`Article 296 Evidentiary Due Process Matrix · Target ${thresholdTarget.toFixed(1)} Standard`}
+      />
 
       {error && (
         <div className="p-3 rounded-ctl bg-bad/8 border border-line text-bad text-xs flex items-center gap-2">

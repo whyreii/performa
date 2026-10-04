@@ -4,7 +4,7 @@ import { evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
-import { Button, Badge, Skeleton, EmptyState, Card } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, PageHeader } from '../../components/ui';
 import {
   History,
   Printer,
@@ -75,27 +75,16 @@ export default function AuditTrail() {
         </div>
       </div>
 
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line no-print">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-            Audit Trail & Compliance
-          </h1>
-          <p className="text-sm text-ink-2 mt-1">
-            Article 296 Evidentiary Due Process Logs · Immutable & Append-Only
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            leftIcon={Printer}
-            onClick={() => window.print()}
-          >
+      <PageHeader
+        className="no-print"
+        title="Audit Trail & Compliance"
+        subtitle="Article 296 Evidentiary Due Process Logs · Immutable & Append-Only"
+        actions={
+          <Button variant="secondary" leftIcon={Printer} onClick={() => window.print()}>
             Print Compliance Log
           </Button>
-        </div>
-      </header>
+        }
+      />
 
       {/* DOLE Evidentiary Standards Banner */}
       <Card padded={false} className="p-5 space-y-2 no-print">
