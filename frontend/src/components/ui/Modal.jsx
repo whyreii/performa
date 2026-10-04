@@ -1,6 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 
+/* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions --
+   Modal pattern: the backdrop is a decorative overlay (keyboard dismissal is Escape +
+   the dialog focus trap), and the role="dialog" panel's keydown IS the focus trap.
+   These are the correct native-modal interactions, not static-element misuse. */
+
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 

@@ -6,6 +6,11 @@ import { Search, Settings, Palette, X, Bell, ArrowUp, ArrowDown } from 'lucide-r
 import { commandNav } from '../../config/nav';
 import { Modal } from '../ui';
 
+/* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus --
+   The palette implements the ARIA combobox/listbox activedescendant pattern: keyboard
+   focus stays on the input and options are selected via aria-activedescendant, so the
+   option elements are intentionally not focusable and carry no key handler. */
+
 export default function CommandPalette({ isOpen, onClose }) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -78,7 +83,7 @@ export default function CommandPalette({ isOpen, onClose }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} label="Command palette" maxWidth="max-w-xl" padded={false} panelClassName="overflow-hidden">
-      <div onKeyDown={handleKeyDown}>
+      <div>
         {/* Search Input Bar */}
         <div className="relative flex items-center border-b border-line px-4 transition-colors focus-within:border-accent">
           <Search className="w-5 h-5 text-ink-3 shrink-0" />
@@ -93,6 +98,7 @@ export default function CommandPalette({ isOpen, onClose }) {
               filtered[selectedIndex] ? `command-option-${filtered[selectedIndex].id}` : undefined
             }
             value={query}
+            onKeyDown={handleKeyDown}
             onChange={(e) => {
               setQuery(e.target.value);
               setSelectedIndex(0);

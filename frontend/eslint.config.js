@@ -9,6 +9,8 @@
 //   5. No uppercase micro-label kickers on span/div (table/print headers only).
 //
 // Run: npm run lint
+import jsxA11y from 'eslint-plugin-jsx-a11y';
+
 export default [
   {
     ignores: ['dist/**', 'node_modules/**', 'src/types/**'],
@@ -84,5 +86,16 @@ export default [
     // surface (rounded-float + shadow-pop), so it is allowed to spell it out.
     files: ['src/components/ui/Modal.jsx'],
     rules: { 'no-restricted-syntax': 'off' },
+  },
+  {
+    // Accessibility (POUR R-1): the recommended jsx-a11y ruleset, scoped to source.
+    files: ['src/**/*.{js,jsx}'],
+    ...jsxA11y.flatConfigs.recommended,
+    rules: {
+      ...jsxA11y.flatConfigs.recommended.rules,
+      // Labels that wrap a control and put their text in a nested block (e.g. a
+      // status radio with a title + description) need a deeper text search.
+      'jsx-a11y/label-has-associated-control': ['error', { depth: 3 }],
+    },
   },
 ]
