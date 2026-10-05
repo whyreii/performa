@@ -60,20 +60,19 @@ Every single screen is live, responsive, and wired to FastAPI:
 | **10**| `/supervisor/rubrics` | **KPI Rubrics Guide** | `supervisor`, `employer`| ✅ **LIVE** | Complete legal standards table for all 5 statutory competencies |
 | **11**| `/employee/dashboard` | **Employee Scorecard** | `probationary_employee`| ✅ **LIVE** | 180-day progress, 5-competency radar/scores, status banner |
 | **12**| `/employee/training` | **My Training Plans** | `probationary_employee`| ✅ **LIVE** | Assigned training modules with Gemini AI competency rationales |
-| **13**| `/settings` | **System Settings** | All Roles | ✅ **LIVE** | 5 Palettes (`paper`, `midnight`, `dusk`, `mist`, `sage`), alert toggles, password |
+| **13**| `/settings` | **System Settings** | All Roles | ✅ **LIVE** | Light/Dark/System mode (`paper`, `graphite`), alert toggles, password |
 
 
 ---
 
-## 🎨 Design System: The 5 Live Theme Palettes
+## 🎨 Design System: 2 curated themes + System
 
-Switchable instantly via the **Palette dropdown in the top-right header** or in **`/settings`**:
+Switched via the **Light / Dark / System** control in the header, the command palette, or **`/settings`**:
 
-1. **`paper` (Default Light)**: Warm cream background (`#f6f3ed`), terracotta accent (`#b94b21`), dark ink text.
-2. **`midnight` (Default Dark)**: Obsidian slate (`#090b10`), electric blue accent (`#3b82f6`), crisp white text.
-3. **`dusk` (Cosmic Dark)**: Deep violet night (`#0c0a14`), royal purple accent (`#9368f7`).
-4. **`mist` (Technical Slate)**: Clean cool gray (`#f0f4f8`), cerulean accent (`#0274af`).
-5. **`sage` (Organic Spruce)**: Soft evergreen tint (`#edf2ee`), deep pine accent (`#0f766e`).
+1. **`paper` (Light)**: Warm cream background (`#f6f3ed`), terracotta accent (`#b94b21`), dark ink text.
+2. **`graphite` (Dark)**: Neutral charcoal (`#0e0f11`), muted steel accent (`#84a8ce`), soft white text.
+
+`System` follows the OS preference. Sharp, institutional geometry (2–4px radii), hairline rules, no card shadows; accent = identity, colour = status.
 
 ---
 

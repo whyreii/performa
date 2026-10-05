@@ -4,6 +4,20 @@ This file records decisions made while reconciling the implementation with the
 capstone manuscript and `ARCHITECTURE.md`, so future work does not "fix" things
 that were intentionally scoped.
 
+## UI overhaul — 2 themes + Split layout
+
+**Decision:** The design system is reduced to **two curated themes** — `paper`
+(light) + `graphite` (dark) — with a **Light / Dark / System** mode toggle. This
+supersedes the earlier 5-theme set (`paper`, `midnight`, `dusk`, `mist`, `sage`);
+`AGENTS.md` §1.9 is updated accordingly. Geometry is **soft** (6–8px radii),
+hairline rules, **no card shadows**; accent = identity only, colour = status only.
+The **Employees** flow uses a **Split (master–detail)** layout — list left, record
+right, folding `EmployeeDetail` into the right pane. The record pane uses a
+**Reading-width sheet** (900px centered column) with a **sticky record header** and
+**flat hairline sections** (no floating cards). Other pages adopt the visual
+language only. Mockups live in `performa-minimal/overhaul.html` and
+`performa-minimal/split-polish.html`.
+
 ## J2 — Competency model (fixed 5 vs configurable KPIs)
 
 **Decision:** The **five statutory competencies are fixed** (`task_completion`,
@@ -21,7 +35,16 @@ Random Forest model is trained on exactly these five features.
 **Decision:** The seed and demo tenant remains **"Acme Philippines Corp."**
 (slug `acme-ph`) with demo accounts (`@acme.com`). The production partner
 (Small Steps Learning Center) provisions its own `Organization` row; no rename
-was performed. The UI reads `user.organization_id` where the tenant is shown.
+was performed.
+
+Tenants are now provisioned in-app (Option A, multi-tenant): the Administrator
+creates an Employer and supplies the organization name
+(`POST /api/admin/users` with `organization_name`), which creates a new
+`Organization` with an **empty** workspace; the platform Admin's account list
+(`GET /api/admin/users`) and activity log are platform-wide. An Admin/Employer
+may rename their own tenant via `PATCH /api/organization`. The UI reads
+`user.organization_name` (falling back to `organization_id`) where the tenant is
+shown.
 
 ## E16 — Account self-registration (descoped)
 

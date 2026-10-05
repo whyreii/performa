@@ -140,8 +140,10 @@ and it uses a restrained, semantic system.
 **Implementation.**
 - **Semantic design tokens.** All color, type, spacing, radius and motion live in
   `tokens.css`; components consume roles (`--surface`, `--line`, `--ink`, `--accent`),
-  never raw hex. The five themes are **`paper`, `midnight`, `dusk`, `mist`, `sage`**
-  (switched via `<html data-theme="…">`).
+  never raw hex. There are **two curated themes — `paper` (light) + `graphite` (dark)** —
+  plus a **Light / Dark / System** mode toggle (switched via `<html data-theme="…">`).
+  The contrast tables later in this doc predate the 2-theme change and are kept as
+  historical measurements.
 - **Restraint.** The employer dashboard was condensed to a **single callout banner**
   instead of three duplicated alerts (`employer/Dashboard.jsx`).
 - **Motion that respects the user.** Transitions are 160 ms and disabled under
@@ -165,13 +167,13 @@ numerals that align and characters that never confuse.
 - **Grid discipline.** Consistent 4/8 px spacing scale (`--s1`…`--s7`) and a shared
   card/float radius (`--r-ctl`, `--r-float`).
 - **Corner-radius scale — one per class, not one global value.** Radii are semantic
-  roles: controls `--r-ctl` (6 px), fields/nav `--r-field`/`--r-nav` (10 px),
-  surfaces `--r-float` (14 px), full-round pills/avatars `rounded-full`. Every
+  roles: controls `--r-ctl` (6 px), fields/nav/surfaces `--r-field`/`--r-nav`/
+  `--r-float` (8 px), full-round pills/avatars `rounded-full`. Every
   card/panel renders through `Surface.jsx` (which `Card.jsx` wraps), so the surface
   definition exists once.
 - **Concentric nesting.** A rounded surface placed *inside* another must use a
   smaller radius so the corners stay concentric: `inner = outer − gap` (Apple's
-  concentric-rectangle rule). The derived token `--r-float-inner` (10 px,
+  concentric-rectangle rule). The derived token `--r-float-inner` (4 px,
   `rounded-float-inner`) exists for this — apply it to any card nested in a card or
   modal. Equal radii on nested surfaces read as a visual error.
 
