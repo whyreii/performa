@@ -185,7 +185,7 @@ export default function App() {
                 <Route
                   path="/employees"
                   element={
-                    <ProtectedRoute allowedRoles={['employer', 'admin', 'supervisor', 'probationary_employee']}>
+                    <ProtectedRoute allowedRoles={['employer', 'supervisor', 'probationary_employee']}>
                       <EmployeeSplit />
                     </ProtectedRoute>
                   }

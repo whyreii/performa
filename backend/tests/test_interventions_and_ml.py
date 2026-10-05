@@ -29,7 +29,7 @@ async def test_my_interventions_is_self_scoped(client):
 
 @pytest.mark.asyncio
 async def test_pending_requires_employer_role(client):
-    """The /pending interventions endpoint is restricted to Employer and Admin roles."""
+    """The /pending interventions endpoint is restricted to Employer and Supervisor roles."""
     employee = await login_user(client, EMP1_EMAIL)
     response = await client.get("/api/interventions/pending", headers=employee)
     assert response.status_code == 403

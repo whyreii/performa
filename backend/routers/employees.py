@@ -326,7 +326,7 @@ async def list_employees(
         stmt = stmt.where(ProbationaryEmployee.supervisor_id == current_user.id)
     elif current_user.role == UserRole.PROBATIONARY_EMPLOYEE:
         stmt = stmt.where(ProbationaryEmployee.user_id == current_user.id)
-    elif current_user.role not in (UserRole.ADMIN, UserRole.EMPLOYER):
+    elif current_user.role != UserRole.EMPLOYER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Operation not permitted for current role",
@@ -354,7 +354,7 @@ async def list_employees(
 async def list_milestones(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(
-        require_role(UserRole.ADMIN, UserRole.EMPLOYER, UserRole.SUPERVISOR)
+        require_role(UserRole.EMPLOYER, UserRole.SUPERVISOR)
     ),
 ) -> MilestoneReport:
     """Return active employees approaching or past each statutory threshold."""
@@ -428,7 +428,7 @@ async def scan_milestone_alerts(
 )
 async def list_supervisors(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> list[User]:
     """Return active supervisors in the caller's organization for assignment."""
     stmt = (
@@ -454,10 +454,15 @@ async def get_employee(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ProbationaryEmployee:
-    """Return a full profile for an admin/employer, assigned supervisor, or self."""
+    """Return a full profile for an employer, assigned supervisor, or self."""
+    if current_user.role == UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Operation not permitted for current role",
+        )
     employee = await _fetch_employee(db, employee_id, current_user.organization_id)
 
-    if current_user.role in (UserRole.ADMIN, UserRole.EMPLOYER):
+    if current_user.role == UserRole.EMPLOYER:
         return employee
     if current_user.role == UserRole.SUPERVISOR and employee.supervisor_id == current_user.id:
         return employee

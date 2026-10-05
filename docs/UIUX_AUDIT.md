@@ -96,7 +96,7 @@
 ---
 
 ## I. Role & Security Alignment (P1 — Manuscript Integrity)
-50. ✅ **Fixed (Manuscript-aligned)** — Admin RBAC corrected to the Scope of the Study. Admin retains **view-only** access to employee records, scorecards, evaluations, and performance/activity reports; **write** actions are now Employer-only: employee onboarding (`POST /api/employees/`), status change (`PATCH /api/employees/{id}/status`), and KPI upsert/reset (`/api/kpi-rubrics`) require `EMPLOYER`, and `EmployeeDetail` hides the status button from Admin. (Supersedes the earlier route-only change that over-restricted Admin relative to the manuscript.)
+50. ✅ **Fixed (Manuscript-aligned)** — Admin RBAC corrected to the amended Scope of the Study. Admin has **no access** to employee records, scorecards, evaluations, interventions, or the Evidentiary Labor Score Audit Trail (Employer/Supervisor/Employee only); Admin is limited to system/IT oversight (`/admin/*`, `/settings`, `/notifications`) plus the KPI rubric library (view-only). Write actions remain Employer-only: employee onboarding (`POST /api/employees/`), status change (`PATCH /api/employees/{id}/status`), and KPI upsert/reset (`/api/kpi-rubrics`). (Supersedes the earlier view-only decision, per the owner's amended manuscript.)
 51. ✅ **Resolved (Manuscript)** — `Dashboard.jsx:113-118` — Employer rating is in scope: the Scope of the Study grants the Employer "Performance Rating Entry," and the Delimitations state ratings are recorded exclusively by the Employer or Supervisor. Code and UI are correct.
 52. `AddEmployeeModal.jsx` — Default temporary demo password UX.
 53. `UserManagement.jsx` — Password reset modal UX.

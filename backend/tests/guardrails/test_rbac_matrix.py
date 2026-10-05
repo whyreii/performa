@@ -25,6 +25,10 @@ ACKNOWLEDGE_PATH = "/api/employees/{employee_id}/acknowledge-standards"
 
 ALL = {"admin", "employer", "supervisor", "probationary_employee"}
 
+# Roles that may read probationary-employee performance data. The Admin is
+# excluded (amended manuscript scope): see AGENTS.md §2 / ARCHITECTURE.md §6a-3.
+PERFORMANCE_READERS = {"employer", "supervisor", "probationary_employee"}
+
 PUBLIC = {
     ("POST", "/api/auth/login"),
     ("POST", "/api/auth/logout"),
@@ -47,29 +51,29 @@ MATRIX = {
     ("GET", "/api/admin/settings"): {"admin"},
     ("GET", "/api/admin/reports/overview"): {"admin"},
     ("POST", "/api/employees/"): {"employer"},
-    ("GET", "/api/employees/"): ALL,
-    ("GET", "/api/employees/milestones"): {"admin", "employer", "supervisor"},
+    ("GET", "/api/employees/"): PERFORMANCE_READERS,
+    ("GET", "/api/employees/milestones"): {"employer", "supervisor"},
     ("POST", "/api/employees/milestones/scan"): {"employer"},
-    ("GET", "/api/employees/supervisors"): {"admin", "employer"},
-    ("GET", "/api/employees/{employee_id}"): ALL,
+    ("GET", "/api/employees/supervisors"): {"employer"},
+    ("GET", "/api/employees/{employee_id}"): PERFORMANCE_READERS,
     ("POST", "/api/employees/{employee_id}/acknowledge-standards"): {"probationary_employee"},
     ("PATCH", "/api/employees/{employee_id}/status"): {"employer"},
     ("POST", "/api/evaluations/{employee_id}/weekly"): {"employer", "supervisor"},
-    ("GET", "/api/evaluations/{employee_id}/scorecard"): ALL,
-    ("GET", "/api/evaluations/{employee_id}/risk-explanation"): ALL,
-    ("GET", "/api/evaluations/{employee_id}/trend"): ALL,
+    ("GET", "/api/evaluations/{employee_id}/scorecard"): PERFORMANCE_READERS,
+    ("GET", "/api/evaluations/{employee_id}/risk-explanation"): PERFORMANCE_READERS,
+    ("GET", "/api/evaluations/{employee_id}/trend"): PERFORMANCE_READERS,
     ("POST", "/api/evaluations/{employee_id}/regularization-recommendation"): {"employer"},
-    ("GET", "/api/evaluations/{employee_id}/regularization-recommendation"): ALL,
-    ("GET", "/api/evaluations/{employee_id}/report"): ALL,
-    ("GET", "/api/evaluations/audit-trail"): {"admin", "employer"},
-    ("GET", "/api/evaluations/{employee_id}/audit-trail"): ALL,
+    ("GET", "/api/evaluations/{employee_id}/regularization-recommendation"): PERFORMANCE_READERS,
+    ("GET", "/api/evaluations/{employee_id}/report"): PERFORMANCE_READERS,
+    ("GET", "/api/evaluations/audit-trail"): {"employer"},
+    ("GET", "/api/evaluations/{employee_id}/audit-trail"): PERFORMANCE_READERS,
     ("POST", "/api/interventions/{employee_id}/monthly-rollup"): {"employer"},
     ("GET", "/api/interventions/mine"): ALL,
-    ("GET", "/api/interventions/summaries"): {"admin", "employer"},
+    ("GET", "/api/interventions/summaries"): {"employer"},
     ("GET", "/api/interventions/summaries/mine"): ALL,
     ("POST", "/api/interventions/summaries/{summary_id}/dispatch"): {"employer"},
     ("POST", "/api/interventions/summaries/{summary_id}/acknowledge"): ALL,
-    ("GET", "/api/interventions/pending"): {"admin", "employer", "supervisor"},
+    ("GET", "/api/interventions/pending"): {"employer", "supervisor"},
     ("POST", "/api/interventions/{plan_id}/sign-off"): {"employer"},
     ("GET", "/api/kpi-rubrics"): {"admin", "employer", "supervisor"},
     ("GET", "/api/kpi-rubrics/templates"): ALL,

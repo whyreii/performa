@@ -1,9 +1,13 @@
-"""Manuscript-aligned RBAC write-lock tests.
+"""Manuscript-aligned RBAC tests.
 
-Per the Scope of the Study, the Administrator has **view-only** oversight of
-employee records, KPIs, and reports. Write actions — employee onboarding,
+Per the amended Scope of the Study, the Administrator has **no access** to
+probationary-employee performance data (records, scorecards, evaluations,
+interventions, and the Evidentiary Labor Score Audit Trail); those are
+Employer/Supervisor/Employee only. Write actions — employee onboarding,
 probationary status changes, and KPI configuration — are exclusive to the
 Employer (ratings are also permitted to the Supervisor for assigned reports).
+The Admin retains system/IT oversight: `/admin/*`, `/settings`, `/notifications`,
+and the KPI rubric library (view-only).
 """
 from __future__ import annotations
 
@@ -76,19 +80,26 @@ async def test_admin_cannot_edit_kpi_rubrics(client):
 
 
 @pytest.mark.asyncio
-async def test_admin_retains_view_only_oversight(client):
-    """Admin retains view-only access to employee records and reports."""
+async def test_admin_has_no_employee_data_access(client):
+    """Admin is denied employee performance data; system/IT oversight is retained."""
     admin = await login_user(client, ADMIN_EMAIL)
 
-    listing = await client.get("/api/employees/", headers=admin)
-    assert listing.status_code == 200, listing.text
+    assert (await client.get("/api/employees/", headers=admin)).status_code == 403
+    assert (
+        await client.get("/api/employees/supervisors", headers=admin)
+    ).status_code == 403
+    assert (
+        await client.get("/api/interventions/summaries", headers=admin)
+    ).status_code == 403
+    assert (
+        await client.get("/api/evaluations/audit-trail", headers=admin)
+    ).status_code == 403
 
-    emp_id = await find_employee_by_email(client, admin, EMP1_EMAIL)
-    detail = await client.get(f"/api/employees/{emp_id}", headers=admin)
-    assert detail.status_code == 200, detail.text
-
-    reports = await client.get("/api/admin/reports/overview", headers=admin)
-    assert reports.status_code == 200, reports.text
+    # System/IT oversight (KPI overview + rubric library) is retained.
+    assert (
+        await client.get("/api/admin/reports/overview", headers=admin)
+    ).status_code == 200
+    assert (await client.get("/api/kpi-rubrics", headers=admin)).status_code == 200
 
 
 @pytest.mark.asyncio

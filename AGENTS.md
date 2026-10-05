@@ -29,7 +29,7 @@ Never change, remove, weaken, or "improve" these. If a task requires it, stop an
 6. **Gemini models**: the model IDs in `ARCHITECTURE.md` §1 are fixed and set in `backend/gemini.py` only. Never downgrade the primary (2.5, 1.5, legacy). If the API rejects a model ID, report the exact error; do not swap IDs. Do not change the temperature unasked (`ARCHITECTURE.md` §6a).
 7. **Database**: local default is SQLite (`sqlite+aiosqlite:///./performa.db`); production/staging is PostgreSQL via `DATABASE_URL`. Shared code must run on both. Flag any dialect-specific feature. SQLite drops tzinfo, so always store and convert datetimes through `timeutils`.
 8. **JS string replace**: never `.replace('_', ' ')`. Use `.replace(/_/g, ' ')` or `.replaceAll('_', ' ')`.
-9. **Design system**: follow `src/tokens.css` (2 curated themes — `paper` light + `graphite` dark — plus a Light/Dark/System mode toggle) and WCAG 2.1 AA (contrast, keyboard nav). Before adding a CSS class, search for an existing one. Never define the same class twice. Never use `!important` to override your own earlier CSS.
+9. **Design system**: follow `src/tokens.css` (2 curated themes — `paper` light + `graphite` dark — plus a Light/Dark/System mode toggle) and WCAG 2.1 AA (contrast, keyboard nav). Before adding a CSS class, search for an existing one. Never define the same class twice. Never use `!important` to override your own earlier CSS. **The "gallery wall" — the single max-width + padding — lives only in `AppShell.jsx`; every page renders through `<Page>` and must never escape it** (no `main:has(...)` full-bleed overrides in `index.css`). Enforced by `backend/tests/guardrails/test_page_wrapper.py`.
 10. **No fake data**: every number, stat, date, or status shown in the UI comes from the API/DB. No hardcoded demo values in components. If data is missing, render an empty or loading state.
 
 The pipeline rules in `ARCHITECTURE.md` §4-5 (Gemini scope, human approval, audit writes) are equally binding.
@@ -41,13 +41,13 @@ The pipeline rules in `ARCHITECTURE.md` §4-5 (Gemini scope, human approval, aud
 Enforced server-side on every endpoint. Hiding something in the UI is not access control.
 
 - **System Administrator** (`admin@acme.com`): system/IT-level access for platform oversight (Manuscript Scope of the Study). Own routes: `/admin/*`, `/settings`, `/notifications`.
-  - MAY: manage user accounts (create/deactivate/reset); view KPIs system-wide (view-only); view probationary employee records, scorecards, evaluations, and performance/activity reports system-wide (view-only); manage global system settings (deadline thresholds, KPI template library); view the system-wide audit log.
-  - MUST NOT: add/edit employee records, create/edit KPI definitions, enter ratings, or take regularization/termination actions.
+  - MAY: manage user accounts (create/deactivate/reset); view KPIs system-wide (view-only, via `/admin/reports/overview`); view the KPI rubric library (view-only); manage global system settings (deadline thresholds, KPI template library); view the system-wide IT activity log (`/admin/activity`).
+  - MUST NOT: view probationary employee records, scorecards, evaluations, interventions, or the Evidentiary Labor Score Audit Trail; add/edit employee records; create/edit KPI definitions; enter ratings; or take regularization/termination actions.
 - **Employer** (`employer@acme.com`): full operational oversight of employee performance, weekly ratings, and monthly rollups. Exclusive regularization/termination sign-offs and intervention approvals.
 - **Supervisor** (`supervisor@acme.com`): weekly ratings and scorecards for assigned direct reports only.
 - **Probationary Employee** (`emp1@acme.com`): self-scoped dashboard, notifications, and digital acknowledgment of monthly summaries.
 
-**RESOLVED (Admin)**: Admin access to performance data is **view-only** (Manuscript Scope of the Study). Admin may view records, scorecards, KPIs, and reports across the tenant, but must not write (no employee add/edit, no ratings, no KPI edits, no regularization/termination actions). Enforced in `backend/tests/test_rbac.py`; see `ARCHITECTURE.md` §6a-3.
+**RESOLVED (Admin)**: Admin has **no access** to probationary-employee performance data (Manuscript Scope of the Study, as amended by the owner). Employee records, scorecards, evaluations, interventions, and the Evidentiary Labor Score Audit Trail are Employer/Supervisor/Employee only. Admin is limited to system/IT oversight (`/admin/*`, `/settings`, `/notifications`) plus the KPI rubric library (view-only). Enforced in `backend/tests/test_rbac.py` and `backend/tests/guardrails/test_rbac_matrix.py`; see `ARCHITECTURE.md` §6a-3.
 
 ---
 

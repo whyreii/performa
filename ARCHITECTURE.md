@@ -79,9 +79,11 @@ Agents: do not guess on anything in this section.
 2. **The 4.0 standard**: the **capstone's immutable regularizing benchmark** — a hard floor of **4.0 / 5.0
    across all 5 competencies** (`default=4.0, ge=4.0, le=5.0` in `backend/schemas.py`). Employers may set
    **higher** targets (e.g. 4.5) but never lower.
-3. **Admin access to performance data**: **view-only** (Manuscript Scope of the Study). Admin may view
-   records, scorecards, KPIs, and reports across the tenant, but must not write. Enforced in
-   `backend/tests/test_rbac.py`; see `AGENTS.md` §2.
+3. **Admin access to performance data**: **none** (Manuscript Scope of the Study, as amended). Admin has no
+   access to probationary-employee records, scorecards, evaluations, interventions, or the Evidentiary
+   Labor Score Audit Trail; those are Employer/Supervisor/Employee only. Admin retains system/IT oversight
+   (`/admin/*`, `/settings`, `/notifications`) and the KPI rubric library (view-only). Enforced in
+   `backend/tests/test_rbac.py` and `backend/tests/guardrails/test_rbac_matrix.py`; see `AGENTS.md` §2.
 4. **Deadline thresholds**: **Days 150, 165, and 178 are fixed statutory Article 296 milestones** and are
    **not configurable**. `GET /api/admin/settings` (`backend/routers/admin.py`) exposes `DEADLINE_THRESHOLDS`
    to the Admin for **oversight only** (non-configurable cutoffs).

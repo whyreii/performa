@@ -28,7 +28,7 @@ violation with `file:line` evidence.
 - Employer-only writes: employee create/edit/status, KPI definitions, monthly
   rollups, dispatch, sign-off, regularization.
 - Supervisor: weekly ratings for assigned reports only.
-- Admin: view-only for records/KPIs/reports; may manage user accounts and global settings.
+- Admin: no employee performance data; may manage user accounts and global settings, and view the KPI rubric library + IT activity log.
 - Employee: self-scoped only.
 
 ## 4. Accessibility & styling - WCAG 2.1 AA

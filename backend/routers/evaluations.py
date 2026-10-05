@@ -94,6 +94,11 @@ async def _get_scoped_employee(
     current_user: User,
 ) -> ProbationaryEmployee:
     """Fetch an employee within the caller's tenant, enforcing self-access."""
+    if current_user.role == UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Operation not permitted for current role",
+        )
     stmt = (
         select(ProbationaryEmployee)
         .options(selectinload(ProbationaryEmployee.user))
@@ -605,7 +610,7 @@ async def get_tenant_audit_trail(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> list[AuditLogItemResponse]:
     """Return immutable competency audit entries in the tenant, newest first."""
     stmt = (

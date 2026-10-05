@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { authApi, organizationApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, TextField, Card, Page } from '../../components/ui';
+import { Button, Badge, TextField, Page } from '../../components/ui';
 import {
-  Building,
+  User,
+  Palette,
+  AlertTriangle,
+  Lock,
   CheckCircle2,
   AlertCircle,
-  ShieldAlert,
   Sun,
   Moon,
   Monitor,
@@ -19,9 +21,40 @@ const MODES = [
   { id: 'system', label: 'System', icon: Monitor },
 ];
 
+// Rail sections. Hash-addressable so a section can be linked to directly.
+const SECTIONS = [
+  { id: 'profile', label: 'Profile & tenant', icon: User },
+  { id: 'appearance', label: 'Appearance', icon: Palette },
+  { id: 'alerts', label: 'Statutory alerts', icon: AlertTriangle },
+  { id: 'security', label: 'Security', icon: Lock },
+];
+
+const sectionFromHash = () => {
+  const h = window.location.hash.replace('#', '');
+  return SECTIONS.some((s) => s.id === h) ? h : 'profile';
+};
+
 export default function Settings() {
   const { user, refreshUser } = useAuth();
   const { mode, setMode } = useTheme();
+
+  // Active rail section (deep-linkable via #profile / #appearance / …).
+  const [active, setActive] = useState(sectionFromHash);
+
+  useEffect(() => {
+    const onHash = () => setActive(sectionFromHash());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  const selectSection = (id) => {
+    setActive(id);
+    if (window.history?.replaceState) {
+      window.history.replaceState(null, '', `#${id}`);
+    } else {
+      window.location.hash = id;
+    }
+  };
 
   // Profile edit state
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -140,290 +173,317 @@ export default function Settings() {
 
   return (
     <Page
-        title="Settings & Appearance"
-        subtitle="Configure system appearance, statutory alerts, and account credentials."
+      title="Settings & Appearance"
+      subtitle="Configure system appearance, statutory alerts, and account credentials."
     >
-
-      {/* 1. Account Profile Card */}
-      <Card>
-        <div className="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-line">
-          <div>
-            <h2 className="text-16 font-semibold text-ink">User Profile & Tenant</h2>
-            <p className="text-12 text-ink-3">Your credentials and organization context</p>
-          </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setProfileName(user?.full_name || '');
-              setProfileEmail(user?.email || '');
-              setProfileStatus({ type: '', message: '' });
-              setIsEditingProfile((prev) => !prev);
-            }}
-          >
-            {isEditingProfile ? 'Cancel' : 'Edit Profile'}
-          </Button>
-        </div>
-
-        <div>
-          <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
-            <span className="text-14 text-ink-3">Full Name</span>
-            <span className="text-14 font-semibold text-ink">{user?.full_name || 'User'}</span>
-          </div>
-          <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
-            <span className="text-14 text-ink-3">Work Email</span>
-            <span className="text-14 font-mono text-ink truncate">{user?.email}</span>
-          </div>
-          <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
-            <span className="text-14 text-ink-3">Platform Role</span>
-            <span className="text-14 font-semibold text-accent capitalize">
-              {user?.role?.replace(/_/g, ' ')}
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between gap-4 py-3">
-            <span className="text-14 text-ink-3">Organization</span>
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="text-14 font-semibold text-ink truncate">
-                {user?.organization_name || user?.organization_id || '—'}
-              </span>
-              {canManageOrg && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOrgName(user?.organization_name || '');
-                    setOrgStatus({ type: '', message: '' });
-                    setIsEditingOrg((prev) => !prev);
-                  }}
-                  className="text-12 text-accent hover:underline shrink-0"
-                >
-                  {isEditingOrg ? 'Cancel' : 'Rename'}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {isEditingProfile && (
-          <form
-            onSubmit={handleProfileSubmit}
-            className="mt-5 pt-5 border-t border-line space-y-4 max-w-md"
-          >
-            {profileStatus.message && (
-              <div
-                role="alert"
-                className={`p-3 rounded-ctl text-12 border border-line ${
-                  profileStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
-                }`}
-              >
-                {profileStatus.message}
-              </div>
-            )}
-            <TextField
-              id="p_name"
-              label="Full Name"
-              type="text"
-              value={profileName}
-              onChange={(e) => setProfileName(e.target.value)}
-            />
-            <TextField
-              id="p_email"
-              label="Work Email"
-              type="email"
-              value={profileEmail}
-              onChange={(e) => setProfileEmail(e.target.value)}
-              className="[&_input]:font-mono"
-            />
-            <Button type="submit" variant="primary" isLoading={isSavingProfile}>
-              Save Changes
-            </Button>
-          </form>
-        )}
-
-        {isEditingOrg && (
-          <form
-            onSubmit={handleOrgSubmit}
-            className="mt-5 pt-5 border-t border-line space-y-4 max-w-md"
-          >
-            {orgStatus.message && (
-              <div
-                role="alert"
-                className={`p-3 rounded-ctl text-12 border border-line ${
-                  orgStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
-                }`}
-              >
-                {orgStatus.message}
-              </div>
-            )}
-            <TextField
-              id="org_name"
-              label="Organization Name"
-              type="text"
-              value={orgName}
-              onChange={(e) => setOrgName(e.target.value)}
-            />
-            <Button type="submit" variant="primary" isLoading={isSavingOrg}>
-              Save Organization
-            </Button>
-          </form>
-        )}
-      </Card>
-
-      {/* 2. Appearance — Light / Dark / System */}
-      <Card>
-        <div className="mb-6 pb-4 border-b border-line">
-          <h2 className="text-16 font-semibold text-ink">Appearance</h2>
-          <p className="text-12 text-ink-3">
-            Light, Dark, or follow your system. Persisted across sessions.
-          </p>
-        </div>
-
-        <div
-          role="tablist"
-          aria-label="Color mode"
-          className="inline-flex items-center gap-1 p-1 rounded-ctl border border-line bg-hover"
-        >
-          {MODES.map((m) => {
-            const Icon = m.icon;
-            const isActive = mode === m.id;
+      <div className="srail">
+        {/* Rail */}
+        <nav className="srail__nav" aria-label="Settings sections">
+          <div className="srail__t">Settings</div>
+          {SECTIONS.map((s) => {
+            const Icon = s.icon;
+            const isActive = active === s.id;
             return (
               <button
-                key={m.id}
+                key={s.id}
                 type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => setMode(m.id)}
-                className={`inline-flex items-center gap-2 h-9 px-4 rounded-ctl text-14 transition-colors ${
-                  isActive
-                    ? 'bg-surface text-ink font-semibold border border-line'
-                    : 'text-ink-3 hover:text-ink'
-                }`}
+                onClick={() => selectSection(s.id)}
+                aria-current={isActive ? 'page' : undefined}
+                className={`srail__b${isActive ? ' is-active' : ''}`}
               >
-                <Icon className="w-4 h-4" />
-                {m.label}
+                <Icon className="srail__ico" weight={isActive ? 'fill' : 'regular'} />
+                {s.label}
               </button>
             );
           })}
-        </div>
-      </Card>
+        </nav>
 
-      {/* 3. Article 296 Statutory Alert Protocols (mandatory, system-dispatched) */}
-      <Card>
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-line flex-wrap gap-2">
-          <div>
-            <h2 className="text-16 font-semibold text-ink">
-              Article 296 Statutory Alert Protocols
-            </h2>
-            <p className="text-12 text-ink-3">
-              Mandatory · System Active — dispatched automatically in Asia/Manila against the strict 180-day cap
-            </p>
-          </div>
-          <span className="text-12 font-medium text-ok">System Active</span>
-        </div>
+        {/* Reading column */}
+        <div className="srail__pane">
+          <div className="srail__inner">
+            {active === 'profile' && (
+              <section className="ssec">
+                <div className="ssec__h">
+                  <div>
+                    <h2>User Profile &amp; Tenant</h2>
+                    <p>Your credentials and organization context</p>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setProfileName(user?.full_name || '');
+                      setProfileEmail(user?.email || '');
+                      setProfileStatus({ type: '', message: '' });
+                      setIsEditingProfile((prev) => !prev);
+                    }}
+                  >
+                    {isEditingProfile ? 'Cancel' : 'Edit Profile'}
+                  </Button>
+                </div>
 
-        <div className="space-y-4">
-          <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-14 text-ink">Day 150 Review Due Notice</span>
-                <Badge variant="warn">Statutory Milestone</Badge>
-              </div>
-              <p className="text-12 text-ink-2">
-                Triggers when an employee reaches 150 days of probation. Alerts HR and supervisors to schedule the formal 5th-month performance appraisal.
-              </p>
-            </div>
-            <span className="text-12 font-medium text-ok shrink-0 mt-1">Active</span>
-          </div>
+                <div>
+                  <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
+                    <span className="text-14 text-ink-3">Full Name</span>
+                    <span className="text-14 font-semibold text-ink">{user?.full_name || 'User'}</span>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
+                    <span className="text-14 text-ink-3">Work Email</span>
+                    <span className="text-14 font-mono text-ink truncate">{user?.email}</span>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
+                    <span className="text-14 text-ink-3">Platform Role</span>
+                    <span className="text-14 font-semibold text-accent capitalize">
+                      {user?.role?.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-4 py-3">
+                    <span className="text-14 text-ink-3">Organization</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-14 font-semibold text-ink truncate">
+                        {user?.organization_name || user?.organization_id || '—'}
+                      </span>
+                      {canManageOrg && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOrgName(user?.organization_name || '');
+                            setOrgStatus({ type: '', message: '' });
+                            setIsEditingOrg((prev) => !prev);
+                          }}
+                          className="text-12 text-accent hover:underline shrink-0"
+                        >
+                          {isEditingOrg ? 'Cancel' : 'Rename'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
-          <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-14 text-ink">
-                  Day 165 Written Notice Period Threshold
-                </span>
-                <Badge variant="warn">Legal Due Process</Badge>
-              </div>
-              <p className="text-12 text-ink-2">
-                Guarantees the required 15-day notice buffer before Day 180. Alerts employers if any employee under target is in jeopardy of termination or regularization.
-              </p>
-            </div>
-            <span className="text-12 font-medium text-ok shrink-0 mt-1">Active</span>
-          </div>
+                {isEditingProfile && (
+                  <form
+                    onSubmit={handleProfileSubmit}
+                    className="mt-5 pt-5 border-t border-line space-y-4 max-w-md"
+                  >
+                    {profileStatus.message && (
+                      <div
+                        role="alert"
+                        className={`p-3 rounded-ctl text-12 border border-line ${
+                          profileStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
+                        }`}
+                      >
+                        {profileStatus.message}
+                      </div>
+                    )}
+                    <TextField
+                      id="p_name"
+                      label="Full Name"
+                      type="text"
+                      value={profileName}
+                      onChange={(e) => setProfileName(e.target.value)}
+                    />
+                    <TextField
+                      id="p_email"
+                      label="Work Email"
+                      type="email"
+                      value={profileEmail}
+                      onChange={(e) => setProfileEmail(e.target.value)}
+                      className="[&_input]:font-mono"
+                    />
+                    <Button type="submit" variant="primary" isLoading={isSavingProfile}>
+                      Save Changes
+                    </Button>
+                  </form>
+                )}
 
-          <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-14 text-ink">
-                  Day 178 Critical Action Window (48h to Auto-Regularization)
-                </span>
-                <Badge variant="bad">Critical Threshold</Badge>
-              </div>
-              <p className="text-12 text-ink-2">
-                Final alert: under Philippine law, working on Day 181 confers automatic permanent regular status. Immediate action required.
-              </p>
-            </div>
-            <span className="text-12 font-medium text-ok shrink-0 mt-1">Active</span>
-          </div>
-        </div>
-      </Card>
-
-      {/* 4. Security & Password Update */}
-      <Card>
-        <div className="mb-6 pb-4 border-b border-line">
-          <h2 className="text-16 font-semibold text-ink">Security & Password</h2>
-          <p className="text-12 text-ink-3">Update your password or manage credentials</p>
-        </div>
-
-        {passwordStatus.message && (
-          <div
-            role="alert"
-            className={`mb-5 p-3 rounded-ctl text-12 flex items-center gap-2 border border-line ${
-              passwordStatus.type === 'error'
-                ? 'bg-bad/8 text-bad'
-                : 'bg-ok/8 text-ok'
-            }`}
-          >
-            {passwordStatus.type === 'error' ? (
-              <AlertCircle className="w-4 h-4 shrink-0" />
-            ) : (
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
+                {isEditingOrg && (
+                  <form
+                    onSubmit={handleOrgSubmit}
+                    className="mt-5 pt-5 border-t border-line space-y-4 max-w-md"
+                  >
+                    {orgStatus.message && (
+                      <div
+                        role="alert"
+                        className={`p-3 rounded-ctl text-12 border border-line ${
+                          orgStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
+                        }`}
+                      >
+                        {orgStatus.message}
+                      </div>
+                    )}
+                    <TextField
+                      id="org_name"
+                      label="Organization Name"
+                      type="text"
+                      value={orgName}
+                      onChange={(e) => setOrgName(e.target.value)}
+                    />
+                    <Button type="submit" variant="primary" isLoading={isSavingOrg}>
+                      Save Organization
+                    </Button>
+                  </form>
+                )}
+              </section>
             )}
-            <span>{passwordStatus.message}</span>
+
+            {active === 'appearance' && (
+              <section className="ssec">
+                <div className="ssec__h">
+                  <div>
+                    <h2>Appearance</h2>
+                    <p>Light, Dark, or follow your system. Persisted across sessions.</p>
+                  </div>
+                </div>
+
+                <div
+                  role="tablist"
+                  aria-label="Color mode"
+                  className="inline-flex items-center gap-1 p-1 rounded-ctl border border-line bg-hover"
+                >
+                  {MODES.map((m) => {
+                    const Icon = m.icon;
+                    const isActive = mode === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        onClick={() => setMode(m.id)}
+                        className={`inline-flex items-center gap-2 h-9 px-4 rounded-ctl text-14 transition-colors ${
+                          isActive
+                            ? 'bg-surface text-ink font-semibold border border-line'
+                            : 'text-ink-3 hover:text-ink'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {m.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {active === 'alerts' && (
+              <section className="ssec">
+                <div className="ssec__h">
+                  <div>
+                    <h2>Article 296 Statutory Alert Protocols</h2>
+                    <p>
+                      Mandatory · System Active — dispatched automatically in Asia/Manila against the strict 180-day cap
+                    </p>
+                  </div>
+                  <span className="text-12 font-medium text-ok shrink-0">System Active</span>
+                </div>
+
+                <div>
+                  <div className="salert">
+                    <div>
+                      <div className="salert__t">
+                        <span>Day 150 Review Due Notice</span>
+                        <Badge variant="warn">Statutory Milestone</Badge>
+                      </div>
+                      <p className="salert__b">
+                        Triggers when an employee reaches 150 days of probation. Alerts HR and supervisors to schedule the formal 5th-month performance appraisal.
+                      </p>
+                    </div>
+                    <span className="salert__live">Active</span>
+                  </div>
+
+                  <div className="salert">
+                    <div>
+                      <div className="salert__t">
+                        <span>Day 165 Written Notice Period Threshold</span>
+                        <Badge variant="warn">Legal Due Process</Badge>
+                      </div>
+                      <p className="salert__b">
+                        Guarantees the required 15-day notice buffer before Day 180. Alerts employers if any employee under target is in jeopardy of termination or regularization.
+                      </p>
+                    </div>
+                    <span className="salert__live">Active</span>
+                  </div>
+
+                  <div className="salert">
+                    <div>
+                      <div className="salert__t">
+                        <span>Day 178 Critical Action Window (48h to Auto-Regularization)</span>
+                        <Badge variant="bad">Critical Threshold</Badge>
+                      </div>
+                      <p className="salert__b">
+                        Final alert: under Philippine law, working on Day 181 confers automatic permanent regular status. Immediate action required.
+                      </p>
+                    </div>
+                    <span className="salert__live">Active</span>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {active === 'security' && (
+              <section className="ssec">
+                <div className="ssec__h">
+                  <div>
+                    <h2>Security &amp; Password</h2>
+                    <p>Update your password or manage credentials</p>
+                  </div>
+                </div>
+
+                {passwordStatus.message && (
+                  <div
+                    role="alert"
+                    className={`mb-5 p-3 rounded-ctl text-12 flex items-center gap-2 border border-line ${
+                      passwordStatus.type === 'error'
+                        ? 'bg-bad/8 text-bad'
+                        : 'bg-ok/8 text-ok'
+                    }`}
+                  >
+                    {passwordStatus.type === 'error' ? (
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                    ) : (
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    )}
+                    <span>{passwordStatus.message}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handlePasswordSubmit} className="max-w-md space-y-4">
+                  <TextField
+                    id="currPass"
+                    label="Current Password"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+
+                  <TextField
+                    id="newPass"
+                    label="New Password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="At least 8 characters"
+                  />
+
+                  <TextField
+                    id="confPass"
+                    label="Confirm New Password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+
+                  <Button type="submit" variant="primary" isLoading={isUpdatingPassword} className="mt-2">
+                    Update Password
+                  </Button>
+                </form>
+              </section>
+            )}
           </div>
-        )}
-
-        <form onSubmit={handlePasswordSubmit} className="max-w-md space-y-4">
-          <TextField
-            id="currPass"
-            label="Current Password"
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            placeholder="••••••••"
-          />
-
-          <TextField
-            id="newPass"
-            label="New Password"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="At least 8 characters"
-          />
-
-          <TextField
-            id="confPass"
-            label="Confirm New Password"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="••••••••"
-          />
-
-          <Button type="submit" variant="primary" isLoading={isUpdatingPassword} className="mt-2">
-            Update Password
-          </Button>
-        </form>
-      </Card>
+        </div>
+      </div>
     </Page>
   );
 }

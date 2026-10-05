@@ -34,8 +34,8 @@ Manuscript: human-in-the-loop sign-off is **Employer**-exclusive.
 Manuscript: Supervisor is **view-only** on regularization ("does not hold decision-making authority").
 **Live probe:** `supervisor=404` (allowed), `admin=403` (correctly denied).
 
-**RBAC-5 (P3) — Admin on view-only helper endpoints (acceptable, noted).**
-`GET /api/employees/supervisors` allows `ADMIN` (`employees.py:320`); `GET /api/interventions/pending` (`interventions.py:471`) and `GET /api/interventions/summaries` (`:297`) allow `ADMIN`. These are read-only and fall under Admin's manuscript "reports"/oversight scope — low risk.
+**RBAC-5 (Resolved) — Admin removed from performance-data endpoints.**
+`GET /api/employees/supervisors`, `/api/employees/milestones`, `/api/interventions/pending`, `/api/interventions/summaries`, and the employee/evaluation reads no longer allow `ADMIN` (amended manuscript scope; see `AGENTS.md` §2, `ARCHITECTURE.md` §6a-3).
 
 **Tenancy:** every router except `notifications.py` filters `organization_id`; notifications scope by `user_id` (tenant-safe). `_fetch_employee`/`_get_scoped_employee` enforce tenant + role. **No cross-tenant leak found.**
 
@@ -98,7 +98,7 @@ Clean. `backend/ml/predictor.py` validates all 5 competencies present/numeric/in
 | RBAC-4 | P1 | `regularization-recommendation` POST → `require_role(EMPLOYER)`. | S |
 | DATA-2 | P2 | Fix month window to be half-open (`>= start_n` and `< start_{n+1}`) or `<= start + n*30 - 1 day`. | S |
 | DOMAIN-1 | P2 | Confirm legal day-count convention; align UI labels + `daysElapsed` + `day_180_date` consistently. | M |
-| RBAC-5 | P3 | (Optional) trim Admin from `/employees/supervisors`. | S |
+| RBAC-5 | P3 | Trim Admin from all performance-data endpoints (`/employees/*`, `/evaluations/*`, `/interventions/*`). | S |
 | TEST | P2 | Add tests: RBAC-1…4 (403 for Admin/Supervisor), rollup-preserves-ack, month-boundary, E2E lifecycle. | M |
 | UX | P3 | Rollups month selector: handle employees past day 150 (or document the mid-5th-month cap). | S |
 
@@ -123,7 +123,7 @@ Clean. `backend/ml/predictor.py` validates all 5 competencies present/numeric/in
 | DATA-1 | ✅ Fixed | Rollup now updates in place, preserves plan decisions, and returns **409** if the month was already dispatched/acknowledged — no more record wiping. |
 | DATA-2 | ✅ Fixed | Month window is now non-overlapping: `[start + (n-1)*30, start + n*30 - 1]`. |
 | TEST | ✅ Fixed | Added RBAC + rollup-preservation regression tests; updated month-window tests. Suite: **38 passed**. |
-| RBAC-5 | ⏸ Won't-fix | Admin keeps view-only `/employees/supervisors` (per decision). |
+| RBAC-5 | ✅ Fixed | Admin removed from all performance-data endpoints (`/employees/*`, `/evaluations/*`, `/interventions/*`); retains `/admin/*`, `/settings`, `/notifications`, KPI rubric view. |
 | UX (month selector) | ⏸ By design | Months 1–5 only (system scoped to mid-5th month). |
 | DOMAIN-1 | ✅ Resolved (label-only) | Kept the existing Day-0 statutory math (internally consistent across milestones/cap/rollups); relabeled the UI start marker to **"Start (Day 0)"** so the label matches the math. No statutory dates changed. |
 

@@ -20,7 +20,10 @@ export function EmployeeEmpty() {
 export default function EmployeeSplit() {
   const { id } = useParams();
   return (
-    <Page header={false}>
+    <Page
+      title="Employees"
+      subtitle="Select a record to view the scorecard, milestone timeline, audit trail, and AI recommendations."
+    >
       <div className="split">
         <EmployeeList />
         <div className="split__detail">{id ? <Outlet /> : <EmployeeEmpty />}</div>

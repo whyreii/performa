@@ -35,7 +35,7 @@ Open your browser to: **`http://localhost:5173`**
 
 | Role | Email | Redirects To | What You Can Test Right Now |
 | :--- | :--- | :--- | :--- |
-| **System Administrator** | `admin@acme.com` | `/admin/users` | • **User Account Management Module**: Provision accounts & assign roles<br/>• Deactivate/reactivate accounts & reset user passwords<br/>• View-only employee records & KPIs (cannot add/edit per Art. 296)<br/>• System activity log (`/admin/activity`)<br/>• System settings & live 5-palette theme switcher |
+| **System Administrator** | `admin@acme.com` | `/admin/users` | • **User Account Management Module**: Provision accounts & assign roles<br/>• Deactivate/reactivate accounts & reset user passwords<br/>• No employee-record access (per amended manuscript scope)<br/>• System activity log (`/admin/activity`)<br/>• System settings & live 5-palette theme switcher |
 | **Employer (Business Owner)** | `employer@acme.com` | `/dashboard` | • Executive KPI metrics & Day 150 urgent banner<br/>• 180-Day Probation timeline & live employee pipeline<br/>• **Exclusive Onboarding**: Add employee with auto Day 180 calculation<br/>• Monthly 30-Day Rollups with Gemini AI summaries<br/>• Employer digital sign-off on training plans<br/>• DOLE-compliant audit trail with printable export view<br/>• Settings: Switch between all 5 theme palettes live |
 | **Supervisor** | `supervisor@acme.com` | `/supervisor/dashboard` | • Direct reports list with milestone tags<br/>• Weekly evaluation matrix (rate 1.0–5.0 across 5 competencies)<br/>• Target 4.0 marker and live gap calculations<br/>• View-only employee directory<br/>• Complete 5-competency statutory rubrics guide |
 | **Probationary Employee** | `emp1@acme.com` | `/employee/dashboard` | • Personal 180-day countdown & milestone pill<br/>• 5-Competency performance scorecard<br/>• View assigned AI-recommended training courses |
@@ -50,8 +50,8 @@ Every single screen is live, responsive, and wired to FastAPI:
 | :---: | :--- | :--- | :--- | :---: | :--- |
 | **1** | `/admin/users` | **User Account Management**| `admin` | ✅ **LIVE** | System-level account provisioning, role picker modal, deactivation, password reset |
 | **2** | `/dashboard` | **Employer Dashboard** | `employer` | ✅ **LIVE** | 4 KPI cards, Day 150 milestone alerts, probationers table, AI plan feed |
-| **3** | `/employees` | **Employee Directory** | `employer`, `admin`, `supervisor` | ✅ **LIVE** | Tabbed views (All / Probationary / Regular), search, filter, 180-day progress bar. Onboard button exclusive to Employer |
-| **4** | `/employees/:id` | **Employee Detail** | `employer`, `admin`, `supervisor`, `probationary_employee` | ✅ **LIVE** | 180-day milestone timeline, 5-score scorecard, audit history, Regularize/Terminate modal |
+| **3** | `/employees` | **Employee Directory** | `employer`, `supervisor` | ✅ **LIVE** | Tabbed views (All / Probationary / Regular), search, filter, 180-day progress bar. Onboard button exclusive to Employer |
+| **4** | `/employees/:id` | **Employee Detail** | `employer`, `supervisor`, `probationary_employee` | ✅ **LIVE** | 180-day milestone timeline, 5-score scorecard, audit history, Regularize/Terminate modal |
 | **5** | Modal | **Add Employee Modal** | `employer` | ✅ **LIVE** | Exclusive to Employer; Auto-computes Day 180 statutory deadline in `Asia/Manila` |
 | **6** | `/rollups` | **Monthly Rollups & Plans**| `employer` | ✅ **LIVE** | 30-day evaluation aggregations, Gemini AI rationales, employer sign-off actions |
 | **7** | `/audits` | **DOLE Audit Trail** | `employer` | ✅ **LIVE** | Immutable competency log, prior vs new score diffs, DOLE print/export view |
@@ -168,7 +168,7 @@ flowchart TD
 - [x] `backend/tests/test_milestones.py`: Article 296 statutory milestone math (Days 150/165/178 in `Asia/Manila`), onboarding supervisor requirements, termination justification.
 - [x] `backend/tests/test_evaluations.py`: Weekly KPI rating submission, scorecard gap math against 4.0 benchmark, immutable audit trail with evaluator names and pagination, rubrics defaults & resets, KPI trend.
 - [x] `backend/tests/test_interventions_and_ml.py`: Scoped employee interventions, employer/supervisor authorization, monthly rollup idempotency & window filtering, Random Forest risk explanation & feature importances, statutory mid-5th month regularization decision support, dispatch notification workflows, printable executive report.
-- [x] `backend/tests/test_rbac.py`: Manuscript RBAC write-lock — Admin/Supervisor denied rollup/dispatch/sign-off/regularization writes; Admin view-only oversight preserved.
+- [x] `backend/tests/test_rbac.py`: Manuscript RBAC — Admin denied all employee performance data; Admin retains `/admin/*`, `/settings`, `/notifications`, and the KPI rubric library (view-only).
 - [x] Full Pytest suite executed: **38 passed (100%)**.
 
 ---

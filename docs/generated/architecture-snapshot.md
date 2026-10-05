@@ -201,13 +201,13 @@ Auth column is read from the FastAPI dependency graph.
 | PATCH | `/api/auth/me` | authenticated (any role) | update_current_user |
 | GET | `/api/employees/` | authenticated (any role) | list_employees |
 | POST | `/api/employees/` | roles: employer | create_employee |
-| GET | `/api/employees/milestones` | roles: admin, employer, supervisor | list_milestones |
+| GET | `/api/employees/milestones` | roles: employer, supervisor | list_milestones |
 | POST | `/api/employees/milestones/scan` | roles: employer | scan_milestone_alerts |
-| GET | `/api/employees/supervisors` | roles: admin, employer | list_supervisors |
+| GET | `/api/employees/supervisors` | roles: employer | list_supervisors |
 | GET | `/api/employees/{employee_id}` | authenticated (any role) | get_employee |
 | POST | `/api/employees/{employee_id}/acknowledge-standards` | authenticated (any role) | acknowledge_standards |
 | PATCH | `/api/employees/{employee_id}/status` | roles: employer | update_status |
-| GET | `/api/evaluations/audit-trail` | roles: admin, employer | get_tenant_audit_trail |
+| GET | `/api/evaluations/audit-trail` | roles: employer | get_tenant_audit_trail |
 | GET | `/api/evaluations/{employee_id}/audit-trail` | authenticated (any role) | get_audit_trail |
 | GET | `/api/evaluations/{employee_id}/regularization-recommendation` | authenticated (any role) | get_regularization_recommendation |
 | POST | `/api/evaluations/{employee_id}/regularization-recommendation` | roles: employer | create_regularization_recommendation |
@@ -217,8 +217,8 @@ Auth column is read from the FastAPI dependency graph.
 | GET | `/api/evaluations/{employee_id}/trend` | authenticated (any role) | get_kpi_trend |
 | POST | `/api/evaluations/{employee_id}/weekly` | roles: employer, supervisor | submit_weekly_rating |
 | GET | `/api/interventions/mine` | authenticated (any role) | list_my_interventions |
-| GET | `/api/interventions/pending` | roles: admin, employer, supervisor | list_pending_interventions |
-| GET | `/api/interventions/summaries` | roles: admin, employer | list_monthly_summaries |
+| GET | `/api/interventions/pending` | roles: employer, supervisor | list_pending_interventions |
+| GET | `/api/interventions/summaries` | roles: employer | list_monthly_summaries |
 | GET | `/api/interventions/summaries/mine` | authenticated (any role) | list_my_summaries |
 | POST | `/api/interventions/summaries/{summary_id}/acknowledge` | authenticated (any role) | acknowledge_monthly_summary |
 | POST | `/api/interventions/summaries/{summary_id}/dispatch` | roles: employer | dispatch_monthly_summary |

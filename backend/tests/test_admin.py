@@ -14,9 +14,9 @@ from backend.tests.helpers import (
 
 @pytest.mark.asyncio
 async def test_supervisors_endpoint(client):
-    """The supervisors endpoint returns only active supervisors for the tenant."""
-    admin = await login_user(client, ADMIN_EMAIL)
-    response = await client.get("/api/employees/supervisors", headers=admin)
+    """The supervisors endpoint returns only active supervisors for the tenant (Employer)."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    response = await client.get("/api/employees/supervisors", headers=employer)
     assert response.status_code == 200, response.text
     supervisors = response.json()
     assert len(supervisors) >= 1

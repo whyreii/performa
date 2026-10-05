@@ -350,7 +350,7 @@ async def list_my_interventions(
 )
 async def list_monthly_summaries(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.EMPLOYER)),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> list[MonthlySummary]:
     """Return all monthly summaries for employees in the tenant, newest first."""
     stmt = (
@@ -524,7 +524,7 @@ async def acknowledge_monthly_summary(
 async def list_pending_interventions(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(
-        require_role(UserRole.ADMIN, UserRole.EMPLOYER, UserRole.SUPERVISOR)
+        require_role(UserRole.EMPLOYER, UserRole.SUPERVISOR)
     ),
 ) -> list[TrainingPlan]:
     """Return pending interventions, scoped to the tenant (and to a supervisor's team)."""

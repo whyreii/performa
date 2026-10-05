@@ -39,21 +39,18 @@ export const NAV_BY_ROLE = {
   admin: {
     sidebar: [
       ['adminUsers', 'User Accounts'],
-      ['employees', 'Employee Records'],
       ['adminActivity', 'Activity Log'],
       ['notifications', 'Notifications'],
       ['settings', 'Settings'],
     ],
     tabs: [
       ['adminUsers', 'Accounts'],
-      ['employees', 'Directory'],
       ['adminActivity', 'Activity'],
       ['settings', 'Settings'],
     ],
     commands: [
       ['adminUsers', 'Manage User Accounts'],
       ['adminActivity', 'System Activity Log'],
-      ['employees', 'View Employee Records'],
     ],
   },
   employer: {

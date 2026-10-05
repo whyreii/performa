@@ -58,3 +58,20 @@ def test_page_wrapper_does_not_define_the_grid():
     text = (UI / "Page.jsx").read_text(encoding="utf-8")
     assert "max-w-" not in text, "Page must not declare max-width (AppShell owns the grid)"
     assert "px-" not in text and "py-" not in text, "Page must not declare padding (AppShell owns it)"
+
+
+def test_no_page_escapes_the_gallery_wall():
+    """A page must not break out of AppShell's gallery wall.
+
+    The escape hatch is a ``main:has(...)`` override in index.css (e.g.
+    ``main:has(.split) { padding: 0; max-width: none }``), which makes a page
+    full-bleed and off-grid. The wall is the single source of max-width +
+    padding (AGENTS.md §1.9, docs/SLOP_AUDIT.md rule 10).
+    """
+    css = (ROOT / "frontend" / "src" / "index.css").read_text(encoding="utf-8")
+    offenders = [line.strip() for line in css.splitlines() if "main:has(" in line]
+    assert not offenders, (
+        "index.css must not override the gallery wall (found 'main:has('). "
+        "Keep pages inside AppShell's max-width/padding; see AGENTS.md §1.9. "
+        "Offending lines:\n" + "\n".join(offenders)
+    )

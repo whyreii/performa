@@ -8,7 +8,7 @@ export default function ShortcutModal({ isOpen, onClose }) {
       title: 'Global Navigation & Commands',
       icon: Navigation,
       items: [
-        { keys: ['Ctrl', 'K'], label: 'Open Command Palette & Global Search' },
+        { keys: ['Ctrl', '⌘', 'K'], label: 'Open Command Palette & Global Search' },
         { keys: ['?'], label: 'Open / Close this Keyboard Shortcut Guide' },
         { keys: ['Esc'], label: 'Dismiss open modal, dialog, or drawer' },
       ],
