@@ -187,6 +187,7 @@ Auth column is read from the FastAPI dependency graph.
 |---|---|---|---|
 | GET | `/` | not detected | root |
 | GET | `/api/admin/activity` | roles: admin | list_activity |
+| GET | `/api/admin/organizations` | roles: admin | list_organizations |
 | GET | `/api/admin/reports/overview` | roles: admin | reports_overview |
 | GET | `/api/admin/settings` | roles: admin | get_system_settings |
 | GET | `/api/admin/users` | roles: admin | list_users |
@@ -230,6 +231,7 @@ Auth column is read from the FastAPI dependency graph.
 | GET | `/api/notifications` | authenticated (any role) | list_notifications |
 | POST | `/api/notifications/read-all` | authenticated (any role) | mark_all_read |
 | POST | `/api/notifications/{notification_id}/read` | authenticated (any role) | mark_notification_read |
+| PATCH | `/api/organization` | roles: admin, employer | update_organization |
 | GET | `/health` | not detected | health |
 
 ## Environment variables

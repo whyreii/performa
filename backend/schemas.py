@@ -107,6 +107,22 @@ class ProfileUpdate(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Organization (tenant)
+# ---------------------------------------------------------------------------
+class OrganizationUpdate(BaseModel):
+    """Rename payload for the caller's tenant."""
+
+    name: str = Field(..., min_length=1, max_length=255)
+
+
+class OrganizationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    name: str
+    slug: str
+
+
+# ---------------------------------------------------------------------------
 # ProbationaryEmployee
 # ---------------------------------------------------------------------------
 class ProbationaryEmployeeBase(BaseModel):

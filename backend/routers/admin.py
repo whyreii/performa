@@ -1,6 +1,7 @@
 """Admin routes: User account management module for system administrators."""
 from __future__ import annotations
 
+import re
 import uuid
 from typing import Optional
 
@@ -16,13 +17,19 @@ from ..database import get_db
 from ..models import (
     ActivityLog,
     MonthlySummary,
+    Organization,
     ProbationaryEmployee,
     TrainingPlan,
     TrainingStatusEnum,
     User,
     UserRole,
 )
-from ..schemas import ActivityLogResponse, UserResponse, validate_email
+from ..schemas import (
+    ActivityLogResponse,
+    OrganizationResponse,
+    UserResponse,
+    validate_email,
+)
 from .kpi import INDUSTRY_TEMPLATES
 
 router = APIRouter(prefix="/api/admin", tags=["Admin User Management"])
@@ -35,11 +42,55 @@ class AdminCreateUserRequest(BaseModel):
     full_name: str = Field(..., max_length=255)
     password: str = Field(..., min_length=8, max_length=128)
     role: UserRole
+    # Optional tenant to place the account in. A new name provisions a new
+    # Organization (empty workspace); an existing name reuses that tenant.
+    # Omitted/blank keeps the administrator's own tenant (backward compatible).
+    organization_name: Optional[str] = Field(default=None, max_length=255)
 
     @field_validator("email")
     @classmethod
     def _check_email(cls, value: str) -> str:
         return validate_email(value)
+
+
+def _slugify(value: str) -> str:
+    """Lowercase, dash-separated slug for a new tenant key."""
+    slug = re.sub(r"[^a-z0-9]+", "-", value.strip().lower()).strip("-")
+    return slug or "org"
+
+
+async def _unique_slug(db: AsyncSession, base: str) -> str:
+    """Return a slug not already used by an organization."""
+    slug = base
+    suffix = 2
+    while (
+        await db.execute(select(Organization.id).where(Organization.slug == slug))
+    ).scalar_one_or_none() is not None:
+        slug = f"{base}-{suffix}"
+        suffix += 1
+    return slug
+
+
+async def _resolve_organization_id(
+    db: AsyncSession, organization_name: Optional[str]
+) -> Optional[str]:
+    """Resolve a tenant slug from a name, creating the Organization when new.
+
+    Returns ``None`` when no name is supplied so callers fall back to their own
+    tenant.
+    """
+    if organization_name is None or not organization_name.strip():
+        return None
+    name = organization_name.strip()
+    existing = (
+        await db.execute(select(Organization).where(Organization.name == name))
+    ).scalar_one_or_none()
+    if existing is not None:
+        return existing.slug
+    slug = await _unique_slug(db, _slugify(name))
+    db.add(Organization(name=name, slug=slug))
+    await db.flush()
+    return slug
 
 
 class AdminUpdateStatusRequest(BaseModel):
@@ -53,18 +104,38 @@ class AdminResetPasswordRequest(BaseModel):
 @router.get(
     "/users",
     response_model=list[UserResponse],
-    summary="List all tenant user accounts (Admin only)",
+    summary="List all platform user accounts (Admin only)",
 )
 async def list_users(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.ADMIN)),
-) -> list[User]:
-    """Retrieve all user accounts within the administrator's organization."""
-    result = await db.execute(
-        select(User)
-        .where(User.organization_id == current_user.organization_id)
-        .order_by(User.created_at.desc())
-    )
+) -> list[UserResponse]:
+    """Retrieve every account across all tenants for platform oversight."""
+    result = await db.execute(select(User).order_by(User.created_at.desc()))
+    users = list(result.scalars().all())
+    org_names = {
+        org.slug: org.name
+        for org in (await db.execute(select(Organization))).scalars().all()
+    }
+    responses: list[UserResponse] = []
+    for user in users:
+        item = UserResponse.model_validate(user)
+        item.organization_name = org_names.get(user.organization_id)
+        responses.append(item)
+    return responses
+
+
+@router.get(
+    "/organizations",
+    response_model=list[OrganizationResponse],
+    summary="List all tenant organizations (Admin only)",
+)
+async def list_organizations(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.ADMIN)),
+) -> list[Organization]:
+    """Return every tenant on the platform for account provisioning."""
+    result = await db.execute(select(Organization).order_by(Organization.name.asc()))
     return list(result.scalars().all())
 
 
@@ -79,7 +150,11 @@ async def create_user(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.ADMIN)),
 ) -> User:
-    """Create a new user account and assign their role (Employer, Supervisor, or Probationary Employee)."""
+    """Create a new user account and assign their role (Employer, Supervisor, or Probationary Employee).
+
+    When ``organization_name`` names a new tenant, that Organization is
+    provisioned so the account starts with an empty workspace.
+    """
     # Email is globally unique across the platform (see User model)
     existing = await db.execute(select(User.id).where(User.email == payload.email))
     if existing.scalar_one_or_none() is not None:
@@ -88,12 +163,17 @@ async def create_user(
             detail=f"An account with email '{payload.email}' already exists.",
         )
 
+    organization_id = (
+        await _resolve_organization_id(db, payload.organization_name)
+        or current_user.organization_id
+    )
+
     new_user = User(
         email=payload.email,
         full_name=payload.full_name,
         hashed_password=get_password_hash(payload.password),
         role=payload.role,
-        organization_id=current_user.organization_id,
+        organization_id=organization_id,
         is_active=True,
     )
     db.add(new_user)
@@ -138,7 +218,7 @@ async def update_user_status(
         )
 
     target_user = await db.get(User, user_id)
-    if target_user is None or target_user.organization_id != current_user.organization_id:
+    if target_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found.",
@@ -150,7 +230,6 @@ async def update_user_status(
                 select(func.count())
                 .select_from(User)
                 .where(
-                    User.organization_id == target_user.organization_id,
                     User.role == UserRole.ADMIN,
                     User.is_active.is_(True),
                     User.id != target_user.id,
@@ -190,7 +269,7 @@ async def reset_user_password(
 ) -> dict[str, str]:
     """Admin resets the password of an account."""
     target_user = await db.get(User, user_id)
-    if target_user is None or target_user.organization_id != current_user.organization_id:
+    if target_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found.",
@@ -221,10 +300,9 @@ async def list_activity(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.ADMIN)),
 ) -> list[ActivityLog]:
-    """Return general system activity entries for the administrator's tenant."""
+    """Return general system activity entries across the platform."""
     stmt = (
         select(ActivityLog)
-        .where(ActivityLog.organization_id == current_user.organization_id)
         .order_by(ActivityLog.created_at.desc())
         .offset(skip)
         .limit(limit)

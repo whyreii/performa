@@ -5,9 +5,9 @@ Run with::
     python -m backend.seed
 
 The script tears down any existing records for the seeded tenant in strict
-child-to-parent order, recreates Acme Philippines Corp., the two system
-accounts, and four probationary employees positioned around the Article 296
-milestones (Day 150 / 165 / 178 / 180).
+child-to-parent order, recreates the demo tenant ("Acme Philippines Corp." per
+docs/DECISIONS.md J4), the system accounts, and four probationary employees
+positioned around the Article 296 milestones (Day 150 / 165 / 178 / 180).
 """
 from __future__ import annotations
 
@@ -259,7 +259,7 @@ async def _seed_evaluations(
 async def seed(
     session: AsyncSession, with_evaluations: bool = True
 ) -> SeedResult:
-    """Seed the Acme Philippines Corp. tenant and return a result summary."""
+    """Seed the demo tenant and return a result summary."""
     await _reset(session)
 
     today = manila_today()

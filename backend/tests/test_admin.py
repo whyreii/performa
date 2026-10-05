@@ -88,3 +88,68 @@ async def test_admin_settings_and_reports(client):
     assert "deadline_thresholds" in data
     assert data["deadline_thresholds"]["day_150"] == 150
     assert "kpi_templates" in data
+
+
+@pytest.mark.asyncio
+async def test_admin_provisions_new_tenant_for_employer(client):
+    """Creating an employer with a new organization name provisions an empty tenant."""
+    admin = await login_user(client, ADMIN_EMAIL)
+    created = await client.post(
+        "/api/admin/users",
+        headers=admin,
+        json={
+            "email": "owner@newco.ph",
+            "full_name": "New Owner",
+            "password": DEFAULT_PASSWORD,
+            "role": "employer",
+            "organization_name": "NewCo Philippines",
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["organization_id"] != "acme-ph"
+
+    owner = await login_user(client, "owner@newco.ph")
+    listing = await client.get("/api/employees/", headers=owner)
+    assert listing.status_code == 200, listing.text
+    assert listing.json() == [], "a provisioned tenant must start empty"
+
+    me = await client.get("/api/auth/me", headers=owner)
+    assert me.json()["organization_name"] == "NewCo Philippines"
+
+    # The platform administrator can see the provisioned account.
+    users = await client.get("/api/admin/users", headers=admin)
+    assert any(u["email"] == "owner@newco.ph" for u in users.json())
+
+
+@pytest.mark.asyncio
+async def test_admin_reuses_existing_tenant_by_name(client):
+    """Naming an existing organization assigns the account to that tenant."""
+    admin = await login_user(client, ADMIN_EMAIL)
+    created = await client.post(
+        "/api/admin/users",
+        headers=admin,
+        json={
+            "email": "second.supervisor@acme.com",
+            "full_name": "Second Supervisor",
+            "password": DEFAULT_PASSWORD,
+            "role": "supervisor",
+            "organization_name": "Acme Philippines Corp.",
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["organization_id"] == "acme-ph"
+
+
+@pytest.mark.asyncio
+async def test_admin_can_list_organizations(client):
+    """The organization list is Admin-only and returns tenant name + slug."""
+    admin = await login_user(client, ADMIN_EMAIL)
+    employer = await login_user(client, EMPLOYER_EMAIL)
+
+    forbidden = await client.get("/api/admin/organizations", headers=employer)
+    assert forbidden.status_code == 403
+
+    allowed = await client.get("/api/admin/organizations", headers=admin)
+    assert allowed.status_code == 200, allowed.text
+    slugs = {org["slug"] for org in allowed.json()}
+    assert "acme-ph" in slugs
