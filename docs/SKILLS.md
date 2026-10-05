@@ -25,6 +25,14 @@
 | **`gsd-map-codebase`** | Parallel mappers → a codebase map (`.planning/codebase/`). | Onboarding or building panel/reviewer context. *Note: writes under `.planning/`, which we otherwise don't use.* |
 | **`gsd-secure-phase`** | Retroactive threat-mitigation verification. | An explicit security pass over RBAC / tenancy scoping / audit immutability (`ARCHITECTURE.md` §3, §5). |
 
+## Project skills (third-party, committed)
+
+| Skill | What it does | Where |
+|---|---|---|
+| **`ponytail`** | "Lazy senior dev" YAGNI ladder — smallest working change, stdlib/native/reuse before new code or deps. Levels: `lite`/`full` (default)/`ultra`; off with "stop ponytail". | `.opencode/skills/ponytail/SKILL.md` (MIT, `DietrichGebert/ponytail`) |
+
+`ponytail` reinforces what `AGENTS.md` §3 already requires (smallest change, no new deps without asking). Its SKILL.md carries a **Performa precedence** section: the `AGENTS.md`/`ARCHITECTURE.md` invariants win, and its "ship the lazy version and question it" yields to STOP-AND-ASK for anything touching timezone, the 180-day/4.0 rules, RBAC/tenancy, the audits, or XAI terms. Phase-4 verification still applies.
+
 ## Deliberately not adopted
 - **Full GSD phase framework** (`new-project`, `discuss-phase`, `plan-phase`, `execute-phase`, milestones) — would duplicate `ROADMAP.md` + `AGENTS.md` (two competing planners, which `AGENTS.md` warns against).
 - **Git-flow skills** (`ship`, `pr-branch`, `undo`, `cleanup`) — the repo has its own commit/push convention and a `git push* → ask` permission gate.
