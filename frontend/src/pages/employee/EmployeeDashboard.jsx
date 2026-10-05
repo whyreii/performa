@@ -83,7 +83,7 @@ export default function EmployeeDashboard() {
         subtitle={
           <>
             Probationary Milestone Tracker &amp; Weekly Evaluations ·{' '}
-            <span className="font-mono text-ink">Acme PH</span>
+            <span className="font-mono text-ink">{user?.organization_name || user?.organization_id}</span>
           </>
         }
         actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}

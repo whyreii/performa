@@ -60,7 +60,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
           className={`flex items-center gap-3 group min-w-0 ${collapsed ? 'justify-center' : ''}`}
           title="Performa Home"
         >
-          <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform ease-spring">
+          <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ease-spring">
             <BarChart3 className="w-4 h-4" />
           </div>
           {!collapsed && (
@@ -68,8 +68,8 @@ export default function Sidebar({ onOpenCommandPalette }) {
               <span className="font-semibold text-base tracking-tight text-ink block leading-none">
                 Performa
               </span>
-              <span className="text-12 text-ink-3 tracking-normal font-mono block mt-0.5">
-                Acme PH
+              <span className="text-12 text-ink-3 tracking-normal font-mono block mt-0.5 truncate">
+                {user?.organization_name || user?.organization_id}
               </span>
             </div>
           )}
@@ -105,7 +105,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="w-full h-9 mb-4 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-between text-xs transition-colors shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-full h-9 mb-4 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-between text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <div className="flex items-center gap-2 min-w-0">
             <Search className="w-3.5 h-3.5 shrink-0" />
@@ -149,7 +149,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
                     collapsed ? 'justify-center px-0' : 'px-3'
                   } ${
                     isActive
-                      ? 'text-accent bg-accent/12 font-semibold shadow-xs'
+                      ? 'text-accent bg-accent/12 font-semibold'
                       : 'text-ink-2 hover:bg-hover hover:text-ink'
                   }`
                 }

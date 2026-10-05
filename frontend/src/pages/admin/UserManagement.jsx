@@ -12,7 +12,7 @@ import Modal from '../../components/ui/Modal';
 import TextField from '../../components/ui/TextField';
 import Tabs from '../../components/ui/Tabs';
 import Page from '../../components/ui/Page';
-import { inputClass } from '../../components/ui/Field';
+import { inputClass, selectClass } from '../../components/ui/Field';
 import {
   Users,
   UserPlus,
@@ -46,6 +46,12 @@ export default function UserManagement() {
   } = useQuery({
     queryKey: ['admin-users'],
     queryFn: adminApi.listUsers,
+  });
+
+  // All tenants on the platform, for provisioning/assigning accounts.
+  const { data: organizations = [] } = useQuery({
+    queryKey: ['admin-organizations'],
+    queryFn: adminApi.listOrganizations,
   });
 
   // Toggle user status mutation
@@ -110,7 +116,7 @@ export default function UserManagement() {
         subtitle={
           <>
             User provisioning, role assignments, and credential management ·{' '}
-            <span className="font-mono text-ink">Acme PH</span>
+            <span className="font-mono text-ink">{currentUser?.organization_name || currentUser?.organization_id}</span>
           </>
         }
         actions={
@@ -230,6 +236,9 @@ export default function UserManagement() {
                         <span className="text-12 text-ink-3 font-mono truncate block">
                           {u.email}
                         </span>
+                        <span className="text-12 text-ink-3 truncate block">
+                          {u.organization_name || u.organization_id}
+                        </span>
                       </div>
                     </div>
                     <div className="shrink-0">
@@ -294,6 +303,7 @@ export default function UserManagement() {
               <tr className="border-b border-line bg-hover/40 text-ink-3 font-mono uppercase text-12 tracking-wider">
                 <th scope="col" className="py-3 px-4">User</th>
                 <th scope="col" className="py-3 px-4">Role</th>
+                <th scope="col" className="py-3 px-4">Organization</th>
                 <th scope="col" className="py-3 px-4">Status</th>
                 <th scope="col" className="py-3 px-4">Created Date</th>
                 <th scope="col" className="py-3 px-4 text-right">Actions</th>
@@ -312,13 +322,13 @@ export default function UserManagement() {
                 ))
               ) : isError ? (
                 <tr>
-                  <td colSpan="5" className="py-8 text-center text-bad">
+                  <td colSpan="6" className="py-8 text-center text-bad">
                     {getApiErrorMessage(error, 'Failed to load user accounts.')}
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="py-12 text-center text-ink-3">
+                  <td colSpan="6" className="py-12 text-center text-ink-3">
                     No accounts found matching your filters.
                   </td>
                 </tr>
@@ -358,6 +368,13 @@ export default function UserManagement() {
                       {/* Role Badge */}
                       <td className="py-3 px-4">
                         {getRoleBadge(u.role)}
+                      </td>
+
+                      {/* Organization */}
+                      <td className="py-3 px-4 text-ink-2">
+                        <span className="truncate block max-w-[160px]">
+                          {u.organization_name || u.organization_id}
+                        </span>
                       </td>
 
                       {/* Active Status */}
@@ -420,6 +437,8 @@ export default function UserManagement() {
       {/* Modal 1: Create User Account */}
       {isCreateModalOpen && (
         <CreateUserModal
+          organizations={organizations}
+          defaultOrganizationId={currentUser?.organization_id}
           onClose={() => setIsCreateModalOpen(false)}
           onSuccess={(newUser) => {
             queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -455,11 +474,13 @@ export default function UserManagement() {
 // -----------------------------------------------------------------------------
 // Create User Modal Component
 // -----------------------------------------------------------------------------
-function CreateUserModal({ onClose, onSuccess }) {
+function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, onSuccess }) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('employer');
+  const [orgSelection, setOrgSelection] = useState(defaultOrganizationId || '__new__');
+  const [newOrgName, setNewOrgName] = useState('');
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -474,6 +495,17 @@ function CreateUserModal({ onClose, onSuccess }) {
       return;
     }
 
+    let organizationName;
+    if (orgSelection === '__new__') {
+      if (!newOrgName.trim()) {
+        setError('Enter a name for the new organization.');
+        return;
+      }
+      organizationName = newOrgName.trim();
+    } else {
+      organizationName = organizations.find((o) => o.slug === orgSelection)?.name;
+    }
+
     try {
       setIsSubmitting(true);
       setError(null);
@@ -482,6 +514,7 @@ function CreateUserModal({ onClose, onSuccess }) {
         email: email.trim().toLowerCase(),
         password,
         role,
+        organization_name: organizationName,
       });
       onSuccess(newUser);
     } catch (err) {
@@ -565,7 +598,7 @@ function CreateUserModal({ onClose, onSuccess }) {
                 onClick={() => setRole('employer')}
                 className={`p-3 rounded-ctl border text-center transition-all ${
                   role === 'employer'
-                    ? 'border-accent bg-accent/8 text-accent font-semibold shadow-xs'
+                    ? 'border-accent bg-accent/8 text-accent font-semibold'
                     : 'border-line text-ink-2 hover:bg-hover'
                 }`}
               >
@@ -580,7 +613,7 @@ function CreateUserModal({ onClose, onSuccess }) {
                 onClick={() => setRole('supervisor')}
                 className={`p-3 rounded-ctl border text-center transition-all ${
                   role === 'supervisor'
-                    ? 'border-good bg-good/8 text-good font-semibold shadow-xs'
+                    ? 'border-good bg-good/8 text-good font-semibold'
                     : 'border-line text-ink-2 hover:bg-hover'
                 }`}
               >
@@ -595,7 +628,7 @@ function CreateUserModal({ onClose, onSuccess }) {
                 onClick={() => setRole('probationary_employee')}
                 className={`p-3 rounded-ctl border text-center transition-all ${
                   role === 'probationary_employee'
-                    ? 'border-ink text-ink font-semibold bg-hover shadow-xs'
+                    ? 'border-ink text-ink font-semibold bg-hover'
                     : 'border-line text-ink-2 hover:bg-hover'
                 }`}
               >
@@ -604,6 +637,41 @@ function CreateUserModal({ onClose, onSuccess }) {
               </button>
             </div>
           </div>
+
+          <div>
+            <label htmlFor="m_org" className="block text-ink-2 font-medium mb-1.5">
+              Organization / Tenant *
+            </label>
+            <select
+              id="m_org"
+              value={orgSelection}
+              onChange={(e) => setOrgSelection(e.target.value)}
+              className={`${selectClass} w-full`}
+            >
+              {organizations.map((o) => (
+                <option key={o.slug} value={o.slug}>
+                  {o.name}
+                </option>
+              ))}
+              <option value="__new__">+ New organization…</option>
+            </select>
+            <p className="text-12 text-ink-3 mt-1.5">
+              Pick an existing tenant, or create a new one to give this account an
+              empty workspace.
+            </p>
+          </div>
+
+          {orgSelection === '__new__' && (
+            <TextField
+              id="m_new_org"
+              label="New Organization Name *"
+              type="text"
+              required
+              placeholder="e.g. Small Steps Learning Center"
+              value={newOrgName}
+              onChange={(e) => setNewOrgName(e.target.value)}
+            />
+          )}
 
           <div className="pt-3 border-t border-line flex justify-end gap-2">
             <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>

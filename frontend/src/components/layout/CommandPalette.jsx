@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { Search, Settings, Palette, X, Bell, ArrowUp, ArrowDown } from '../icons';
+import { Search, Settings, X, Bell, ArrowUp, ArrowDown, Sun, Moon, Monitor } from '../icons';
 import { commandNav } from '../../config/nav';
-import { PALETTES } from '../../config/themes';
 import { prefetchRoute } from '../../routes/loaders';
 import { Modal } from '../ui';
 
@@ -19,7 +18,7 @@ export default function CommandPalette({ isOpen, onClose }) {
   const inputRef = useRef(null);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { setPalette } = useTheme();
+  const { setMode } = useTheme();
 
   const role = user?.role;
 
@@ -36,13 +35,9 @@ export default function CommandPalette({ isOpen, onClose }) {
     list.push(
       { id: 'notifications', label: 'View Notifications', category: 'Navigation', icon: Bell, action: () => navigate('/notifications') },
       { id: 'settings', label: 'Platform & Profile Settings', category: 'Navigation', icon: Settings, action: () => navigate('/settings') },
-      ...PALETTES.map((p) => ({
-        id: `th-${p.id}`,
-        label: `Switch theme to ${p.name} (${p.type})`,
-        category: 'Appearance',
-        icon: Palette,
-        action: () => setPalette(p.id),
-      })),
+      { id: 'mode-light', label: 'Light mode', category: 'Appearance', icon: Sun, action: () => setMode('light') },
+      { id: 'mode-dark', label: 'Dark mode', category: 'Appearance', icon: Moon, action: () => setMode('dark') },
+      { id: 'mode-system', label: 'System mode', category: 'Appearance', icon: Monitor, action: () => setMode('system') },
     );
 
     return list;

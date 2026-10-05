@@ -73,7 +73,7 @@ export default function ShortcutModal({ isOpen, onClose }) {
                         {item.keys.map((k) => (
                           <kbd
                             key={k}
-                            className="px-2 py-0.5 font-mono text-12 font-semibold text-ink bg-surface border border-line rounded shadow-xs"
+                            className="px-2 py-0.5 font-mono text-12 font-semibold text-ink bg-surface border border-line rounded"
                           >
                             {k}
                           </kbd>

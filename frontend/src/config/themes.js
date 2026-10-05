@@ -2,46 +2,25 @@
 // swatch colors. The runtime colors live in tokens.css ([data-theme]); the `bg`
 // and `accent` hexes here MUST mirror tokens.css (guarded by
 // backend/tests/guardrails/test_theme_palette.py).
+//
+// Two curated themes: paper (light) + graphite (dark). The Light/Dark/System
+// control (ThemeContext) picks the mode; these are the two palettes it maps to.
 export const PALETTES = [
   {
     id: 'paper',
     name: 'Paper',
     type: 'Light',
-    desc: 'Refined editorial warmth with terracotta rust accents',
+    desc: 'Warm editorial ivory with a terracotta accent',
     bg: '#f6f3ed',
     accent: '#b94b21',
   },
   {
-    id: 'midnight',
-    name: 'Midnight',
+    id: 'graphite',
+    name: 'Graphite',
     type: 'Dark',
-    desc: 'Obsidian slate with vibrant electric blue highlights',
-    bg: '#090b10',
-    accent: '#60a5fa',
-  },
-  {
-    id: 'dusk',
-    name: 'Dusk',
-    type: 'Dark',
-    desc: 'Deep cosmic amethyst with vivid violet tones',
-    bg: '#0c0a14',
-    accent: '#a78bfa',
-  },
-  {
-    id: 'mist',
-    name: 'Mist',
-    type: 'Light',
-    desc: 'Scandinavian technical slate with cool cyan-azure',
-    bg: '#f0f4f8',
-    accent: '#0274af',
-  },
-  {
-    id: 'sage',
-    name: 'Sage',
-    type: 'Light',
-    desc: 'Organic herbal spruce with deep emerald accents',
-    bg: '#edf2ee',
-    accent: '#0f766e',
+    desc: 'Neutral charcoal with a muted steel accent',
+    bg: '#0e0f11',
+    accent: '#84a8ce',
   },
 ];
 
@@ -54,7 +33,7 @@ export const PALETTE_MODES = Object.fromEntries(
 export const PALETTE_BG = Object.fromEntries(PALETTES.map((p) => [p.id, p.bg]));
 
 export const DEFAULT_LIGHT_PALETTE = 'paper';
-export const DEFAULT_DARK_PALETTE = 'midnight';
+export const DEFAULT_DARK_PALETTE = 'graphite';
 
 export function isValidPalette(id) {
   return PALETTE_IDS.includes(id);

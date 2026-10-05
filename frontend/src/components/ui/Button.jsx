@@ -18,9 +18,9 @@ export default function Button({
 
   const variants = {
     primary:
-      'bg-accent text-accent-foreground hover:brightness-110 shadow-sm active:brightness-95',
+      'bg-accent text-accent-foreground hover:brightness-110 active:brightness-95',
     secondary:
-      'bg-surface text-ink border border-line hover:bg-hover hover:border-ink-3 shadow-sm',
+      'bg-surface text-ink border border-line hover:bg-hover hover:border-ink-3',
     subtle:
       'bg-hover text-ink hover:bg-hover/80 border border-transparent',
     ghost:

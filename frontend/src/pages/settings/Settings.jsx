@@ -1,20 +1,27 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { authApi, getApiErrorMessage } from '../../api';
-import { activateOnKey } from '../../utils/a11y';
+import { authApi, organizationApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, TextField, Card, Page } from '../../components/ui';
-import { PALETTES } from '../../config/themes';
 import {
   Building,
   CheckCircle2,
   AlertCircle,
   ShieldAlert,
+  Sun,
+  Moon,
+  Monitor,
 } from '../../components/icons';
+
+const MODES = [
+  { id: 'light', label: 'Light', icon: Sun },
+  { id: 'dark', label: 'Dark', icon: Moon },
+  { id: 'system', label: 'System', icon: Monitor },
+];
 
 export default function Settings() {
   const { user, refreshUser } = useAuth();
-  const { palette, setPalette } = useTheme();
+  const { mode, setMode } = useTheme();
 
   // Profile edit state
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -22,6 +29,36 @@ export default function Settings() {
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
   const [profileStatus, setProfileStatus] = useState({ type: '', message: '' });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  // Organization rename state (Admin/Employer only)
+  const canManageOrg = user?.role === 'admin' || user?.role === 'employer';
+  const [isEditingOrg, setIsEditingOrg] = useState(false);
+  const [orgName, setOrgName] = useState(user?.organization_name || '');
+  const [orgStatus, setOrgStatus] = useState({ type: '', message: '' });
+  const [isSavingOrg, setIsSavingOrg] = useState(false);
+
+  const handleOrgSubmit = async (e) => {
+    e.preventDefault();
+    setOrgStatus({ type: '', message: '' });
+    if (!orgName.trim()) {
+      setOrgStatus({ type: 'error', message: 'Organization name is required.' });
+      return;
+    }
+    setIsSavingOrg(true);
+    try {
+      await organizationApi.update(orgName.trim());
+      await refreshUser();
+      setOrgStatus({ type: 'success', message: 'Organization updated successfully.' });
+      setIsEditingOrg(false);
+    } catch (err) {
+      setOrgStatus({
+        type: 'error',
+        message: getApiErrorMessage(err, 'Failed to update organization.'),
+      });
+    } finally {
+      setIsSavingOrg(false);
+    }
+  };
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
@@ -145,9 +182,24 @@ export default function Settings() {
           </div>
           <div className="flex items-baseline justify-between gap-4 py-3">
             <span className="text-14 text-ink-3">Organization</span>
-            <span className="text-14 font-semibold text-ink truncate">
-              {user?.organization_name || user?.organization_id || '—'}
-            </span>
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="text-14 font-semibold text-ink truncate">
+                {user?.organization_name || user?.organization_id || '—'}
+              </span>
+              {canManageOrg && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOrgName(user?.organization_name || '');
+                    setOrgStatus({ type: '', message: '' });
+                    setIsEditingOrg((prev) => !prev);
+                  }}
+                  className="text-xs text-accent hover:underline shrink-0"
+                >
+                  {isEditingOrg ? 'Cancel' : 'Rename'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -186,55 +238,69 @@ export default function Settings() {
             </Button>
           </form>
         )}
+
+        {isEditingOrg && (
+          <form
+            onSubmit={handleOrgSubmit}
+            className="mt-5 pt-5 border-t border-line space-y-4 max-w-md"
+          >
+            {orgStatus.message && (
+              <div
+                role="alert"
+                className={`p-3 rounded-ctl text-xs border border-line ${
+                  orgStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
+                }`}
+              >
+                {orgStatus.message}
+              </div>
+            )}
+            <TextField
+              id="org_name"
+              label="Organization Name"
+              type="text"
+              value={orgName}
+              onChange={(e) => setOrgName(e.target.value)}
+            />
+            <Button type="submit" variant="primary" isLoading={isSavingOrg}>
+              Save Organization
+            </Button>
+          </form>
+        )}
       </Card>
 
-      {/* 2. Theme & Palette Selection */}
+      {/* 2. Appearance — Light / Dark / System */}
       <Card>
         <div className="mb-6 pb-4 border-b border-line">
-          <h2 className="text-base font-semibold text-ink">Design Theme & Palette</h2>
+          <h2 className="text-base font-semibold text-ink">Appearance</h2>
           <p className="text-xs text-ink-3">
-            Switch between 5 curated semantic color systems. Persisted across sessions.
+            Light, Dark, or follow your system. Persisted across sessions.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {PALETTES.map((p) => {
-            const isSelected = palette === p.id;
+        <div
+          role="tablist"
+          aria-label="Color mode"
+          className="inline-flex items-center gap-1 p-1 rounded-ctl border border-line bg-hover"
+        >
+          {MODES.map((m) => {
+            const Icon = m.icon;
+            const isActive = mode === m.id;
             return (
-              <div
-                key={p.id}
-                role="button"
-                tabIndex={0}
-                aria-pressed={isSelected}
-                onClick={() => setPalette(p.id)}
-                onKeyDown={activateOnKey(() => setPalette(p.id))}
-                className={`p-4 rounded-ctl border cursor-pointer transition-all duration-performa ${
-                  isSelected
-                    ? 'border-accent bg-accent/5 shadow-sm'
-                    : 'border-ink-3 bg-bg hover:bg-hover hover:border-ink-3'
+              <button
+                key={m.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setMode(m.id)}
+                className={`inline-flex items-center gap-2 h-9 px-4 rounded-ctl text-sm transition-colors ${
+                  isActive
+                    ? 'bg-surface text-ink font-semibold border border-line'
+                    : 'text-ink-3 hover:text-ink'
                 }`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="w-5 h-5 rounded-full border border-line ring-1 ring-ink/15 shrink-0 shadow-xs"
-                      style={{ backgroundColor: p.bg }}
-                    />
-                    <span
-                      className="w-3 h-3 rounded-full shrink-0"
-                      style={{ backgroundColor: p.accent }}
-                    />
-                    <span className="font-semibold text-sm text-ink">{p.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {isSelected && (
-                      <span className="text-12 font-semibold text-accent">Active</span>
-                    )}
-                    <span className="text-12 text-ink-3">{p.type}</span>
-                  </div>
-                </div>
-                <p className="text-xs text-ink-2 leading-relaxed">{p.desc}</p>
-              </div>
+                <Icon className="w-4 h-4" />
+                {m.label}
+              </button>
             );
           })}
         </div>

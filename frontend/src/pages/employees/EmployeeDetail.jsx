@@ -306,6 +306,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
   return (
     <Page printSheet header={false}>
+      <div className="sheet">
       {/* Print-only official document header */}
       <div className="print-only mb-6 pb-4 border-b-2 border-black">
         <p className="text-center text-12 font-semibold tracking-widest uppercase">
@@ -333,141 +334,123 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         </div>
       </div>
 
-      {/* Top Back Navigation */}
-      <div>
-        <button
-          type="button"
-          onClick={() =>
-            navigate(
-              user?.role === 'probationary_employee' ? '/employee/dashboard' : '/employees'
-            )
-          }
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-2 hover:text-accent transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>
-            {user?.role === 'probationary_employee'
-              ? 'Back to My Scorecard'
-              : 'Back to Employee Directory'}
-          </span>
-        </button>
-      </div>
+      {/* In the split view the record list is the navigation; only the
+          employee's own record (no directory context) keeps an explicit way back. */}
+      {user?.role === 'probationary_employee' && (
+        <div className="pt-4">
+          <button
+            type="button"
+            onClick={() => navigate('/employee/dashboard')}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-2 hover:text-accent transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to My Scorecard</span>
+          </button>
+        </div>
+      )}
 
-      {/* 1. Header Profile Banner */}
-      <Card className="p-6 sm:p-7">
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-6 border-b border-line">
-          <div className="flex items-start gap-4 shrink-0">
-            <div className="w-14 h-14 rounded-full bg-accent/15 border border-accent/25 text-accent font-semibold text-16 flex items-center justify-center shrink-0">
-              {getInitials(employee.user?.full_name)}
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-22 font-bold tracking-tight text-ink">
-                  {employee.user?.full_name}
-                </h1>
-                <MilestonePill daysElapsed={daysElapsed} status={employee.status} />
-              </div>
-
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-12 text-ink-2">
-                <span className="font-medium text-ink">{employee.job_title}</span>
-                <span>·</span>
-                <span>{employee.department}</span>
-                <span>·</span>
-                <span className="font-mono">{employee.user?.email}</span>
-              </div>
-            </div>
+      {/* 1. Record header (sticky) */}
+      <header className="rec">
+        <div className="rec__av">{getInitials(employee.user?.full_name)}</div>
+        <div className="rec__id">
+          <div className="rec__top">
+            <h1 className="rec__name">{employee.user?.full_name}</h1>
+            <MilestonePill daysElapsed={daysElapsed} status={employee.status} />
           </div>
+          <div className="rec__meta">
+            {employee.job_title} · {employee.department} · {employee.user?.email}
+          </div>
+        </div>
 
-          {/* Quick Actions */}
-          <div className="flex flex-wrap items-center gap-1.5 w-full xl:w-auto justify-start xl:justify-end">
-            {canRate && employee.status === 'active' && (
-              <Button
-                variant="primary"
-                size="sm"
-                leftIcon={Award}
-                onClick={() => navigate(`/supervisor/rate?employee=${employee.id}`)}
-              >
-                Rate Employee
-              </Button>
-            )}
+        {/* Quick Actions */}
+        <div className="rec__acts">
+          {canRate && employee.status === 'active' && (
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={Award}
+              onClick={() => navigate(`/supervisor/rate?employee=${employee.id}`)}
+            >
+              Rate Employee
+            </Button>
+          )}
 
-            {canManageStatus && employee.status === 'active' && (
+          {canManageStatus && employee.status === 'active' && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setSelectedStatus('regularized');
+                setStatusReason('');
+                setActionError('');
+                setIsDeactivateModalOpen(true);
+              }}
+            >
+              Update Status
+            </Button>
+          )}
+
+          {user?.role !== 'probationary_employee' && (
+            <>
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => {
-                  setSelectedStatus('regularized');
-                  setStatusReason('');
-                  setActionError('');
-                  setIsDeactivateModalOpen(true);
-                }}
-              >
-                Update Status
-              </Button>
-            )}
-
-            {user?.role !== 'probationary_employee' && (
-              <>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={FileText}
-                  onClick={handleCopyLegalNotice}
-                >
-                  Copy Legal Notice
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  leftIcon={Download}
-                  isLoading={isExporting}
-                  onClick={handleExport}
-                >
-                  Export Report
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Initial Standards Notice */}
-        <div className="mt-4 pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 text-ink-2">
-            <CheckCircle2
-              className={`w-4 h-4 ${
-                employee.standards_acknowledged_at ? 'text-ok' : 'text-warn'
-              }`}
-            />
-            <span>
-              {employee.standards_acknowledged_at ? (
-                <>
-                  Initial performance standards acknowledged on{' '}
-                  <span className="font-mono">
-                    {formatDate(employee.standards_acknowledged_at)}
-                  </span>
-                </>
-              ) : (
-                'Performance standards not yet acknowledged by employee'
-              )}
-            </span>
-          </div>
-
-          {!employee.standards_acknowledged_at && user?.role === 'probationary_employee' && (
-            <Button
-              variant="subtle"
-              size="sm"
-              isLoading={ackMutation.isPending}
-              onClick={() => ackMutation.mutate()}
-            >
-              Sign Acknowledgment
-            </Button>
+                leftIcon={FileText}
+                onClick={handleCopyLegalNotice}
+                aria-label="Copy legal notice"
+                title="Copy legal notice"
+                className="w-8 px-0"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={Download}
+                isLoading={isExporting}
+                onClick={handleExport}
+                aria-label="Export report"
+                title="Export report"
+                className="w-8 px-0"
+              />
+            </>
           )}
         </div>
-      </Card>
+      </header>
+
+      {/* Initial Standards Notice */}
+      <div className="note">
+        <CheckCircle2
+          className={`w-4 h-4 shrink-0 ${
+            employee.standards_acknowledged_at ? 'text-ok' : 'text-warn'
+          }`}
+        />
+        <span>
+          {employee.standards_acknowledged_at ? (
+            <>
+              Initial performance standards acknowledged on{' '}
+              <span className="font-mono">
+                {formatDate(employee.standards_acknowledged_at)}
+              </span>
+            </>
+          ) : (
+            'Performance standards not yet acknowledged by employee'
+          )}
+        </span>
+
+        {!employee.standards_acknowledged_at && user?.role === 'probationary_employee' && (
+          <Button
+            variant="subtle"
+            size="sm"
+            className="ml-auto"
+            isLoading={ackMutation.isPending}
+            onClick={() => ackMutation.mutate()}
+          >
+            Sign Acknowledgment
+          </Button>
+        )}
+      </div>
 
       {/* 2. Statutory deadline scale (Article 296) */}
-      <Card className="space-y-5">
+      <Card className="rec-block space-y-5">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h2 className="text-16 font-semibold text-ink">Probation timeline</h2>
@@ -532,8 +515,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       </Card>
 
       {/* 3. Performance Scorecard & 5 Competencies */}
-      <Card className="space-y-6">
-        <div className="flex items-center justify-between pb-4 border-b border-line">
+      <Card className="rec-block space-y-6">
+        <div className="flex items-center justify-between pb-4">
           <div>
             <h2 className="text-16 font-semibold text-ink">Scorecard</h2>
             <p className="text-12 text-ink-3 mt-0.5">5 competencies · target 4.0</p>
@@ -588,7 +571,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       {/* 3b. Monthly KPI Trend */}
       {isTrendLoading && (
         <CardSkeleton className="space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-line">
+          <div className="flex items-center justify-between pb-3">
             <Skeleton className="h-5 w-40" />
             <Skeleton className="h-4 w-24" />
           </div>
@@ -606,8 +589,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         </CardSkeleton>
       )}
       {!isTrendLoading && trend.length > 0 && (
-        <Card className="space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-line">
+        <Card className="rec-block space-y-4">
+          <div className="flex items-center justify-between pb-3">
             <h2 className="text-base font-semibold text-ink">Monthly KPI Trend</h2>
             <div className="flex items-center gap-3">
               <span className="text-12 font-mono text-ink-3">Target &gt;= {overallTarget.toFixed(2)}</span>
@@ -644,8 +627,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       )}
 
       {/* 3c. Regularization Recommendation */}
-      <Card className="space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-line">
+      <Card className="rec-block space-y-4">
+        <div className="flex items-center justify-between pb-3">
           <div>
             <h2 className="text-base font-semibold text-ink">Regularization Recommendation</h2>
             <p className="text-12 text-ink-3 mt-0.5">
@@ -711,7 +694,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       {/* 3d. ML Risk Explanation (feature importances) */}
       {isRiskLoading && (
         <CardSkeleton className="space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-line">
+          <div className="flex items-center justify-between pb-3">
             <div className="space-y-2">
               <Skeleton className="h-5 w-40" />
               <Skeleton className="h-3 w-56" />
@@ -733,8 +716,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         </CardSkeleton>
       )}
       {!isRiskLoading && riskExplanation && (
-        <Card className="space-y-4 no-print">
-          <div className="flex items-center justify-between pb-3 border-b border-line">
+        <Card className="rec-block space-y-4 no-print">
+          <div className="flex items-center justify-between pb-3">
             <div>
               <h2 className="text-base font-semibold text-ink">ML Risk Explanation</h2>
               <p className="text-12 text-ink-3 mt-0.5">
@@ -833,8 +816,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       )}
 
       {/* 4. Immutable Evaluation History Audit Trail */}
-      <Card className="space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-line">
+      <Card className="rec-block space-y-4">
+        <div className="flex items-center justify-between pb-3">
           <div>
             <h2 className="text-base font-semibold text-ink">Evaluation history</h2>
             <p className="text-12 text-ink-3 mt-0.5">
@@ -906,6 +889,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             <span className="block">Asia/Manila (UTC+8)</span>
           </div>
         </div>
+      </div>
+
       </div>
 
       {/* Status Transition Modal */}

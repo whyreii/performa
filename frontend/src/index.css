@@ -77,6 +77,238 @@
   }
 }
 
+/* Employee Split (master–detail): record list left, detail right. The split is
+   full-bleed — it escapes the shell's gallery-wall max-width and padding — and
+   both panes scroll internally so the list stays visible while a record scrolls. */
+main:has(.split) {
+  padding: 0;
+}
+main:has(.split) > div {
+  max-width: none;
+}
+.split {
+  display: flex;
+  align-items: stretch;
+  height: 100vh;
+}
+.split__list {
+  width: 308px;
+  flex: none;
+  border-right: 1px solid var(--line);
+  background: var(--side);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.listhd {
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.listhd__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.listhd__t {
+  font-size: var(--t-16);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.count {
+  font-size: var(--t-12);
+  font-family: var(--mono);
+  color: var(--ink-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.listrows {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.lrow {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1px 10px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 11px 16px 13px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+.lrow:hover {
+  background: var(--hover);
+}
+.lrow[aria-current="true"] {
+  background: var(--hover);
+}
+.lrow[aria-current="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+}
+.lrow__n {
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.lrow__m {
+  grid-column: 1;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+}
+.lrow__s {
+  grid-row: 1;
+  grid-column: 2;
+  align-self: center;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-align: right;
+}
+.lrow__bar {
+  grid-column: 1 / -1;
+  height: 2px;
+  background: var(--line);
+  margin-top: 9px;
+  position: relative;
+}
+.lrow__bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: currentColor;
+}
+.listft {
+  padding: 9px 16px;
+  border-top: 1px solid var(--line);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  display: flex;
+  justify-content: space-between;
+}
+.split__detail {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+/* Reading-width record sheet: a centered column so competency and timeline rows
+   never span the whole pane (chosen in the split-polish preview). */
+.sheet {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 32px 96px;
+}
+/* Sticky record header: name + actions stay visible while the record scrolls. */
+.rec {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 22px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+.rec__av {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--hover);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-weight: 600;
+  font-size: var(--t-16);
+  display: grid;
+  place-items: center;
+}
+.rec__id {
+  min-width: 0;
+  flex: 1;
+}
+.rec__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.rec__name {
+  font-size: var(--t-22);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+.rec__meta {
+  font-size: var(--t-12);
+  color: var(--ink-2);
+  margin-top: 6px;
+  font-family: var(--mono);
+}
+.rec__acts {
+  display: flex;
+  gap: 6px;
+  flex: none;
+  align-items: center;
+}
+.note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-12);
+  color: var(--ink-2);
+}
+/* Sections of the record sheet: flat, separated by hairlines. Overrides the
+   Card/Surface box so a record reads as one continuous sheet. */
+.rec-block {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 22px 0 24px;
+  border-bottom: 1px solid var(--line);
+}
+.rec-block:last-child {
+  border-bottom: 0;
+}
+@media (max-width: 1024px) {
+  .split {
+    display: block;
+    height: auto;
+    padding-bottom: 5rem;
+  }
+  .split__list {
+    width: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .split__detail {
+    overflow: visible;
+  }
+  .sheet {
+    padding: 0 18px 72px;
+  }
+  .rec {
+    flex-wrap: wrap;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -164,6 +396,25 @@
   .print-sheet .shadow-pop,
   .print-sheet .shadow-xs {
     box-shadow: none !important;
+  }
+
+  /* Record sheet prints flat and full-width; the master list is screen-only. */
+  .split__list {
+    display: none !important;
+  }
+  .split,
+  .split__detail {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .sheet {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .rec {
+    position: static !important;
   }
 }
 

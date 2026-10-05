@@ -2,13 +2,18 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { BarChart3, Eye, EyeOff, AlertCircle, ArrowRight } from '../../components/icons';
+import { BarChart3, Eye, EyeOff, AlertCircle, ArrowRight, Sun, Moon, Monitor } from '../../components/icons';
 import { TextField, Surface } from '../../components/ui';
-import { PALETTE_IDS, PALETTE_BG } from '../../config/themes';
+
+const MODES = [
+  { id: 'light', label: 'Light', icon: Sun },
+  { id: 'dark', label: 'Dark', icon: Moon },
+  { id: 'system', label: 'System', icon: Monitor },
+];
 
 export default function Login() {
   const { login } = useAuth();
-  const { palette, setPalette } = useTheme();
+  const { mode, setMode } = useTheme();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -52,36 +57,44 @@ export default function Login() {
     setError('');
   };
 
-  const palettes = PALETTE_IDS;
-
   return (
     <div className="min-h-screen w-full flex flex-col justify-between bg-bg text-ink transition-colors duration-performa">
-      {/* Top bar with Theme Switcher */}
+      {/* Top bar with Color mode */}
       <header className="w-full flex justify-between items-center px-6 py-4 border-b border-line">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center shadow-sm">
+          <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
             <BarChart3 className="w-4 h-4" />
           </div>
           <span className="font-semibold text-base tracking-tight text-ink">Performa</span>
         </div>
 
-        {/* Palette Selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-ink-3 hidden sm:inline">Theme:</span>
-          <div className="flex items-center gap-1.5 p-1 rounded-full bg-hover border border-line">
-            {palettes.map((p) => (
+        {/* Color mode */}
+        <div
+          role="tablist"
+          aria-label="Color mode"
+          className="flex items-center gap-1 p-1 rounded-ctl border border-line bg-hover"
+        >
+          {MODES.map((m) => {
+            const Icon = m.icon;
+            const isActive = mode === m.id;
+            return (
               <button
-                key={p}
-                onClick={() => setPalette(p)}
-                className={`w-6 h-6 rounded-full border transition-transform ease-spring ${
-                  palette === p ? 'border-ink scale-110 shadow-sm' : 'border-line hover:scale-105'
+                key={m.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setMode(m.id)}
+                className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-ctl text-xs transition-colors ${
+                  isActive
+                    ? 'bg-surface text-ink font-semibold border border-line'
+                    : 'text-ink-3 hover:text-ink'
                 }`}
-                title={`Switch to ${p} theme`}
-                aria-label={`Switch to ${p} theme`}
-                style={{ backgroundColor: PALETTE_BG[p] }}
-              />
-            ))}
-          </div>
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{m.label}</span>
+              </button>
+            );
+          })}
         </div>
       </header>
 

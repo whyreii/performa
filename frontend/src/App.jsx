@@ -13,7 +13,7 @@ import { routeLoaders } from './routes/loaders';
 const Login = lazy(routeLoaders['/login']);
 const AppShell = lazy(() => import('./components/layout/AppShell'));
 const Settings = lazy(routeLoaders['/settings']);
-const Employees = lazy(routeLoaders['/employees']);
+const EmployeeSplit = lazy(routeLoaders['/employees']);
 const EmployeeDetail = lazy(routeLoaders['/employees/:id']);
 const RateEmployee = lazy(routeLoaders['/supervisor/rate']);
 const SupervisorDashboard = lazy(routeLoaders['/supervisor/dashboard']);
@@ -185,19 +185,14 @@ export default function App() {
                 <Route
                   path="/employees"
                   element={
-                    <ProtectedRoute allowedRoles={['employer', 'admin', 'supervisor']}>
-                      <Employees />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/employees/:id"
-                  element={
                     <ProtectedRoute allowedRoles={['employer', 'admin', 'supervisor', 'probationary_employee']}>
-                      <EmployeeDetail />
+                      <EmployeeSplit />
                     </ProtectedRoute>
                   }
-                />
+                >
+                  <Route index element={null} />
+                  <Route path=":id" element={<EmployeeDetail />} />
+                </Route>
                 <Route
                   path="/rollups"
                   element={

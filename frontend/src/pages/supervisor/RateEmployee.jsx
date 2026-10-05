@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, kpiApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, StatusDot, Skeleton, Modal, Card, Page, selectClass } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, Skeleton, Modal, Card, Page, EmptyState, selectClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { TARGET, PROBATION_DAYS } from '../../config/domain';
 import {
@@ -13,6 +13,7 @@ import {
   Calendar,
   Building,
   User,
+  Users,
   ArrowRight,
   Info,
 } from '../../components/icons';
@@ -26,7 +27,7 @@ export default function RateEmployee() {
   const preselectedEmpId = searchParams.get('employee');
 
   // Fetch all active probationers for the selector
-  const { data: employees = [], isLoading: isEmpListLoading } = useQuery({
+  const { data: employees = [], isLoading: isEmpListLoading, refetch } = useQuery({
     queryKey: ['employees'],
     queryFn: () => employeeApi.list(),
   });
@@ -181,7 +182,7 @@ export default function RateEmployee() {
   if (submittedEvaluation) {
     return (
       <div className="max-w-xl mx-auto py-12 text-center space-y-6 animate-in fade-in duration-200">
-        <div className="w-16 h-16 rounded-full bg-ok/10 text-ok border border-ok/20 flex items-center justify-center mx-auto shadow-sm">
+        <div className="w-16 h-16 rounded-full bg-ok/10 text-ok border border-ok/20 flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-8 h-8" />
         </div>
 
@@ -252,56 +253,72 @@ export default function RateEmployee() {
         </div>
       )}
 
-      {/* Employee Selector Bar */}
-      <Card padded={false} className="p-5 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex-1 max-w-md">
-            <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="empSelect">
-              Select Probationary Employee
-            </label>
-            {isEmpListLoading ? (
-              <Skeleton className="h-10 w-full" />
-            ) : (
-              <select
-                id="empSelect"
-                value={selectedId}
-                onChange={(e) => setSelectedId(e.target.value)}
-                className={`${selectClass} w-full`}
-              >
-                {activeProbationers.length === 0 ? (
-                  <option value="">No active probationary employees found</option>
-                ) : (
-                  activeProbationers.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.user?.full_name} — {emp.job_title} ({emp.department})
-                    </option>
-                  ))
-                )}
-              </select>
-            )}
+      {/* Empty: no assigned reports — a single clean empty state (no dead selector) */}
+      {!isEmpListLoading && activeProbationers.length === 0 ? (
+        <Card>
+          <div role="status" aria-live="polite">
+            <EmptyState
+              icon={Users}
+              title="No assigned probationary staff"
+              action={
+                <Button variant="secondary" onClick={refetch}>
+                  Refresh
+                </Button>
+              }
+            >
+              No active probationary employees are assigned to your workspace yet. An
+              employer must assign direct reports to you before you can record ratings.
+            </EmptyState>
           </div>
+        </Card>
+      ) : (
+        <>
+          {/* Employee Selector Bar */}
+          <Card padded={false} className="p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex-1 max-w-md">
+                <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="empSelect">
+                  Select Probationary Employee
+                </label>
+                {isEmpListLoading ? (
+                  <Skeleton className="h-10 w-full" />
+                ) : (
+                  <select
+                    id="empSelect"
+                    value={selectedId}
+                    onChange={(e) => setSelectedId(e.target.value)}
+                    className={`${selectClass} w-full`}
+                  >
+                    {activeProbationers.map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.user?.full_name} — {emp.job_title} ({emp.department})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
 
-          {selectedEmployee && (
-            <div className="flex items-center gap-6 text-12">
-              <span className="text-ink-3">
-                Probation timeline{' '}
-                <span className="font-mono font-semibold text-ink">
-                  Day {daysElapsed} of {PROBATION_DAYS}
-                </span>
-              </span>
-              <span className="text-ink-3">
-                Target{' '}
-                <span className="font-mono font-semibold text-accent">
-                  {thresholdTarget.toFixed(1)} / 5.0
-                </span>
-              </span>
+              {selectedEmployee && (
+                <div className="flex items-center gap-6 text-12">
+                  <span className="text-ink-3">
+                    Probation timeline{' '}
+                    <span className="font-mono font-semibold text-ink">
+                      Day {daysElapsed} of {PROBATION_DAYS}
+                    </span>
+                  </span>
+                  <span className="text-ink-3">
+                    Target{' '}
+                    <span className="font-mono font-semibold text-accent">
+                      {thresholdTarget.toFixed(1)} / 5.0
+                    </span>
+                  </span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </Card>
+          </Card>
 
-      {/* Rating Form */}
-      <form onSubmit={handleOpenConfirm} className="space-y-6">
+          {!isEmpListLoading && (
+            <form onSubmit={handleOpenConfirm} className="space-y-6">
         {/* Competency Rating Cards */}
         <div className="space-y-4">
           {competencies.map((comp, idx) => {
@@ -432,6 +449,9 @@ export default function RateEmployee() {
           </div>
         </Card>
       </form>
+          )}
+        </>
+      )}
 
       {/* Immutable Confirmation Modal */}
       <Modal

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
+import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, Page, Surface } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
@@ -14,6 +15,7 @@ import {
 export default function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   // Dispatch any due statutory milestone alerts (idempotent) on dashboard load.
   useEffect(() => {
@@ -93,7 +95,7 @@ export default function Dashboard() {
         title="Dashboard"
         subtitle={
           <>
-            Probationary pipeline · <span className="font-mono text-ink">Acme PH</span>
+            Probationary pipeline · <span className="font-mono text-ink">{user?.organization_name || user?.organization_id}</span>
           </>
         }
         actions={

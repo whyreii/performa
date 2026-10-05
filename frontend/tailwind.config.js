@@ -13,7 +13,7 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: ['class', '[data-theme="midnight"], [data-theme="dusk"]'],
+  darkMode: ['class', '[data-theme="graphite"]'],
   theme: {
     extend: {
       borderColor: {

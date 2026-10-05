@@ -2,13 +2,15 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { BarChart3, ChevronLeft, Search, LogOut } from '../icons';
+import { BarChart3, ChevronLeft, Search, LogOut, Sun, Moon, Monitor } from '../icons';
 import { getInitials } from '../../utils/format';
-import { PALETTE_IDS, PALETTE_BG } from '../../config/themes';
+
+const MODES = ['light', 'dark', 'system'];
+const MODE_ICON = { light: Sun, dark: Moon, system: Monitor };
 
 export default function MobileBar({ onOpenCommandPalette }) {
   const { user, logout } = useAuth();
-  const { palette, setPalette } = useTheme();
+  const { mode, setMode } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -17,11 +19,8 @@ export default function MobileBar({ onOpenCommandPalette }) {
     location.pathname.includes('/rate') ||
     location.pathname.includes('/rubrics');
 
-  const palettes = PALETTE_IDS;
-  const nextPalette = () => {
-    const idx = palettes.indexOf(palette);
-    setPalette(palettes[(idx + 1) % palettes.length]);
-  };
+  const ModeIcon = MODE_ICON[mode] || Monitor;
+  const nextMode = () => setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]);
 
   return (
     <header className="lg:hidden sticky top-0 z-30 h-14 w-full bg-side/90 backdrop-blur-md border-b border-line px-4 flex items-center justify-between">
@@ -37,7 +36,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
         </button>
       ) : (
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-nav bg-accent text-accent-foreground flex items-center justify-center shadow-sm">
+          <div className="w-7 h-7 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
             <BarChart3 className="w-3.5 h-3.5" />
           </div>
           <span className="font-semibold text-base tracking-tight text-ink">Performa</span>
@@ -55,18 +54,16 @@ export default function MobileBar({ onOpenCommandPalette }) {
           <Search className="w-4 h-4" />
         </button>
 
-        {/* Quick theme cycle pill */}
+        {/* Color mode cycle */}
         <button
           type="button"
-          onClick={nextPalette}
-          className="h-8 px-2.5 rounded-ctl border border-line bg-surface/80 text-ink-2 text-xs font-mono capitalize flex items-center gap-1.5 active:scale-95 transition-all"
-          title={`Current theme: ${palette} (Tap to cycle)`}
+          onClick={nextMode}
+          className="h-8 px-2.5 rounded-ctl border border-line bg-surface/80 text-ink-2 text-xs capitalize flex items-center gap-1.5 active:scale-95 transition-all"
+          title={`Color mode: ${mode} (tap to change)`}
+          aria-label={`Color mode: ${mode}. Tap to change.`}
         >
-          <span
-            className="w-3 h-3 rounded-full border border-line"
-            style={{ backgroundColor: PALETTE_BG[palette] }}
-          />
-          <span className="text-12">{palette}</span>
+          <ModeIcon className="w-3.5 h-3.5" />
+          <span className="text-12">{mode}</span>
         </button>
 
         {/* User initials */}

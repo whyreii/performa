@@ -108,6 +108,14 @@ export const authApi = {
   },
 };
 
+// Organization (tenant) API methods
+export const organizationApi = {
+  update: async (name) => {
+    const response = await apiClient.patch('/api/organization', { name });
+    return response.data;
+  },
+};
+
 // KPI Rubric configuration API methods
 export const kpiApi = {
   list: async () => {
@@ -271,6 +279,10 @@ export const notificationApi = {
 export const adminApi = {
   listUsers: async () => {
     const response = await apiClient.get('/api/admin/users');
+    return response.data;
+  },
+  listOrganizations: async () => {
+    const response = await apiClient.get('/api/admin/organizations');
     return response.data;
   },
   createUser: async (data) => {

@@ -39,7 +39,7 @@ export default function SupervisorDashboard() {
         title="Supervisor Workspace"
         subtitle={
           <>
-            Weekly Evaluator Dashboard · <span className="font-mono text-ink">Acme PH</span>
+            Weekly Evaluator Dashboard · <span className="font-mono text-ink">{user?.organization_name || user?.organization_id}</span>
           </>
         }
         actions={

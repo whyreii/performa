@@ -17,7 +17,7 @@ export default function Badge({
     warn: 'bg-warn/8 text-warn border border-transparent',
     notice: 'bg-notice/8 text-notice border border-transparent',
     bad: 'bg-bad/8 text-bad border border-transparent',
-    hot: 'bg-accent text-accent-foreground font-semibold shadow-xs',
+    hot: 'bg-accent text-accent-foreground font-semibold',
   };
 
   const sizes = {
