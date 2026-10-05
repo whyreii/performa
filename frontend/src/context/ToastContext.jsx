@@ -123,8 +123,8 @@ function ToastItem({ toast, onDismiss }) {
       </div>
 
       <div className="flex-1 min-w-0 pr-1">
-        {title && <p className="text-xs font-semibold text-ink leading-tight mb-0.5">{title}</p>}
-        <p className="text-xs text-ink-2 leading-relaxed break-words">{message}</p>
+        {title && <p className="text-12 font-semibold text-ink leading-tight mb-0.5">{title}</p>}
+        <p className="text-12 text-ink-2 leading-relaxed break-words">{message}</p>
       </div>
 
       <button

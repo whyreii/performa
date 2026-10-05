@@ -148,8 +148,8 @@ export default function Settings() {
       <Card>
         <div className="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink">User Profile & Tenant</h2>
-            <p className="text-xs text-ink-3">Your credentials and organization context</p>
+            <h2 className="text-16 font-semibold text-ink">User Profile & Tenant</h2>
+            <p className="text-12 text-ink-3">Your credentials and organization context</p>
           </div>
           <Button
             variant="secondary"
@@ -194,7 +194,7 @@ export default function Settings() {
                     setOrgStatus({ type: '', message: '' });
                     setIsEditingOrg((prev) => !prev);
                   }}
-                  className="text-xs text-accent hover:underline shrink-0"
+                  className="text-12 text-accent hover:underline shrink-0"
                 >
                   {isEditingOrg ? 'Cancel' : 'Rename'}
                 </button>
@@ -211,7 +211,7 @@ export default function Settings() {
             {profileStatus.message && (
               <div
                 role="alert"
-                className={`p-3 rounded-ctl text-xs border border-line ${
+                className={`p-3 rounded-ctl text-12 border border-line ${
                   profileStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
                 }`}
               >
@@ -247,7 +247,7 @@ export default function Settings() {
             {orgStatus.message && (
               <div
                 role="alert"
-                className={`p-3 rounded-ctl text-xs border border-line ${
+                className={`p-3 rounded-ctl text-12 border border-line ${
                   orgStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
                 }`}
               >
@@ -271,8 +271,8 @@ export default function Settings() {
       {/* 2. Appearance — Light / Dark / System */}
       <Card>
         <div className="mb-6 pb-4 border-b border-line">
-          <h2 className="text-base font-semibold text-ink">Appearance</h2>
-          <p className="text-xs text-ink-3">
+          <h2 className="text-16 font-semibold text-ink">Appearance</h2>
+          <p className="text-12 text-ink-3">
             Light, Dark, or follow your system. Persisted across sessions.
           </p>
         </div>
@@ -292,7 +292,7 @@ export default function Settings() {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setMode(m.id)}
-                className={`inline-flex items-center gap-2 h-9 px-4 rounded-ctl text-sm transition-colors ${
+                className={`inline-flex items-center gap-2 h-9 px-4 rounded-ctl text-14 transition-colors ${
                   isActive
                     ? 'bg-surface text-ink font-semibold border border-line'
                     : 'text-ink-3 hover:text-ink'
@@ -310,58 +310,58 @@ export default function Settings() {
       <Card>
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-line flex-wrap gap-2">
           <div>
-            <h2 className="text-base font-semibold text-ink">
+            <h2 className="text-16 font-semibold text-ink">
               Article 296 Statutory Alert Protocols
             </h2>
-            <p className="text-xs text-ink-3">
+            <p className="text-12 text-ink-3">
               Mandatory · System Active — dispatched automatically in Asia/Manila against the strict 180-day cap
             </p>
           </div>
-          <span className="text-xs font-medium text-ok">System Active</span>
+          <span className="text-12 font-medium text-ok">System Active</span>
         </div>
 
         <div className="space-y-4">
           <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm text-ink">Day 150 Review Due Notice</span>
+                <span className="font-semibold text-14 text-ink">Day 150 Review Due Notice</span>
                 <Badge variant="warn">Statutory Milestone</Badge>
               </div>
-              <p className="text-xs text-ink-2">
+              <p className="text-12 text-ink-2">
                 Triggers when an employee reaches 150 days of probation. Alerts HR and supervisors to schedule the formal 5th-month performance appraisal.
               </p>
             </div>
-            <span className="text-xs font-medium text-ok shrink-0 mt-1">Active</span>
+            <span className="text-12 font-medium text-ok shrink-0 mt-1">Active</span>
           </div>
 
           <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm text-ink">
+                <span className="font-semibold text-14 text-ink">
                   Day 165 Written Notice Period Threshold
                 </span>
                 <Badge variant="warn">Legal Due Process</Badge>
               </div>
-              <p className="text-xs text-ink-2">
+              <p className="text-12 text-ink-2">
                 Guarantees the required 15-day notice buffer before Day 180. Alerts employers if any employee under target is in jeopardy of termination or regularization.
               </p>
             </div>
-            <span className="text-xs font-medium text-ok shrink-0 mt-1">Active</span>
+            <span className="text-12 font-medium text-ok shrink-0 mt-1">Active</span>
           </div>
 
           <div className="flex items-start justify-between gap-4 p-4 rounded-ctl bg-hover border border-line">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm text-ink">
+                <span className="font-semibold text-14 text-ink">
                   Day 178 Critical Action Window (48h to Auto-Regularization)
                 </span>
                 <Badge variant="bad">Critical Threshold</Badge>
               </div>
-              <p className="text-xs text-ink-2">
+              <p className="text-12 text-ink-2">
                 Final alert: under Philippine law, working on Day 181 confers automatic permanent regular status. Immediate action required.
               </p>
             </div>
-            <span className="text-xs font-medium text-ok shrink-0 mt-1">Active</span>
+            <span className="text-12 font-medium text-ok shrink-0 mt-1">Active</span>
           </div>
         </div>
       </Card>
@@ -369,14 +369,14 @@ export default function Settings() {
       {/* 4. Security & Password Update */}
       <Card>
         <div className="mb-6 pb-4 border-b border-line">
-          <h2 className="text-base font-semibold text-ink">Security & Password</h2>
-          <p className="text-xs text-ink-3">Update your password or manage credentials</p>
+          <h2 className="text-16 font-semibold text-ink">Security & Password</h2>
+          <p className="text-12 text-ink-3">Update your password or manage credentials</p>
         </div>
 
         {passwordStatus.message && (
           <div
             role="alert"
-            className={`mb-5 p-3 rounded-ctl text-xs flex items-center gap-2 border border-line ${
+            className={`mb-5 p-3 rounded-ctl text-12 flex items-center gap-2 border border-line ${
               passwordStatus.type === 'error'
                 ? 'bg-bad/8 text-bad'
                 : 'bg-ok/8 text-ok'

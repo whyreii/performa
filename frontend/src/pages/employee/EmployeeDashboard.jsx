@@ -96,10 +96,10 @@ export default function EmployeeDashboard() {
             <span className="text-12 font-mono text-accent block mb-0.5">
               Philippine Labor Code Article 296
             </span>
-            <h2 className="text-lg font-semibold text-ink">Probationary Period Timeline</h2>
+            <h2 className="text-16 font-semibold text-ink">Probationary Period Timeline</h2>
           </div>
 
-          <div className="font-mono text-xs text-ink flex items-center gap-2">
+          <div className="font-mono text-12 text-ink flex items-center gap-2">
             <span className="p-1.5 rounded-ctl bg-hover border border-line">
               Start: <b>{formatDate(myProfile?.start_date)}</b>
             </span>
@@ -111,7 +111,7 @@ export default function EmployeeDashboard() {
 
         {/* Timeline Bar */}
         <div className="space-y-2">
-          <div className="flex justify-between text-xs font-mono text-ink">
+          <div className="flex justify-between text-12 font-mono text-ink">
             <span>
               <b>Day {daysElapsed}</b> elapsed
             </span>
@@ -156,16 +156,16 @@ export default function EmployeeDashboard() {
       <Card className="sm:p-7 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink">Competency Standing vs Regularizing Target</h2>
-            <p className="text-xs text-ink-3 mt-0.5">
+            <h2 className="text-16 font-semibold text-ink">Competency Standing vs Regularizing Target</h2>
+            <p className="text-12 text-ink-3 mt-0.5">
               Minimum 4.0 average required across all 5 legal competencies
             </p>
           </div>
 
           {scorecard?.latest_evaluation_date ? (
             <div className="text-right">
-              <span className="text-xs text-ink-3 block font-mono">Current Standing</span>
-              <span className="text-2xl font-bold font-mono text-ink">
+              <span className="text-12 text-ink-3 block font-mono">Current Standing</span>
+              <span className="text-22 font-bold font-mono text-ink">
                 {Number(scorecard.overall_score).toFixed(1)} / 5.0
               </span>
             </div>
@@ -181,7 +181,7 @@ export default function EmployeeDashboard() {
             <Skeleton className="h-10 w-full" />
           </div>
         ) : !scorecard || !scorecard.competencies || scorecard.competencies.length === 0 ? (
-          <div className="py-8 text-center text-xs text-ink-3">
+          <div className="py-8 text-center text-12 text-ink-3">
             No evaluations have been submitted for you yet.
           </div>
         ) : (
@@ -212,8 +212,8 @@ export default function EmployeeDashboard() {
       <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink">Evaluation Audit Trail</h2>
-            <p className="text-xs text-ink-3">Append-only record of every competency score change</p>
+            <h2 className="text-16 font-semibold text-ink">Evaluation Audit Trail</h2>
+            <p className="text-12 text-ink-3">Append-only record of every competency score change</p>
           </div>
           <span className="font-mono text-12 text-ink-3">{auditLogs.length} records</span>
         </div>
@@ -221,7 +221,7 @@ export default function EmployeeDashboard() {
         {isAuditLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : auditLogs.length === 0 ? (
-          <div className="py-8 text-center text-xs text-ink-3">
+          <div className="py-8 text-center text-12 text-ink-3">
             No supervisory feedback remarks logged yet.
           </div>
         ) : (
@@ -230,7 +230,7 @@ export default function EmployeeDashboard() {
               const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
               return (
                 <div key={log.id} className="py-3 space-y-1">
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-12">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-ink">
                         {log.evaluator_name || 'Evaluator'}
@@ -241,7 +241,7 @@ export default function EmployeeDashboard() {
                     </div>
                     <span className="font-mono text-ink-3">{formatDate(log.created_at)}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs font-mono text-ink-2">
+                  <div className="flex items-center gap-2 text-12 font-mono text-ink-2">
                     <span className="text-ink-3">
                       {hasPrior ? `${Number(log.prior_score).toFixed(1)} -> ` : 'Initial -> '}
                     </span>
@@ -260,15 +260,15 @@ export default function EmployeeDashboard() {
         <Card className="space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-line">
             <div>
-              <h2 className="text-base font-semibold text-ink">Monthly Performance Summaries</h2>
-              <p className="text-xs text-ink-3">Please acknowledge receipt of shared summaries</p>
+              <h2 className="text-16 font-semibold text-ink">Monthly Performance Summaries</h2>
+              <p className="text-12 text-ink-3">Please acknowledge receipt of shared summaries</p>
             </div>
             <Badge variant="neutral">{mySummaries.length}</Badge>
           </div>
           <div className="divide-y divide-line">
             {mySummaries.map((s) => (
               <div key={s.id} className="py-3 flex items-center justify-between gap-4">
-                <div className="text-xs">
+                <div className="text-12">
                   <span className="font-semibold text-ink">Month {s.month_number}</span>
                   <span className="text-ink-3 font-mono ml-2">
                     Avg {Number(s.overall_average).toFixed(2)}

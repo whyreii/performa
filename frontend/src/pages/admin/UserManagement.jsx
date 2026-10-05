@@ -130,7 +130,7 @@ export default function UserManagement() {
       {actionFeedback && (
         <div
           role="alert"
-          className={`p-3 rounded-ctl text-xs flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
+          className={`p-3 rounded-ctl text-12 flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
             actionFeedback.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
           }`}
         >
@@ -146,20 +146,20 @@ export default function UserManagement() {
       {/* Metric Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <Card padded={false} className="p-4 space-y-1">
-          <span className="text-xs text-ink-3">Total Accounts</span>
-          <div className="text-2xl font-bold font-mono text-ink">{counts.all}</div>
+          <span className="text-12 text-ink-3">Total Accounts</span>
+          <div className="text-22 font-bold font-mono text-ink">{counts.all}</div>
         </Card>
         <Card padded={false} className="p-4 space-y-1">
-          <span className="text-xs text-ink-3">Employers</span>
-          <div className="text-2xl font-bold font-mono text-accent">{counts.employer}</div>
+          <span className="text-12 text-ink-3">Employers</span>
+          <div className="text-22 font-bold font-mono text-accent">{counts.employer}</div>
         </Card>
         <Card padded={false} className="p-4 space-y-1">
-          <span className="text-xs text-ink-3">Supervisors</span>
-          <div className="text-2xl font-bold font-mono text-good">{counts.supervisor}</div>
+          <span className="text-12 text-ink-3">Supervisors</span>
+          <div className="text-22 font-bold font-mono text-good">{counts.supervisor}</div>
         </Card>
         <Card padded={false} className="p-4 space-y-1">
-          <span className="text-xs text-ink-3">Probationary Staff</span>
-          <div className="text-2xl font-bold font-mono text-ink">{counts.employee}</div>
+          <span className="text-12 text-ink-3">Probationary Staff</span>
+          <div className="text-22 font-bold font-mono text-ink">{counts.employee}</div>
         </Card>
       </div>
 
@@ -204,11 +204,11 @@ export default function UserManagement() {
               </div>
             ))
           ) : isError ? (
-            <div className="p-6 text-center text-bad text-xs">
+            <div className="p-6 text-center text-bad text-12">
               {getApiErrorMessage(error, 'Failed to load user accounts.')}
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="p-8 text-center text-ink-3 text-xs">
+            <div className="p-8 text-center text-ink-3 text-12">
               No accounts found matching your filters.
             </div>
           ) : (
@@ -219,13 +219,13 @@ export default function UserManagement() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
-                        className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 text-accent font-semibold text-xs flex items-center justify-center shrink-0"
+                        className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 text-accent font-semibold text-12 flex items-center justify-center shrink-0"
                         title={u.full_name}
                       >
                         {getInitials(u.full_name)}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-semibold text-xs text-ink flex items-center gap-1.5 truncate">
+                        <div className="font-semibold text-12 text-ink flex items-center gap-1.5 truncate">
                           <span className="truncate">{u.full_name}</span>
                           {isCurrent && (
                             <span className="font-mono text-12 text-accent font-normal shrink-0">
@@ -246,7 +246,7 @@ export default function UserManagement() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs pt-1 border-t border-line/60">
+                  <div className="flex items-center justify-between text-12 pt-1 border-t border-line/60">
                     <div className="flex items-center gap-1.5 font-medium">
                       <span className={u.is_active ? 'text-good' : 'text-ink-3'}>
                         {u.is_active ? 'Active' : 'Deactivated'}
@@ -297,7 +297,7 @@ export default function UserManagement() {
 
         {/* Desktop: table (>= lg) */}
         <div className="hidden lg:block overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full text-left border-collapse text-12">
             <caption className="sr-only">User accounts</caption>
             <thead>
               <tr className="border-b border-line bg-hover/40 text-ink-3 font-mono uppercase text-12 tracking-wider">
@@ -344,7 +344,7 @@ export default function UserManagement() {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <div
-                            className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 text-accent font-semibold text-xs flex items-center justify-center shrink-0"
+                            className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 text-accent font-semibold text-12 flex items-center justify-center shrink-0"
                             title={u.full_name}
                           >
                             {getInitials(u.full_name)}
@@ -528,8 +528,8 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
     <Modal isOpen onClose={onClose} labelledBy="create-user-title" maxWidth="max-w-md">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 id="create-user-title" className="text-base font-semibold text-ink">Create User Account</h2>
-            <p className="text-xs text-ink-3">Provision credentials and assign system role</p>
+            <h2 id="create-user-title" className="text-16 font-semibold text-ink">Create User Account</h2>
+            <p className="text-12 text-ink-3">Provision credentials and assign system role</p>
           </div>
           <button
             type="button"
@@ -542,13 +542,13 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
         </div>
 
         {error && (
-          <div className="p-3 rounded-ctl bg-bad/8 border border-line text-bad text-xs flex items-center gap-2">
+          <div className="p-3 rounded-ctl bg-bad/8 border border-line text-bad text-12 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-4 text-12">
           <TextField
             id="m_name"
             label="Full Name *"
@@ -717,8 +717,8 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
     <Modal isOpen onClose={onClose} labelledBy="reset-pass-title" maxWidth="max-w-sm">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 id="reset-pass-title" className="text-base font-semibold text-ink">Reset Password</h2>
-            <p className="text-xs text-ink-3 font-mono truncate">{user.email}</p>
+            <h2 id="reset-pass-title" className="text-16 font-semibold text-ink">Reset Password</h2>
+            <p className="text-12 text-ink-3 font-mono truncate">{user.email}</p>
           </div>
           <button
             type="button"
@@ -731,13 +731,13 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
         </div>
 
         {error && (
-          <div className="p-3 rounded-ctl bg-bad/8 border border-line text-bad text-xs flex items-center gap-2">
+          <div className="p-3 rounded-ctl bg-bad/8 border border-line text-bad text-12 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-4 text-12">
           <TextField
             id="r_pass"
             label="New Password * (min 8 characters)"

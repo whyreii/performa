@@ -33,7 +33,7 @@ export default function ActivityLog() {
         ) : isError ? (
           <div className="p-10 text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
-            <p className="text-xs text-ink-3">
+            <p className="text-12 text-ink-3">
               {getApiErrorMessage(error, 'Failed to load the activity log.')}
             </p>
             <Button variant="secondary" size="sm" onClick={() => refetch()}>
@@ -46,7 +46,7 @@ export default function ActivityLog() {
           </EmptyState>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full text-left border-collapse text-12">
               <caption className="sr-only">System activity log</caption>
               <thead>
                 <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
@@ -85,7 +85,7 @@ export default function ActivityLog() {
             </table>
           </div>
         )}
-        <footer className="p-3 border-t border-line text-xs text-ink-3 font-mono">
+        <footer className="p-3 border-t border-line text-12 text-ink-3 font-mono">
           Showing {entries.length} activity entries
         </footer>
       </Card>

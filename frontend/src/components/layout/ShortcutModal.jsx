@@ -37,10 +37,10 @@ export default function ShortcutModal({ isOpen, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 id="shortcut-modal-title" className="text-base font-semibold text-ink">
+            <h2 id="shortcut-modal-title" className="text-16 font-semibold text-ink">
               Keyboard Shortcuts
             </h2>
-            <p className="text-xs text-ink-3">
+            <p className="text-12 text-ink-3">
               Power-user hotkeys for swift platform navigation
             </p>
           </div>
@@ -60,13 +60,13 @@ export default function ShortcutModal({ isOpen, onClose }) {
           {shortcutGroups.map((group) => {
             return (
               <div key={group.title} className="space-y-2">
-                <div className="text-xs font-semibold text-ink-2">{group.title}</div>
+                <div className="text-12 font-semibold text-ink-2">{group.title}</div>
 
                 <div className="rounded-field border border-line bg-hover/40 divide-y divide-line overflow-hidden">
                   {group.items.map((item) => (
                     <div
                       key={item.label}
-                      className="px-3.5 py-2.5 flex items-center justify-between text-xs"
+                      className="px-3.5 py-2.5 flex items-center justify-between text-12"
                     >
                       <span className="text-ink-2">{item.label}</span>
                       <div className="flex items-center gap-1 shrink-0 ml-3">

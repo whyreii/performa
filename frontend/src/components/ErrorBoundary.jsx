@@ -33,8 +33,8 @@ export default class ErrorBoundary extends React.Component {
       return (
         <div className="min-h-screen flex items-center justify-center bg-bg text-ink p-6">
           <Surface className="max-w-md w-full p-8 text-center space-y-4">
-            <h1 className="text-lg font-semibold text-ink">Something went wrong</h1>
-            <p className="text-xs text-ink-3">
+            <h1 className="text-22 font-semibold text-ink">Something went wrong</h1>
+            <p className="text-12 text-ink-3">
               The application hit an unexpected error. Your data has not been affected.
             </p>
 
@@ -47,7 +47,7 @@ export default class ErrorBoundary extends React.Component {
             <button
               type="button"
               onClick={this.handleReload}
-              className="inline-flex items-center justify-center h-9 px-4 rounded-ctl bg-accent text-accent-foreground text-sm font-medium transition-colors hover:brightness-110"
+              className="inline-flex items-center justify-center h-9 px-4 rounded-ctl bg-accent text-accent-foreground text-14 font-medium transition-colors hover:brightness-110"
             >
               Reload Application
             </button>

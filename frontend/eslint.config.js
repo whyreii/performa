@@ -5,6 +5,8 @@
 //      call .toISOString() anywhere else.
 //   2. Never .replace('_', ' '); use .replace(/_/g, ' ') or .replaceAll('_', ' ').
 //   3. No arbitrary type sizes (text-[…px]); use the Scale B tokens.
+//   3b. No off-scale Tailwind default sizes (text-lg/xl/2xl/3xl/4xl/5xl/6xl);
+//       Scale B is exactly 12/14/16/22/30.
 //   4. No shadow-sm on rounded-float cards (cards are hairline).
 //   5. No uppercase micro-label kickers on span/div (table/print headers only).
 //   6. Icons come from src/components/icons.js only (no direct icon-library imports).
@@ -46,6 +48,16 @@ export default [
           selector: 'TemplateElement[value.raw=/text-\\[[0-9]+px\\]/]',
           message:
             'No arbitrary type sizes; use the Scale B tokens (text-12/14/16/22/30).',
+        },
+        {
+          selector: 'Literal[value=/text-(lg|xl|2xl|3xl|4xl|5xl|6xl)\\b/]',
+          message:
+            'Off-scale type size; Scale B is exactly text-12/14/16/22/30 (no 18px/20px/24px/36px+).',
+        },
+        {
+          selector: 'TemplateElement[value.raw=/text-(lg|xl|2xl|3xl|4xl|5xl|6xl)\\b/]',
+          message:
+            'Off-scale type size; Scale B is exactly text-12/14/16/22/30 (no 18px/20px/24px/36px+).',
         },
         {
           selector: 'Literal[value=/rounded-float/][value=/shadow-sm/]',

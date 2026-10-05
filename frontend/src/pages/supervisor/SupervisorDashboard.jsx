@@ -57,22 +57,22 @@ export default function SupervisorDashboard() {
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card as="div" padded={false} className="p-5 space-y-2">
-          <span className="text-xs text-ink-3">Direct Reports</span>
-          <div className="text-2xl font-bold font-mono text-ink">
+          <span className="text-12 text-ink-3">Direct Reports</span>
+          <div className="text-22 font-bold font-mono text-ink">
             {activeProbationers.length}
           </div>
           <p className="text-12 text-ink-2">Assigned probationary staff</p>
         </Card>
 
         <Card as="div" padded={false} className="p-5 space-y-2">
-          <span className="text-xs text-ink-3">Passing Target</span>
-          <div className="text-2xl font-bold font-mono text-ink">4.0 / 5.0</div>
+          <span className="text-12 text-ink-3">Passing Target</span>
+          <div className="text-22 font-bold font-mono text-ink">4.0 / 5.0</div>
           <p className="text-12 text-ink-2">Statutory regularizing standard</p>
         </Card>
 
         <Card as="div" padded={false} className="p-5 space-y-2">
-          <span className="text-xs text-ink-3">Review Frequency</span>
-          <div className="text-2xl font-bold font-mono text-ink">Weekly</div>
+          <span className="text-12 text-ink-3">Review Frequency</span>
+          <div className="text-22 font-bold font-mono text-ink">Weekly</div>
           <p className="text-12 text-ink-2">Mandatory evidentiary due process</p>
         </Card>
       </div>
@@ -81,8 +81,8 @@ export default function SupervisorDashboard() {
       <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink">Assigned Probationary Staff</h2>
-            <p className="text-xs text-ink-3">Weekly evaluation schedule & milestone tracking</p>
+            <h2 className="text-16 font-semibold text-ink">Assigned Probationary Staff</h2>
+            <p className="text-12 text-ink-3">Weekly evaluation schedule & milestone tracking</p>
           </div>
         </div>
 
@@ -94,7 +94,7 @@ export default function SupervisorDashboard() {
         ) : isError ? (
           <div className="py-10 text-center space-y-2">
             <AlertTriangle className="w-8 h-8 mx-auto text-bad" />
-            <p className="text-xs text-bad">
+            <p className="text-12 text-bad">
               {getApiErrorMessage(error, 'Failed to load your assigned employees.')}
             </p>
           </div>
@@ -114,14 +114,14 @@ export default function SupervisorDashboard() {
                   className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-hover/50 px-2 rounded-ctl transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-9 h-9 rounded-full bg-accent/15 text-accent font-semibold text-xs flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-accent/15 text-accent font-semibold text-12 flex items-center justify-center shrink-0">
                       {getInitials(emp.user?.full_name)}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <span className="font-semibold text-sm text-ink block truncate">
+                      <span className="font-semibold text-14 text-ink block truncate">
                         {emp.user?.full_name}
                       </span>
-                      <span className="text-xs text-ink-3 block truncate">
+                      <span className="text-12 text-ink-3 block truncate">
                         {emp.job_title} · {emp.department}
                       </span>
                     </div>

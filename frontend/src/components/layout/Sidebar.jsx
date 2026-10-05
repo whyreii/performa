@@ -65,7 +65,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <span className="font-semibold text-base tracking-tight text-ink block leading-none">
+              <span className="font-semibold text-16 tracking-tight text-ink block leading-none">
                 Performa
               </span>
               <span className="text-12 text-ink-3 tracking-normal font-mono block mt-0.5 truncate">
@@ -105,7 +105,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="w-full h-9 mb-4 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-between text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-full h-9 mb-4 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-between text-12 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <div className="flex items-center gap-2 min-w-0">
             <Search className="w-3.5 h-3.5 shrink-0" />
@@ -145,7 +145,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
                 onMouseEnter={() => prefetchRoute(item.path)}
                 onFocus={() => prefetchRoute(item.path)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 h-10 rounded-nav text-sm font-medium transition-colors ${
+                  `flex items-center gap-3 h-10 rounded-nav text-14 font-medium transition-colors ${
                     collapsed ? 'justify-center px-0' : 'px-3'
                   } ${
                     isActive
@@ -166,7 +166,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
       <div className="pt-3 mt-auto border-t border-line">
         <div className={`flex items-center gap-2 ${collapsed ? 'flex-col justify-center' : ''}`}>
           <div
-            className="w-8 h-8 rounded-full bg-accent/15 border border-accent/30 text-accent font-semibold text-xs flex items-center justify-center shrink-0"
+            className="w-8 h-8 rounded-full bg-accent/15 border border-accent/30 text-accent font-semibold text-12 flex items-center justify-center shrink-0"
             title={`${user?.full_name} (${user?.email})`}
           >
             {getInitials(user?.full_name)}
@@ -174,7 +174,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <div className="font-semibold text-xs text-ink truncate leading-tight">
+              <div className="font-semibold text-12 text-ink truncate leading-tight">
                 {user?.full_name || 'User'}
               </div>
               <div className="text-12 text-ink-3 truncate capitalize">

@@ -183,10 +183,10 @@ export default function Dashboard() {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
               <div>
-                <h2 className="text-sm font-semibold text-ink">
+                <h2 className="text-14 font-semibold text-ink">
                   {urgentProbationers.length} to review
                 </h2>
-                <p className="text-xs text-ink-2">
+                <p className="text-12 text-ink-2">
                   Day {MILESTONE_REVIEW} · {MILESTONE_NOTICE} · {MILESTONE_CRITICAL} under Art. 296 — decisions due before Day {PROBATION_DAYS}.
                 </p>
               </div>
@@ -207,8 +207,8 @@ export default function Dashboard() {
       <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink">Pipeline</h2>
-            <p className="text-xs text-ink-3">Live timeline progress tracking toward Day {PROBATION_DAYS}</p>
+            <h2 className="text-16 font-semibold text-ink">Pipeline</h2>
+            <p className="text-12 text-ink-3">Live timeline progress tracking toward Day {PROBATION_DAYS}</p>
           </div>
           <Button
             variant="ghost"
@@ -228,7 +228,7 @@ export default function Dashboard() {
             <Skeleton className="h-11 w-full" />
           </div>
         ) : activeProbationers.length === 0 ? (
-          <div className="py-8 text-center text-xs text-ink-3">
+          <div className="py-8 text-center text-12 text-ink-3">
             No active probationary employees in the current tenant.
           </div>
         ) : (
@@ -246,7 +246,7 @@ export default function Dashboard() {
                   <th scope="col" className="py-2.5 px-3 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line text-xs">
+              <tbody className="divide-y divide-line text-12">
                 {activeProbationers.map((emp) => {
                   const days = getDaysElapsed(emp.start_date);
                   const progressPct = Math.min(100, Math.round((days / PROBATION_DAYS) * 100));
@@ -314,8 +314,8 @@ export default function Dashboard() {
       <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
-            <h2 className="text-base font-semibold text-ink">AI Training Recommendations & Rollups</h2>
-            <p className="text-xs text-ink-3">
+            <h2 className="text-16 font-semibold text-ink">AI Training Recommendations & Rollups</h2>
+            <p className="text-12 text-ink-3">
               Automated Random Forest course assignments for identified competency gaps
             </p>
           </div>
@@ -335,11 +335,11 @@ export default function Dashboard() {
             <Skeleton className="h-14 w-full" />
           </div>
         ) : isPlansError ? (
-          <div className="py-8 text-center text-xs text-bad">
+          <div className="py-8 text-center text-12 text-bad">
             Unable to load AI training recommendations right now. Please retry.
           </div>
         ) : plans.length === 0 ? (
-          <div className="py-8 text-center text-xs text-ink-3">
+          <div className="py-8 text-center text-12 text-ink-3">
             All probationary employees are performing at or above benchmark. No active intervention plans required.
           </div>
         ) : (

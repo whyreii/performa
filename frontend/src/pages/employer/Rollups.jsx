@@ -146,7 +146,7 @@ export default function Rollups() {
       {actionMessage.text && (
         <div
           role="alert"
-          className={`p-3 rounded-ctl text-xs flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
+          className={`p-3 rounded-ctl text-12 flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
             actionMessage.type === 'error'
               ? 'bg-bad/8 text-bad'
               : 'bg-ok/8 text-ok'
@@ -165,10 +165,10 @@ export default function Rollups() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-ink">Pending approvals</h2>
+            <h2 className="text-16 font-semibold text-ink">Pending approvals</h2>
             <Badge variant="warn">{pendingPlans.length} Pending</Badge>
           </div>
-          <span className="text-xs text-ink-3">Article 296 Evidentiary Support</span>
+          <span className="text-12 text-ink-3">Article 296 Evidentiary Support</span>
         </div>
 
         {isPlansLoading ? (
@@ -179,8 +179,8 @@ export default function Rollups() {
         ) : isError ? (
           <Card padded={false} className="p-8 text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
-            <h3 className="text-sm font-semibold text-ink">Failed to load pending plans</h3>
-            <p className="text-xs text-ink-3">
+            <h3 className="text-14 font-semibold text-ink">Failed to load pending plans</h3>
+            <p className="text-12 text-ink-3">
               {getApiErrorMessage(error, 'An error occurred while fetching pending plans.')}
             </p>
             <Button variant="secondary" size="sm" onClick={() => refetch()}>
@@ -202,7 +202,7 @@ export default function Rollups() {
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-baseline gap-2">
-                      <span className="font-semibold text-base text-ink">
+                      <span className="font-semibold text-16 text-ink">
                         {plan.intervention_title}
                       </span>
                       <span className="text-12 text-ink-3">
@@ -210,7 +210,7 @@ export default function Rollups() {
                         {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-ink-3 font-mono">
+                    <div className="flex items-center gap-3 text-12 text-ink-3 font-mono">
                       <span>Timeline: {plan.default_timeline || '4 hours'}</span>
                       <span>·</span>
                       <span>Catalog ID: {plan.catalog_id}</span>
@@ -246,7 +246,7 @@ export default function Rollups() {
 
                 {/* AI Rationale by Gemini */}
                 {plan.rationale && (
-                  <div className="p-4 rounded-ctl bg-hover/70 border border-line text-xs text-ink-2 space-y-1">
+                  <div className="p-4 rounded-ctl bg-hover/70 border border-line text-12 text-ink-2 space-y-1">
                     <span className="font-semibold text-accent text-12 font-mono">
                       Gemini Performance Rationale
                     </span>
@@ -262,8 +262,8 @@ export default function Rollups() {
       {/* Monthly Summaries (dispatch for acknowledgement) */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-ink">Monthly summaries</h2>
-          <span className="text-xs text-ink-3">Dispatch to employees for digital acknowledgement</span>
+          <h2 className="text-16 font-semibold text-ink">Monthly summaries</h2>
+          <span className="text-12 text-ink-3">Dispatch to employees for digital acknowledgement</span>
         </div>
         {isSummariesLoading ? (
           <div className="space-y-3">
@@ -271,11 +271,11 @@ export default function Rollups() {
             <Skeleton className="h-14 w-full" />
           </div>
         ) : isSummariesError ? (
-          <Card padded={false} className="p-6 text-center text-xs text-bad">
+          <Card padded={false} className="p-6 text-center text-12 text-bad">
             Unable to load monthly summaries right now. Please retry.
           </Card>
         ) : summaries.length === 0 ? (
-          <Card padded={false} className="p-6 text-center text-xs text-ink-3">
+          <Card padded={false} className="p-6 text-center text-12 text-ink-3">
             No monthly summaries generated yet. Run a rollup above.
           </Card>
         ) : (
@@ -284,7 +284,7 @@ export default function Rollups() {
               const emp = employees.find((e) => e.id === summary.employee_id);
               return (
                 <div key={summary.id} className="p-4 flex items-center justify-between gap-4">
-                  <div className="text-xs">
+                  <div className="text-12">
                     <span className="font-semibold text-ink">
                       {emp?.user?.full_name || 'Unknown employee'}
                     </span>
@@ -330,7 +330,7 @@ export default function Rollups() {
         maxWidth="max-w-md"
       >
             <div className="flex items-center justify-between pb-3 border-b border-line">
-              <h3 className="text-base font-semibold text-ink">Generate 30-Day Rollup</h3>
+              <h3 className="text-16 font-semibold text-ink">Generate 30-Day Rollup</h3>
               <button
                 type="button"
                 onClick={() => setIsGenerateModalOpen(false)}
@@ -343,7 +343,7 @@ export default function Rollups() {
 
             <form onSubmit={handleGenerateSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-ink-2 mb-1" htmlFor="r_emp">
+                <label className="block text-12 font-medium text-ink-2 mb-1" htmlFor="r_emp">
                   Probationary Employee *
                 </label>
                 <select
@@ -365,7 +365,7 @@ export default function Rollups() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-ink-2 mb-1" htmlFor="r_month">
+                <label className="block text-12 font-medium text-ink-2 mb-1" htmlFor="r_month">
                   Evaluation Month (30-Day Cycle) *
                 </label>
                 <select
@@ -397,7 +397,7 @@ export default function Rollups() {
                 </div>
               )}
 
-              <div className="p-3 rounded-ctl bg-hover text-xs text-ink-3 leading-relaxed space-y-1">
+              <div className="p-3 rounded-ctl bg-hover text-12 text-ink-3 leading-relaxed space-y-1">
                 <span className="font-semibold text-ink block">AI Execution Workflow:</span>
                 <p>
                   1. Aggregates weekly evaluation scores.<br />

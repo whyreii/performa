@@ -22,17 +22,17 @@ export default function PageHeader({
       {...props}
     >
       <div className="min-w-0 flex-1">
-        <div className="font-mono text-xs font-medium text-ink-3 mb-1 min-h-[18px] truncate">
+        <div className="font-mono text-12 font-medium text-ink-3 mb-1 min-h-[18px] truncate">
           {kicker || ''}
         </div>
         <h1
-          className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink truncate"
+          className="text-22 sm:text-30 font-semibold tracking-tight text-ink truncate"
           title={typeof title === 'string' ? title : undefined}
         >
           {title}
         </h1>
         <p
-          className="text-sm text-ink-2 mt-1 leading-snug line-clamp-2 min-h-[2.8em]"
+          className="text-14 text-ink-2 mt-1 leading-snug line-clamp-2 min-h-[2.8em]"
           title={typeof subtitle === 'string' ? subtitle : undefined}
         >
           {subtitle || ''}

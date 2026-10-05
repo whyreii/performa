@@ -29,7 +29,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-accent font-semibold text-sm py-1 -ml-1 active:scale-95 transition-transform ease-spring"
+          className="flex items-center gap-1.5 text-accent font-semibold text-14 py-1 -ml-1 active:scale-95 transition-transform ease-spring"
         >
           <ChevronLeft className="w-5 h-5" />
           <span>Back</span>
@@ -39,7 +39,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
           <div className="w-7 h-7 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
             <BarChart3 className="w-3.5 h-3.5" />
           </div>
-          <span className="font-semibold text-base tracking-tight text-ink">Performa</span>
+          <span className="font-semibold text-16 tracking-tight text-ink">Performa</span>
         </div>
       )}
 
@@ -58,7 +58,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={nextMode}
-          className="h-8 px-2.5 rounded-ctl border border-line bg-surface/80 text-ink-2 text-xs capitalize flex items-center gap-1.5 active:scale-95 transition-all"
+          className="h-8 px-2.5 rounded-ctl border border-line bg-surface/80 text-ink-2 text-12 capitalize flex items-center gap-1.5 active:scale-95 transition-all"
           title={`Color mode: ${mode} (tap to change)`}
           aria-label={`Color mode: ${mode}. Tap to change.`}
         >
@@ -68,7 +68,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
 
         {/* User initials */}
         <div
-          className="w-8 h-8 rounded-full bg-accent/15 border border-accent/30 text-accent font-semibold text-xs flex items-center justify-center"
+          className="w-8 h-8 rounded-full bg-accent/15 border border-accent/30 text-accent font-semibold text-12 flex items-center justify-center"
           title={`${user?.full_name} (${user?.role})`}
         >
           {getInitials(user?.full_name)}

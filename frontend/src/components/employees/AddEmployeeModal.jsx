@@ -102,8 +102,8 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
     >
         <div className="flex items-center justify-between pb-4 mb-5 border-b border-line">
           <div>
-            <h2 className="text-lg font-semibold text-ink">Onboard Probationary Employee</h2>
-            <p className="text-xs text-ink-3">Article 296 Statutory 180-Day Timeline</p>
+            <h2 className="text-16 font-semibold text-ink">Onboard Probationary Employee</h2>
+            <p className="text-12 text-ink-3">Article 296 Statutory 180-Day Timeline</p>
           </div>
           <button
             type="button"
@@ -116,7 +116,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-ctl bg-bad/8 border border-line text-bad text-xs flex items-center gap-2">
+          <div className="mb-4 p-3 rounded-ctl bg-bad/8 border border-line text-bad text-12 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -188,7 +188,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-ink-2 mb-1" htmlFor="m_supervisor">
+            <label className="block text-12 font-medium text-ink-2 mb-1" htmlFor="m_supervisor">
               Assigned Supervisor *
             </label>
             <div className="relative">
@@ -199,7 +199,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                 value={supervisorId}
                 onChange={(e) => setSupervisorId(e.target.value)}
                 disabled={isSupervisorsLoading || supervisors.length === 0}
-                className="w-full h-9 pl-9 pr-3 border border-line rounded-field bg-transparent text-ink text-sm focus:outline-none focus:border-accent transition-colors disabled:opacity-60"
+                className="w-full h-9 pl-9 pr-3 border border-line rounded-field bg-transparent text-ink text-14 focus:outline-none focus:border-accent transition-colors disabled:opacity-60"
               >
                 {supervisors.length === 0 ? (
                   <option value="">
@@ -222,7 +222,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           </div>
 
           {/* Statutory 180-Day Calculation Banner */}
-          <div className="p-3 rounded-ctl bg-hover border border-line text-xs space-y-2">
+          <div className="p-3 rounded-ctl bg-hover border border-line text-12 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-ink-3 font-mono text-12">Statutory 180-Day Cap</span>
               <span className="font-semibold text-accent font-mono">{day180Preview}</span>
@@ -233,7 +233,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           </div>
 
           {/* Initial Password Notice */}
-          <div className="flex items-center justify-between pt-2 text-xs text-ink-3">
+          <div className="flex items-center justify-between pt-2 text-12 text-ink-3">
             <span>Initial login password:</span>
             <span className="font-mono font-medium text-ink">Password123!</span>
           </div>

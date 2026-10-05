@@ -59,7 +59,7 @@ export default function AppShell({ children }) {
       {/* Skip link — first focusable element (WCAG 2.4.1 Bypass Blocks) */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-ctl focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-ink focus:shadow-pop"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-ctl focus:bg-surface focus:px-4 focus:py-2 focus:text-14 focus:font-medium focus:text-ink focus:shadow-pop"
       >
         Skip to content
       </a>

@@ -159,13 +159,13 @@ main:has(.split) > div {
   background: var(--accent);
 }
 .lrow__n {
-  font-size: 13.5px;
+  font-size: var(--t-14);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 .lrow__m {
   grid-column: 1;
-  font-size: 11.5px;
+  font-size: var(--t-12);
   color: var(--ink-3);
   font-family: var(--mono);
 }
@@ -173,7 +173,7 @@ main:has(.split) > div {
   grid-row: 1;
   grid-column: 2;
   align-self: center;
-  font-size: 10.5px;
+  font-size: var(--t-12);
   font-weight: 600;
   text-align: right;
 }
@@ -192,7 +192,7 @@ main:has(.split) > div {
 .listft {
   padding: 9px 16px;
   border-top: 1px solid var(--line);
-  font-size: 10.5px;
+  font-size: var(--t-12);
   color: var(--ink-3);
   font-family: var(--mono);
   display: flex;
@@ -286,6 +286,77 @@ main:has(.split) > div {
 }
 .rec-block:last-child {
   border-bottom: 0;
+}
+/* Progressive disclosure — a collapsed record-sheet section. */
+.disclosure__h {
+  margin: 0;
+}
+.disclosure__hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  color: var(--ink);
+}
+.disclosure__title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.disclosure__t {
+  font-size: var(--t-16);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.disclosure__s {
+  font-size: var(--t-12);
+  color: var(--ink-3);
+}
+.disclosure__aside {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+.disclosure__meta {
+  font-size: var(--t-12);
+  font-family: var(--mono);
+  color: var(--ink-3);
+}
+.disclosure__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--t-12);
+  font-weight: 600;
+  color: var(--accent);
+}
+.disclosure__body {
+  padding-top: 18px;
+}
+.disclosure__body[hidden] {
+  display: none;
+}
+.disclosure__more {
+  margin-top: 12px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: var(--t-12);
+  font-weight: 600;
+  color: var(--accent);
+}
+.disclosure__count {
+  margin: 12px 0 0;
+  font-size: var(--t-12);
+  font-family: var(--mono);
+  color: var(--ink-3);
 }
 @media (max-width: 1024px) {
   .split {
@@ -415,6 +486,11 @@ main:has(.split) > div {
   }
   .rec {
     position: static !important;
+  }
+
+  /* Print the full record: collapsed disclosure bodies are forced open. */
+  .disclosure__body[hidden] {
+    display: block !important;
   }
 }
 

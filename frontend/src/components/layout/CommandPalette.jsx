@@ -104,7 +104,7 @@ export default function CommandPalette({ isOpen, onClose }) {
             }}
             placeholder="Type a command or search..."
             aria-label="Search commands"
-            className="w-full h-14 px-3 bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none"
+            className="w-full h-14 px-3 bg-transparent text-ink placeholder:text-ink-3 text-14 focus:outline-none"
           />
           <button
             type="button"
@@ -124,7 +124,7 @@ export default function CommandPalette({ isOpen, onClose }) {
           className="max-h-[340px] overflow-y-auto p-2 space-y-1"
         >
           {filtered.length === 0 ? (
-            <div className="py-8 text-center text-xs text-ink-3">
+            <div className="py-8 text-center text-12 text-ink-3">
               No matching commands or pages found.
             </div>
           ) : (
@@ -145,7 +145,7 @@ export default function CommandPalette({ isOpen, onClose }) {
                     setSelectedIndex(index);
                     prefetchRoute(item.id);
                   }}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-ctl cursor-pointer text-xs transition-colors ${
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-ctl cursor-pointer text-12 transition-colors ${
                     isSelected ? 'bg-hover text-ink font-medium' : 'text-ink-2 hover:bg-hover'
                   }`}
                 >

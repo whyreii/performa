@@ -65,7 +65,7 @@ export default function Login() {
           <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
             <BarChart3 className="w-4 h-4" />
           </div>
-          <span className="font-semibold text-base tracking-tight text-ink">Performa</span>
+          <span className="font-semibold text-16 tracking-tight text-ink">Performa</span>
         </div>
 
         {/* Color mode */}
@@ -84,7 +84,7 @@ export default function Login() {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setMode(m.id)}
-                className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-ctl text-xs transition-colors ${
+                className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-ctl text-12 transition-colors ${
                   isActive
                     ? 'bg-surface text-ink font-semibold border border-line'
                     : 'text-ink-3 hover:text-ink'
@@ -102,8 +102,8 @@ export default function Login() {
       <main className="flex-1 flex items-center justify-center p-4">
         <Surface elevated className="w-full max-w-[420px] p-6 sm:p-8 transition-colors duration-performa">
           <div className="text-center mb-6">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-ink">Sign in to Performa</h1>
-            <p className="text-sm text-ink-2 mt-1.5">
+            <h1 className="text-22 sm:text-30 font-semibold tracking-tight text-ink">Sign in to Performa</h1>
+            <p className="text-14 text-ink-2 mt-1.5">
               Philippine Labor Code Article 296 Evaluation Platform
             </p>
           </div>
@@ -111,7 +111,7 @@ export default function Login() {
           {error && (
             <div
               role="alert"
-              className="mb-5 p-3 rounded-ctl bg-bad/8 border border-line flex items-start gap-2 text-bad text-sm"
+              className="mb-5 p-3 rounded-ctl bg-bad/8 border border-line flex items-start gap-2 text-bad text-14"
             >
               <AlertCircle className="w-4 h-4 mt-0.5 flex-none" />
               <span>{error}</span>
@@ -132,7 +132,7 @@ export default function Login() {
 
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <label className="text-xs font-medium text-ink-2" htmlFor="password">
+                <label className="text-12 font-medium text-ink-2" htmlFor="password">
                   Password
                 </label>
               </div>
@@ -145,7 +145,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full h-10 pl-3 pr-10 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:border-accent transition-colors"
+                  className="w-full h-10 pl-3 pr-10 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-14 focus:outline-none focus:border-accent transition-colors"
                 />
                 <button
                   type="button"
@@ -161,7 +161,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-10 mt-2 bg-accent text-accent-foreground font-semibold rounded-ctl text-sm hover:brightness-110 active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              className="w-full h-10 mt-2 bg-accent text-accent-foreground font-semibold rounded-ctl text-14 hover:brightness-110 active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <span>Signing in...</span>
@@ -176,35 +176,35 @@ export default function Login() {
 
           {/* Quick Login Test Accounts for Panel Demo */}
           <div className="mt-6 pt-5 border-t border-line">
-            <span className="block text-xs font-medium text-ink-3 mb-2.5 text-center">
+            <span className="block text-12 font-medium text-ink-3 mb-2.5 text-center">
               Quick demo login (Seeded accounts):
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 type="button"
                 onClick={() => handleQuickLogin('admin@acme.com')}
-                className="px-2.5 py-1.5 text-xs font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
+                className="px-2.5 py-1.5 text-12 font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
               >
                 Admin
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickLogin('employer@acme.com')}
-                className="px-2.5 py-1.5 text-xs font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
+                className="px-2.5 py-1.5 text-12 font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
               >
                 Employer
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickLogin('supervisor@acme.com')}
-                className="px-2.5 py-1.5 text-xs font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
+                className="px-2.5 py-1.5 text-12 font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
               >
                 Supervisor
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickLogin('emp1@acme.com')}
-                className="px-2.5 py-1.5 text-xs font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
+                className="px-2.5 py-1.5 text-12 font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
               >
                 Employee
               </button>
@@ -214,7 +214,7 @@ export default function Login() {
       </main>
 
       {/* Footer info */}
-      <footer className="w-full text-center py-4 text-xs text-ink-3 border-t border-line">
+      <footer className="w-full text-center py-4 text-12 text-ink-3 border-t border-line">
         <span>Strict 180-Day Timeline & Statutory Milestones (Days 150, 165, 178) · Asia/Manila</span>
       </footer>
     </div>

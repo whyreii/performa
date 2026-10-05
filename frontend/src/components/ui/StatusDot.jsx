@@ -29,7 +29,7 @@ export default function StatusDot({
   const isPulsing = pulse || status === 'critical' || status === 'bad';
 
   return (
-    <div className={`inline-flex items-center gap-2 text-xs font-medium text-ink ${className}`}>
+    <div className={`inline-flex items-center gap-2 text-12 font-medium text-ink ${className}`}>
       <span className={`relative flex ${dotSize}`}>
         {isPulsing && (
           <span

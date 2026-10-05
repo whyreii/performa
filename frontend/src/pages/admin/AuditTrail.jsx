@@ -64,9 +64,9 @@ export default function AuditTrail() {
         aboveHeader={
           <div hidden className="print-only mb-6 pb-4 border-b-2 border-black text-black">
             <div className="text-center space-y-1">
-              <p className="text-xs uppercase tracking-widest font-semibold">Republic of the Philippines</p>
-              <p className="text-xs font-semibold">DEPARTMENT OF LABOR AND EMPLOYMENT</p>
-              <p className="text-base font-bold uppercase tracking-tight mt-1">
+              <p className="text-12 uppercase tracking-widest font-semibold">Republic of the Philippines</p>
+              <p className="text-12 font-semibold">DEPARTMENT OF LABOR AND EMPLOYMENT</p>
+              <p className="text-16 font-bold uppercase tracking-tight mt-1">
                 Article 296 Statutory Evaluation Audit Exhibit
               </p>
               <p className="text-12 text-gray-600">
@@ -87,12 +87,12 @@ export default function AuditTrail() {
 
       {/* DOLE Evidentiary Standards Banner */}
       <Card padded={false} className="p-5 space-y-2 no-print">
-        <div className="text-accent font-semibold text-xs">
+        <div className="text-accent font-semibold text-12">
           <span className="font-mono text-12">
             Statutory Legal Standard · Republic of the Philippines
           </span>
         </div>
-        <p className="text-xs text-ink-2 leading-relaxed">
+        <p className="text-12 text-ink-2 leading-relaxed">
           Under Philippine Labor Code Article 296 and established Supreme Court doctrine, employers carry the burden of proof in probationary disputes. Every score entry and modification below is logged with exact timestamps (Asia/Manila) and evaluator credentials for permanent due process records.
         </p>
       </Card>
@@ -141,8 +141,8 @@ export default function AuditTrail() {
         ) : isError ? (
           <div className="p-10 text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
-            <h3 className="text-sm font-semibold text-ink">Failed to load audit trail</h3>
-            <p className="text-xs text-ink-3">
+            <h3 className="text-14 font-semibold text-ink">Failed to load audit trail</h3>
+            <p className="text-12 text-ink-3">
               {getApiErrorMessage(error, 'An error occurred while loading audit records.')}
             </p>
             <Button variant="secondary" size="sm" onClick={() => refetch()}>
@@ -155,7 +155,7 @@ export default function AuditTrail() {
           </EmptyState>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full text-left border-collapse text-12">
               <caption className="sr-only">
                 Evidentiary labor score audit trail (Article 296)
               </caption>
@@ -194,7 +194,7 @@ export default function AuditTrail() {
                           ) : (
                             <span className="text-ink-3 text-12">Initial -&gt;</span>
                           )}
-                          <span className="font-bold text-ink text-sm">
+                          <span className="font-bold text-ink text-14">
                             {log.new_score?.toFixed(1)}
                           </span>
                         </div>
@@ -210,7 +210,7 @@ export default function AuditTrail() {
           </div>
         )}
 
-        <footer className="p-3 border-t border-line text-xs text-ink-3 font-mono flex flex-wrap items-center justify-between gap-2 no-print">
+        <footer className="p-3 border-t border-line text-12 text-ink-3 font-mono flex flex-wrap items-center justify-between gap-2 no-print">
           <span>
             Showing {filteredLogs.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
             {Math.min(currentPage * PAGE_SIZE, filteredLogs.length)} of {filteredLogs.length} verified audit records
@@ -251,20 +251,20 @@ export default function AuditTrail() {
           compliance verification.
         </p>
 
-        <div className="grid grid-cols-3 gap-8 pt-6 text-center text-xs">
+        <div className="grid grid-cols-3 gap-8 pt-6 text-center text-12">
           <div>
             <div className="border-b border-black mb-1 w-full h-10" />
-            <p className="font-semibold text-xs">Evaluator Signature</p>
+            <p className="font-semibold text-12">Evaluator Signature</p>
             <p className="text-12 text-gray-600">Supervisor / Designated Rater</p>
           </div>
           <div>
             <div className="border-b border-black mb-1 w-full h-10" />
-            <p className="font-semibold text-xs">Employee Acknowledgment</p>
+            <p className="font-semibold text-12">Employee Acknowledgment</p>
             <p className="text-12 text-gray-600">Probationary Staff</p>
           </div>
           <div>
             <div className="border-b border-black mb-1 w-full h-10" />
-            <p className="font-semibold text-xs">Employer / HR Attestation</p>
+            <p className="font-semibold text-12">Employer / HR Attestation</p>
             <p className="text-12 text-gray-600">Managing Authority</p>
           </div>
         </div>

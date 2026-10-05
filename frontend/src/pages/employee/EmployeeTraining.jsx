@@ -33,8 +33,8 @@ export default function EmployeeTraining() {
         ) : isError ? (
           <Card padded={false} className="p-10 text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
-            <h3 className="text-base font-semibold text-ink">Failed to load your training plans</h3>
-            <p className="text-xs text-ink-3 max-w-sm mx-auto">
+            <h3 className="text-16 font-semibold text-ink">Failed to load your training plans</h3>
+            <p className="text-12 text-ink-3 max-w-sm mx-auto">
               {getApiErrorMessage(error, 'An error occurred while fetching your interventions.')}
             </p>
             <Button variant="secondary" size="sm" onClick={() => refetch()}>
@@ -55,7 +55,7 @@ export default function EmployeeTraining() {
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-baseline gap-2">
-                      <h3 className="text-base font-semibold text-ink">
+                      <h3 className="text-16 font-semibold text-ink">
                         {plan.intervention_title}
                       </h3>
                       <span className="text-12 text-ink-3">
@@ -63,7 +63,7 @@ export default function EmployeeTraining() {
                         {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-ink-3 font-mono">
+                    <div className="flex items-center gap-3 text-12 text-ink-3 font-mono">
                       <span>Duration: {plan.default_timeline || '4 hours'}</span>
                       <span>·</span>
                       <span>Catalog ID: {plan.catalog_id}</span>
@@ -80,7 +80,7 @@ export default function EmployeeTraining() {
                 </div>
 
                 {plan.rationale && (
-                  <div className="p-4 rounded-ctl bg-hover/70 border border-line text-xs text-ink-2 space-y-1">
+                  <div className="p-4 rounded-ctl bg-hover/70 border border-line text-12 text-ink-2 space-y-1">
                     <span className="font-semibold text-accent text-12 font-mono">
                       Coaching Guidance
                     </span>

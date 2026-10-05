@@ -99,7 +99,7 @@ export default function Notifications() {
         ) : isError ? (
           <div className="p-10 text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
-            <p className="text-xs text-ink-3">
+            <p className="text-12 text-ink-3">
               {getApiErrorMessage(error, 'Failed to load notifications.')}
             </p>
           </div>
@@ -125,11 +125,11 @@ export default function Notifications() {
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-ink">{n.title}</span>
+                      <span className="font-semibold text-14 text-ink">{n.title}</span>
                       <span className="sr-only">{n.is_read ? 'Read' : 'Unread'}</span>
                       {n.category && <Badge variant="neutral">{n.category}</Badge>}
                     </div>
-                    {n.body && <p className="text-xs text-ink-2 mt-0.5">{n.body}</p>}
+                    {n.body && <p className="text-12 text-ink-2 mt-0.5">{n.body}</p>}
                     <span className="text-12 text-ink-3 font-mono mt-1 block">
                       {n.created_at ? formatDate(n.created_at, { withTime: true, seconds: false }) : ''}
                     </span>

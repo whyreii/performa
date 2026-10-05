@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, CardSkeleton, Page, Modal, EmptyState, textareaClass } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, CardSkeleton, Page, Modal, EmptyState, Disclosure, textareaClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -28,24 +28,25 @@ const COMPETENCY_DESCRIPTIONS = {
   initiative_and_adaptability: 'Self-driven problem solving and agility to change',
 };
 
-// One row of the local-attribution waterfall: a floating segment on a 0–100%
-// track. Positive contributions advance the running value to the right; negative
-// contributions move it left. The tone is risk/safe (status tokens) for
-// contribution segments, and neutral for the Base/Predicted bounding bars.
-function WaterfallRow({ label, barFrom, barTo, valueText, tone }) {
-  const left = Math.min(barFrom, barTo) * 100;
-  const width = Math.abs(barTo - barFrom) * 100;
-  const toneClass = tone === 'risk' ? 'bg-bad' : tone === 'safe' ? 'bg-good' : 'bg-ink-3';
+// One ranked feature-importance row: an independent bar (relative to the largest
+// contribution) with a signed percentage. Red = pushed toward the gap, green =
+// pushed away from it. Independent bars (not a cumulative waterfall) so the
+// ranking reads at a glance.
+function ContributionBar({ label, contribution, maxAbs, isRisk }) {
+  const width = maxAbs > 0 ? (Math.abs(contribution) / maxAbs) * 100 : 0;
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-12 font-mono text-ink-2">
-        <span>{label}</span>
-        <span>{valueText}</span>
+        <span className="font-sans">{label}</span>
+        <span>
+          {contribution >= 0 ? '+' : '−'}
+          {(Math.abs(contribution) * 100).toFixed(1)}%
+        </span>
       </div>
-      <div className="relative h-1.5 w-full bg-hover rounded-full">
+      <div className="h-1.5 w-full bg-hover rounded-full overflow-hidden">
         <div
-          className={`absolute top-0 h-full rounded-full ${toneClass}`}
-          style={{ left: `${left}%`, width: `${width}%` }}
+          className={`h-full rounded-full ${isRisk ? 'bg-bad' : 'bg-good'}`}
+          style={{ width: `${width}%` }}
         />
       </div>
     </div>
@@ -63,6 +64,7 @@ export default function EmployeeDetail() {
   const [selectedStatus, setSelectedStatus] = useState('regularized');
   const [statusReason, setStatusReason] = useState('');
   const [actionError, setActionError] = useState('');
+  const [showAllHistory, setShowAllHistory] = useState(false);
 
   // Fetch employee profile
   const {
@@ -152,19 +154,21 @@ export default function EmployeeDetail() {
     return targets.length ? Math.max(TARGET, ...targets) : TARGET;
   }, [scorecard]);
 
-  // Exact-Shapley local attribution (backend/ml/explain.py) rendered as a
-  // cumulative waterfall: each competency moves the running probability from the
-  // background base value toward the predicted value.
+  // Feature importance for the ML Risk Explanation: rank each competency by how
+  // much it moved this employee's prediction (exact Shapley, backend/ml/explain.py),
+  // plus the model-wide importance (Gini). Independent bars, not a cumulative
+  // waterfall, so the ranking is readable at a glance.
   const shap = riskExplanation?.shap_values || {};
-  const shapBase = Number(riskExplanation?.shap_base_value || 0);
-  const shapSteps = [];
-  let shapRunning = shapBase;
-  for (const [key, value] of Object.entries(shap)) {
-    const contribution = Number(value);
-    shapSteps.push({ key, contribution, from: shapRunning, to: shapRunning + contribution });
-    shapRunning += contribution;
-  }
-  const shapPredicted = shapRunning;
+  const contributionRows = Object.entries(shap)
+    .map(([key, value]) => ({ key, contribution: Number(value) }))
+    .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
+  const maxAbsContribution = contributionRows.reduce(
+    (max, row) => Math.max(max, Math.abs(row.contribution)),
+    0
+  );
+  const modelImportance = Object.entries(riskExplanation?.feature_importances || {})
+    .map(([key, value]) => ({ key, value: Number(value) }))
+    .sort((a, b) => b.value - a.value);
 
   const regularizationMutation = useMutation({
     mutationFn: () => evaluationApi.generateRegularization(id),
@@ -275,8 +279,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
     return (
       <Card padded={false} className="p-12 text-center space-y-4">
         <ShieldAlert className="w-10 h-10 text-bad mx-auto" />
-        <h2 className="text-lg font-semibold text-ink">Employee profile not found</h2>
-        <p className="text-xs text-ink-3">
+        <h2 className="text-22 font-semibold text-ink">Employee profile not found</h2>
+        <p className="text-12 text-ink-3">
           {getApiErrorMessage(empError, 'The requested probationary profile does not exist.')}
         </p>
         <Button
@@ -312,7 +316,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         <p className="text-center text-12 font-semibold tracking-widest uppercase">
           Republic of the Philippines
         </p>
-        <p className="text-center text-lg font-bold mt-1">
+        <p className="text-center text-22 font-bold mt-1">
           Probationary Performance Evaluation Report
         </p>
         <p className="text-center text-12 mt-1">
@@ -341,7 +345,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           <button
             type="button"
             onClick={() => navigate('/employee/dashboard')}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-2 hover:text-accent transition-colors"
+            className="inline-flex items-center gap-1.5 text-12 font-semibold text-ink-2 hover:text-accent transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to My Scorecard</span>
@@ -589,18 +593,15 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         </CardSkeleton>
       )}
       {!isTrendLoading && trend.length > 0 && (
-        <Card className="rec-block space-y-4">
-          <div className="flex items-center justify-between pb-3">
-            <h2 className="text-base font-semibold text-ink">Monthly KPI Trend</h2>
-            <div className="flex items-center gap-3">
-              <span className="text-12 font-mono text-ink-3">Target &gt;= {overallTarget.toFixed(2)}</span>
-              <span className="text-12 text-ink-3">{trend.length} months</span>
-            </div>
-          </div>
+        <Disclosure
+          title="Monthly KPI Trend"
+          subtitle={`Target >= ${overallTarget.toFixed(2)}`}
+          meta={`${trend.length} months`}
+        >
           <div className="space-y-3">
             {trend.map((point) => (
               <div key={point.month_number} className="space-y-1">
-                <div className="flex justify-between text-xs font-mono text-ink-2">
+                <div className="flex justify-between text-12 font-mono text-ink-2">
                   <span>Month {point.month_number}</span>
                   <span className={`font-semibold ${Number(point.overall_average) >= overallTarget ? 'text-good' : 'text-warn'}`}>
                     {Number(point.overall_average).toFixed(2)} / 5.0
@@ -623,14 +624,14 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </div>
             ))}
           </div>
-        </Card>
+        </Disclosure>
       )}
 
       {/* 3c. Regularization Recommendation */}
       <Card className="rec-block space-y-4">
         <div className="flex items-center justify-between pb-3">
           <div>
-            <h2 className="text-base font-semibold text-ink">Regularization Recommendation</h2>
+            <h2 className="text-16 font-semibold text-ink">Regularization Recommendation</h2>
             <p className="text-12 text-ink-3 mt-0.5">
               AI-assisted decision support at the mid-5th month
             </p>
@@ -716,13 +717,11 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         </CardSkeleton>
       )}
       {!isRiskLoading && riskExplanation && (
-        <Card className="rec-block space-y-4 no-print">
-          <div className="flex items-center justify-between pb-3">
+        <Card className="rec-block space-y-5 no-print">
+          <div className="flex items-center justify-between gap-4 pb-3">
             <div>
-              <h2 className="text-base font-semibold text-ink">ML Risk Explanation</h2>
-              <p className="text-12 text-ink-3 mt-0.5">
-                Feature importance for legal defensibility
-              </p>
+              <h2 className="text-16 font-semibold text-ink">ML Risk Explanation</h2>
+              <p className="text-12 text-ink-3 mt-0.5">Feature importance for legal defensibility · Random Forest</p>
             </div>
             <Badge variant="accent">
               {riskExplanation.predicted_tier} ·{' '}
@@ -730,103 +729,69 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             </Badge>
           </div>
 
-          {/* Local attribution — exact Shapley (per-employee), cumulative waterfall */}
-          <div className="space-y-2">
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-12 font-medium text-ink-2">
-                Local attribution · {riskExplanation.shap_target_class}
+          <p className="text-14 text-ink-2">
+            The model predicts{' '}
+            <span className="font-semibold text-ink">{riskExplanation.predicted_tier}</span> with{' '}
+            <span className="font-semibold text-ink">
+              {(Number(riskExplanation.confidence) * 100).toFixed(0)}%
+            </span>{' '}
+            confidence. Competencies are ranked by how much each moved this prediction.
+          </p>
+
+          {/* Feature importance — independent bars, ranked by contribution */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-12 font-medium text-ink-2">Feature importance</span>
+              <span className="flex items-center gap-3 text-12 text-ink-3">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-bad" />
+                  toward gap
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-good" />
+                  away from gap
+                </span>
               </span>
-              <span className="text-12 font-mono text-ink-3">probability 0–100%</span>
             </div>
-            <div className="flex items-center gap-3 text-12 text-ink-3">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-bad" />
-                toward gap
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-good" />
-                away from gap
-              </span>
-            </div>
-            <WaterfallRow
-              label="Base value"
-              barFrom={0}
-              barTo={shapBase}
-              valueText={`${(shapBase * 100).toFixed(1)}%`}
-              tone="base"
-            />
-            {shapSteps.map(({ key, contribution, from, to }) => {
-              const isRisk =
-                (contribution >= 0) === (riskExplanation.shap_risk_polarity === 'risk');
-              return (
-                <WaterfallRow
-                  key={key}
-                  label={key.replace(/_/g, ' ')}
-                  barFrom={from}
-                  barTo={to}
-                  valueText={`${contribution >= 0 ? '+' : '−'}${(Math.abs(contribution) * 100).toFixed(1)}%`}
-                  tone={isRisk ? 'risk' : 'safe'}
-                />
-              );
-            })}
-            <WaterfallRow
-              label="Predicted"
-              barFrom={0}
-              barTo={shapPredicted}
-              valueText={`${(shapPredicted * 100).toFixed(1)}%`}
-              tone="base"
-            />
-            <p className="text-12 font-mono text-ink-3">
-              = predicted {(shapPredicted * 100).toFixed(1)}% for {riskExplanation.shap_target_class}
-            </p>
+            {contributionRows.map(({ key, contribution }) => (
+              <ContributionBar
+                key={key}
+                label={key.replace(/_/g, ' ')}
+                contribution={contribution}
+                maxAbs={maxAbsContribution}
+                isRisk={
+                  (contribution >= 0) === (riskExplanation.shap_risk_polarity === 'risk')
+                }
+              />
+            ))}
           </div>
 
-          {/* Global importance — Gini impurity + permutation */}
+          {/* Model-wide importance — single metric (Gini) */}
           <div className="pt-3 border-t border-line">
-            <p className="text-12 font-medium text-ink-2 mb-2">Global importance</p>
-            <table className="w-full text-12">
-              <thead>
-                <tr className="text-ink-3 font-mono">
-                  <th className="text-left font-medium pb-1">Competency</th>
-                  <th className="text-right font-medium pb-1">Gini</th>
-                  <th className="text-right font-medium pb-1">Permutation</th>
-                </tr>
-              </thead>
-              <tbody className="font-mono">
-                {Object.keys(riskExplanation.feature_importances || {}).map((key) => (
-                  <tr key={key} className="text-ink-2">
-                    <td className="py-1">{key.replace(/_/g, ' ')}</td>
-                    <td className="py-1 text-right">
-                      {(Number(riskExplanation.feature_importances[key]) * 100).toFixed(1)}%
-                    </td>
-                    <td className="py-1 text-right">
-                      {(Number((riskExplanation.permutation_importances || {})[key]) * 100).toFixed(1)}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <p className="text-12 font-medium text-ink-2 mb-2">Model-wide importance</p>
+            <ul className="space-y-1">
+              {modelImportance.map(({ key, value }) => (
+                <li key={key} className="flex justify-between text-12 font-mono text-ink-2">
+                  <span className="font-sans">{key.replace(/_/g, ' ')}</span>
+                  <span>{(value * 100).toFixed(1)}%</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
           <p className="text-12 text-ink-3">
-            Local attribution explains the model's output for this employee, not an
-            employment decision. {riskExplanation.explanation_method}.
+            Feature importance explains the model's output for this employee, not an
+            employment decision.
           </p>
         </Card>
       )}
 
       {/* 4. Immutable Evaluation History Audit Trail */}
-      <Card className="rec-block space-y-4">
-        <div className="flex items-center justify-between pb-3">
-          <div>
-            <h2 className="text-base font-semibold text-ink">Evaluation history</h2>
-            <p className="text-12 text-ink-3 mt-0.5">
-              Append-only · one row per change
-            </p>
-          </div>
-          <span className="font-mono text-12 text-ink-3">{auditLogs.length} records</span>
-        </div>
-
+      <Disclosure
+        title="Evaluation history"
+        subtitle="Append-only · one row per change"
+        meta={`${auditLogs.length} ${auditLogs.length === 1 ? 'record' : 'records'}`}
+      >
         {isAuditLoading ? (
           <Skeleton className="h-24 w-full" />
         ) : auditLogs.length === 0 ? (
@@ -834,12 +799,13 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             No evaluations submitted yet for this employee.
           </EmptyState>
         ) : (
+          <>
           <div className="divide-y divide-line">
-            {auditLogs.map((log) => {
+            {(showAllHistory ? auditLogs : auditLogs.slice(0, 8)).map((log) => {
               const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
               return (
                 <div key={log.id} className="py-3 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-12">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-ink">
                         {log.evaluator_name || 'Evaluator'}
@@ -850,7 +816,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                     </div>
                     <span className="font-mono text-ink-3">{formatDate(log.created_at)}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs font-mono text-ink-2">
+                  <div className="flex items-center gap-2 text-12 font-mono text-ink-2">
                     <span className="text-ink-3">
                       {hasPrior ? `${Number(log.prior_score).toFixed(1)} -> ` : 'Initial -> '}
                     </span>
@@ -862,8 +828,21 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               );
             })}
           </div>
+            {!showAllHistory && auditLogs.length > 8 && (
+              <button
+                type="button"
+                className="disclosure__more"
+                onClick={() => setShowAllHistory(true)}
+              >
+                Show all {auditLogs.length}
+              </button>
+            )}
+            {showAllHistory && auditLogs.length > 8 && (
+              <p className="disclosure__count">Showing all {auditLogs.length} records</p>
+            )}
+          </>
         )}
-      </Card>
+      </Disclosure>
 
       {/* Print-only signature block */}
       <div className="print-only mt-10 pt-6 border-t-2 border-black">
@@ -900,7 +879,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         labelledBy="status-modal-title"
       >
         <div className="flex items-center justify-between border-b border-line pb-3">
-          <h3 id="status-modal-title" className="text-base font-semibold text-ink">Update Probationary Status</h3>
+          <h3 id="status-modal-title" className="text-16 font-semibold text-ink">Update Probationary Status</h3>
               <button
                 type="button"
                 onClick={() => setIsDeactivateModalOpen(false)}
@@ -912,13 +891,13 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             </div>
 
             {actionError && (
-              <div className="p-3 rounded-ctl bg-bad/10 text-bad text-xs flex items-center gap-2">
+              <div className="p-3 rounded-ctl bg-bad/10 text-bad text-12 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 <span>{actionError}</span>
               </div>
             )}
 
-            <p className="text-xs text-ink-2">
+            <p className="text-12 text-ink-2">
               Select the statutory status decision for <b>{employee.user?.full_name}</b>:
             </p>
 
@@ -938,7 +917,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   onChange={() => setSelectedStatus('regularized')}
                 />
                 <div>
-                  <span className="font-semibold text-xs block text-ok">Confer Regular Status</span>
+                  <span className="font-semibold text-12 block text-ok">Confer Regular Status</span>
                   <span className="text-12 text-ink-3 block">
                     Employee has passed probationary standards.
                   </span>
@@ -960,7 +939,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   onChange={() => setSelectedStatus('terminated')}
                 />
                 <div>
-                  <span className="font-semibold text-xs block text-bad">Non-Regularize / Terminate</span>
+                  <span className="font-semibold text-12 block text-bad">Non-Regularize / Terminate</span>
                   <span className="text-12 text-ink-3 block">
                     Due to failure to meet initial probationary standards.
                   </span>
@@ -970,7 +949,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
             {selectedStatus === 'terminated' && (
               <div>
-                <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="status_reason">
+                <label className="block text-12 font-medium text-ink-2 mb-1.5" htmlFor="status_reason">
                   Reason for Termination *
                 </label>
                 <textarea

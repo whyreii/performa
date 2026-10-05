@@ -9,7 +9,7 @@ export default function TextField({ id, label, error, hint, className = '', ...p
   return (
     <div className={className}>
       {label && (
-        <label className="block text-xs font-medium text-ink-2 mb-1" htmlFor={id}>
+        <label className="block text-12 font-medium text-ink-2 mb-1" htmlFor={id}>
           {label}
         </label>
       )}

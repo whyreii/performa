@@ -91,7 +91,7 @@ export default function Rubrics() {
     >
 
       {isRubricsError && (
-        <div className="p-3 rounded-ctl bg-warn/8 border border-line text-warn text-xs flex items-center gap-2">
+        <div className="p-3 rounded-ctl bg-warn/8 border border-line text-warn text-12 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>
             Could not load your configured targets/weights right now — showing platform defaults.
@@ -101,12 +101,12 @@ export default function Rubrics() {
 
       {/* Legal Banner */}
       <Card padded={false} className="p-5 space-y-2">
-        <div className="text-accent font-semibold text-xs">
+        <div className="text-accent font-semibold text-12">
           <span className="font-mono text-12">
             Statutory Legal Basis (Aliling v. Feliciano / Tamson Doctrine)
           </span>
         </div>
-        <p className="text-xs text-ink-2 leading-relaxed">
+        <p className="text-12 text-ink-2 leading-relaxed">
           In Philippine labor law, reasonable standards of performance must be made known to the employee at the time of engagement (Day 1). Ratings assigned in weekly evaluations directly enforce these communicated criteria.
         </p>
       </Card>
@@ -117,8 +117,8 @@ export default function Rubrics() {
           <Card key={rubric.id} className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-line">
               <div>
-                <h2 className="text-base font-semibold text-ink">{rubric.name}</h2>
-                <p className="text-xs text-ink-3 mt-0.5">{rubric.desc}</p>
+                <h2 className="text-16 font-semibold text-ink">{rubric.name}</h2>
+                <p className="text-12 text-ink-3 mt-0.5">{rubric.desc}</p>
               </div>
               <div className="flex items-center gap-3 self-start sm:self-center font-mono text-12 text-ink-3">
                 <span>
@@ -141,7 +141,7 @@ export default function Rubrics() {
               {rubric.levels.map((lvl) => (
                 <div
                   key={lvl.score}
-                  className={`p-3 rounded-ctl border text-xs space-y-2 ${
+                  className={`p-3 rounded-ctl border text-12 space-y-2 ${
                     lvl.title.includes('Target')
                       ? 'bg-ok/5 border-line'
                       : 'bg-hover/60 border-line'

@@ -187,18 +187,18 @@ export default function RateEmployee() {
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight text-ink">
+          <h1 className="text-22 font-bold tracking-tight text-ink">
             Evaluation Successfully Recorded
           </h1>
-          <p className="text-sm text-ink-2 max-w-md mx-auto">
+          <p className="text-14 text-ink-2 max-w-md mx-auto">
             The weekly evaluation for <b>{selectedEmployee?.user?.full_name}</b> has been recorded in the immutable audit trail.
           </p>
         </div>
 
-        <Card as="div" padded={false} className="p-5 text-left space-y-3 font-mono text-xs">
+        <Card as="div" padded={false} className="p-5 text-left space-y-3 font-mono text-12">
           <div className="flex justify-between border-b border-line pb-2">
             <span className="text-ink-3">Overall Average</span>
-            <span className="font-bold text-ink text-sm">
+            <span className="font-bold text-ink text-14">
               {submittedEvaluation.overall_score?.toFixed(1) || overallAverage.toFixed(1)} / 5.0
             </span>
           </div>
@@ -246,7 +246,7 @@ export default function RateEmployee() {
       {error && (
         <div
           role="alert"
-          className="p-3 rounded-ctl bg-bad/8 border border-line text-bad text-xs flex items-center gap-2"
+          className="p-3 rounded-ctl bg-bad/8 border border-line text-bad text-12 flex items-center gap-2"
         >
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
@@ -277,7 +277,7 @@ export default function RateEmployee() {
           <Card padded={false} className="p-5 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex-1 max-w-md">
-                <label className="block text-xs font-medium text-ink-2 mb-1.5" htmlFor="empSelect">
+                <label className="block text-12 font-medium text-ink-2 mb-1.5" htmlFor="empSelect">
                   Select Probationary Employee
                 </label>
                 {isEmpListLoading ? (
@@ -337,13 +337,13 @@ export default function RateEmployee() {
                     <span className="text-12 font-mono font-semibold text-accent">
                       Competency {idx + 1} of 5
                     </span>
-                    <h3 className="text-base font-semibold text-ink">{comp.label}</h3>
-                    <p className="text-xs text-ink-2 leading-relaxed">{comp.desc}</p>
+                    <h3 className="text-16 font-semibold text-ink">{comp.label}</h3>
+                    <p className="text-12 text-ink-2 leading-relaxed">{comp.desc}</p>
                   </div>
 
                   <div className="flex items-baseline gap-2 self-start sm:self-center">
                     <span
-                      className={`font-mono text-lg font-bold ${
+                      className={`font-mono text-22 font-bold ${
                         isMeets ? 'text-good' : 'text-warn'
                       }`}
                     >
@@ -394,8 +394,8 @@ export default function RateEmployee() {
         <Card className="space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
             <div>
-              <h3 className="text-base font-semibold text-ink">Overall Evaluation Summary</h3>
-              <p className="text-xs text-ink-3 mt-0.5">
+              <h3 className="text-16 font-semibold text-ink">Overall Evaluation Summary</h3>
+              <p className="text-12 text-ink-3 mt-0.5">
                 Calculated across the 5 statutory competencies
               </p>
             </div>
@@ -403,8 +403,8 @@ export default function RateEmployee() {
             <div className="flex items-center gap-3">
               <div className="text-right">
                 <span className="text-12 text-ink-3 font-mono block">Overall Score</span>
-                <span className="text-2xl font-bold font-mono text-ink">
-                  {overallAverage.toFixed(1)} <span className="text-xs text-ink-3">/ 5.0</span>
+                <span className="text-22 font-bold font-mono text-ink">
+                  {overallAverage.toFixed(1)} <span className="text-12 text-ink-3">/ 5.0</span>
                 </span>
               </div>
               <Badge variant={overallAverage >= thresholdTarget ? 'ok' : 'warn'}>
@@ -417,7 +417,7 @@ export default function RateEmployee() {
 
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <label className="text-xs font-semibold text-ink" htmlFor="remarks">
+              <label className="text-12 font-semibold text-ink" htmlFor="remarks">
                 Evidentiary Behavioral Remarks *
               </label>
               <span className="text-12 text-ink-3 font-mono">
@@ -432,7 +432,7 @@ export default function RateEmployee() {
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="Detail specific behavioral evidence, projects completed, coaching provided, and concrete milestones achieved this week..."
-              className="w-full p-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:border-accent transition-colors"
+              className="w-full p-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-14 focus:outline-none focus:border-accent transition-colors"
             />
             <p className="text-12 text-ink-3 mt-1.5 leading-relaxed flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-accent shrink-0" />
@@ -462,19 +462,19 @@ export default function RateEmployee() {
         panelClassName="sm:p-7"
       >
             <div className="pb-3 border-b border-line">
-              <h3 id="confirm-eval-title" className="text-base font-semibold text-ink">
+              <h3 id="confirm-eval-title" className="text-16 font-semibold text-ink">
                 Confirm Immutable Evaluation Submission
               </h3>
-              <p className="text-xs text-ink-3">Article 296 Evidentiary Logging</p>
+              <p className="text-12 text-ink-3">Article 296 Evidentiary Logging</p>
             </div>
 
-            <p className="text-xs text-ink-2 leading-relaxed">
+            <p className="text-12 text-ink-2 leading-relaxed">
               You are submitting a weekly performance rating of{' '}
               <b className="font-mono text-ink">{overallAverage.toFixed(1)} / 5.0</b> for{' '}
               <b className="text-ink">{selectedEmployee?.user?.full_name}</b>.
             </p>
 
-            <div className="p-4 rounded-ctl bg-hover border border-line text-xs text-ink-3 space-y-1">
+            <div className="p-4 rounded-ctl bg-hover border border-line text-12 text-ink-3 space-y-1">
               <span className="font-semibold text-ink block">Legal Notice on Audit Trail:</span>
               <p className="leading-relaxed">
                 Under Philippine labor jurisprudence, evaluations once entered into the platform are permanently recorded in the append-only audit trail. They cannot be retracted, edited, or deleted.
