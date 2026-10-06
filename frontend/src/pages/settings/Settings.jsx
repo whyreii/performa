@@ -3,6 +3,10 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { authApi, organizationApi, getApiErrorMessage } from '../../api';
 import { Button, Badge, TextField, Page } from '../../components/ui';
+
+// RubberSegment pulls in `motion`, so it is code-split: the dependency loads
+// only when the Appearance section is actually opened.
+const RubberSegment = React.lazy(() => import('../../components/ui/RubberSegment'));
 import {
   User,
   Palette,
@@ -36,7 +40,7 @@ const sectionFromHash = () => {
 
 export default function Settings() {
   const { user, refreshUser } = useAuth();
-  const { mode, setMode } = useTheme();
+  const { mode, setMode, reduceMotion, setReduceMotion } = useTheme();
 
   // Active rail section (deep-linkable via #profile / #appearance / …).
   const [active, setActive] = useState(sectionFromHash);
@@ -335,32 +339,49 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <div
-                  role="tablist"
-                  aria-label="Color mode"
-                  className="inline-flex items-center gap-1 p-1 rounded-ctl border border-line bg-hover"
+                <React.Suspense
+                  fallback={<div className="h-9 w-[290px] rounded-ctl bg-hover" aria-hidden="true" />}
                 >
-                  {MODES.map((m) => {
-                    const Icon = m.icon;
-                    const isActive = mode === m.id;
-                    return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={isActive}
-                        onClick={() => setMode(m.id)}
-                        className={`inline-flex items-center gap-2 h-9 px-4 rounded-ctl text-14 transition-colors ${
-                          isActive
-                            ? 'bg-surface text-ink font-semibold border border-line'
-                            : 'text-ink-3 hover:text-ink'
-                        }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                        {m.label}
-                      </button>
-                    );
-                  })}
+                  <RubberSegment
+                    aria-label="Color mode"
+                    items={MODES.map((m) => {
+                      const Icon = m.icon;
+                      return { value: m.id, label: m.label, icon: <Icon className="w-4 h-4" /> };
+                    })}
+                    value={mode}
+                    onChange={(value) => setMode(value)}
+                    trackColor="var(--hover)"
+                    thumbColor="var(--ink)"
+                    textColor="var(--ink-2)"
+                    activeTextColor="var(--bg)"
+                    size="md"
+                    radius={8}
+                  />
+                </React.Suspense>
+
+                <div className="mt-6 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <h3 className="text-14 font-semibold text-ink">Reduce motion</h3>
+                    <p className="text-12 text-ink-3 mt-0.5">
+                      Minimises page transitions, number count-ups and control animations.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={reduceMotion}
+                    aria-label="Reduce motion"
+                    onClick={() => setReduceMotion(!reduceMotion)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                      reduceMotion ? 'bg-accent border-accent' : 'bg-hover border-line'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 rounded-full bg-surface transition-transform ease-spring ${
+                        reduceMotion ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
                 </div>
               </section>
             )}

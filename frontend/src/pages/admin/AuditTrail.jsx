@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { formatDate } from '../../utils/datetime';
+import { formatDate, manilaDateKey, formatManilaDay, formatManilaTime } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
-import { Button, Badge, Skeleton, EmptyState, Card, Page, inputClass, selectClass } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, Page, inputClass, GlideSelect } from '../../components/ui';
 import {
   History,
   Printer,
@@ -15,6 +15,12 @@ import {
   Clock,
   ArrowRight,
 } from '../../components/icons';
+
+const COMPETENCY_LABELS = new Map(COMPETENCIES.map((c) => [c.key, c.label]));
+
+function competencyLabel(key) {
+  return COMPETENCY_LABELS.get(key) || (key ? key.replace(/_/g, ' ') : '');
+}
 
 export default function AuditTrail() {
   const { user } = useAuth();
@@ -58,6 +64,22 @@ export default function AuditTrail() {
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
+
+  // Group the current page's entries by Asia/Manila calendar day. The list is
+  // already newest-first, so the day groups stay in order.
+  const dayGroups = useMemo(() => {
+    const byDay = new Map();
+    pageLogs.forEach((log) => {
+      const key = manilaDateKey(log.created_at);
+      if (!byDay.has(key)) byDay.set(key, []);
+      byDay.get(key).push(log);
+    });
+    return Array.from(byDay.entries()).map(([key, logs]) => ({
+      key,
+      label: formatManilaDay(logs[0].created_at),
+      logs,
+    }));
+  }, [pageLogs]);
 
   return (
     <Page
@@ -113,21 +135,24 @@ export default function AuditTrail() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <select
-            value={competencyFilter}
-            onChange={(e) => setCompetencyFilter(e.target.value)}
-            aria-label="Filter by competency"
-            className={selectClass}
-          >
-            <option value="all">All Competencies</option>
-            {COMPETENCIES.map((c) => (
-              <option key={c.key} value={c.key}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <GlideSelect
+          className="glide-select--control"
+          ariaLabel="Filter by competency"
+          value={competencyFilter}
+          onChange={(value) => setCompetencyFilter(value)}
+          options={[
+            { value: 'all', label: 'All Competencies' },
+            ...COMPETENCIES.map((c) => ({ value: c.key, label: c.label })),
+          ]}
+          showTags={false}
+          accentColor="var(--accent)"
+          surfaceColor="var(--surface)"
+          highlightColor="var(--hover)"
+          textColor="var(--ink)"
+          size="md"
+          radius={8}
+          menuWidth={248}
+        />
       </div>
 
       {/* Audit Log Table */}
@@ -154,7 +179,50 @@ export default function AuditTrail() {
             Weekly evaluations submitted by supervisors will appear here automatically.
           </EmptyState>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            {/* Stream (screen): chronological, grouped by Asia/Manila day. */}
+            <div className="no-print">
+              {dayGroups.map((group) => (
+                <div key={group.key} className="border-b border-line last:border-b-0">
+                  <p className="px-4 pt-4 pb-1 font-mono text-12 text-ink-3">{group.label}</p>
+                  {group.logs.map((log) => {
+                    const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
+                    return (
+                      <div
+                        key={log.id}
+                        className="flex items-baseline gap-3 px-4 py-3 transition-colors hover:bg-hover"
+                      >
+                        <time
+                          dateTime={log.created_at}
+                          className="w-20 shrink-0 font-mono text-12 text-ink-3"
+                        >
+                          {formatManilaTime(log.created_at)}
+                        </time>
+                        <span className="min-w-0 flex-1 text-14 text-ink-2">
+                          <span className="font-medium text-ink">{log.evaluator_name}</span>
+                          {' recorded '}
+                          <span className="text-ink">{competencyLabel(log.competency)}</span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-2 font-mono text-12">
+                          {hasPrior ? (
+                            <>
+                              <span className="text-ink-3">{log.prior_score?.toFixed(1)}</span>
+                              <ArrowRight className="h-3 w-3 text-ink-3" />
+                            </>
+                          ) : (
+                            <span className="text-ink-3">Initial</span>
+                          )}
+                          <span className="text-14 font-bold text-ink">{log.new_score?.toFixed(1)}</span>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+
+            {/* Print-only exhibit table: the DOLE/NLRC legal format is unchanged. */}
+            <div className="overflow-x-auto print-only">
             <table className="w-full text-left border-collapse text-12">
               <caption className="sr-only">
                 Evidentiary labor score audit trail (Article 296)
@@ -207,7 +275,8 @@ export default function AuditTrail() {
                 })}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
 
         <footer className="p-3 border-t border-line text-12 text-ink-3 font-mono flex flex-wrap items-center justify-between gap-2 no-print">

@@ -77,6 +77,35 @@
   }
 }
 
+/* Reveal (adapted from React Bits Animated Content): the direct children of a
+   page fade/slide in with a short stagger. Opt-in via <Page reveal>. The global
+   prefers-reduced-motion rule below collapses this to an instant appearance. */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* `backwards` (not `both`): the end keyframe animates to `transform: none`,
+   and `both` would retain an identity matrix afterwards — which creates a
+   stacking context on every section and breaks overlay/menu z-order. */
+.reveal > * {
+  animation: reveal-up var(--m) var(--ease) backwards;
+}
+.reveal > *:nth-child(1) { animation-delay: 0ms; }
+.reveal > *:nth-child(2) { animation-delay: 40ms; }
+.reveal > *:nth-child(3) { animation-delay: 80ms; }
+.reveal > *:nth-child(4) { animation-delay: 120ms; }
+.reveal > *:nth-child(5) { animation-delay: 160ms; }
+.reveal > *:nth-child(6) { animation-delay: 200ms; }
+.reveal > *:nth-child(7) { animation-delay: 240ms; }
+.reveal > *:nth-child(8) { animation-delay: 280ms; }
+.reveal > *:nth-child(n + 9) { animation-delay: 320ms; }
+
 /* Employee Split (master–detail): record list left, detail right. Boxed inside
    the shell's gallery wall; both panes scroll internally so the list stays
    visible while a record scrolls. */
@@ -477,6 +506,29 @@
   white-space: nowrap;
 }
 
+/* GlideSelect used as a toolbar control: match the app's field styling so the
+   chip and its menu sit on the same grid as the search input and the table. */
+.glide-select--control .glide-select__trigger {
+  height: 40px;
+  padding: 0 10px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-field);
+  background: var(--surface);
+  font-size: var(--t-14);
+}
+.glide-select--control .glide-select__trigger:hover,
+.glide-select--control .glide-select__trigger[aria-expanded='true'] {
+  background: var(--hover);
+}
+.glide-select--control .glide-select__menu {
+  border: 1px solid var(--line);
+  border-radius: var(--r-field);
+  box-shadow: var(--pop);
+}
+.glide-select--control .glide-select__option {
+  font-size: var(--t-14);
+}
+
 @media (max-width: 1024px) {
   .srail {
     display: block;
@@ -530,6 +582,17 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* User preference (Settings → Appearance): force reduced motion app-wide,
+   independent of the OS setting. Mirrors the media query above. */
+html[data-reduce-motion='true'] *,
+html[data-reduce-motion='true'] *::before,
+html[data-reduce-motion='true'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
 }
 
 /* Print optimization for official legal and audit documentation */

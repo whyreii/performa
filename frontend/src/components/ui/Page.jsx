@@ -15,14 +15,19 @@ export default function Page({
   headerClassName = '',
   aboveHeader,
   animate = true,
+  reveal = true,
   printSheet = false,
   className = '',
   children,
   ...props
 }) {
+  // `reveal` (default) staggers the page's direct children in on mount (React
+  // Bits Animated Content); it supersedes the whole-page fade so the two never
+  // double up. Opt out with `reveal={false}`. Both collapse to an instant
+  // appearance under prefers-reduced-motion or the app's Reduce-motion setting.
   const classes = [
     'space-y-6',
-    animate ? 'animate-in fade-in duration-150' : '',
+    reveal ? 'reveal' : animate ? 'animate-in fade-in duration-150' : '',
     printSheet ? 'print-sheet' : '',
     className,
   ]

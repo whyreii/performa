@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, Page, Surface } from '../../components/ui';
+import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, Page, Surface, CountUp } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -116,7 +116,9 @@ export default function Dashboard() {
         <Card as="div" padded={false} className="p-5 flex flex-col gap-2">
           <span className="text-14 font-semibold text-ink">Active Probationers</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-30 font-bold font-mono text-ink">{stats.totalActive}</span>
+            <span className="text-30 font-bold font-mono text-ink">
+              <CountUp value={stats.totalActive} />
+            </span>
             <span className="text-12 text-ink-3">staff members</span>
           </div>
           <p className="text-12 text-ink-2">Under {PROBATION_DAYS}-day evaluation</p>
@@ -131,7 +133,7 @@ export default function Dashboard() {
                 stats.criticalMilestones > 0 ? 'text-warn' : 'text-ink'
               }`}
             >
-              {stats.criticalMilestones}
+              <CountUp value={stats.criticalMilestones} />
             </span>
             <span className="text-12 text-ink-3">action items</span>
           </div>
@@ -144,7 +146,9 @@ export default function Dashboard() {
         <Card as="div" padded={false} className="p-5 flex flex-col gap-2">
           <span className="text-14 font-semibold text-ink">Regularizing Target</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-30 font-bold font-mono text-ink">4.0</span>
+            <span className="text-30 font-bold font-mono text-ink">
+              <CountUp value={4} decimals={1} />
+            </span>
             <span className="text-12 text-ink-3">/ 5.0 passing</span>
           </div>
           <p className="text-12 text-ink-2">Across 5 legal competencies</p>
@@ -159,7 +163,7 @@ export default function Dashboard() {
                 (stats.pendingPlans ?? plans.length) === 0 ? 'text-ok' : 'text-ink'
               }`}
             >
-              {stats.pendingPlans ?? plans.length}
+              <CountUp value={stats.pendingPlans ?? plans.length} />
             </span>
             <span className="text-12 text-ink-3">
               {(stats.pendingPlans ?? plans.length) === 0

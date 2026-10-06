@@ -52,6 +52,39 @@ export function formatManilaClock(date = new Date()) {
   });
 }
 
+// Asia/Manila calendar-day key (YYYY-MM-DD) for grouping logs by day.
+export function manilaDateKey(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(value));
+}
+
+// Friendly Asia/Manila day label for a grouped log, e.g. "Oct 2, 2026".
+export function formatManilaDay(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Manila',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(value));
+}
+
+// Asia/Manila time only, e.g. "02:22 PM". Display only.
+export function formatManilaTime(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Manila',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date(value));
+}
+
 export function formatDate(value, { withTime = false, seconds = true } = {}) {
   if (!value) return 'N/A';
   try {
