@@ -51,9 +51,13 @@ def _is_rate_limited(key: str) -> bool:
 
 def _record_failure(key: str) -> None:
     # Bound the store so a flood of distinct failing usernames cannot grow it
-    # without limit (coarse eviction; use a shared store in production).
+    # without limit. Evict the oldest key (FIFO) rather than clearing the whole
+    # store: a rotating attacker must not be able to flush every existing
+    # throttle in one shot (coarse eviction; use a shared store in production).
     if len(_FAILED_ATTEMPTS) >= _MAX_TRACKED_KEYS and key not in _FAILED_ATTEMPTS:
-        _FAILED_ATTEMPTS.clear()
+        oldest = next(iter(_FAILED_ATTEMPTS), None)
+        if oldest is not None:
+            _FAILED_ATTEMPTS.pop(oldest, None)
     _FAILED_ATTEMPTS[key].append(time.monotonic())
 
 

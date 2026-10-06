@@ -109,3 +109,45 @@ def test_verify_password_handles_malformed_hash():
     """verify_password returns False gracefully on malformed or empty hash inputs."""
     assert verify_password("anything", "not-a-valid-hash") is False
     assert verify_password("anything", "") is False
+
+
+def test_login_throttle_blocks_after_max_failures():
+    """The per-email throttle blocks once the failure window is saturated."""
+    from backend.routers import auth as auth_routes
+
+    store = auth_routes._FAILED_ATTEMPTS
+    store.clear()
+    try:
+        key = "blocked@example.com"
+        for _ in range(auth_routes._MAX_FAILED_ATTEMPTS):
+            assert auth_routes._is_rate_limited(key) is False
+            auth_routes._record_failure(key)
+        assert auth_routes._is_rate_limited(key) is True
+
+        auth_routes._clear_failures(key)
+        assert auth_routes._is_rate_limited(key) is False
+    finally:
+        store.clear()
+
+
+def test_login_throttle_evicts_oldest_not_all(monkeypatch):
+    """At capacity, a new failure evicts only the oldest key.
+
+    A rotating attacker must not be able to flush every existing throttle in
+    one shot (the previous `store.clear()` behaviour).
+    """
+    from backend.routers import auth as auth_routes
+
+    monkeypatch.setattr(auth_routes, "_MAX_TRACKED_KEYS", 3)
+    store = auth_routes._FAILED_ATTEMPTS
+    store.clear()
+    try:
+        for key in ("a", "b", "c"):
+            auth_routes._record_failure(key)
+        assert list(store) == ["a", "b", "c"]
+
+        auth_routes._record_failure("d")
+        # Only the oldest was evicted; the others survive alongside the new key.
+        assert list(store) == ["b", "c", "d"]
+    finally:
+        store.clear()
