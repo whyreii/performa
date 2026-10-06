@@ -3,9 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, Page, Surface, CountUp } from '../../components/ui';
+import { Button, Badge, StatusDot, MilestonePill, Skeleton, Card, Page, CountUp } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
+import { milestoneTone } from '../../utils/status';
 import { getInitials } from '../../utils/format';
 import {
   ChevronRight,
@@ -62,9 +63,10 @@ export default function Dashboard() {
 
     activeProbationers.forEach((emp) => {
       const days = getDaysElapsed(emp.start_date);
-      if (days >= MILESTONE_CRITICAL) day178Count += 1;
-      else if (days >= MILESTONE_NOTICE) day165Count += 1;
-      else if (days >= MILESTONE_REVIEW) day150Count += 1;
+      const tone = milestoneTone(days);
+      if (tone === 'bad') day178Count += 1;
+      else if (tone === 'notice') day165Count += 1;
+      else if (tone === 'warn') day150Count += 1;
     });
 
     const pendingPlans = plans.filter((p) => p.status === 'pending_approval').length;
@@ -80,15 +82,8 @@ export default function Dashboard() {
   }, [activeProbationers, plans]);
 
   // Identify high-urgency probationers (at or beyond Day 150)
-  const urgentProbationers = useMemo(() => {
-    return activeProbationers
-      .map((emp) => ({
-        ...emp,
-        daysElapsed: getDaysElapsed(emp.start_date),
-      }))
-      .filter((emp) => emp.daysElapsed >= MILESTONE_REVIEW)
-      .sort((a, b) => b.daysElapsed - a.daysElapsed);
-  }, [activeProbationers]);
+  // Cohort health: on-track is everyone not yet at a milestone threshold.
+  const onTrackCount = Math.max(0, stats.totalActive - stats.criticalMilestones);
 
   return (
     <Page
@@ -179,34 +174,6 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* 2. Critical Milestones Banner (If any probationers >= Day 150) */}
-      {/* Reserve the banner slot while employees load so its mount does not shift the page. */}
-      {isEmpLoading && <Skeleton className="h-[78px] w-full" />}
-      {!isEmpLoading && urgentProbationers.length > 0 && (
-        <Surface as="section" tone="warn" className="p-5">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2">
-              <div>
-                <h2 className="text-14 font-semibold text-ink">
-                  {urgentProbationers.length} to review
-                </h2>
-                <p className="text-12 text-ink-2">
-                  Day {MILESTONE_REVIEW} · {MILESTONE_NOTICE} · {MILESTONE_CRITICAL} under Art. 296 — decisions due before Day {PROBATION_DAYS}.
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="primary"
-              size="sm"
-              rightIcon={ArrowRight}
-              onClick={() => navigate('/employees')}
-            >
-              Review now
-            </Button>
-          </div>
-        </Surface>
-      )}
-
       {/* 3. Active Probationers Pipeline Table */}
       <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
@@ -222,6 +189,50 @@ export default function Dashboard() {
             View All ({activeProbationers.length})
           </Button>
         </div>
+
+        {/* Cohort composition — a calm, read-only breakdown (absorbed the old
+            urgent banner). Colour = status; no filter, no hidden interactions. */}
+        {!isEmpLoading && activeProbationers.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-12 font-semibold text-ink">Active cohort by milestone</span>
+              <span className="text-12 font-num text-ink-3">
+                {activeProbationers.length} probationers
+              </span>
+            </div>
+            <div
+              className="flex h-3 w-full overflow-hidden rounded-full bg-line"
+              role="img"
+              aria-label={`${activeProbationers.length} active probationers: ${onTrackCount} on track, ${stats.day150Count} review due, ${stats.day165Count} notice window, ${stats.day178Count} critical.`}
+            >
+              {onTrackCount > 0 && (
+                <span className="h-full bg-good" style={{ width: `${(onTrackCount / stats.totalActive) * 100}%` }} />
+              )}
+              {stats.day150Count > 0 && (
+                <span className="h-full bg-warn" style={{ width: `${(stats.day150Count / stats.totalActive) * 100}%` }} />
+              )}
+              {stats.day165Count > 0 && (
+                <span className="h-full bg-notice" style={{ width: `${(stats.day165Count / stats.totalActive) * 100}%` }} />
+              )}
+              {stats.day178Count > 0 && (
+                <span className="h-full bg-bad" style={{ width: `${(stats.day178Count / stats.totalActive) * 100}%` }} />
+              )}
+            </div>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <ul className="flex flex-wrap items-center gap-x-5 gap-y-1 text-12 text-ink-2">
+                <li className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-good" />On track <b className="font-num font-semibold text-ink">{onTrackCount}</b></li>
+                <li className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-warn" />Review <b className="font-num font-semibold text-ink">{stats.day150Count}</b></li>
+                <li className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-notice" />Notice <b className="font-num font-semibold text-ink">{stats.day165Count}</b></li>
+                <li className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-bad" />Critical <b className="font-num font-semibold text-ink">{stats.day178Count}</b></li>
+              </ul>
+              {stats.criticalMilestones > 0 && (
+                <Button variant="secondary" size="sm" rightIcon={ArrowRight} onClick={() => navigate('/employees')}>
+                  Review urgent staff
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
 
         {isEmpLoading ? (
           <div className="space-y-2">
