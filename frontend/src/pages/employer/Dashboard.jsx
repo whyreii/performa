@@ -6,7 +6,7 @@ import { Button, Skeleton, Card, Page, CountUp } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { milestoneTone, milestoneFor, TONE_TEXT } from '../../utils/status';
-import { Users, Award } from '../../components/icons';
+import { Users, Award, ChevronRight } from '../../components/icons';
 
 // Employer dashboard — "refined" layout: a flat hairline stat band over a stack
 // of panels (action required → probationary employees → AI recommendations).
@@ -184,9 +184,10 @@ export default function Dashboard() {
               </caption>
               <thead>
                 <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider">
-                  <th scope="col" className="py-2.5 pr-4 w-[42%]">Employee</th>
-                  <th scope="col" className="py-2.5 pr-4 w-[16%]">Day</th>
-                  <th scope="col" className="py-2.5 w-[42%]">Milestone</th>
+                  <th scope="col" className="py-2.5 pr-4 w-[40%]">Employee</th>
+                  <th scope="col" className="py-2.5 pr-4 w-[14%]">Day</th>
+                  <th scope="col" className="py-2.5 pr-4 w-[38%]">Milestone</th>
+                  <th scope="col" className="py-2.5 w-[8%] text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -209,8 +210,11 @@ export default function Dashboard() {
                         </Link>
                       </td>
                       <td className="py-3 pr-4 font-num text-14 text-ink">{days}</td>
-                      <td className="py-3">
+                      <td className="py-3 pr-4">
                         <span className={`text-14 font-semibold ${TONE_TEXT[tone]}`}>{label}</span>
+                      </td>
+                      <td className="py-3 text-right">
+                        <ChevronRight className="w-4 h-4 text-ink-3 inline-block" />
                       </td>
                     </tr>
                   );
