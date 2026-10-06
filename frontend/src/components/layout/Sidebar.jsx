@@ -53,24 +53,24 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
   return (
     <aside
-      className={`hidden lg:flex flex-col sticky top-0 h-screen shrink-0 gap-2 bg-side border-r border-line shadow-side z-20 transition-[width,padding] duration-performa ease-spring ${
-        collapsed ? 'w-[72px] p-2' : 'w-[270px] p-3'
+      className={`hidden lg:flex flex-col sticky top-0 h-screen shrink-0 bg-side border-r border-line shadow-side z-20 transition-[width,padding,gap] duration-performa ease-spring ${
+        collapsed ? 'w-[72px] p-2 gap-3' : 'w-[270px] p-3 gap-2'
       }`}
       aria-label="Main Navigation"
     >
       {/* Brand Header + collapse toggle */}
-      <div className={`flex items-center gap-2 px-1 pt-1 pb-2.5 ${collapsed ? 'flex-col' : ''}`}>
+      <div className={`flex items-center ${collapsed ? 'flex-col gap-3 px-0 pt-1 pb-0' : 'gap-2 px-1 pt-1 pb-2.5'}`}>
         <Link
           to={homePath}
           className="flex items-center gap-2.5 min-w-0 group"
           title="Performa Home"
         >
-          <div className="w-[26px] h-[26px] rounded-nav bg-accent text-accent-foreground flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ease-spring">
+          <div className={`${collapsed ? 'w-8 h-8' : 'w-[26px] h-[26px]'} rounded-nav bg-accent text-accent-foreground flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ease-spring`}>
             <BarChart3 className="w-4 h-4" />
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <span className="font-semibold text-14 leading-none tracking-tight text-ink block">
+              <span className="font-semibold text-16 leading-none tracking-tight text-ink block">
                 Performa
               </span>
               <span className="text-12 text-ink-3 font-num block mt-0.5 truncate">
@@ -96,7 +96,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
       {/* Manila Time Clock (Article 296 Timezone Anchor) */}
       {!collapsed && (
-        <div className="flex items-center gap-2 px-1 pb-2 text-12 font-num text-ink-3">
+        <div className="flex items-center gap-2 px-1 pb-2 text-14 font-num text-ink-3">
           <span className="w-1.5 h-1.5 rounded-full bg-good animate-pulse" />
           <span>Manila (UTC+8)</span>
           <span className="ml-auto text-ink font-semibold">{manilaTime}</span>
@@ -108,7 +108,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="w-8 h-8 mx-auto mb-1.5 shrink-0 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-8 h-8 mx-auto shrink-0 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           title="Search / command (Ctrl+K)"
           aria-label="Search / command"
         >
@@ -118,7 +118,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="flex items-center gap-2 h-8 mb-1.5 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink text-12 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="flex items-center gap-2 h-9 mb-1.5 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink text-14 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <Search className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">Search / command…</span>
@@ -131,7 +131,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
       {/* Navigation Section */}
       <div className="flex-1 overflow-y-auto">
         {!collapsed && <div className="side__label">Navigation</div>}
-        <nav className="flex flex-col gap-0.5">
+        <nav className={`flex flex-col ${collapsed ? 'gap-1' : 'gap-0.5'}`}>
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -142,8 +142,8 @@ export default function Sidebar({ onOpenCommandPalette }) {
                 onMouseEnter={() => prefetchRoute(item.path)}
                 onFocus={() => prefetchRoute(item.path)}
                 className={({ isActive }) =>
-                  `flex items-center gap-2.5 h-9 rounded-ctl text-14 transition-colors ${
-                    collapsed ? 'justify-center px-0' : 'px-2.5'
+                  `flex items-center gap-2.5 rounded-ctl text-14 transition-colors ${
+                    collapsed ? 'justify-center px-0 h-10' : 'px-2.5 h-10'
                   } ${
                     isActive
                       ? 'bg-hover text-ink font-semibold'
@@ -151,7 +151,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
                   }`
                 }
               >
-                <Icon className="w-4 h-4 shrink-0 text-ink-3" />
+                <Icon className="w-[18px] h-[18px] shrink-0 text-ink-3" />
                 {!collapsed && <span className="truncate">{item.label}</span>}
               </NavLink>
             );
@@ -161,12 +161,12 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
       {/* User Footer */}
       <div
-        className={`flex items-center gap-2.5 pt-2.5 border-t border-line ${
-          collapsed ? 'flex-col px-0' : 'px-2'
+        className={`flex items-center border-t border-line ${
+          collapsed ? 'flex-col gap-3 px-0 pt-2' : 'gap-2.5 px-2 pt-2.5'
         }`}
       >
         <div
-          className="w-7 h-7 rounded-nav bg-accent text-accent-foreground font-semibold text-12 flex items-center justify-center shrink-0"
+          className={`${collapsed ? 'w-8 h-8' : 'w-7 h-7'} rounded-nav bg-accent text-accent-foreground font-semibold text-12 flex items-center justify-center shrink-0`}
           title={`${user?.full_name} (${user?.email})`}
         >
           {getInitials(user?.full_name)}
@@ -174,7 +174,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
         {!collapsed && (
           <div className="min-w-0 flex-1">
-            <div className="font-semibold text-12 text-ink truncate leading-tight">
+            <div className="font-semibold text-14 text-ink truncate leading-tight">
               {user?.full_name || 'User'}
             </div>
             <div className="text-12 text-ink-3 truncate capitalize">
@@ -186,7 +186,9 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={() => setMode(nextMode)}
-          className="p-1.5 text-ink-3 hover:text-ink rounded-ctl hover:bg-hover transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className={`inline-flex items-center justify-center text-ink-3 hover:text-ink rounded-ctl hover:bg-hover transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+            collapsed ? 'w-8 h-8' : 'p-1.5'
+          }`}
           title={`Switch to ${nextMode} theme`}
           aria-label={`Switch to ${nextMode} theme`}
         >
@@ -196,7 +198,9 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={logout}
-          className="p-1.5 text-ink-3 hover:text-bad rounded-ctl hover:bg-bad/10 transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className={`inline-flex items-center justify-center text-ink-3 hover:text-bad rounded-ctl hover:bg-bad/10 transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+            collapsed ? 'w-8 h-8' : 'p-1.5'
+          }`}
           title="Sign out"
           aria-label="Sign out"
         >
