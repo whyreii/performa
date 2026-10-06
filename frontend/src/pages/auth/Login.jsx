@@ -92,15 +92,16 @@ export default function Login() {
                 type="button"
                 role="tab"
                 aria-selected={isActive}
+                aria-label={m.label}
+                title={m.label}
                 onClick={() => setMode(m.id)}
-                className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-ctl text-12 transition-colors ${
+                className={`inline-flex items-center justify-center h-8 w-8 rounded-ctl transition-colors ${
                   isActive
-                    ? 'bg-surface text-ink font-semibold border border-line'
+                    ? 'bg-surface text-ink border border-line'
                     : 'text-ink-3 hover:text-ink'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{m.label}</span>
+                <Icon className="w-4 h-4" />
               </button>
             );
           })}
@@ -108,25 +109,23 @@ export default function Login() {
       </header>
 
       <main className="flex-1 w-full max-w-[1180px] mx-auto px-6 py-10 flex flex-col justify-center">
-        <header className="reveal">
-          <h1 className="text-30 font-semibold tracking-tight text-ink">Sign in</h1>
-          <p className="text-14 text-ink-2 mt-2">Use your work account to continue to Performa.</p>
-        </header>
-
-        <div className="reveal mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-14 lg:items-start">
-          {/* Form column */}
+        <div className="reveal grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-14 lg:items-start">
+          {/* Form column (heading + form + demo) */}
           <section>
+            <h1 className="text-30 font-semibold tracking-tight text-ink">Sign in</h1>
+            <p className="text-14 text-ink-2 mt-2">Use your work account to continue to Performa.</p>
+
             {error && (
               <div
                 role="alert"
-                className="mb-5 p-3 rounded-ctl bg-bad/8 border border-line flex items-start gap-2 text-bad text-14"
+                className="mt-6 p-3 rounded-ctl bg-bad/8 border border-line flex items-start gap-2 text-bad text-14"
               >
                 <AlertCircle className="w-4 h-4 mt-0.5 flex-none" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 mt-7">
               <TextField
                 id="email"
                 label="Work email"
@@ -200,22 +199,25 @@ export default function Login() {
             </div>
           </section>
 
-          {/* Article 296 promo */}
-          <Surface className="p-6 sm:p-7 lg:-mt-6">
+          {/* Article 296 card */}
+          <Surface className="p-6 sm:p-7">
             <div className="login-kicker">Article 296 · Philippine Labor Code</div>
             <h2 className="text-22 font-bold tracking-tight text-ink mt-3">
-              Every probationary period, tracked to day 180.
+              Ratings, deadlines, and the audit trail behind every decision.
             </h2>
             <p className="text-14 text-ink-2 mt-2.5">
-              Weekly ratings, training plans that only an employer can approve, and an audit
-              trail on every score change.
+              Supervisors rate weekly across the 5 competencies. Training plans need employer
+              approval, and every score change is written to an immutable audit trail.
             </p>
 
             <p className="text-12 text-ink-3 mt-5">Rated across 5 competencies</p>
             <ul className="mt-2 border-t border-line divide-y divide-line">
-              {COMPETENCIES.map((c) => (
-                <li key={c.key} className="py-2 text-14 text-ink-2">
-                  {c.label}
+              {COMPETENCIES.map((c, i) => (
+                <li key={c.key} className="flex items-baseline gap-3 py-2 text-14">
+                  <span className="num w-5 shrink-0 text-12 text-ink-3">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className="text-ink-2">{c.label}</span>
                 </li>
               ))}
             </ul>
@@ -225,7 +227,7 @@ export default function Login() {
 
       {/* Footer info */}
       <footer className="w-full text-center py-4 text-12 text-ink-3 border-t border-line">
-        <span>Strict 180-Day Timeline & Statutory Milestones (Days 150, 165, 178) · Asia/Manila</span>
+        <span>Asia/Manila (UTC+8) · Article 296, Philippine Labor Code</span>
       </footer>
     </div>
   );
