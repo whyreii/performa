@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { BarChart3, Eye, EyeOff, AlertCircle, Sun, Moon, Monitor } from '../../components/icons';
 import { TextField, Button, Surface, Badge, inputClass } from '../../components/ui';
+import { COMPETENCIES } from '../../config/domain';
 
 const MODES = [
   { id: 'light', label: 'Light', icon: Sun },
@@ -18,17 +19,6 @@ const DEMO_ACCOUNTS = [
   { role: 'Supervisor', email: 'supervisor@acme.com' },
   { role: 'Probationary employee', email: 'emp1@acme.com' },
 ];
-
-// Article 296 statutory milestones — fixed constants (ARCHITECTURE.md §2). Shown
-// as a schematic of the 180-day window; the ticks are the milestones themselves,
-// not a live readout (no current-day/progress value is invented here).
-const DAY_CAP = 180;
-const MILESTONES = [
-  { day: 150, note: 'Alert sent to the employer' },
-  { day: 165, note: 'Alert sent to the employer' },
-  { day: 178, note: 'Alert sent to the employer' },
-];
-const milestoneLeft = (day) => `${((day / DAY_CAP) * 100).toFixed(1)}%`;
 
 export default function Login() {
   const { login } = useAuth();
@@ -211,7 +201,7 @@ export default function Login() {
           </section>
 
           {/* Article 296 promo */}
-          <Surface elevated className="p-7 sm:p-8">
+          <Surface className="p-6 sm:p-7 lg:-mt-6">
             <div className="login-kicker">Article 296 · Philippine Labor Code</div>
             <h2 className="text-22 font-bold tracking-tight text-ink mt-3">
               Every probationary period, tracked to day 180.
@@ -221,36 +211,11 @@ export default function Login() {
               trail on every score change.
             </p>
 
-            <div className="mt-6">
-              <div className="flex items-baseline justify-between gap-3 mb-2">
-                <span className="text-12 font-semibold text-ink">Statutory window</span>
-                <span className="text-12 text-ink-3">180-day cap</span>
-              </div>
-              <div
-                className="relative h-1.5 rounded-full bg-line"
-                role="img"
-                aria-label="Milestones at day 150, 165 and 178 of the 180-day cap"
-              >
-                {MILESTONES.map((m, i) => (
-                  <span
-                    key={m.day}
-                    aria-hidden="true"
-                    className={`absolute -top-1 -bottom-1 w-0.5 ${i === 0 ? 'bg-warn' : 'bg-ink-3'}`}
-                    style={{ left: milestoneLeft(m.day) }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <ul className="mt-4">
-              {MILESTONES.map((m) => (
-                <li
-                  key={m.day}
-                  className="flex items-center gap-3 py-3 border-t border-line first:border-t-0 text-14"
-                >
-                  <span className="w-2 h-2 rounded-full bg-warn flex-none" aria-hidden="true" />
-                  <span className="num font-semibold text-ink w-16 shrink-0">Day {m.day}</span>
-                  <span className="text-ink-2">{m.note}</span>
+            <p className="text-12 text-ink-3 mt-5">Rated across 5 competencies</p>
+            <ul className="mt-2 border-t border-line divide-y divide-line">
+              {COMPETENCIES.map((c) => (
+                <li key={c.key} className="py-2 text-14 text-ink-2">
+                  {c.label}
                 </li>
               ))}
             </ul>

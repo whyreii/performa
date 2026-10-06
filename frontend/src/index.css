@@ -69,6 +69,20 @@
     font-family: var(--num);
     font-variant-numeric: tabular-nums;
   }
+
+  /* Chrome/Edge autofill paints its own olive/yellow background and ignores
+     `background-color`. Replace it with a themed inset fill so autofilled
+     fields match the surrounding surface, and keep text/caret legible. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--ink);
+    caret-color: var(--ink);
+    -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+    box-shadow: 0 0 0 1000px var(--surface) inset;
+    transition: background-color 9999s ease-out;
+  }
 }
 
 /* Spring easing for transform/position transitions. Falls back to the standard
@@ -546,6 +560,12 @@
 .login-shell .num,
 .login-shell .mono {
   letter-spacing: normal;
+}
+/* The sign-in fields sit on the page background (not a surface), so the
+   autofill inset fill matches --bg here. */
+.login-shell input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg) inset;
+  box-shadow: 0 0 0 1000px var(--bg) inset;
 }
 /* Uppercase mono kicker. A CSS class (not the Tailwind `uppercase` utility)
    because the eslint rule reserves `uppercase` for table/print headers. */
