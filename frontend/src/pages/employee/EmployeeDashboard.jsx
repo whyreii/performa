@@ -3,9 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, MilestonePill, Skeleton, Card, Page } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Card, Page, ScoreLedger, TimelineDocket } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
-import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
+import { PROBATION_DAYS } from '../../config/domain';
 import {
   Award,
   Calendar,
@@ -17,14 +17,6 @@ import {
   ShieldCheck,
   AlertCircle,
 } from '../../components/icons';
-
-const COMPETENCY_DESCRIPTIONS = {
-  task_completion: 'Job-specific deliverables and quota adherence',
-  quality_of_work: 'Attention to detail and SOP compliance',
-  attendance_and_punctuality: 'On-time shift arrival and schedule reliability',
-  communication_and_teamwork: 'Peer relations and transparent reporting',
-  initiative_and_adaptability: 'Problem solving and response to coaching',
-};
 
 export default function EmployeeDashboard() {
   const { user } = useAuth();
@@ -75,7 +67,6 @@ export default function EmployeeDashboard() {
 
   const daysElapsed = myProfile ? getDaysElapsed(myProfile.start_date) : 0;
   const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
-  const progressPct = Math.min(100, Math.round((daysElapsed / PROBATION_DAYS) * 100));
 
   return (
     <Page
@@ -109,47 +100,20 @@ export default function EmployeeDashboard() {
           </div>
         </div>
 
-        {/* Timeline Bar */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-12 font-num text-ink">
-            <span>
-              <b>Day {daysElapsed}</b> elapsed
-            </span>
-            <span className="text-ink-3">
-              {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining until regularization review
-            </span>
-          </div>
-
-          <div className="relative h-3 w-full bg-hover border border-line rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-performa ${
-                daysElapsed >= MILESTONE_CRITICAL
-                  ? 'bg-bad'
-                  : daysElapsed >= MILESTONE_NOTICE
-                  ? 'bg-notice'
-                  : daysElapsed >= MILESTONE_REVIEW
-                  ? 'bg-warn'
-                  : 'bg-accent'
-              }`}
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-
-          <div className="pt-3">
-            <div className="flex items-baseline justify-between gap-4 py-2.5 border-b border-line">
-              <span className="text-14 font-medium text-ink">Day {MILESTONE_REVIEW} Appraisal</span>
-              <span className="text-12 text-ink-3">Comprehensive 5th-month evaluation</span>
-            </div>
-            <div className="flex items-baseline justify-between gap-4 py-2.5 border-b border-line">
-              <span className="text-14 font-medium text-ink">Day {MILESTONE_NOTICE} Notice Window</span>
-              <span className="text-12 text-ink-3">Statutory 15-day notice threshold</span>
-            </div>
-            <div className="flex items-baseline justify-between gap-4 py-2.5">
-              <span className="text-14 font-medium text-ink">Day {PROBATION_DAYS} Regularization</span>
-              <span className="text-12 text-ink-3">Permanent employment conferment</span>
-            </div>
-          </div>
+        {/* Day counter + the shared 180-day docket */}
+        <div className="flex justify-between text-12 font-num text-ink">
+          <span>
+            <b>Day {daysElapsed}</b> elapsed
+          </span>
+          <span className="text-ink-3">
+            {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining until regularization review
+          </span>
         </div>
+        <TimelineDocket
+          startDate={myProfile?.start_date}
+          day180Date={myProfile?.day_180_date}
+          daysElapsed={daysElapsed}
+        />
       </Card>
 
       {/* 2. Competency Scores Breakdown */}
@@ -185,26 +149,7 @@ export default function EmployeeDashboard() {
             No evaluations have been submitted for you yet.
           </div>
         ) : (
-          <ul>
-            {scorecard.competencies.map((c) => (
-              <li key={c.key} className="py-3 border-b border-line last:border-b-0">
-                <div className="flex items-baseline justify-between gap-4">
-                  <div className="min-w-0">
-                    <span className="text-14 font-medium text-ink block">{c.label}</span>
-                    <span className="text-12 text-ink-3 block">
-                      {COMPETENCY_DESCRIPTIONS[c.key] || 'Statutory competency'}
-                    </span>
-                  </div>
-                  <span className="font-num font-semibold text-14 text-ink shrink-0">
-                    {Number(c.score).toFixed(1)}
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <ScoreMeter score={c.score} target={c.target} />
-                </div>
-              </li>
-            ))}
-          </ul>
+          <ScoreLedger competencies={scorecard.competencies} />
         )}
       </Card>
 

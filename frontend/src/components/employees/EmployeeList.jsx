@@ -5,29 +5,14 @@ import { employeeApi, getApiErrorMessage } from '../../api';
 import { Skeleton, EmptyState, inputClass } from '../../components/ui';
 import { Search, Users, AlertCircle } from '../../components/icons';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
-import { MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, PROBATION_DAYS } from '../../config/domain';
-
-const TONE_CLASS = {
-  ok: 'text-good',
-  warn: 'text-warn',
-  notice: 'text-notice',
-  bad: 'text-bad',
-};
-
-function milestoneFor(employee) {
-  if (employee.status !== 'active') return { tone: 'ok', label: 'Regular' };
-  const days = getDaysElapsed(employee.start_date);
-  if (days >= MILESTONE_CRITICAL) return { tone: 'bad', label: 'Critical' };
-  if (days >= MILESTONE_NOTICE) return { tone: 'notice', label: 'Notice' };
-  if (days >= MILESTONE_REVIEW) return { tone: 'warn', label: 'Review' };
-  return { tone: 'ok', label: 'On track' };
-}
+import { PROBATION_DAYS } from '../../config/domain';
+import { milestoneFor, TONE_TEXT } from '../../utils/status';
 
 // Memoized so selecting a different row only re-renders the two rows whose
 // `selected` flag actually changed, not the whole list.
 const EmployeeRow = React.memo(function EmployeeRow({ emp, selected, onSelect }) {
   const days = getDaysElapsed(emp.start_date);
-  const { tone, label } = milestoneFor(emp);
+  const { tone, label } = milestoneFor(days, emp.status);
   const pct = Math.min(100, Math.max(0, (days / PROBATION_DAYS) * 100));
   return (
     <button
@@ -37,11 +22,11 @@ const EmployeeRow = React.memo(function EmployeeRow({ emp, selected, onSelect })
       onClick={() => onSelect(emp.id)}
     >
       <span className="lrow__n">{emp.user?.full_name}</span>
-      <span className={`lrow__s ${TONE_CLASS[tone]}`}>{label}</span>
+      <span className={`lrow__s ${TONE_TEXT[tone]}`}>{label}</span>
       <span className="lrow__m">
         Day {days} · {emp.job_title}
       </span>
-      <span className={`lrow__bar ${TONE_CLASS[tone]}`} aria-hidden="true">
+      <span className={`lrow__bar ${TONE_TEXT[tone]}`} aria-hidden="true">
         <i style={{ width: `${pct}%` }} />
       </span>
     </button>

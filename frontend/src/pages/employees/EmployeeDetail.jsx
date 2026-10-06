@@ -4,9 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, StatusDot, MilestonePill, Skeleton, Card, CardSkeleton, Page, Modal, EmptyState, Disclosure, textareaClass } from '../../components/ui';
+import { Button, Badge, StatusDot, MilestonePill, Skeleton, Card, CardSkeleton, Page, Modal, EmptyState, Disclosure, textareaClass, ScoreLedger, TimelineDocket } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET } from '../../config/domain';
+import { milestoneTone } from '../../utils/status';
 import { getInitials } from '../../utils/format';
 import {
   ArrowLeft,
@@ -19,14 +20,6 @@ import {
   FileText,
   ArrowRight,
 } from '../../components/icons';
-
-const COMPETENCY_DESCRIPTIONS = {
-  task_completion: 'Deliverables completed on schedule and adherence to task assignments',
-  quality_of_work: 'Accuracy, attention to detail, and compliance with quality standards',
-  attendance_and_punctuality: 'On-time arrival and dependability during scheduled hours',
-  communication_and_teamwork: 'Cross-functional collaboration and clear status reporting',
-  initiative_and_adaptability: 'Self-driven problem solving and agility to change',
-};
 
 // One ranked feature-importance row: an independent bar (relative to the largest
 // contribution) with a signed percentage. Red = pushed toward the gap, green =
@@ -209,6 +202,7 @@ export default function EmployeeDetail() {
   const handleCopyLegalNotice = () => {
     if (!employee) return;
     const elapsed = getDaysElapsed(employee.start_date);
+  const statusTone = milestoneTone(elapsed);
     const overall = scorecard?.overall_score ?? 'Pending';
     const competenciesText = (scorecard?.competencies || [])
       .map(
@@ -229,11 +223,11 @@ Employee: ${employee.user?.full_name || 'N/A'}
 Job Title / Department: ${employee.job_title} · ${employee.department}
 Start Date: ${formatDate(employee.start_date)} | Days Elapsed: Day ${elapsed} of ${PROBATION_DAYS}
 Statutory Status: ${
-      elapsed >= MILESTONE_CRITICAL
+      statusTone === 'bad'
         ? `CRITICAL (Day ${MILESTONE_CRITICAL}+ Auto-Regularization Risk)`
-        : elapsed >= MILESTONE_NOTICE
+        : statusTone === 'notice'
         ? `DAY ${MILESTONE_NOTICE} NOTICE WINDOW (15-Day Buffer)`
-        : elapsed >= MILESTONE_REVIEW
+        : statusTone === 'warn'
         ? `DAY ${MILESTONE_REVIEW} PERFORMANCE REVIEW DUE`
         : `ON TRACK (< Day ${MILESTONE_REVIEW})`
     }
@@ -299,11 +293,6 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
   const daysElapsed = getDaysElapsed(employee.start_date);
   const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
-  const progressPct = Math.min(100, Math.round((daysElapsed / PROBATION_DAYS) * 100));
-  const reachedMilestone =
-    [MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, PROBATION_DAYS]
-      .filter((m) => m <= daysElapsed)
-      .pop() || null;
 
   const canManageStatus = user?.role === 'employer';
   const canRate = user?.role === 'supervisor' || user?.role === 'employer';
@@ -465,57 +454,12 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </div>
         </div>
 
-        {/* Deadline scale: hairline track, Day 150-180 window, ticks, today marker */}
-        <div
-          className="relative h-[42px]"
-          role="img"
-          aria-label={`Day ${daysElapsed} of ${PROBATION_DAYS}. Milestones at Day ${MILESTONE_REVIEW} review, Day ${MILESTONE_NOTICE} notice, Day ${MILESTONE_CRITICAL} critical, and Day ${PROBATION_DAYS} deadline.`}
-        >
-          <div className="absolute left-0 right-0 top-[21px] h-px bg-line" />
-          <div
-            className="absolute top-[18px] h-[7px] bg-warn/10"
-            style={{ left: `${(MILESTONE_REVIEW / PROBATION_DAYS) * 100}%`, right: 0 }}
-          />
-          {[MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL].map((m) => (
-            <span
-              key={m}
-              className="absolute top-[17px] w-px h-[9px] bg-ink-3"
-              style={{ left: `${(m / PROBATION_DAYS) * 100}%` }}
-            />
-          ))}
-          <span className="absolute top-[15px] w-0.5 h-[14px] bg-ink" style={{ left: `${progressPct}%` }} />
-          <span
-            className={`absolute top-0 font-num text-12 text-ink whitespace-nowrap ${
-              progressPct > 88 ? '-translate-x-full' : '-translate-x-1/2'
-            }`}
-            style={{ left: `${progressPct}%` }}
-          >
-            Day {daysElapsed}
-          </span>
-          <div className="absolute bottom-0 left-0 right-0 flex justify-between font-num text-12 text-ink-3">
-            <span>Day 0</span>
-            <span>Day {PROBATION_DAYS}</span>
-          </div>
-        </div>
-
-        {/* Milestone ledger */}
-        <ul className="border-t border-line">
-          {[
-            { m: 0, label: 'Start (Day 0)', tone: 'text-ink-3', date: formatDate(employee.start_date) },
-            { m: MILESTONE_REVIEW, label: `Day ${MILESTONE_REVIEW} · Review`, tone: 'text-warn', date: formatDate(milestoneDate(employee.start_date, MILESTONE_REVIEW)) },
-            { m: MILESTONE_NOTICE, label: `Day ${MILESTONE_NOTICE} · Notice`, tone: 'text-notice', date: formatDate(milestoneDate(employee.start_date, MILESTONE_NOTICE)) },
-            { m: MILESTONE_CRITICAL, label: `Day ${MILESTONE_CRITICAL} · Critical`, tone: 'text-bad', date: formatDate(milestoneDate(employee.start_date, MILESTONE_CRITICAL)) },
-            { m: PROBATION_DAYS, label: `Day ${PROBATION_DAYS} · Deadline`, tone: 'text-bad', date: formatDate(employee.day_180_date) },
-          ].map(({ m, label, tone, date }) => (
-            <li
-              key={m}
-              className="flex items-baseline justify-between gap-4 py-2.5 border-b border-line last:border-b-0"
-            >
-              <span className={`text-14 ${tone}${m === reachedMilestone ? ' font-semibold' : ''}`}>{label}</span>
-              <span className="font-num text-14 text-ink">{date}</span>
-            </li>
-          ))}
-        </ul>
+        {/* Docket — the 180-day window as a vertical ledger (milestones + today) */}
+        <TimelineDocket
+          startDate={employee.start_date}
+          day180Date={employee.day_180_date}
+          daysElapsed={daysElapsed}
+        />
       </Card>
 
       {/* 3. Performance Scorecard & 5 Competencies */}
@@ -549,26 +493,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         ) : !scorecard || !scorecard.competencies || scorecard.competencies.length === 0 ? (
           <p className="py-8 text-center text-14 text-ink-3">No evaluations have been submitted for this employee yet.</p>
         ) : (
-          <ul>
-            {scorecard.competencies.map((comp) => (
-              <li key={comp.key} className="py-3 border-b border-line last:border-b-0">
-                <div className="flex items-baseline justify-between gap-4">
-                  <div className="min-w-0">
-                    <span className="text-14 font-medium text-ink block">{comp.label}</span>
-                    <span className="text-12 text-ink-3 block">
-                      {COMPETENCY_DESCRIPTIONS[comp.key] || 'Statutory competency'}
-                    </span>
-                  </div>
-                  <span className="font-num font-semibold text-14 text-ink shrink-0">
-                    {Number(comp.score).toFixed(1)}
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <ScoreMeter score={comp.score} target={comp.target} />
-                </div>
-              </li>
-            ))}
-          </ul>
+          <ScoreLedger competencies={scorecard.competencies} />
         )}
       </Card>
 

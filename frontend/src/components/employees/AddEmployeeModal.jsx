@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { manilaTodayISO, addDays, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS } from '../../config/domain';
-import { Button, Modal, TextField } from '../ui';
+import { Button, Modal, TextField, selectClass } from '../ui';
 import { X, AlertCircle, UserCog } from '../icons';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
@@ -199,7 +199,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                 value={supervisorId}
                 onChange={(e) => setSupervisorId(e.target.value)}
                 disabled={isSupervisorsLoading || supervisors.length === 0}
-                className="w-full h-9 pl-9 pr-3 border border-line rounded-field bg-transparent text-ink text-14 focus:outline-none focus:border-accent transition-colors disabled:opacity-60"
+                className={`${selectClass} w-full h-9 pl-9 disabled:opacity-60`}
               >
                 {supervisors.length === 0 ? (
                   <option value="">

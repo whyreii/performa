@@ -5,7 +5,7 @@ import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card, Page } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
-import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
+import { PROBATION_DAYS } from '../../config/domain';
 import { getInitials } from '../../utils/format';
 import {
   Users,

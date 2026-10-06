@@ -6,6 +6,7 @@ import {
   MILESTONE_NOTICE,
   MILESTONE_REVIEW,
 } from '../../config/domain';
+import { milestoneTone } from '../../utils/status';
 
 export default function MilestonePill({
   daysElapsed = 0,
@@ -31,7 +32,7 @@ export default function MilestonePill({
     );
   }
 
-  // Article 296 statutory milestone thresholds
+  // Article 296 statutory milestone thresholds (decided once in utils/status).
   if (daysElapsed > PROBATION_DAYS) {
     return (
       <Badge variant="bad" className={`animate-pulse ${className}`}>
@@ -40,7 +41,9 @@ export default function MilestonePill({
     );
   }
 
-  if (daysElapsed >= MILESTONE_CRITICAL) {
+  const tone = milestoneTone(daysElapsed);
+
+  if (tone === 'bad') {
     return (
       <Badge variant="bad" className={`animate-pulse ${className}`}>
         Day {daysElapsed} · Day {MILESTONE_CRITICAL} Critical Action
@@ -48,7 +51,7 @@ export default function MilestonePill({
     );
   }
 
-  if (daysElapsed >= MILESTONE_NOTICE) {
+  if (tone === 'notice') {
     return (
       <Badge variant="notice" className={className}>
         Day {daysElapsed} · Day {MILESTONE_NOTICE} Notice Window
@@ -56,7 +59,7 @@ export default function MilestonePill({
     );
   }
 
-  if (daysElapsed >= MILESTONE_REVIEW) {
+  if (tone === 'warn') {
     return (
       <Badge variant="warn" className={className}>
         Day {daysElapsed} · Day {MILESTONE_REVIEW} Review Due

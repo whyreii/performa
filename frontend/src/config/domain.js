@@ -19,3 +19,13 @@ export const COMPETENCIES = [
   { key: 'communication_and_teamwork', label: 'Communication & Teamwork' },
   { key: 'initiative_and_adaptability', label: 'Initiative & Adaptability' },
 ];
+
+// One-line rubric summary per competency — single source, shown under the
+// competency name wherever scores are listed (record sheet + employee view).
+export const COMPETENCY_DESCRIPTIONS = {
+  task_completion: 'Deliverables completed on schedule and adherence to task assignments',
+  quality_of_work: 'Accuracy, attention to detail, and compliance with quality standards',
+  attendance_and_punctuality: 'On-time arrival and dependability during scheduled hours',
+  communication_and_teamwork: 'Cross-functional collaboration and clear status reporting',
+  initiative_and_adaptability: 'Self-driven problem solving and agility to change',
+};

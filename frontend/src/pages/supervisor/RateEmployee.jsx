@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, kpiApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, ScoreMeter, StatusDot, Skeleton, Modal, Card, Page, EmptyState, selectClass } from '../../components/ui';
+import { Button, Badge, StatusDot, Skeleton, Modal, Card, Page, EmptyState, selectClass, textareaClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { TARGET, PROBATION_DAYS } from '../../config/domain';
 import {
@@ -432,7 +432,7 @@ export default function RateEmployee() {
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="Detail specific behavioral evidence, projects completed, coaching provided, and concrete milestones achieved this week..."
-              className="w-full p-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-14 focus:outline-none focus:border-accent transition-colors"
+              className={textareaClass}
             />
             <p className="text-12 text-ink-3 mt-1.5 leading-relaxed flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-accent shrink-0" />
