@@ -30,7 +30,7 @@ Fixed so far: `O-1`, `O-3`, `U-1`, `U-2`, `R-2`. Open: `P-1`, `P-2`, `P-3`, `O-2
 |---|---|---|---|---|---|
 | P-1 | High | 1.3.1 / 1.4.1 — color not the sole carrier | `frontend/src/pages/notifications/Notifications.jsx:90` (`bg-accent/5`) and `:94-98` (unread dot) | Read/unread is conveyed only by a tinted row and a colored dot; no text or `aria-label`. A "Mark read" button renders only for unread items (`:110-119`), but the *status itself* is not announced. | Add an sr-only "Unread"/"Read" label or `aria-label` on the row/dot; keep the dot decorative (`aria-hidden`). |
 | P-2 | Info | 1.4.3 — contrast | `docs/UIUX_STANDARDS.md` §7 Appendix A; `frontend/src/tokens.css:36-172` | All five themes were measured at ≥ 4.50:1 (documented), but **no test re-validates this** and no new theme is covered. **Doc drift:** UIUX_STANDARDS describes the focus ring as `!important`; the code (`frontend/src/index.css:49-52`) deliberately omits `!important` with a comment explaining why. | Re-run the Appendix A measurement if any token changes; correct the `!important` wording in UIUX_STANDARDS. |
-| P-3 | Medium | 1.3.1 — info & relationships | `frontend/src/pages/employees/Employees.jsx:467`, `frontend/src/pages/employer/Dashboard.jsx:249`, `frontend/src/pages/admin/AuditTrail.jsx:175`, `frontend/src/pages/admin/ActivityLog.jsx:60`, `frontend/src/pages/admin/UserManagement.jsx:344` | Real `<table>`/`<th>` are used (good), but there is **no `<caption>` and no `scope` on header cells**. This is pre-existing open item **#37** in `docs/UIUX_AUDIT.md:67`. | Add `<caption>` (can be visually hidden) and `scope="col"`/`scope="row"`. |
+| P-3 (fixed 2026-10-06) | — | 1.3.1 — info & relationships | `frontend/src/pages/employer/Dashboard.jsx:243`, `admin/AuditTrail.jsx:227`, `admin/ActivityLog.jsx:50`, `admin/UserManagement.jsx:301` | **All four tables now have a visually-hidden `<caption>` and `scope="col"` on every `<th>` (21 headers).** The `Employees.jsx` reference was stale — the directory is a split list, not a table. | Done. |
 
 ---
 
@@ -63,7 +63,7 @@ Fixed so far: `O-1`, `O-3`, `U-1`, `U-2`, `R-2`. Open: `P-1`, `P-2`, `P-3`, `O-2
 
 | ID | Sev | Criterion | Surface / evidence | Note | Remediation |
 |---|---|---|---|---|---|
-| R-1 | Medium | Process — automated checks | `frontend/eslint.config.js:20-33` (only `toISOString` + `replace('_',' ')`); `.github/workflows/ci.yml` frontend job (lint + build); `frontend/package.json` (no test script, no a11y libs) | **No automated accessibility testing exists** (no `eslint-plugin-jsx-a11y`, no axe/pa11y/lighthouse, no frontend tests). `AGENTS.md` §6 lists backend guardrails only. | (Deferred by decision.) If adopted later, add `eslint-plugin-jsx-a11y` first; it is a devDependency and a STOP-AND-ASK per AGENTS §3. |
+| R-1 (updated 2026-10-06) | Medium | Process — automated checks | `frontend/eslint.config.js` (static rules **+ `eslint-plugin-jsx-a11y` recommended ruleset**, scoped to `src/**`, incl. `label-has-associated-control`); `.github/workflows/ci.yml` frontend job (lint + build); `frontend/package.json` (no test script) | **Static a11y lint is now wired into `npm run lint`.** Still no **runtime** a11y testing (axe/pa11y/lighthouse) and no frontend unit/E2E tests. | (Deferred.) Add axe/pa11y in CI when a frontend test runner exists; a11y lint already runs today. |
 | R-2 (fixed) | High | 4.1.2 — name/role/value | `frontend/src/pages/admin/UserManagement.jsx:555-558` (CreateUserModal), `:720-723` (ResetPasswordModal) | Both dialogs have `role="dialog"`/`aria-modal` but **no `aria-label`/`aria-labelledby`** (their `<h2>`s at `:563`, `:728` have no `id`). Compare: `AddEmployeeModal.jsx:104`, `ShortcutModal.jsx:43`, `RateEmployee.jsx:450`, `CommandPalette.jsx:84` are named. | Add `aria-labelledby` pointing at the heading `id`. |
 | R-3 | Medium | 1.3.1 | Same as P-3 | Tables lack `<caption>`/`scope` (open #37). | See P-3. |
 | R-4 | Low | 4.1.2 | `frontend/src/pages/employees/Employees.jsx:502-507`; `frontend/src/pages/employer/Dashboard.jsx:265-270` | Clickable `<tr>` with `tabIndex={0}` + `activateOnKey` — keyboard-operable (good) but no widget `role`; announced as a plain row. | Consider a link in a cell, or `role="button"` with an accessible name. |
@@ -119,8 +119,8 @@ These are reported here; the existing docs were **not** edited (UIUX_AUDIT.md is
 - `U-4` normalize heading hierarchy (single h1; print headers hidden).
 - `O-5` enlarge mobile tab targets.
 
-**Process (deferred by decision)**
-- `R-1` automated a11y enforcement. If approved, start with `eslint-plugin-jsx-a11y` (devDependency — STOP-AND-ASK).
+**Process (partially addressed)**
+- `R-1` automated a11y enforcement. `eslint-plugin-jsx-a11y` **is wired into `npm run lint`** (recommended ruleset, scoped to `src/**`). The remaining gap is **runtime** a11y testing (axe/pa11y/lighthouse) — deferred until a frontend test runner exists.
 
 ---
 

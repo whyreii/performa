@@ -172,9 +172,9 @@ Verified: `npm run build` 0 errors; `pytest` 79 passed, 3 skipped; runtime — 7
 - **Modals (7 → `Modal`):** AddEmployeeModal, RateEmployee, Rollups, UserManagement ×2, ShortcutModal, CommandPalette — only `Modal.jsx` defines `role="dialog"` now.
 - **Tabs (2 → `Tabs`).**
 - **Empty states (7 → `EmptyState`):** Notifications, AuditTrail, ActivityLog, Employees, SupervisorDashboard, Rollups, EmployeeTraining — icon-circles removed, action slots added. Error states kept distinct.
-- **Inputs (15 → `TextField`):** Login, AddEmployeeModal, Settings, UserManagement. The 13 remaining literals are search/select/textarea (need other primitives).
+- **Inputs (15 → `TextField`):** Login, AddEmployeeModal, Settings, UserManagement. The remaining raw controls use the shared classes — search → `${inputClass} pl-9`, select → `${selectClass}`, textarea → `${textareaClass}` (standardization pass 2026-10-04). **Last two literals migrated 2026-10-06** (AddEmployeeModal select, RateEmployee textarea); no duplicated form-control literals remain.
 - **Cards (→ `Card`):** EmployeeDetail, EmployeeDashboard, Settings, SupervisorDashboard, ActivityLog, Notifications, AuditTrail, UserManagement, Dashboard, RateEmployee, Rubrics, Rollups, EmployeeTraining, Employees. 11 containers remain (error states, auth card, milestone banner) — intentionally kept.
-- Counts: `<Card>` 7 → 31 · `<Modal>` 1 → 8 · `<EmptyState>` 1 → 8 · `<Tabs>` 0 → 2 · `<TextField>` 0 → 15 · input literals 28 → 13 · `role="dialog"` 8 → 1.
+- Counts: `<Card>` 7 → 31 · `<Modal>` 1 → 8 · `<EmptyState>` 1 → 8 · `<Tabs>` 0 → 2 · `<TextField>` 0 → 15 · input literals 28 → **0** (form controls; verified 2026-10-06) · `role="dialog"` 8 → 1.
 
 **Phase G — eslint guardrail (2026-10-04):** added three `no-restricted-syntax` selectors to `frontend/eslint.config.js` (no new dependency; runs in the existing `npm run lint` CI step): (1) no arbitrary `text-[…px]`; (2) no `shadow-sm` on `rounded-float` cards; (3) no `uppercase` micro-label kickers on `span`/`div` (table + print/legal headers stay allowed). Verified: `npm run lint` is clean on the tree, and **prove-it-bites** (a scratch file with the banned patterns fails lint while the allowed patterns pass).
 

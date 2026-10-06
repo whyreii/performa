@@ -64,7 +64,7 @@
 34. ✅ **Fixed** — Search inputs in UserManagement, AuditTrail, and Employees have `aria-label`s.
 35. ✅ **Fixed** — Global `@media (prefers-reduced-motion: reduce)` block in `index.css`.
 36. ✅ **Fixed** — `AuditTrail.jsx` now features dedicated `@media print` styling, formal DOLE headers, and physical signature lines (`Evaluator`, `Employee`, `HR Head`).
-37. Tables lack `<caption>` and `scope` on `<th>`.
+37. ✅ **Fixed** (2026-10-06) — all four tables have a visually-hidden `<caption>` and `scope="col"` on every `<th>` (21 headers).
 
 ---
 
