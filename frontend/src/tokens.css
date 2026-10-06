@@ -17,15 +17,15 @@
   --s5: 32px;
   --s6: 48px;
   --s7: 64px;
-  /* Soft, contemporary geometry (6–8px). Chosen in the split-polish preview:
-     controls 6, fields/nav/surfaces 8. */
-  --r-ctl: 6px;
-  --r-field: 8px;
-  --r-nav: 8px;
-  --r-float: 8px;
+  /* Round geometry (was soft 6–8px). Chosen in the radius preview:
+     controls 10, fields/nav 12, surfaces 14. */
+  --r-ctl: 10px;
+  --r-field: 12px;
+  --r-nav: 12px;
+  --r-float: 14px;
   /* Concentric nesting: a surface inside another surface uses this (outer − gap)
      so corners stay parallel (Apple's concentric-rectangle rule). */
-  --r-float-inner: 4px;
+  --r-float-inner: 8px;
   --m: 160ms;
   --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
   /* Apple-like spring for transform/position transitions only (never color).

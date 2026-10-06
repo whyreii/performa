@@ -167,13 +167,13 @@ numerals that align and characters that never confuse.
 - **Grid discipline.** Consistent 4/8 px spacing scale (`--s1`…`--s7`) and a shared
   card/float radius (`--r-ctl`, `--r-float`).
 - **Corner-radius scale — one per class, not one global value.** Radii are semantic
-  roles: controls `--r-ctl` (6 px), fields/nav/surfaces `--r-field`/`--r-nav`/
-  `--r-float` (8 px), full-round pills/avatars `rounded-full`. Every
+  roles: controls `--r-ctl` (10 px), fields/nav `--r-field`/`--r-nav` (12 px),
+  surfaces `--r-float` (14 px), full-round pills/avatars `rounded-full`. Every
   card/panel renders through `Surface.jsx` (which `Card.jsx` wraps), so the surface
   definition exists once.
 - **Concentric nesting.** A rounded surface placed *inside* another must use a
   smaller radius so the corners stay concentric: `inner = outer − gap` (Apple's
-  concentric-rectangle rule). The derived token `--r-float-inner` (4 px,
+  concentric-rectangle rule). The derived token `--r-float-inner` (8 px,
   `rounded-float-inner`) exists for this — apply it to any card nested in a card or
   modal. Equal radii on nested surfaces read as a visual error.
 

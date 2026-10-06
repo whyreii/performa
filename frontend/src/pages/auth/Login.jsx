@@ -2,14 +2,33 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { BarChart3, Eye, EyeOff, AlertCircle, ArrowRight, Sun, Moon, Monitor } from '../../components/icons';
-import { TextField, Surface } from '../../components/ui';
+import { BarChart3, Eye, EyeOff, AlertCircle, Sun, Moon, Monitor } from '../../components/icons';
+import { TextField, Button, Surface, Badge, inputClass } from '../../components/ui';
 
 const MODES = [
   { id: 'light', label: 'Light', icon: Sun },
   { id: 'dark', label: 'Dark', icon: Moon },
   { id: 'system', label: 'System', icon: Monitor },
 ];
+
+// Seeded accounts for the panel demo — real logins, not fabricated data.
+const DEMO_ACCOUNTS = [
+  { role: 'Admin', email: 'admin@acme.com' },
+  { role: 'Employer', email: 'employer@acme.com' },
+  { role: 'Supervisor', email: 'supervisor@acme.com' },
+  { role: 'Probationary employee', email: 'emp1@acme.com' },
+];
+
+// Article 296 statutory milestones — fixed constants (ARCHITECTURE.md §2). Shown
+// as a schematic of the 180-day window; the ticks are the milestones themselves,
+// not a live readout (no current-day/progress value is invented here).
+const DAY_CAP = 180;
+const MILESTONES = [
+  { day: 150, note: 'Alert sent to the employer' },
+  { day: 165, note: 'Alert sent to the employer' },
+  { day: 178, note: 'Alert sent to the employer' },
+];
+const milestoneLeft = (day) => `${((day / DAY_CAP) * 100).toFixed(1)}%`;
 
 export default function Login() {
   const { login } = useAuth();
@@ -58,7 +77,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-between bg-bg text-ink transition-colors duration-performa">
+    <div className="login-shell min-h-screen w-full flex flex-col bg-bg text-ink transition-colors duration-performa">
       {/* Top bar with Color mode */}
       <header className="w-full flex justify-between items-center px-6 py-4 border-b border-line">
         <div className="flex items-center gap-3">
@@ -98,119 +117,145 @@ export default function Login() {
         </div>
       </header>
 
-      {/* Main Login Card */}
-      <main className="flex-1 flex items-center justify-center p-4">
-        <Surface elevated className="w-full max-w-[420px] p-6 sm:p-8 transition-colors duration-performa">
-          <div className="text-center mb-6">
-            <h1 className="text-22 sm:text-30 font-semibold tracking-tight text-ink">Sign in to Performa</h1>
-            <p className="text-14 text-ink-2 mt-1.5">
-              Philippine Labor Code Article 296 Evaluation Platform
-            </p>
-          </div>
+      <main className="flex-1 w-full max-w-[1180px] mx-auto px-6 py-10 flex flex-col justify-center">
+        <header className="reveal">
+          <h1 className="text-30 font-semibold tracking-tight text-ink">Sign in</h1>
+          <p className="text-14 text-ink-2 mt-2">Use your work account to continue to Performa.</p>
+        </header>
 
-          {error && (
-            <div
-              role="alert"
-              className="mb-5 p-3 rounded-ctl bg-bad/8 border border-line flex items-start gap-2 text-bad text-14"
-            >
-              <AlertCircle className="w-4 h-4 mt-0.5 flex-none" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <TextField
-              id="email"
-              label="Work Email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@company.com"
-              required
-            />
-
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="text-12 font-medium text-ink-2" htmlFor="password">
-                  Password
-                </label>
+        <div className="reveal mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-14 lg:items-start">
+          {/* Form column */}
+          <section>
+            {error && (
+              <div
+                role="alert"
+                className="mb-5 p-3 rounded-ctl bg-bad/8 border border-line flex items-start gap-2 text-bad text-14"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-none" />
+                <span>{error}</span>
               </div>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full h-10 pl-3 pr-10 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-14 focus:outline-none focus:border-accent transition-colors"
-                />
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <TextField
+                id="email"
+                label="Work email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@company.com"
+                required
+              />
+
+              <div>
+                <div className="flex items-baseline justify-between gap-3 mb-1">
+                  <label className="text-12 font-medium text-ink-2" htmlFor="password">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    className="text-12 font-semibold text-accent hover:underline"
+                    onClick={() => {}}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className={`${inputClass} pr-11`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-pressed={showPassword}
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 grid place-items-center rounded-ctl text-ink-3 hover:text-ink hover:bg-hover transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button type="submit" isLoading={isSubmitting} className="w-full">
+                {isSubmitting ? 'Signing in...' : 'Sign in'}
+              </Button>
+            </form>
+
+            <div className="h-px bg-line my-6" />
+
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <span className="text-14 font-semibold text-ink">Fill a seeded demo account</span>
+              <Badge variant="warn">Demo mode</Badge>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {DEMO_ACCOUNTS.map((account) => (
                 <button
+                  key={account.email}
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink transition-colors p-1"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => handleQuickLogin(account.email)}
+                  className="flex flex-col items-start gap-0.5 text-left border border-line rounded-field bg-surface px-3.5 py-3 hover:border-accent/60 hover:bg-hover transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  <span className="text-12 font-semibold text-ink">{account.role}</span>
+                  <span className="num text-12 text-ink-3">{account.email}</span>
                 </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Article 296 promo */}
+          <Surface elevated className="p-7 sm:p-8">
+            <div className="login-kicker">Article 296 · Philippine Labor Code</div>
+            <h2 className="text-22 font-bold tracking-tight text-ink mt-3">
+              Every probationary period, tracked to day 180.
+            </h2>
+            <p className="text-14 text-ink-2 mt-2.5">
+              Weekly ratings, training plans that only an employer can approve, and an audit
+              trail on every score change.
+            </p>
+
+            <div className="mt-6">
+              <div className="flex items-baseline justify-between gap-3 mb-2">
+                <span className="text-12 font-semibold text-ink">Statutory window</span>
+                <span className="text-12 text-ink-3">180-day cap</span>
+              </div>
+              <div
+                className="relative h-1.5 rounded-full bg-line"
+                role="img"
+                aria-label="Milestones at day 150, 165 and 178 of the 180-day cap"
+              >
+                {MILESTONES.map((m, i) => (
+                  <span
+                    key={m.day}
+                    aria-hidden="true"
+                    className={`absolute -top-1 -bottom-1 w-0.5 ${i === 0 ? 'bg-warn' : 'bg-ink-3'}`}
+                    style={{ left: milestoneLeft(m.day) }}
+                  />
+                ))}
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full h-10 mt-2 bg-accent text-accent-foreground font-semibold rounded-ctl text-14 hover:brightness-110 active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <span>Signing in...</span>
-              ) : (
-                <>
-                  <span>Sign In</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Quick Login Test Accounts for Panel Demo */}
-          <div className="mt-6 pt-5 border-t border-line">
-            <span className="block text-12 font-medium text-ink-3 mb-2.5 text-center">
-              Quick demo login (Seeded accounts):
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin@acme.com')}
-                className="px-2.5 py-1.5 text-12 font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
-              >
-                Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('employer@acme.com')}
-                className="px-2.5 py-1.5 text-12 font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
-              >
-                Employer
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('supervisor@acme.com')}
-                className="px-2.5 py-1.5 text-12 font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
-              >
-                Supervisor
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('emp1@acme.com')}
-                className="px-2.5 py-1.5 text-12 font-medium rounded-ctl border border-line hover:bg-hover hover:border-ink-3 transition-colors text-ink text-center"
-              >
-                Employee
-              </button>
-            </div>
-          </div>
-        </Surface>
+            <ul className="mt-4">
+              {MILESTONES.map((m) => (
+                <li
+                  key={m.day}
+                  className="flex items-center gap-3 py-3 border-t border-line first:border-t-0 text-14"
+                >
+                  <span className="w-2 h-2 rounded-full bg-warn flex-none" aria-hidden="true" />
+                  <span className="num font-semibold text-ink w-16 shrink-0">Day {m.day}</span>
+                  <span className="text-ink-2">{m.note}</span>
+                </li>
+              ))}
+            </ul>
+          </Surface>
+        </div>
       </main>
 
       {/* Footer info */}

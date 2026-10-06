@@ -536,6 +536,27 @@
   font-size: var(--t-14);
 }
 
+/* Sign-in (auth) page — Apple-style tracking, scoped so the rest of the app is
+   unaffected. Body text uses SF Pro Text's -0.011em; numbers/mono/labels reset
+   to normal so digits and the kicker do not cramp. */
+.login-shell {
+  letter-spacing: -0.011em;
+}
+.login-shell label,
+.login-shell .num,
+.login-shell .mono {
+  letter-spacing: normal;
+}
+/* Uppercase mono kicker. A CSS class (not the Tailwind `uppercase` utility)
+   because the eslint rule reserves `uppercase` for table/print headers. */
+.login-kicker {
+  font-size: var(--t-12);
+  font-family: var(--mono);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
 @media (max-width: 1024px) {
   .srail {
     display: block;
