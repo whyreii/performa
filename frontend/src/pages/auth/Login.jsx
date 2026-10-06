@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { BarChart3, Eye, EyeOff, AlertCircle, Sun, Moon, Monitor } from '../../components/icons';
+import { BarChart3, Eye, EyeOff, AlertCircle, Sun, Moon } from '../../components/icons';
 import { TextField, Button, Surface, Badge, inputClass } from '../../components/ui';
 import { COMPETENCIES } from '../../config/domain';
 
 const MODES = [
   { id: 'light', label: 'Light', icon: Sun },
   { id: 'dark', label: 'Dark', icon: Moon },
-  { id: 'system', label: 'System', icon: Monitor },
 ];
 
 // Seeded accounts for the panel demo — real logins, not fabricated data.
