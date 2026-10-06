@@ -393,7 +393,6 @@ html {
 }
 .docket__n {
   font-size: var(--t-14);
-  color: var(--ink-2);
 }
 .docket__dt {
   font-family: var(--num);
@@ -412,7 +411,6 @@ html {
   color: var(--accent);
 }
 .docket__row.is-reached .docket__n {
-  color: var(--ink);
   font-weight: 600;
 }
 

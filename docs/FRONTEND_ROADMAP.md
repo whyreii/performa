@@ -67,26 +67,33 @@ Status: `[x]` done · `[ ]` open · `[~]` partial.
   text, in `EmployeeDetail` + `EmployeeDashboard`).
 - [x] **One-encoder check** on the touched status displays.
 
-### Phase 3 — Accessibility — **open**
+### Phase 3 — Accessibility — **done**
 - [x] Table `<caption>` + `scope` — verified complete (4 tables, 21 `<th>` scoped);
   `UIUX_AUDIT #37` / `POUR_AUDIT P-3` corrected (were stale).
-- [ ] Keyboard/focus audit — `Modal` trap, `GlideSelect`, `RubberSegment`,
-  `CommandPalette`; focus return + live regions.
-- [ ] Contrast audit on the new elements (mark on accent tile, ledger status
-  numerals, docket "Today" row).
+- [x] Keyboard/focus audit — `Modal` (trap + focus return), `GlideSelect`
+  (combobox: arrows/Home/End/Enter/Esc/Tab, typeahead, `aria-activedescendant`),
+  `RubberSegment` (radiogroup: arrows/Home/End), `CommandPalette` (listbox +
+  activedescendant). Live regions verified (`Toast`, `RateEmployee`).
+- [x] Contrast audit — all new pairs ≥ 4.5:1 in both themes (mark-on-accent,
+  ledger numerals, docket rows). Fixed: `.docket__n` no longer overrides the
+  status tone classes, so the milestone labels encode status (the reached row is
+  bold, not recoloured to ink).
 
 ### Phase 4 — Signature — **partial**
 - [x] Promote the Docket + Ledger as the canonical 180-day / scorecard
   visualization across roles.
+- [x] Mark identity is consistent: `favicon.svg` is the mark, and `public/` has
+  no other app/social icons to reconcile.
 - [ ] *(Optional)* a thin proportional hairline under the Docket to restore the
   at-a-glance position cue without reverting to the old bar.
-- [ ] Keep the mark's identity consistent in favicon + any app/social icons.
 
 ### Phase 5 — Performance — **partial**
 - [x] Drop `motion` (138 KB chunk) by porting the vanilla `RubberSegment` to
   `utils/animate.js`. The `motion` dependency is gone; the chunk is removed
   (Settings absorbs ~6 KB).
-- [ ] Re-check scroll cost on the mobile sticky bars (`backdrop-blur`).
+- [~] Reviewed the mobile sticky bars: `MobileBar` and `BottomTabBar` use
+  `backdrop-blur-md` at 90–95% opacity, so the blur is near-invisible. Left
+  as-is pending device profiling (no speculative visual change).
 
 ### Phase 6 — Guardrails & docs — **partial**
 - [x] `eslint-plugin-jsx-a11y` wired into `npm run lint`.
