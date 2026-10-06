@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, StatusDot, MilestonePill, MilestoneComposition, Skeleton, Card, Page, CountUp } from '../../components/ui';
+import { Button, Badge, StatusDot, MilestonePill, MilestoneComposition, Skeleton, Card, Page, CountUp, Split } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { milestoneTone } from '../../utils/status';
@@ -174,7 +174,11 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* 3. Active Probationers Pipeline Table */}
+      {/* Dynamic grid: the Pipeline is the work surface (main column); the AI
+          training plans are the context rail (sticky on desktop, stacked below
+          the pipeline on mobile). */}
+      <Split
+        main={
       <Card className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
@@ -298,20 +302,21 @@ export default function Dashboard() {
             </table>
           </div>
         )}
-      </Card>
-
-      {/* 4. AI Interventions & ML Course Recommendations Preview */}
+          </Card>
+        }
+        aside={
       <Card className="space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-line">
-          <div>
-            <h2 className="text-16 font-semibold text-ink">AI Training Recommendations & Rollups</h2>
+        <div className="flex items-start justify-between gap-3 pb-3 border-b border-line">
+          <div className="min-w-0">
+            <h2 className="text-16 font-semibold text-ink">AI Training Plans</h2>
             <p className="text-12 text-ink-3">
-              Automated Random Forest course assignments for identified competency gaps
+              Random Forest gap classifier · pending approval
             </p>
           </div>
           <Button
             variant="secondary"
             size="sm"
+            className="shrink-0 whitespace-nowrap"
             onClick={() => navigate('/rollups')}
           >
             Review All
@@ -362,7 +367,9 @@ export default function Dashboard() {
             })}
           </div>
         )}
-      </Card>
+          </Card>
+        }
+      />
     </Page>
   );
 }
