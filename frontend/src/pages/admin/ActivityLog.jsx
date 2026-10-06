@@ -60,7 +60,7 @@ export default function ActivityLog() {
               <tbody className="divide-y divide-line">
                 {entries.map((entry) => (
                   <tr key={entry.id} className="hover:bg-hover transition-colors">
-                    <td className="py-3 px-4 text-ink-2 font-mono whitespace-nowrap">
+                    <td className="py-3 px-4 text-ink-2 font-num whitespace-nowrap">
                       {entry.created_at ? formatDate(entry.created_at, { withTime: true }) : ''}
                     </td>
                     <td className="py-3 px-4 font-medium text-ink">
@@ -71,10 +71,10 @@ export default function ActivityLog() {
                     <td className="py-3 px-4">
                       <Badge variant="accent">{entry.action}</Badge>
                     </td>
-                    <td className="py-3 px-4 text-ink-2 font-mono">
+                    <td className="py-3 px-4 text-ink-2 font-num">
                       {entry.entity_type || '—'}
                     </td>
-                    <td className="py-3 px-4 text-ink-3 font-mono">
+                    <td className="py-3 px-4 text-ink-3 font-num">
                       <span className="block truncate max-w-[240px]" title={entry.detail || ''}>
                         {entry.detail || '—'}
                       </span>
@@ -85,7 +85,7 @@ export default function ActivityLog() {
             </table>
           </div>
         )}
-        <footer className="p-3 border-t border-line text-12 text-ink-3 font-mono">
+        <footer className="p-3 border-t border-line text-12 text-ink-3 font-num">
           Showing {entries.length} activity entries
         </footer>
       </Card>

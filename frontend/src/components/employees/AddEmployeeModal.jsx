@@ -183,7 +183,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
               required
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="[&_input]:font-mono"
+              className="[&_input]:font-num"
             />
           </div>
 
@@ -224,8 +224,8 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           {/* Statutory 180-Day Calculation Banner */}
           <div className="p-3 rounded-ctl bg-hover border border-line text-12 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-ink-3 font-mono text-12">Statutory 180-Day Cap</span>
-              <span className="font-semibold text-accent font-mono">{day180Preview}</span>
+              <span className="text-ink-3 font-num text-12">Statutory 180-Day Cap</span>
+              <span className="font-semibold text-accent font-num">{day180Preview}</span>
             </div>
             <p className="text-12 text-ink-3 leading-relaxed">
               Under Art. 296, the employee will automatically regularize if retained past Day 180 without formal notice.
@@ -235,7 +235,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           {/* Initial Password Notice */}
           <div className="flex items-center justify-between pt-2 text-12 text-ink-3">
             <span>Initial login password:</span>
-            <span className="font-mono font-medium text-ink">Password123!</span>
+            <span className="font-num font-medium text-ink">Password123!</span>
           </div>
 
           <div className="flex justify-end items-center gap-3 pt-4 border-t border-line">

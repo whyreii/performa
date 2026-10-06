@@ -83,7 +83,7 @@ export default function EmployeeDashboard() {
         subtitle={
           <>
             Probationary Milestone Tracker &amp; Weekly Evaluations ·{' '}
-            <span className="font-mono text-ink">{user?.organization_name || user?.organization_id}</span>
+            <span className="font-num text-ink">{user?.organization_name || user?.organization_id}</span>
           </>
         }
         actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}
@@ -93,13 +93,13 @@ export default function EmployeeDashboard() {
       <Card className="sm:p-7 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
           <div>
-            <span className="text-12 font-mono text-accent block mb-0.5">
+            <span className="text-12 font-num text-accent block mb-0.5">
               Philippine Labor Code Article 296
             </span>
             <h2 className="text-16 font-semibold text-ink">Probationary Period Timeline</h2>
           </div>
 
-          <div className="font-mono text-12 text-ink flex items-center gap-2">
+          <div className="font-num text-12 text-ink flex items-center gap-2">
             <span className="p-1.5 rounded-ctl bg-hover border border-line">
               Start: <b>{formatDate(myProfile?.start_date)}</b>
             </span>
@@ -111,7 +111,7 @@ export default function EmployeeDashboard() {
 
         {/* Timeline Bar */}
         <div className="space-y-2">
-          <div className="flex justify-between text-12 font-mono text-ink">
+          <div className="flex justify-between text-12 font-num text-ink">
             <span>
               <b>Day {daysElapsed}</b> elapsed
             </span>
@@ -164,8 +164,8 @@ export default function EmployeeDashboard() {
 
           {scorecard?.latest_evaluation_date ? (
             <div className="text-right">
-              <span className="text-12 text-ink-3 block font-mono">Current Standing</span>
-              <span className="text-22 font-bold font-mono text-ink">
+              <span className="text-12 text-ink-3 block font-num">Current Standing</span>
+              <span className="text-22 font-bold font-num text-ink">
                 {Number(scorecard.overall_score).toFixed(1)} / 5.0
               </span>
             </div>
@@ -195,7 +195,7 @@ export default function EmployeeDashboard() {
                       {COMPETENCY_DESCRIPTIONS[c.key] || 'Statutory competency'}
                     </span>
                   </div>
-                  <span className="font-mono font-semibold text-14 text-ink shrink-0">
+                  <span className="font-num font-semibold text-14 text-ink shrink-0">
                     {Number(c.score).toFixed(1)}
                   </span>
                 </div>
@@ -215,7 +215,7 @@ export default function EmployeeDashboard() {
             <h2 className="text-16 font-semibold text-ink">Evaluation Audit Trail</h2>
             <p className="text-12 text-ink-3">Append-only record of every competency score change</p>
           </div>
-          <span className="font-mono text-12 text-ink-3">{auditLogs.length} records</span>
+          <span className="font-num text-12 text-ink-3">{auditLogs.length} records</span>
         </div>
 
         {isAuditLoading ? (
@@ -239,9 +239,9 @@ export default function EmployeeDashboard() {
                         {log.competency?.replace(/_/g, ' ') || 'score'}
                       </span>
                     </div>
-                    <span className="font-mono text-ink-3">{formatDate(log.created_at)}</span>
+                    <span className="font-num text-ink-3">{formatDate(log.created_at)}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-12 font-mono text-ink-2">
+                  <div className="flex items-center gap-2 text-12 font-num text-ink-2">
                     <span className="text-ink-3">
                       {hasPrior ? `${Number(log.prior_score).toFixed(1)} -> ` : 'Initial -> '}
                     </span>
@@ -270,7 +270,7 @@ export default function EmployeeDashboard() {
               <div key={s.id} className="py-3 flex items-center justify-between gap-4">
                 <div className="text-12">
                   <span className="font-semibold text-ink">Month {s.month_number}</span>
-                  <span className="text-ink-3 font-mono ml-2">
+                  <span className="text-ink-3 font-num ml-2">
                     Avg {Number(s.overall_average).toFixed(2)}
                   </span>
                   <span className="text-ink-3 ml-2 capitalize">

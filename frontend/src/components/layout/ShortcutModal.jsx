@@ -73,7 +73,7 @@ export default function ShortcutModal({ isOpen, onClose }) {
                         {item.keys.map((k) => (
                           <kbd
                             key={k}
-                            className="px-2 py-0.5 font-mono text-12 font-semibold text-ink bg-surface border border-line rounded"
+                            className="px-2 py-0.5 font-num text-12 font-semibold text-ink bg-surface border border-line rounded"
                           >
                             {k}
                           </kbd>
@@ -90,7 +90,7 @@ export default function ShortcutModal({ isOpen, onClose }) {
         {/* Footer */}
         <div className="pt-2 border-t border-line flex items-center justify-between text-12 text-ink-3">
           <span>Performa Capstone · WCAG 2.1 AA Compliant</span>
-          <span className="font-mono">Press Esc to exit</span>
+          <span className="font-num">Press Esc to exit</span>
         </div>
     </Modal>
   );

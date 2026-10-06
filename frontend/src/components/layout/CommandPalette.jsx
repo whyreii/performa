@@ -153,7 +153,7 @@ export default function CommandPalette({ isOpen, onClose }) {
                     <Icon className="w-4 h-4 text-ink-3 shrink-0" />
                     <span>{item.label}</span>
                   </div>
-                  <span className="font-mono text-12 text-ink-3">
+                  <span className="font-num text-12 text-ink-3">
                     {item.category}
                   </span>
                 </div>
@@ -163,7 +163,7 @@ export default function CommandPalette({ isOpen, onClose }) {
         </div>
 
         {/* Footer shortcuts hint */}
-        <div className="px-4 py-2 border-t border-line flex items-center justify-between text-12 text-ink-3 font-mono bg-surface/30">
+        <div className="px-4 py-2 border-t border-line flex items-center justify-between text-12 text-ink-3 font-num bg-surface/30">
           <span className="inline-flex items-center gap-1">
             Navigate with
             <ArrowUp className="w-3 h-3" />

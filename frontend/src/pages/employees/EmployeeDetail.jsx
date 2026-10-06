@@ -36,7 +36,7 @@ function ContributionBar({ label, contribution, maxAbs, isRisk }) {
   const width = maxAbs > 0 ? (Math.abs(contribution) / maxAbs) * 100 : 0;
   return (
     <div className="space-y-1">
-      <div className="flex justify-between text-12 font-mono text-ink-2">
+      <div className="flex justify-between text-12 font-num text-ink-2">
         <span className="font-sans">{label}</span>
         <span>
           {contribution >= 0 ? '+' : '−'}
@@ -431,7 +431,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           {employee.standards_acknowledged_at ? (
             <>
               Initial performance standards acknowledged on{' '}
-              <span className="font-mono">
+              <span className="font-num">
                 {formatDate(employee.standards_acknowledged_at)}
               </span>
             </>
@@ -460,7 +460,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             <h2 className="text-16 font-semibold text-ink">Probation timeline</h2>
             <p className="text-12 text-ink-3 mt-0.5">Art. 296 · Asia/Manila</p>
           </div>
-          <div className="font-mono text-12 text-ink">
+          <div className="font-num text-12 text-ink">
             <b>Day {daysElapsed}</b> / {PROBATION_DAYS} ({daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining)
           </div>
         </div>
@@ -485,14 +485,14 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           ))}
           <span className="absolute top-[15px] w-0.5 h-[14px] bg-ink" style={{ left: `${progressPct}%` }} />
           <span
-            className={`absolute top-0 font-mono text-12 text-ink whitespace-nowrap ${
+            className={`absolute top-0 font-num text-12 text-ink whitespace-nowrap ${
               progressPct > 88 ? '-translate-x-full' : '-translate-x-1/2'
             }`}
             style={{ left: `${progressPct}%` }}
           >
             Day {daysElapsed}
           </span>
-          <div className="absolute bottom-0 left-0 right-0 flex justify-between font-mono text-12 text-ink-3">
+          <div className="absolute bottom-0 left-0 right-0 flex justify-between font-num text-12 text-ink-3">
             <span>Day 0</span>
             <span>Day {PROBATION_DAYS}</span>
           </div>
@@ -512,7 +512,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               className="flex items-baseline justify-between gap-4 py-2.5 border-b border-line last:border-b-0"
             >
               <span className={`text-14 ${tone}${m === reachedMilestone ? ' font-semibold' : ''}`}>{label}</span>
-              <span className="font-mono text-14 text-ink">{date}</span>
+              <span className="font-num text-14 text-ink">{date}</span>
             </li>
           ))}
         </ul>
@@ -529,7 +529,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           {scorecard?.latest_evaluation_date ? (
             <div className="text-right">
               <span className="text-12 text-ink-3 block">Overall Average</span>
-              <span className="text-22 font-bold font-mono text-ink">
+              <span className="text-22 font-bold font-num text-ink">
                 {Number(scorecard.overall_score).toFixed(1)} / 5.0
               </span>
             </div>
@@ -559,7 +559,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                       {COMPETENCY_DESCRIPTIONS[comp.key] || 'Statutory competency'}
                     </span>
                   </div>
-                  <span className="font-mono font-semibold text-14 text-ink shrink-0">
+                  <span className="font-num font-semibold text-14 text-ink shrink-0">
                     {Number(comp.score).toFixed(1)}
                   </span>
                 </div>
@@ -601,7 +601,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           <div className="space-y-3">
             {trend.map((point) => (
               <div key={point.month_number} className="space-y-1">
-                <div className="flex justify-between text-12 font-mono text-ink-2">
+                <div className="flex justify-between text-12 font-num text-ink-2">
                   <span>Month {point.month_number}</span>
                   <span className={`font-semibold ${Number(point.overall_average) >= overallTarget ? 'text-good' : 'text-warn'}`}>
                     {Number(point.overall_average).toFixed(2)} / 5.0
@@ -676,7 +676,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 {regularization.recommendation}
               </Badge>
               <span className="text-14 text-ink-2">{regularization.status_classification}</span>
-              <span className="font-mono text-12 text-ink-3">
+              <span className="font-num text-12 text-ink-3">
                 Avg {Number(regularization.overall_average).toFixed(2)}
               </span>
             </div>
@@ -771,7 +771,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             <p className="text-12 font-medium text-ink-2 mb-2">Model-wide importance</p>
             <ul className="space-y-1">
               {modelImportance.map(({ key, value }) => (
-                <li key={key} className="flex justify-between text-12 font-mono text-ink-2">
+                <li key={key} className="flex justify-between text-12 font-num text-ink-2">
                   <span className="font-sans">{key.replace(/_/g, ' ')}</span>
                   <span>{(value * 100).toFixed(1)}%</span>
                 </li>
@@ -814,9 +814,9 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                         {log.competency?.replace(/_/g, ' ') || 'score'}
                       </span>
                     </div>
-                    <span className="font-mono text-ink-3">{formatDate(log.created_at)}</span>
+                    <span className="font-num text-ink-3">{formatDate(log.created_at)}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-12 font-mono text-ink-2">
+                  <div className="flex items-center gap-2 text-12 font-num text-ink-2">
                     <span className="text-ink-3">
                       {hasPrior ? `${Number(log.prior_score).toFixed(1)} -> ` : 'Initial -> '}
                     </span>
@@ -961,7 +961,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   placeholder="State the documented, performance-based justification for non-regularization..."
                   className={textareaClass}
                 />
-                <p className="text-12 text-ink-3 mt-1 font-mono">
+                <p className="text-12 text-ink-3 mt-1 font-num">
                   {statusReason.length} / 500 characters
                 </p>
               </div>

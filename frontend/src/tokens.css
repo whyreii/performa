@@ -34,6 +34,10 @@
   --ease-spring: linear(0, 0.12 6%, 0.34 12%, 0.62 18%, 0.86 24%, 1.02 30%, 1.09 36%, 1.1 42%, 1.06 48%, 1.01 55%, 0.99 62%, 0.995 70%, 1);
   --font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  /* Numeric/data font — the platform system face (SF Pro on Apple, Segoe UI on
+     Windows, Roboto on Android) with tabular figures. Used for numbers, dates,
+     scores and IDs instead of a monospace face. */
+  --num: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* ========================================================

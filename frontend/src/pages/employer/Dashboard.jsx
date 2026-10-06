@@ -95,7 +95,7 @@ export default function Dashboard() {
         title="Dashboard"
         subtitle={
           <>
-            Probationary pipeline · <span className="font-mono text-ink">{user?.organization_name || user?.organization_id}</span>
+            Probationary pipeline · <span className="font-num text-ink">{user?.organization_name || user?.organization_id}</span>
           </>
         }
         actions={
@@ -116,7 +116,7 @@ export default function Dashboard() {
         <Card as="div" padded={false} className="p-5 flex flex-col gap-2">
           <span className="text-14 font-semibold text-ink">Active Probationers</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-30 font-bold font-mono text-ink">
+            <span className="text-30 font-bold font-num text-ink">
               <CountUp value={stats.totalActive} />
             </span>
             <span className="text-12 text-ink-3">staff members</span>
@@ -129,7 +129,7 @@ export default function Dashboard() {
           <span className="text-14 font-semibold text-ink">Milestone Alerts</span>
           <div className="flex items-baseline gap-2">
             <span
-              className={`text-30 font-bold font-mono ${
+              className={`text-30 font-bold font-num ${
                 stats.criticalMilestones > 0 ? 'text-warn' : 'text-ink'
               }`}
             >
@@ -146,7 +146,7 @@ export default function Dashboard() {
         <Card as="div" padded={false} className="p-5 flex flex-col gap-2">
           <span className="text-14 font-semibold text-ink">Regularizing Target</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-30 font-bold font-mono text-ink">
+            <span className="text-30 font-bold font-num text-ink">
               <CountUp value={4} decimals={1} />
             </span>
             <span className="text-12 text-ink-3">/ 5.0 passing</span>
@@ -159,7 +159,7 @@ export default function Dashboard() {
           <span className="text-14 font-semibold text-ink">AI Training Plans</span>
           <div className="flex items-baseline gap-2">
             <span
-              className={`text-30 font-bold font-mono ${
+              className={`text-30 font-bold font-num ${
                 (stats.pendingPlans ?? plans.length) === 0 ? 'text-ok' : 'text-ink'
               }`}
             >
@@ -274,7 +274,7 @@ export default function Dashboard() {
                             >
                               {emp.user?.full_name}
                             </Link>
-                            <span className="text-12 text-ink-3 block font-mono">
+                            <span className="text-12 text-ink-3 block font-num">
                               {emp.job_title}
                             </span>
                           </div>
@@ -285,7 +285,7 @@ export default function Dashboard() {
 
                       <td className="py-3 px-3 min-w-[150px]">
                         <div className="space-y-1">
-                          <div className="flex justify-between font-mono text-12 text-ink-2">
+                          <div className="flex justify-between font-num text-12 text-ink-2">
                             <span>Day {days}</span>
                             <span className="text-ink-3">{Math.max(0, PROBATION_DAYS - days)}d left</span>
                           </div>
@@ -361,7 +361,7 @@ export default function Dashboard() {
                     <span className="text-14 font-medium text-ink truncate">
                       {plan.intervention_title}
                     </span>
-                    <span className="font-mono text-12 text-ink-3 shrink-0">
+                    <span className="font-num text-12 text-ink-3 shrink-0">
                       {plan.default_timeline || '—'}
                     </span>
                   </div>

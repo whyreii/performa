@@ -130,7 +130,7 @@ export default function Notifications() {
                       {n.category && <Badge variant="neutral">{n.category}</Badge>}
                     </div>
                     {n.body && <p className="text-12 text-ink-2 mt-0.5">{n.body}</p>}
-                    <span className="text-12 text-ink-3 font-mono mt-1 block">
+                    <span className="text-12 text-ink-3 font-num mt-1 block">
                       {n.created_at ? formatDate(n.created_at, { withTime: true, seconds: false }) : ''}
                     </span>
                   </div>

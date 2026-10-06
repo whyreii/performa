@@ -19,7 +19,7 @@ From the de-vibe work:
 6. One encoder per value (don't show status as dot + colour + badge + text).
 7. No icon-on-heading.
 8. Accent = identity only; colour carries status.
-9. Type is **IBM Plex Sans + IBM Plex Mono only** — no serif, no third family.
+9. Type is **IBM Plex Sans** for UI and the **platform system face for numbers** (`--num` / `font-num`: SF Pro on Apple, Segoe UI on Windows, Roboto on Android). **IBM Plex Mono** is kept for code/IDs/kickers. No serif. (Owner decision: numeric/data text uses the system numeric stack rather than a monospace face.)
 10. One page wrapper. Every routed page renders `Page` (`components/ui/Page.jsx`); the per-page vertical rhythm (24px) + fade-in live there. The max-width/padding "gallery wall" lives **once** in `AppShell.jsx` — `Page` never declares it (no double grid). Direct children of `Page` must **not** add their own `mt-*`/`pt-*` — the 24px gap is owned solely by `Page` (a top-level row that pads itself drifts off the wall). **No page may escape the wall**: `frontend/src/index.css` must not contain `main:has(...)` (or a page-scoped `max-width: none`) full-bleed override — enforced by `test_page_wrapper.py::test_no_page_escapes_the_gallery_wall`.
 11. The frame never moves. A card/list that loads asynchronously renders `CardSkeleton` (or a skeleton **inside** the real `Card`) with stubs sized to the loaded content, so the surface/height is reserved and nothing shifts when data arrives.
 12. Motion easing: use `--ease` for color/opacity transitions; use the `.ease-spring` utility (guarded by `@supports`, falls back to `--ease`) **only** for transform/position transitions — never on color.

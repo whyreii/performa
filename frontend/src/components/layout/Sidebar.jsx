@@ -73,7 +73,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
               <span className="font-semibold text-14 leading-none tracking-tight text-ink block">
                 Performa
               </span>
-              <span className="text-12 text-ink-3 font-mono block mt-0.5 truncate">
+              <span className="text-12 text-ink-3 font-num block mt-0.5 truncate">
                 {user?.organization_name || user?.organization_id}
               </span>
             </div>
@@ -96,7 +96,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
       {/* Manila Time Clock (Article 296 Timezone Anchor) */}
       {!collapsed && (
-        <div className="flex items-center gap-2 px-1 pb-2 text-12 font-mono text-ink-3">
+        <div className="flex items-center gap-2 px-1 pb-2 text-12 font-num text-ink-3">
           <span className="w-1.5 h-1.5 rounded-full bg-good animate-pulse" />
           <span>Manila (UTC+8)</span>
           <span className="ml-auto text-ink font-semibold">{manilaTime}</span>
@@ -122,7 +122,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         >
           <Search className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">Search / command…</span>
-          <kbd className="ml-auto font-mono text-12 px-1 py-0.5 rounded border border-line shrink-0">
+          <kbd className="ml-auto font-num text-12 px-1 py-0.5 rounded border border-line shrink-0">
             Ctrl ⌘ K
           </kbd>
         </button>

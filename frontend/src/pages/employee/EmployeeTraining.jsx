@@ -63,7 +63,7 @@ export default function EmployeeTraining() {
                         {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-12 text-ink-3 font-mono">
+                    <div className="flex items-center gap-3 text-12 text-ink-3 font-num">
                       <span>Duration: {plan.default_timeline || '4 hours'}</span>
                       <span>·</span>
                       <span>Catalog ID: {plan.catalog_id}</span>
@@ -81,7 +81,7 @@ export default function EmployeeTraining() {
 
                 {plan.rationale && (
                   <div className="p-4 rounded-ctl bg-hover/70 border border-line text-12 text-ink-2 space-y-1">
-                    <span className="font-semibold text-accent text-12 font-mono">
+                    <span className="font-semibold text-accent text-12 font-num">
                       Coaching Guidance
                     </span>
                     <p className="leading-relaxed">{plan.rationale}</p>

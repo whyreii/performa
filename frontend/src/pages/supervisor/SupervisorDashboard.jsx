@@ -39,7 +39,7 @@ export default function SupervisorDashboard() {
         title="Supervisor Workspace"
         subtitle={
           <>
-            Weekly Evaluator Dashboard · <span className="font-mono text-ink">{user?.organization_name || user?.organization_id}</span>
+            Weekly Evaluator Dashboard · <span className="font-num text-ink">{user?.organization_name || user?.organization_id}</span>
           </>
         }
         actions={
@@ -58,7 +58,7 @@ export default function SupervisorDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card as="div" padded={false} className="p-5 space-y-2">
           <span className="text-12 text-ink-3">Direct Reports</span>
-          <div className="text-22 font-bold font-mono text-ink">
+          <div className="text-22 font-bold font-num text-ink">
             {activeProbationers.length}
           </div>
           <p className="text-12 text-ink-2">Assigned probationary staff</p>
@@ -66,13 +66,13 @@ export default function SupervisorDashboard() {
 
         <Card as="div" padded={false} className="p-5 space-y-2">
           <span className="text-12 text-ink-3">Passing Target</span>
-          <div className="text-22 font-bold font-mono text-ink">4.0 / 5.0</div>
+          <div className="text-22 font-bold font-num text-ink">4.0 / 5.0</div>
           <p className="text-12 text-ink-2">Statutory regularizing standard</p>
         </Card>
 
         <Card as="div" padded={false} className="p-5 space-y-2">
           <span className="text-12 text-ink-3">Review Frequency</span>
-          <div className="text-22 font-bold font-mono text-ink">Weekly</div>
+          <div className="text-22 font-bold font-num text-ink">Weekly</div>
           <p className="text-12 text-ink-2">Mandatory evidentiary due process</p>
         </Card>
       </div>
@@ -129,7 +129,7 @@ export default function SupervisorDashboard() {
 
                   <div className="flex items-center gap-3 sm:gap-4 flex-wrap sm:flex-nowrap shrink-0">
                     <div className="min-w-[130px] space-y-1">
-                      <div className="flex justify-between font-mono text-12 text-ink-2">
+                      <div className="flex justify-between font-num text-12 text-ink-2">
                         <span>Day {days}</span>
                         <span className="text-ink-3">{Math.max(0, PROBATION_DAYS - days)}d left</span>
                       </div>

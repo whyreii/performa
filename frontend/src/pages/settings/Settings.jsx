@@ -233,7 +233,7 @@ export default function Settings() {
                   </div>
                   <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
                     <span className="text-14 text-ink-3">Work Email</span>
-                    <span className="text-14 font-mono text-ink truncate">{user?.email}</span>
+                    <span className="text-14 font-num text-ink truncate">{user?.email}</span>
                   </div>
                   <div className="flex items-baseline justify-between gap-4 py-3 border-b border-line">
                     <span className="text-14 text-ink-3">Platform Role</span>
@@ -292,7 +292,7 @@ export default function Settings() {
                       type="email"
                       value={profileEmail}
                       onChange={(e) => setProfileEmail(e.target.value)}
-                      className="[&_input]:font-mono"
+                      className="[&_input]:font-num"
                     />
                     <Button type="submit" variant="primary" isLoading={isSavingProfile}>
                       Save Changes
@@ -373,12 +373,12 @@ export default function Settings() {
                     aria-label="Reduce motion"
                     onClick={() => setReduceMotion(!reduceMotion)}
                     className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                      reduceMotion ? 'bg-accent border-accent' : 'bg-hover border-line'
+                      reduceMotion ? 'bg-accent border-accent' : 'bg-ink-3/40 border-line'
                     }`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 rounded-full bg-surface transition-transform ease-spring ${
-                        reduceMotion ? 'translate-x-6' : 'translate-x-1'
+                      className={`inline-block h-4 w-4 rounded-full bg-ink transition-transform ease-spring ${
+                        reduceMotion ? 'translate-x-6' : 'translate-x-0.5'
                       }`}
                     />
                   </button>

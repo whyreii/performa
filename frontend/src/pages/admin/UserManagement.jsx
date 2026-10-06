@@ -116,7 +116,7 @@ export default function UserManagement() {
         subtitle={
           <>
             User provisioning, role assignments, and credential management ·{' '}
-            <span className="font-mono text-ink">{currentUser?.organization_name || currentUser?.organization_id}</span>
+            <span className="font-num text-ink">{currentUser?.organization_name || currentUser?.organization_id}</span>
           </>
         }
         actions={
@@ -147,19 +147,19 @@ export default function UserManagement() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <Card padded={false} className="p-4 space-y-1">
           <span className="text-12 text-ink-3">Total Accounts</span>
-          <div className="text-22 font-bold font-mono text-ink">{counts.all}</div>
+          <div className="text-22 font-bold font-num text-ink">{counts.all}</div>
         </Card>
         <Card padded={false} className="p-4 space-y-1">
           <span className="text-12 text-ink-3">Employers</span>
-          <div className="text-22 font-bold font-mono text-accent">{counts.employer}</div>
+          <div className="text-22 font-bold font-num text-accent">{counts.employer}</div>
         </Card>
         <Card padded={false} className="p-4 space-y-1">
           <span className="text-12 text-ink-3">Supervisors</span>
-          <div className="text-22 font-bold font-mono text-good">{counts.supervisor}</div>
+          <div className="text-22 font-bold font-num text-good">{counts.supervisor}</div>
         </Card>
         <Card padded={false} className="p-4 space-y-1">
           <span className="text-12 text-ink-3">Probationary Staff</span>
-          <div className="text-22 font-bold font-mono text-ink">{counts.employee}</div>
+          <div className="text-22 font-bold font-num text-ink">{counts.employee}</div>
         </Card>
       </div>
 
@@ -228,12 +228,12 @@ export default function UserManagement() {
                         <div className="font-semibold text-12 text-ink flex items-center gap-1.5 truncate">
                           <span className="truncate">{u.full_name}</span>
                           {isCurrent && (
-                            <span className="font-mono text-12 text-accent font-normal shrink-0">
+                            <span className="font-num text-12 text-accent font-normal shrink-0">
                               (You)
                             </span>
                           )}
                         </div>
-                        <span className="text-12 text-ink-3 font-mono truncate block">
+                        <span className="text-12 text-ink-3 font-num truncate block">
                           {u.email}
                         </span>
                         <span className="text-12 text-ink-3 truncate block">
@@ -251,7 +251,7 @@ export default function UserManagement() {
                       <span className={u.is_active ? 'text-good' : 'text-ink-3'}>
                         {u.is_active ? 'Active' : 'Deactivated'}
                       </span>
-                      <span className="text-ink-3 font-mono text-12 ml-1">
+                      <span className="text-ink-3 font-num text-12 ml-1">
                         · {u.created_at ? formatDate(u.created_at) : '—'}
                       </span>
                     </div>
@@ -300,7 +300,7 @@ export default function UserManagement() {
           <table className="w-full text-left border-collapse text-12">
             <caption className="sr-only">User accounts</caption>
             <thead>
-              <tr className="border-b border-line bg-hover/40 text-ink-3 font-mono uppercase text-12 tracking-wider">
+              <tr className="border-b border-line bg-hover/40 text-ink-3 font-num uppercase text-12 tracking-wider">
                 <th scope="col" className="py-3 px-4">User</th>
                 <th scope="col" className="py-3 px-4">Role</th>
                 <th scope="col" className="py-3 px-4">Organization</th>
@@ -353,12 +353,12 @@ export default function UserManagement() {
                             <div className="font-semibold text-ink flex items-center gap-1.5">
                               <span className="truncate">{u.full_name}</span>
                               {isCurrent && (
-                                <span className="font-mono text-12 text-accent font-normal">
+                                <span className="font-num text-12 text-accent font-normal">
                                   (You)
                                 </span>
                               )}
                             </div>
-                            <span className="text-12 text-ink-3 font-mono truncate block">
+                            <span className="text-12 text-ink-3 font-num truncate block">
                               {u.email}
                             </span>
                           </div>
@@ -385,7 +385,7 @@ export default function UserManagement() {
                       </td>
 
                       {/* Created At */}
-                      <td className="py-3 px-4 text-ink-3 font-mono text-12">
+                      <td className="py-3 px-4 text-ink-3 font-num text-12">
                         {u.created_at ? formatDate(u.created_at) : '—'}
                       </td>
 
@@ -567,7 +567,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
             placeholder="name@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="[&_input]:font-mono"
+            className="[&_input]:font-num"
           />
 
           <TextField
@@ -579,7 +579,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
             placeholder="••••••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="[&_input]:font-mono"
+            className="[&_input]:font-num"
           />
 
           <div>
@@ -718,7 +718,7 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
         <div className="flex items-center justify-between pb-3 border-b border-line">
           <div>
             <h2 id="reset-pass-title" className="text-16 font-semibold text-ink">Reset Password</h2>
-            <p className="text-12 text-ink-3 font-mono truncate">{user.email}</p>
+            <p className="text-12 text-ink-3 font-num truncate">{user.email}</p>
           </div>
           <button
             type="button"
@@ -747,7 +747,7 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
             placeholder="Enter new secure password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="[&_input]:font-mono"
+            className="[&_input]:font-num"
           />
 
           <div className="pt-3 border-t border-line flex justify-end gap-2">

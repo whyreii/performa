@@ -110,7 +110,7 @@ export default function AuditTrail() {
       {/* DOLE Evidentiary Standards Banner */}
       <Card padded={false} className="p-5 space-y-2 no-print">
         <div className="text-accent font-semibold text-12">
-          <span className="font-mono text-12">
+          <span className="font-num text-12">
             Statutory Legal Standard · Republic of the Philippines
           </span>
         </div>
@@ -184,7 +184,7 @@ export default function AuditTrail() {
             <div className="no-print">
               {dayGroups.map((group) => (
                 <div key={group.key} className="border-b border-line last:border-b-0">
-                  <p className="px-4 pt-4 pb-1 font-mono text-12 text-ink-3">{group.label}</p>
+                  <p className="px-4 pt-4 pb-1 font-num text-12 text-ink-3">{group.label}</p>
                   {group.logs.map((log) => {
                     const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
                     return (
@@ -194,7 +194,7 @@ export default function AuditTrail() {
                       >
                         <time
                           dateTime={log.created_at}
-                          className="w-20 shrink-0 font-mono text-12 text-ink-3"
+                          className="w-20 shrink-0 font-num text-12 text-ink-3"
                         >
                           {formatManilaTime(log.created_at)}
                         </time>
@@ -203,7 +203,7 @@ export default function AuditTrail() {
                           {' recorded '}
                           <span className="text-ink">{competencyLabel(log.competency)}</span>
                         </span>
-                        <span className="flex shrink-0 items-center gap-2 font-mono text-12">
+                        <span className="flex shrink-0 items-center gap-2 font-num text-12">
                           {hasPrior ? (
                             <>
                               <span className="text-ink-3">{log.prior_score?.toFixed(1)}</span>
@@ -240,7 +240,7 @@ export default function AuditTrail() {
                 {pageLogs.map((log) => {
                   const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
                   return (
-                    <tr key={log.id} className="hover:bg-hover transition-colors font-mono">
+                    <tr key={log.id} className="hover:bg-hover transition-colors font-num">
                       <td className="py-3 px-4 text-ink-2 whitespace-nowrap">
                         {formatDate(log.created_at, { withTime: true })}
                       </td>
@@ -279,7 +279,7 @@ export default function AuditTrail() {
           </>
         )}
 
-        <footer className="p-3 border-t border-line text-12 text-ink-3 font-mono flex flex-wrap items-center justify-between gap-2 no-print">
+        <footer className="p-3 border-t border-line text-12 text-ink-3 font-num flex flex-wrap items-center justify-between gap-2 no-print">
           <span>
             Showing {filteredLogs.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
             {Math.min(currentPage * PAGE_SIZE, filteredLogs.length)} of {filteredLogs.length} verified audit records

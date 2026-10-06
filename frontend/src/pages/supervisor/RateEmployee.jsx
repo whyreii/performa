@@ -195,7 +195,7 @@ export default function RateEmployee() {
           </p>
         </div>
 
-        <Card as="div" padded={false} className="p-5 text-left space-y-3 font-mono text-12">
+        <Card as="div" padded={false} className="p-5 text-left space-y-3 font-num text-12">
           <div className="flex justify-between border-b border-line pb-2">
             <span className="text-ink-3">Overall Average</span>
             <span className="font-bold text-ink text-14">
@@ -302,13 +302,13 @@ export default function RateEmployee() {
                 <div className="flex items-center gap-6 text-12">
                   <span className="text-ink-3">
                     Probation timeline{' '}
-                    <span className="font-mono font-semibold text-ink">
+                    <span className="font-num font-semibold text-ink">
                       Day {daysElapsed} of {PROBATION_DAYS}
                     </span>
                   </span>
                   <span className="text-ink-3">
                     Target{' '}
-                    <span className="font-mono font-semibold text-accent">
+                    <span className="font-num font-semibold text-accent">
                       {thresholdTarget.toFixed(1)} / 5.0
                     </span>
                   </span>
@@ -334,7 +334,7 @@ export default function RateEmployee() {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-0.5">
-                    <span className="text-12 font-mono font-semibold text-accent">
+                    <span className="text-12 font-num font-semibold text-accent">
                       Competency {idx + 1} of 5
                     </span>
                     <h3 className="text-16 font-semibold text-ink">{comp.label}</h3>
@@ -343,7 +343,7 @@ export default function RateEmployee() {
 
                   <div className="flex items-baseline gap-2 self-start sm:self-center">
                     <span
-                      className={`font-mono text-22 font-bold ${
+                      className={`font-num text-22 font-bold ${
                         isMeets ? 'text-good' : 'text-warn'
                       }`}
                     >
@@ -366,7 +366,7 @@ export default function RateEmployee() {
                           onClick={() => handleRatingChange(comp.key, score)}
                           aria-pressed={isSelected}
                           aria-label={`Score ${score.toFixed(1)}${isTarget ? ' (regularizing target)' : ''}`}
-                          className={`h-9 rounded-ctl border font-mono text-12 font-medium transition-colors ${
+                          className={`h-9 rounded-ctl border font-num text-12 font-medium transition-colors ${
                             isSelected
                               ? 'bg-accent text-accent-foreground border-accent'
                               : isTarget
@@ -379,7 +379,7 @@ export default function RateEmployee() {
                       );
                     })}
                   </div>
-                  <div className="flex justify-between text-12 text-ink-3 mt-1.5 font-mono">
+                  <div className="flex justify-between text-12 text-ink-3 mt-1.5 font-num">
                     <span>1.0 Unsatisfactory</span>
                     <span>{target.toFixed(1)} Regularizing Standard</span>
                     <span>5.0 Exceptional</span>
@@ -402,8 +402,8 @@ export default function RateEmployee() {
 
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <span className="text-12 text-ink-3 font-mono block">Overall Score</span>
-                <span className="text-22 font-bold font-mono text-ink">
+                <span className="text-12 text-ink-3 font-num block">Overall Score</span>
+                <span className="text-22 font-bold font-num text-ink">
                   {overallAverage.toFixed(1)} <span className="text-12 text-ink-3">/ 5.0</span>
                 </span>
               </div>
@@ -420,7 +420,7 @@ export default function RateEmployee() {
               <label className="text-12 font-semibold text-ink" htmlFor="remarks">
                 Evidentiary Behavioral Remarks *
               </label>
-              <span className="text-12 text-ink-3 font-mono">
+              <span className="text-12 text-ink-3 font-num">
                 {remarks.length} / 500 characters
               </span>
             </div>
@@ -470,7 +470,7 @@ export default function RateEmployee() {
 
             <p className="text-12 text-ink-2 leading-relaxed">
               You are submitting a weekly performance rating of{' '}
-              <b className="font-mono text-ink">{overallAverage.toFixed(1)} / 5.0</b> for{' '}
+              <b className="font-num text-ink">{overallAverage.toFixed(1)} / 5.0</b> for{' '}
               <b className="text-ink">{selectedEmployee?.user?.full_name}</b>.
             </p>
 

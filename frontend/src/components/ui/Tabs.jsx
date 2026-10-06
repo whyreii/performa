@@ -24,7 +24,7 @@ export default function Tabs({ tabs = [], value, onChange, ariaLabel }) {
           >
             {tab.label}
             {tab.count != null && (
-              <span className="ml-1.5 font-mono text-12 text-ink-3">({tab.count})</span>
+              <span className="ml-1.5 font-num text-12 text-ink-3">({tab.count})</span>
             )}
           </button>
         );

@@ -210,7 +210,7 @@ export default function Rollups() {
                         {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-12 text-ink-3 font-mono">
+                    <div className="flex items-center gap-3 text-12 text-ink-3 font-num">
                       <span>Timeline: {plan.default_timeline || '4 hours'}</span>
                       <span>·</span>
                       <span>Catalog ID: {plan.catalog_id}</span>
@@ -247,7 +247,7 @@ export default function Rollups() {
                 {/* AI Rationale by Gemini */}
                 {plan.rationale && (
                   <div className="p-4 rounded-ctl bg-hover/70 border border-line text-12 text-ink-2 space-y-1">
-                    <span className="font-semibold text-accent text-12 font-mono">
+                    <span className="font-semibold text-accent text-12 font-num">
                       Gemini Performance Rationale
                     </span>
                     <p className="leading-relaxed">{plan.rationale}</p>
@@ -291,10 +291,10 @@ export default function Rollups() {
                     {emp?.department && (
                       <span className="text-ink-3 ml-2">{emp.department}</span>
                     )}
-                    <span className="text-ink-3 font-mono ml-2">
+                    <span className="text-ink-3 font-num ml-2">
                       Month {summary.month_number}
                     </span>
-                    <span className="text-ink-3 font-mono ml-2">
+                    <span className="text-ink-3 font-num ml-2">
                       Avg {Number(summary.overall_average).toFixed(2)}
                     </span>
                     <span className="text-ink-3 ml-2 capitalize">
@@ -372,7 +372,7 @@ export default function Rollups() {
                   id="r_month"
                   value={monthNumber}
                   onChange={(e) => setMonthNumber(Number(e.target.value))}
-                  className={`${selectClass} w-full font-mono`}
+                  className={`${selectClass} w-full font-num`}
                 >
                   <option value={1}>Month 1 (Days 1 - 30)</option>
                   <option value={2}>Month 2 (Days 31 - 60)</option>

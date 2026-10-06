@@ -102,7 +102,7 @@ export default function Rubrics() {
       {/* Legal Banner */}
       <Card padded={false} className="p-5 space-y-2">
         <div className="text-accent font-semibold text-12">
-          <span className="font-mono text-12">
+          <span className="font-num text-12">
             Statutory Legal Basis (Aliling v. Feliciano / Tamson Doctrine)
           </span>
         </div>
@@ -120,7 +120,7 @@ export default function Rubrics() {
                 <h2 className="text-16 font-semibold text-ink">{rubric.name}</h2>
                 <p className="text-12 text-ink-3 mt-0.5">{rubric.desc}</p>
               </div>
-              <div className="flex items-center gap-3 self-start sm:self-center font-mono text-12 text-ink-3">
+              <div className="flex items-center gap-3 self-start sm:self-center font-num text-12 text-ink-3">
                 <span>
                   Weight:{' '}
                   {rubricMap[rubric.competency]
@@ -147,7 +147,7 @@ export default function Rubrics() {
                       : 'bg-hover/60 border-line'
                   }`}
                 >
-                  <div className="flex items-center justify-between font-mono">
+                  <div className="flex items-center justify-between font-num">
                     <span className="font-bold text-ink">{lvl.score}</span>
                     <span
                       className={`text-12 font-sans font-semibold px-1.5 py-0.5 rounded ${

@@ -28,11 +28,11 @@ export default function ScoreMeter({
     <div className={`w-full ${className}`}>
       {showLabel && (
         <div className="flex justify-between items-center text-12 mb-1.5">
-          <span className="font-mono font-medium text-ink">
+          <span className="font-num font-medium text-ink">
             {clampedScore.toFixed(1)}{' '}
             <span className="text-ink-3 font-normal text-12">/ {max.toFixed(1)}</span>
           </span>
-          <span className={`font-mono text-12 ${textColor}`}>
+          <span className={`font-num text-12 ${textColor}`}>
             {clampedScore >= target
               ? 'Meets target'
               : `${(target - clampedScore).toFixed(1)} below target`}

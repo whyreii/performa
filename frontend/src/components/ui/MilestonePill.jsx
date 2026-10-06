@@ -66,7 +66,7 @@ export default function MilestonePill({
 
   return (
     <Badge variant="neutral" className={className}>
-      <span className="font-mono">Day {daysElapsed}</span> / {totalDays}
+      <span className="font-num">Day {daysElapsed}</span> / {totalDays}
     </Badge>
   );
 }

@@ -16,7 +16,7 @@ export default function StatRow({ label, value, tone, mono = true, strong = fals
       <span className={`text-14 ${tone ? TONE[tone] || 'text-ink-2' : 'text-ink-2'}${strong ? ' font-semibold' : ''}`}>
         {label}
       </span>
-      <span className={`text-14 text-ink${mono ? ' font-mono' : ''}${strong ? ' font-semibold' : ''}`}>
+      <span className={`text-14 text-ink${mono ? ' font-num' : ''}${strong ? ' font-semibold' : ''}`}>
         {value}
       </span>
     </div>

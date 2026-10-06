@@ -22,7 +22,7 @@ export default function PageHeader({
       {...props}
     >
       <div className="min-w-0 flex-1">
-        <div className="font-mono text-12 font-medium text-ink-3 mb-1 min-h-[18px] truncate">
+        <div className="font-num text-12 font-medium text-ink-3 mb-1 min-h-[18px] truncate">
           {kicker || ''}
         </div>
         <h1
