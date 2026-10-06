@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { BarChart3, LogOut, Search, Sun, Moon, ChevronLeft, ChevronRight } from '../icons';
+import { PerformaMark, LogOut, Search, Sun, Moon, ChevronLeft, ChevronRight } from '../icons';
 import { sidebarNav } from '../../config/nav';
 import { getInitials } from '../../utils/format';
 import { formatManilaClock } from '../../utils/datetime';
@@ -66,7 +66,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
           title="Performa Home"
         >
           <div className={`${collapsed ? 'w-8 h-8' : 'w-[26px] h-[26px]'} rounded-nav bg-accent text-accent-foreground flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ease-spring`}>
-            <BarChart3 className="w-4 h-4" />
+            <PerformaMark className="w-5 h-5" />
           </div>
           {!collapsed && (
             <div className="min-w-0">

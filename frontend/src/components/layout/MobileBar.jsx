@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { BarChart3, ChevronLeft, Search, LogOut, Sun, Moon, Monitor } from '../icons';
+import { PerformaMark, ChevronLeft, Search, LogOut, Sun, Moon, Monitor } from '../icons';
 import { getInitials } from '../../utils/format';
 
 const MODES = ['light', 'dark', 'system'];
@@ -37,7 +37,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
       ) : (
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
-            <BarChart3 className="w-3.5 h-3.5" />
+            <PerformaMark className="w-4 h-4" />
           </div>
           <span className="font-semibold text-16 tracking-tight text-ink">Performa</span>
         </div>

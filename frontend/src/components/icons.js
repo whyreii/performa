@@ -7,6 +7,8 @@
 //
 // Weight: Phosphor defaults to `regular`. For a filled active state pass
 // `weight="fill"` (e.g. the active nav item) — see docs/SLOP_AUDIT.md.
+import { createElement as h } from 'react';
+
 export {
   ArrowsDownUp as ArrowUpDown,
   ArrowDown,
@@ -69,3 +71,28 @@ export {
   X,
   XCircle,
 } from '@phosphor-icons/react';
+
+// Performa brand mark — an L-bracket measured span closing on a milestone dot.
+// A custom SVG kept here so icons.js stays the single source for iconography
+// (the eslint guardrail points every icon import at this file). Built with
+// createElement because this module is a .js file (no JSX transform).
+export function PerformaMark({ className = '', ...props }) {
+  return h(
+    'svg',
+    {
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      strokeWidth: 2.2,
+      strokeLinecap: 'round',
+      strokeLinejoin: 'round',
+      'aria-hidden': true,
+      className,
+      ...props,
+    },
+    h('path', { d: 'M4 6h16' }),
+    h('path', { d: 'M4 6v14' }),
+    h('path', { d: 'M9 20v-6h11v6' }),
+    h('circle', { cx: 20, cy: 10, r: 1.7, fill: 'currentColor', stroke: 'none' })
+  );
+}

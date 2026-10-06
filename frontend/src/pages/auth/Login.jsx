@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { BarChart3, Eye, EyeOff, AlertCircle, Sun, Moon } from '../../components/icons';
+import { PerformaMark, Eye, EyeOff, AlertCircle, Sun, Moon } from '../../components/icons';
 import { TextField, Button, Surface, Badge, inputClass } from '../../components/ui';
 import { COMPETENCIES } from '../../config/domain';
 
@@ -71,7 +71,7 @@ export default function Login() {
       <header className="w-full flex justify-between items-center px-6 py-4 border-b border-line">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
-            <BarChart3 className="w-4 h-4" />
+            <PerformaMark className="w-5 h-5" />
           </div>
           <span className="font-semibold text-16 tracking-tight text-ink">Performa</span>
         </div>
