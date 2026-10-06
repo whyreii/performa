@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, kpiApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, StatusDot, Skeleton, Modal, Card, Page, EmptyState, selectClass, textareaClass } from '../../components/ui';
+import { Button, Badge, StatusDot, Skeleton, Modal, Card, Page, EmptyState, GlideSelect, textareaClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { TARGET, PROBATION_DAYS } from '../../config/domain';
 import {
@@ -283,18 +283,17 @@ export default function RateEmployee() {
                 {isEmpListLoading ? (
                   <Skeleton className="h-10 w-full" />
                 ) : (
-                  <select
+                  <GlideSelect
                     id="empSelect"
+                    className="glide-select--field"
+                    ariaLabel="Select Probationary Employee"
                     value={selectedId}
-                    onChange={(e) => setSelectedId(e.target.value)}
-                    className={`${selectClass} w-full`}
-                  >
-                    {activeProbationers.map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.user?.full_name} — {emp.job_title} ({emp.department})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => setSelectedId(value)}
+                    options={activeProbationers.map((emp) => ({
+                      value: emp.id,
+                      label: `${emp.user?.full_name} — ${emp.job_title} (${emp.department})`,
+                    }))}
+                  />
                 )}
               </div>
 

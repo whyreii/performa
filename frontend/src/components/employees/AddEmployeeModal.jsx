@@ -3,8 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { manilaTodayISO, addDays, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS } from '../../config/domain';
-import { Button, Modal, TextField, selectClass } from '../ui';
-import { X, AlertCircle, UserCog } from '../icons';
+import { Button, Modal, TextField, GlideSelect } from '../ui';
+import { X, AlertCircle } from '../icons';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
   const queryClient = useQueryClient();
@@ -191,29 +191,29 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
             <label className="block text-12 font-medium text-ink-2 mb-1" htmlFor="m_supervisor">
               Assigned Supervisor *
             </label>
-            <div className="relative">
-              <UserCog className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <select
-                id="m_supervisor"
-                required
-                value={supervisorId}
-                onChange={(e) => setSupervisorId(e.target.value)}
-                disabled={isSupervisorsLoading || supervisors.length === 0}
-                className={`${selectClass} w-full h-9 pl-9 disabled:opacity-60`}
-              >
-                {supervisors.length === 0 ? (
-                  <option value="">
-                    {isSupervisorsLoading ? 'Loading supervisors…' : 'No supervisors available'}
-                  </option>
-                ) : (
-                  supervisors.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.full_name} ({s.email})
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
+            <GlideSelect
+              id="m_supervisor"
+              className="glide-select--field"
+              ariaLabel="Assigned Supervisor"
+              value={supervisorId}
+              onChange={(value) => setSupervisorId(value)}
+              disabled={isSupervisorsLoading || supervisors.length === 0}
+              options={
+                supervisors.length === 0
+                  ? [
+                      {
+                        value: '',
+                        label: isSupervisorsLoading
+                          ? 'Loading supervisors…'
+                          : 'No supervisors available',
+                      },
+                    ]
+                  : supervisors.map((s) => ({
+                      value: s.id,
+                      label: `${s.full_name} (${s.email})`,
+                    }))
+              }
+            />
             {!isSupervisorsLoading && supervisors.length === 0 && (
               <p className="text-12 text-warn mt-1">
                 Create a Supervisor account first before onboarding an employee.

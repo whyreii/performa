@@ -12,7 +12,8 @@ import Modal from '../../components/ui/Modal';
 import TextField from '../../components/ui/TextField';
 import Tabs from '../../components/ui/Tabs';
 import Page from '../../components/ui/Page';
-import { inputClass, selectClass } from '../../components/ui/Field';
+import GlideSelect from '../../components/ui/GlideSelect';
+import { inputClass } from '../../components/ui/Field';
 import {
   Users,
   UserPlus,
@@ -642,19 +643,17 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
             <label htmlFor="m_org" className="block text-ink-2 font-medium mb-1.5">
               Organization / Tenant *
             </label>
-            <select
+            <GlideSelect
               id="m_org"
+              className="glide-select--field"
+              ariaLabel="Organization / Tenant"
               value={orgSelection}
-              onChange={(e) => setOrgSelection(e.target.value)}
-              className={`${selectClass} w-full`}
-            >
-              {organizations.map((o) => (
-                <option key={o.slug} value={o.slug}>
-                  {o.name}
-                </option>
-              ))}
-              <option value="__new__">+ New organization…</option>
-            </select>
+              onChange={(value) => setOrgSelection(value)}
+              options={[
+                ...organizations.map((o) => ({ value: o.slug, label: o.name })),
+                { value: '__new__', label: '+ New organization…' },
+              ]}
+            />
             <p className="text-12 text-ink-3 mt-1.5">
               Pick an existing tenant, or create a new one to give this account an
               empty workspace.

@@ -4,7 +4,7 @@ import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, selectClass } from '../../components/ui';
+import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect } from '../../components/ui';
 import {
   FileCheck2,
   Sparkles,
@@ -346,40 +346,40 @@ export default function Rollups() {
                 <label className="block text-12 font-medium text-ink-2 mb-1" htmlFor="r_emp">
                   Probationary Employee *
                 </label>
-                <select
+                <GlideSelect
                   id="r_emp"
+                  className="glide-select--field"
+                  ariaLabel="Probationary Employee"
                   value={selectedEmpId}
-                  onChange={(e) => {
-                    const id = e.target.value;
-                    setSelectedEmpId(id);
-                    setMonthNumber(monthForEmployee(id));
+                  onChange={(value) => {
+                    setSelectedEmpId(value);
+                    setMonthNumber(monthForEmployee(value));
                   }}
-                  className={`${selectClass} w-full`}
-                >
-                  {activeProbationers.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.user?.full_name} ({emp.department})
-                    </option>
-                  ))}
-                </select>
+                  options={activeProbationers.map((emp) => ({
+                    value: emp.id,
+                    label: `${emp.user?.full_name} (${emp.department})`,
+                  }))}
+                />
               </div>
 
               <div>
                 <label className="block text-12 font-medium text-ink-2 mb-1" htmlFor="r_month">
                   Evaluation Month (30-Day Cycle) *
                 </label>
-                <select
+                <GlideSelect
                   id="r_month"
+                  className="glide-select--field"
+                  ariaLabel="Evaluation Month"
                   value={monthNumber}
-                  onChange={(e) => setMonthNumber(Number(e.target.value))}
-                  className={`${selectClass} w-full font-num`}
-                >
-                  <option value={1}>Month 1 (Days 1 - 30)</option>
-                  <option value={2}>Month 2 (Days 31 - 60)</option>
-                  <option value={3}>Month 3 (Days 61 - 90)</option>
-                  <option value={4}>Month 4 (Days 91 - 120)</option>
-                  <option value={5}>Month 5 (Days 121 - 150 · Pre-Milestone)</option>
-                </select>
+                  onChange={(value) => setMonthNumber(Number(value))}
+                  options={[
+                    { value: 1, label: 'Month 1 (Days 1 - 30)' },
+                    { value: 2, label: 'Month 2 (Days 31 - 60)' },
+                    { value: 3, label: 'Month 3 (Days 61 - 90)' },
+                    { value: 4, label: 'Month 4 (Days 91 - 120)' },
+                    { value: 5, label: 'Month 5 (Days 121 - 150 · Pre-Milestone)' },
+                  ]}
+                />
               </div>
 
               {selectedEmp && (
