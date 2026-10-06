@@ -1,8 +1,8 @@
 .glide-select {
-  --gs-accent: #f5f5f5;
-  --gs-surface: #27272a;
-  --gs-highlight: #3f3f46;
-  --gs-text: #f5f5f5;
+  --gs-accent: var(--accent);
+  --gs-surface: var(--surface);
+  --gs-highlight: var(--hover);
+  --gs-text: var(--ink);
   --gs-radius: 10px;
   --gs-inner-radius: 6px;
   --gs-chip: 32px;

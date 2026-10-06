@@ -12,7 +12,6 @@ export { default as PageHeader } from './PageHeader';
 export { default as Page } from './Page';
 export { default as Modal } from './Modal';
 export { default as EmptyState } from './EmptyState';
-export { default as StatRow } from './StatRow';
 export { default as CountUp } from './CountUp';
 export { default as RubberSegment } from './RubberSegment';
 export { default as GlideSelect } from './GlideSelect';

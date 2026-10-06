@@ -82,14 +82,21 @@ Status: `[x]` done · `[ ]` open · `[~]` partial.
   at-a-glance position cue without reverting to the old bar.
 - [ ] Keep the mark's identity consistent in favicon + any app/social icons.
 
-### Phase 5 — Performance — **parked**
-- [ ] Drop `motion` (138 KB chunk) by porting the vanilla `RubberSegment`.
+### Phase 5 — Performance — **partial**
+- [x] Drop `motion` (138 KB chunk) by porting the vanilla `RubberSegment` to
+  `utils/animate.js`. The `motion` dependency is gone; the chunk is removed
+  (Settings absorbs ~6 KB).
 - [ ] Re-check scroll cost on the mobile sticky bars (`backdrop-blur`).
 
 ### Phase 6 — Guardrails & docs — **partial**
 - [x] `eslint-plugin-jsx-a11y` wired into `npm run lint`.
-- [ ] Guardrail tests encoding the contract (one-encoder-per-value, status-colour
-  usage, single radius source).
+- [x] Guardrail tests for the statically-checkable rules —
+  `backend/tests/guardrails/test_ui_contract.py`: single radius source (no
+  bespoke `border-radius`, no arbitrary `rounded-[…]`) and no animation
+  dependency. One-encoder-per-value and status-colour usage stay review-only
+  (not statically decidable).
+- [x] Delete the dead `StatRow` primitive; tokenize the `GlideSelect` /
+  `RubberSegment` colour fallbacks so a no-prop usage is themed.
 - [x] This roadmap + the contract as the reference for UI changes.
 
 ---
