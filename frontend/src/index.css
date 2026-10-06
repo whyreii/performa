@@ -667,9 +667,11 @@ html {
   white-space: nowrap;
 }
 
-/* GlideSelect used as a toolbar control: match the app's field styling so the
-   chip and its menu sit on the same grid as the search input and the table. */
-.glide-select--control .glide-select__trigger {
+/* GlideSelect as an app control — the single dropdown style. `--control` is the
+   auto-width toolbar variant; `--field` is the full-width form-field variant.
+   Both match the app's input styling so dropdowns sit on the same grid. */
+.glide-select--control .glide-select__trigger,
+.glide-select--field .glide-select__trigger {
   height: 40px;
   padding: 0 10px 0 12px;
   border: 1px solid var(--line);
@@ -678,16 +680,29 @@ html {
   font-size: var(--t-14);
 }
 .glide-select--control .glide-select__trigger:hover,
-.glide-select--control .glide-select__trigger[aria-expanded='true'] {
+.glide-select--control .glide-select__trigger[aria-expanded='true'],
+.glide-select--field .glide-select__trigger:hover,
+.glide-select--field .glide-select__trigger[aria-expanded='true'] {
   background: var(--hover);
 }
-.glide-select--control .glide-select__menu {
+.glide-select--control .glide-select__menu,
+.glide-select--field .glide-select__menu {
   border: 1px solid var(--line);
   border-radius: var(--r-field);
   box-shadow: var(--pop);
 }
-.glide-select--control .glide-select__option {
+.glide-select--control .glide-select__option,
+.glide-select--field .glide-select__option {
   font-size: var(--t-14);
+}
+/* Form field: fill the container and space the label from the chevron. */
+.glide-select--field {
+  display: block;
+  width: 100%;
+}
+.glide-select--field .glide-select__trigger {
+  width: 100%;
+  justify-content: space-between;
 }
 
 /* Sign-in (auth) page — Apple-style tracking, scoped so the rest of the app is

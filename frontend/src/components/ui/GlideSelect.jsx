@@ -47,6 +47,7 @@ export default function GlideSelect({
   rememberPosition = true,
   disabled = false,
   ariaLabel = 'Select',
+  id: idProp,
   className = ''
 }) {
   const items = options.map(norm);
@@ -63,7 +64,8 @@ export default function GlideSelect({
   const instant = useRef(false);
   const closeTimer = useRef(undefined);
   const scrub = useRef(null);
-  const id = useId();
+  const autoId = useId();
+  const id = idProp || autoId;
   const S = SIZES[size] ?? SIZES.md;
   const step = S.row + GAP;
   const popOut = Math.round((popDuration * 2) / 3);
@@ -249,6 +251,7 @@ export default function GlideSelect({
     >
       <button
         ref={triggerRef}
+        id={id}
         type="button"
         role="combobox"
         aria-haspopup="listbox"
