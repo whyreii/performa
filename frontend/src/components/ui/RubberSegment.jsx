@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { animate, motion, useMotionValue, useReducedMotion } from 'motion/react';
+import { animate, makeValue, prefersReducedMotion } from '../../utils/animate';
 
 import './RubberSegment.css';
 
@@ -70,10 +70,7 @@ export default function RubberSegment({
     0,
     list.findIndex(item => item.value === current)
   );
-  const reduce =
-    useReducedMotion() ||
-    (typeof document !== 'undefined' &&
-      document.documentElement.getAttribute('data-reduce-motion') === 'true');
+  const reduce = prefersReducedMotion();
 
   const trackRef = useRef(null);
   const itemRefs = useRef([]);
@@ -85,9 +82,17 @@ export default function RubberSegment({
   const gen = useRef(0);
   const thumbRef = useRef(null);
 
-  const edgeL = useMotionValue(0);
-  const edgeR = useMotionValue(0);
-  const innerW = useMotionValue(0);
+  // Stable animated scalars (replaces useMotionValue). Lazy ref init avoids
+  // allocating a new value — and leaking into the engine loop — every render.
+  const edgeLRef = useRef(null);
+  if (edgeLRef.current === null) edgeLRef.current = makeValue(0);
+  const edgeRRef = useRef(null);
+  if (edgeRRef.current === null) edgeRRef.current = makeValue(0);
+  const innerWRef = useRef(null);
+  if (innerWRef.current === null) innerWRef.current = makeValue(0);
+  const edgeL = edgeLRef.current;
+  const edgeR = edgeRRef.current;
+  const innerW = innerWRef.current;
   const thumbRadius = Math.max(0, radius - inset);
 
   const t = seconds => seconds / speed;
@@ -189,8 +194,13 @@ export default function RubberSegment({
       animate(trail, trailTo, { ...SPRING_UI, duration: t(0.3), velocity: trailVelocity });
       return;
     }
-    animate(trail, trailTo + dir * squash, { ...SPRING_UI, duration: t(0.3), velocity: trailVelocity }).then(() => {
-      if (gen.current === g) animate(trail, trailTo, { ...SPRING_RELAX, duration: t(0.16) });
+    animate(trail, trailTo + dir * squash, {
+      ...SPRING_UI,
+      duration: t(0.3),
+      velocity: trailVelocity,
+      onDone: () => {
+        if (gen.current === g) animate(trail, trailTo, { ...SPRING_RELAX, duration: t(0.16) });
+      },
     });
   };
 
@@ -369,14 +379,14 @@ export default function RubberSegment({
           {item.label}
         </button>
       ))}
-      <motion.div ref={thumbRef} className="rubber-segment__thumb" aria-hidden="true">
+      <div ref={thumbRef} className="rubber-segment__thumb" aria-hidden="true">
         {list.map(item => (
           <span key={item.value} className="rubber-segment__item rubber-segment__copy">
             {item.icon}
             {item.label}
           </span>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }

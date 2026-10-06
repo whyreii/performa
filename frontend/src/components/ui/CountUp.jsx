@@ -1,20 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { prefersReducedMotion } from '../../utils/animate';
 
 // Count Up (adapted from React Bits). Animates a number from 0 up to `value`
 // on mount and whenever the value changes. The value itself always comes from
 // the API/DB — only the interpolation is generated. Honours
 // prefers-reduced-motion by showing the final value immediately.
-function prefersReducedMotion() {
-  if (typeof window === 'undefined') return false;
-  const osPrefers =
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const appPrefers =
-    typeof document !== 'undefined' &&
-    document.documentElement.getAttribute('data-reduce-motion') === 'true';
-  return osPrefers || appPrefers;
-}
-
 export default function CountUp({
   value,
   decimals = 0,

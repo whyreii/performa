@@ -2,11 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { authApi, organizationApi, getApiErrorMessage } from '../../api';
-import { Button, Badge, TextField, Page } from '../../components/ui';
-
-// RubberSegment pulls in `motion`, so it is code-split: the dependency loads
-// only when the Appearance section is actually opened.
-const RubberSegment = React.lazy(() => import('../../components/ui/RubberSegment'));
+import { Button, Badge, TextField, Page, RubberSegment } from '../../components/ui';
 import {
   User,
   Palette,
@@ -339,25 +335,21 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <React.Suspense
-                  fallback={<div className="h-9 w-[290px] rounded-ctl bg-hover" aria-hidden="true" />}
-                >
-                  <RubberSegment
-                    aria-label="Color mode"
-                    items={MODES.map((m) => {
-                      const Icon = m.icon;
-                      return { value: m.id, label: m.label, icon: <Icon className="w-4 h-4" /> };
-                    })}
-                    value={mode}
-                    onChange={(value) => setMode(value)}
-                    trackColor="var(--hover)"
-                    thumbColor="var(--ink)"
-                    textColor="var(--ink-2)"
-                    activeTextColor="var(--bg)"
-                    size="md"
-                    radius={8}
-                  />
-                </React.Suspense>
+                <RubberSegment
+                  aria-label="Color mode"
+                  items={MODES.map((m) => {
+                    const Icon = m.icon;
+                    return { value: m.id, label: m.label, icon: <Icon className="w-4 h-4" /> };
+                  })}
+                  value={mode}
+                  onChange={(value) => setMode(value)}
+                  trackColor="var(--hover)"
+                  thumbColor="var(--ink)"
+                  textColor="var(--ink-2)"
+                  activeTextColor="var(--bg)"
+                  size="md"
+                  radius={8}
+                />
 
                 <div className="mt-6 flex items-center justify-between gap-4">
                   <div className="min-w-0">
