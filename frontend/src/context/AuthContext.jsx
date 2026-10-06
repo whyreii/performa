@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { authApi, getApiErrorMessage } from '../api';
 
@@ -77,7 +77,7 @@ export function AuthProvider({ children }) {
     };
   }, [persistUser]);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     setIsLoading(true);
     try {
       const tokenData = await authApi.login(email, password);
@@ -96,19 +96,22 @@ export function AuthProvider({ children }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [persistUser]);
+
+  const value = useMemo(
+    () => ({
+      user,
+      isAuthenticated: !!user,
+      isLoading,
+      login,
+      logout,
+      refreshUser,
+    }),
+    [user, isLoading, login, logout, refreshUser]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        logout,
-        refreshUser,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

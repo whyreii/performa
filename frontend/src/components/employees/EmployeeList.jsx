@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useDeferredValue, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
@@ -23,12 +23,41 @@ function milestoneFor(employee) {
   return { tone: 'ok', label: 'On track' };
 }
 
+// Memoized so selecting a different row only re-renders the two rows whose
+// `selected` flag actually changed, not the whole list.
+const EmployeeRow = React.memo(function EmployeeRow({ emp, selected, onSelect }) {
+  const days = getDaysElapsed(emp.start_date);
+  const { tone, label } = milestoneFor(emp);
+  const pct = Math.min(100, Math.max(0, (days / PROBATION_DAYS) * 100));
+  return (
+    <button
+      type="button"
+      className="lrow"
+      aria-current={selected ? 'true' : undefined}
+      onClick={() => onSelect(emp.id)}
+    >
+      <span className="lrow__n">{emp.user?.full_name}</span>
+      <span className={`lrow__s ${TONE_CLASS[tone]}`}>{label}</span>
+      <span className="lrow__m">
+        Day {days} · {emp.job_title}
+      </span>
+      <span className={`lrow__bar ${TONE_CLASS[tone]}`} aria-hidden="true">
+        <i style={{ width: `${pct}%` }} />
+      </span>
+    </button>
+  );
+});
+
 // The record list pane of the Employees split view. Selection is the route
 // param (:id) so deep links and the browser back button work.
 export default function EmployeeList() {
   const navigate = useNavigate();
   const { id: selectedId } = useParams();
   const [query, setQuery] = useState('');
+  // Keep typing instant while the (potentially long) list filters in the
+  // background — the input stays bound to `query`, the list reads the deferred value.
+  const deferredQuery = useDeferredValue(query);
+  const handleSelect = useCallback((id) => navigate(`/employees/${id}`), [navigate]);
 
   const {
     data: employees = [],
@@ -41,7 +70,7 @@ export default function EmployeeList() {
   });
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = deferredQuery.trim().toLowerCase();
     const list = q
       ? employees.filter((e) =>
           [e.user?.full_name, e.user?.email, e.job_title, e.department]
@@ -52,7 +81,7 @@ export default function EmployeeList() {
     return [...list].sort(
       (a, b) => getDaysElapsed(b.start_date) - getDaysElapsed(a.start_date)
     );
-  }, [employees, query]);
+  }, [employees, deferredQuery]);
 
   return (
     <div className="split__list">
@@ -95,29 +124,14 @@ export default function EmployeeList() {
             Try a different search term.
           </EmptyState>
         ) : (
-          filtered.map((emp) => {
-            const days = getDaysElapsed(emp.start_date);
-            const { tone, label } = milestoneFor(emp);
-            const pct = Math.min(100, Math.max(0, (days / PROBATION_DAYS) * 100));
-            return (
-              <button
-                key={emp.id}
-                type="button"
-                className="lrow"
-                aria-current={emp.id === selectedId ? 'true' : undefined}
-                onClick={() => navigate(`/employees/${emp.id}`)}
-              >
-                <span className="lrow__n">{emp.user?.full_name}</span>
-                <span className={`lrow__s ${TONE_CLASS[tone]}`}>{label}</span>
-                <span className="lrow__m">
-                  Day {days} · {emp.job_title}
-                </span>
-                <span className={`lrow__bar ${TONE_CLASS[tone]}`} aria-hidden="true">
-                  <i style={{ width: `${pct}%` }} />
-                </span>
-              </button>
-            );
-          })
+          filtered.map((emp) => (
+            <EmployeeRow
+              key={emp.id}
+              emp={emp}
+              selected={emp.id === selectedId}
+              onSelect={handleSelect}
+            />
+          ))
         )}
       </div>
       <div className="listft">

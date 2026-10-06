@@ -188,6 +188,11 @@ Remaining deep-debug backlog (not yet fixed) is in §7.
 - No live PostgreSQL/asyncpg validation locally (tests use SQLite).
 - `.agents/rules/performa-guardrails.md` and `ROADMAP.md` reconciled this session; keep docs in lockstep going forward.
 
+**ML / data (deferred — see `docs/ML_DATA_PLAN.md`):**
+- No real dataset; model trains on a synthetic distribution and the evaluation is
+  circular (labels = the cascade the RF learns). Panel accepts a prototype, so the
+  priority is honest framing + a non-circular evaluation statement, not real data.
+
 ---
 
 _End of work log._

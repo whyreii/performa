@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import {
   PALETTE_MODES,
   DEFAULT_DARK_PALETTE,
@@ -52,7 +52,7 @@ export function ThemeProvider({ children }) {
     } catch {}
   }, [palette, mode, reduceMotion]);
 
-  const setReduceMotion = (value) => setReduceMotionState(Boolean(value));
+  const setReduceMotion = useCallback((value) => setReduceMotionState(Boolean(value)), []);
 
   useEffect(() => {
     if (mode !== 'system') return;
@@ -67,7 +67,7 @@ export function ThemeProvider({ children }) {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [mode]);
 
-  const setMode = (newMode) => {
+  const setMode = useCallback((newMode) => {
     setModeState(newMode);
     if (newMode === 'light') {
       const newPal = PALETTE_MODES[palette] === 'light' ? palette : DEFAULT_LIGHT_PALETTE;
@@ -79,26 +79,29 @@ export function ThemeProvider({ children }) {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setPaletteState(prefersDark ? DEFAULT_DARK_PALETTE : DEFAULT_LIGHT_PALETTE);
     }
-  };
+  }, [palette]);
 
-  const setPalette = (newPalette) => {
+  const setPalette = useCallback((newPalette) => {
     if (!isValidPalette(newPalette)) return;
     setPaletteState(newPalette);
     setModeState(PALETTE_MODES[newPalette]);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      mode,
+      palette,
+      setMode,
+      setPalette,
+      reduceMotion,
+      setReduceMotion,
+      isDark: PALETTE_MODES[palette] === 'dark',
+    }),
+    [mode, palette, setMode, setPalette, reduceMotion, setReduceMotion]
+  );
 
   return (
-    <ThemeContext.Provider
-      value={{
-        mode,
-        palette,
-        setMode,
-        setPalette,
-        reduceMotion,
-        setReduceMotion,
-        isDark: PALETTE_MODES[palette] === 'dark',
-      }}
-    >
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
