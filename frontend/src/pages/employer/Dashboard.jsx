@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, StatusDot, MilestonePill, Skeleton, Card, Page, CountUp } from '../../components/ui';
+import { Button, Badge, StatusDot, MilestonePill, MilestoneComposition, Skeleton, Card, Page, CountUp } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { milestoneTone } from '../../utils/status';
@@ -193,45 +193,20 @@ export default function Dashboard() {
         {/* Cohort composition — a calm, read-only breakdown (absorbed the old
             urgent banner). Colour = status; no filter, no hidden interactions. */}
         {!isEmpLoading && activeProbationers.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="text-12 font-semibold text-ink">Active cohort by milestone</span>
-              <span className="text-12 font-num text-ink-3">
-                {activeProbationers.length} probationers
-              </span>
-            </div>
-            <div
-              className="flex h-3 w-full overflow-hidden rounded-full bg-line"
-              role="img"
-              aria-label={`${activeProbationers.length} active probationers: ${onTrackCount} on track, ${stats.day150Count} review due, ${stats.day165Count} notice window, ${stats.day178Count} critical.`}
-            >
-              {onTrackCount > 0 && (
-                <span className="h-full bg-good" style={{ width: `${(onTrackCount / stats.totalActive) * 100}%` }} />
-              )}
-              {stats.day150Count > 0 && (
-                <span className="h-full bg-warn" style={{ width: `${(stats.day150Count / stats.totalActive) * 100}%` }} />
-              )}
-              {stats.day165Count > 0 && (
-                <span className="h-full bg-notice" style={{ width: `${(stats.day165Count / stats.totalActive) * 100}%` }} />
-              )}
-              {stats.day178Count > 0 && (
-                <span className="h-full bg-bad" style={{ width: `${(stats.day178Count / stats.totalActive) * 100}%` }} />
-              )}
-            </div>
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <ul className="flex flex-wrap items-center gap-x-5 gap-y-1 text-12 text-ink-2">
-                <li className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-good" />On track <b className="font-num font-semibold text-ink">{onTrackCount}</b></li>
-                <li className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-warn" />Review <b className="font-num font-semibold text-ink">{stats.day150Count}</b></li>
-                <li className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-notice" />Notice <b className="font-num font-semibold text-ink">{stats.day165Count}</b></li>
-                <li className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-bad" />Critical <b className="font-num font-semibold text-ink">{stats.day178Count}</b></li>
-              </ul>
-              {stats.criticalMilestones > 0 && (
+          <MilestoneComposition
+            total={stats.totalActive}
+            onTrack={onTrackCount}
+            review={stats.day150Count}
+            notice={stats.day165Count}
+            critical={stats.day178Count}
+            action={
+              stats.criticalMilestones > 0 ? (
                 <Button variant="secondary" size="sm" rightIcon={ArrowRight} onClick={() => navigate('/employees')}>
                   Review urgent staff
                 </Button>
-              )}
-            </div>
-          </div>
+              ) : null
+            }
+          />
         )}
 
         {isEmpLoading ? (

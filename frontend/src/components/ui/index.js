@@ -4,6 +4,7 @@ export { default as ScoreLedger } from './ScoreLedger';
 export { default as TimelineDocket } from './TimelineDocket';
 export { default as StatusDot } from './StatusDot';
 export { default as MilestonePill } from './MilestonePill';
+export { default as MilestoneComposition } from './MilestoneComposition';
 export { default as Skeleton } from './Skeleton';
 export { default as Card } from './Card';
 export { default as CardSkeleton } from './CardSkeleton';
