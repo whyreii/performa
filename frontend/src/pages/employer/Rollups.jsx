@@ -192,17 +192,13 @@ export default function Rollups() {
             All training recommendations have been processed. Click "Generate Rollup" to run the 30-day Gemini evaluation rollup on an active probationer.
           </EmptyState>
         ) : (
-          <div className="space-y-4">
+          <Card padded={false} className="divide-y divide-line">
             {pendingPlans.map((plan) => (
-              <Card
-                key={plan.id}
-                padded={false}
-                className="p-5 sm:p-6 space-y-4 hover:border-ink-3 transition-colors"
-              >
+              <div key={plan.id} className="p-5 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div className="space-y-1">
+                  <div className="space-y-1 min-w-0">
                     <div className="flex flex-wrap items-baseline gap-2">
-                      <span className="font-semibold text-16 text-ink">
+                      <span className="font-semibold text-14 text-ink">
                         {plan.intervention_title}
                       </span>
                       <span className="text-12 text-ink-3">
@@ -239,23 +235,23 @@ export default function Rollups() {
                         signOffMutation.mutate({ planId: plan.id, approved: true })
                       }
                     >
-                      Approve Course
+                      Approve
                     </Button>
                   </div>
                 </div>
 
                 {/* AI Rationale by Gemini */}
                 {plan.rationale && (
-                  <div className="p-4 rounded-ctl bg-hover/70 border border-line text-12 text-ink-2 space-y-1">
-                    <span className="font-semibold text-accent text-12 font-num">
+                  <div className="p-3 rounded-ctl bg-hover/70 border border-line text-12 text-ink-2 space-y-1">
+                    <span className="font-semibold text-accent text-12">
                       Gemini Performance Rationale
                     </span>
                     <p className="leading-relaxed">{plan.rationale}</p>
                   </div>
                 )}
-              </Card>
+              </div>
             ))}
-          </div>
+          </Card>
         )}
       </section>
 

@@ -173,7 +173,7 @@ export default function Login() {
               </div>
 
               <Button type="submit" isLoading={isSubmitting} className="w-full">
-                {isSubmitting ? 'Signing in...' : 'Sign in'}
+                {isSubmitting ? 'Signing in…' : 'Sign in'}
               </Button>
             </form>
 

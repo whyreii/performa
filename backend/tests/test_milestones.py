@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import logging
 from datetime import date, timedelta
 
 import pytest
@@ -9,6 +10,7 @@ import pytest
 from backend.timeutils import manila_today
 from backend.tests.helpers import (
     ADMIN_EMAIL,
+    DEFAULT_PASSWORD,
     EMPLOYER_EMAIL,
     SUPERVISOR_EMAIL,
     find_employee_id,
@@ -41,6 +43,40 @@ async def test_onboard_employee_with_supervisor(client):
     assert body["user"]["email"] == "newbie.milestone@acme.com"
     assert body["supervisor"]["id"] == supervisor_id
     assert body["status"] == "active"
+
+
+@pytest.mark.asyncio
+async def test_onboard_without_password_generates_and_emails(client, caplog):
+    """Onboarding without a password generates one and emails it (no-SMTP log fallback)."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    supervisor_id = (
+        await client.get("/api/employees/supervisors", headers=employer)
+    ).json()[0]["id"]
+
+    with caplog.at_level(logging.WARNING):
+        resp = await client.post(
+            "/api/employees/",
+            headers=employer,
+            json={
+                "email": "auto.newbie@acme.com",
+                "full_name": "Auto Newbie",
+                "department": "Engineering",
+                "job_title": "Backend Engineer",
+                "start_date": "2026-09-01",
+                "supervisor_id": supervisor_id,
+            },
+        )
+    assert resp.status_code == 201, resp.text
+
+    # The generated credential is delivered by email (logged in the no-SMTP fallback).
+    assert "auto.newbie@acme.com" in caplog.text
+
+    # The old shared default must NOT authenticate on the auto-provisioned account.
+    guess = await client.post(
+        "/api/auth/login",
+        data={"username": "auto.newbie@acme.com", "password": DEFAULT_PASSWORD},
+    )
+    assert guess.status_code == 401
 
 
 @pytest.mark.asyncio

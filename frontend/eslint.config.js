@@ -86,6 +86,27 @@ export default [
           message:
             'Do not hand-roll the card surface; use <Card>/<Surface> from src/components/ui.',
         },
+        // --- Vercel Web Interface Guidelines deltas (docs/UIUX_STANDARDS.md App. D) ---
+        {
+          selector: 'Literal[value=/transition-all/]',
+          message:
+            'Never `transition: all`; list properties explicitly (transition-colors/-transform/-opacity or a named `transition`). See docs/UIUX_STANDARDS.md Appendix D.',
+        },
+        {
+          selector: 'TemplateElement[value.raw=/transition-all/]',
+          message:
+            'Never `transition: all`; list properties explicitly (transition-colors/-transform/-opacity or a named `transition`). See docs/UIUX_STANDARDS.md Appendix D.',
+        },
+        {
+          selector: 'Literal[value=/[A-Za-z0-9]\\.\\.\\./]',
+          message:
+            "Use the ellipsis character '…', not three dots, in user-facing copy/placeholders. See docs/UIUX_STANDARDS.md Appendix D.",
+        },
+        {
+          selector: 'TemplateElement[value.raw=/[A-Za-z0-9]\\.\\.\\./]',
+          message:
+            "Use the ellipsis character '…', not three dots, in user-facing copy/placeholders. See docs/UIUX_STANDARDS.md Appendix D.",
+        },
       ],
       // --- icon guardrail (docs/SLOP_AUDIT.md) ---
       'no-restricted-imports': [

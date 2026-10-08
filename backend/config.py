@@ -30,6 +30,24 @@ class Settings(BaseSettings):
     cookie_secure: bool = False
     sql_echo: bool = Field(default=False, alias="SQL_ECHO")
 
+    # Email delivery. The provider is auto-detected from whichever credential is
+    # present, or forced with EMAIL_PROVIDER ("sendgrid" | "resend" | "smtp" |
+    # "log"). With nothing configured the credentials email is logged, not sent.
+    email_provider: Optional[str] = None
+    email_from: Optional[str] = None
+    app_base_url: Optional[str] = None
+    sendgrid_api_key: Optional[str] = None
+    resend_api_key: Optional[str] = None
+
+    # SMTP provider settings.
+    smtp_host: Optional[str] = None
+    smtp_port: int = 587
+    smtp_user: Optional[str] = None
+    smtp_password: Optional[str] = None
+    smtp_from: Optional[str] = None
+    smtp_starttls: bool = True
+    smtp_ssl: bool = False
+
 
 @lru_cache
 def get_settings() -> Settings:

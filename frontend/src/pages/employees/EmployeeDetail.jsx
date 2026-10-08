@@ -327,20 +327,22 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         </div>
       </div>
 
-      {/* In the split view the record list is the navigation; only the
-          employee's own record (no directory context) keeps an explicit way back. */}
-      {user?.role === 'probationary_employee' && (
-        <div className="pt-4">
-          <button
-            type="button"
-            onClick={() => navigate('/employee/dashboard')}
-            className="inline-flex items-center gap-1.5 text-12 font-semibold text-ink-2 hover:text-accent transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to My Scorecard</span>
-          </button>
-        </div>
-      )}
+      {/* The record is a full page now (no master list pane), so every role
+          keeps an explicit way back. */}
+      <div className="pt-4">
+        <button
+          type="button"
+          onClick={() =>
+            navigate(user?.role === 'probationary_employee' ? '/employee/dashboard' : '/employees')
+          }
+          className="inline-flex items-center gap-1.5 text-12 font-semibold text-ink-2 hover:text-accent transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>
+            {user?.role === 'probationary_employee' ? 'Back to My Scorecard' : 'Back to Employees'}
+          </span>
+        </button>
+      </div>
 
       {/* 1. Record header (sticky) */}
       <header className="rec">
@@ -409,6 +411,88 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         </div>
       </header>
 
+      {/* 1b. Verdict — Article 296 decision support leads the record */}
+      <Card className="rec-block space-y-4">
+        <div className="flex items-center justify-between pb-3">
+          <div>
+            <h2 className="text-16 font-semibold text-ink">Regularization Recommendation</h2>
+            <p className="text-12 text-ink-3 mt-0.5">
+              AI-assisted decision support at the mid-5th month
+            </p>
+          </div>
+          {user?.role === 'employer' && (
+            <Button
+              variant="secondary"
+              size="sm"
+              isLoading={regularizationMutation.isPending}
+              disabled={!hasEvaluations}
+              title={!hasEvaluations ? 'Submit weekly ratings first' : undefined}
+              onClick={() => regularizationMutation.mutate()}
+            >
+              {regularizationMutation.isPending
+                ? 'Generating…'
+                : regularization
+                ? 'Regenerate'
+                : 'Generate'}
+            </Button>
+          )}
+        </div>
+        {!hasEvaluations ? (
+          <div className="text-14 text-ink-3 space-y-2">
+            <p>
+              No weekly evaluations recorded yet. A supervisor must submit at least one
+              weekly rating before generating AI decision support.
+            </p>
+            {user?.role !== 'probationary_employee' && (
+              <Link
+                to={`/supervisor/rate?employee=${id}`}
+                className="inline-flex items-center gap-1 text-accent font-semibold hover:underline"
+              >
+                Rate Employee
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            )}
+          </div>
+        ) : regularization ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2.5">
+              <span
+                className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                  regularization.recommendation === 'Regularize' ? 'bg-good' : 'bg-bad'
+                }`}
+                aria-hidden="true"
+              />
+              <span className="text-22 font-semibold text-ink tracking-tight">
+                {regularization.recommendation}
+              </span>
+            </div>
+            <dl className="space-y-2 pt-3 border-t border-line">
+              <div className="flex gap-4 text-14">
+                <dt className="w-32 shrink-0 text-ink-3">Classification</dt>
+                <dd className="text-ink-2">{regularization.status_classification}</dd>
+              </div>
+              <div className="flex gap-4 text-14">
+                <dt className="w-32 shrink-0 text-ink-3">Overall average</dt>
+                <dd className="font-num text-ink">
+                  {Number(regularization.overall_average).toFixed(2)} / 5.0
+                </dd>
+              </div>
+              {regularization.rationale && (
+                <div className="flex gap-4 text-14">
+                  <dt className="w-32 shrink-0 text-ink-3">Basis</dt>
+                  <dd className="text-ink-2 leading-relaxed">{regularization.rationale}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+        ) : (
+          <p className="text-14 text-ink-3">
+            Evaluations recorded. Click "Generate" to run the Random Forest classifier and
+            Gemini decision rationale.
+          </p>
+        )}
+      </Card>
+
       {/* Initial Standards Notice */}
       <div className="note">
         <CheckCircle2
@@ -463,25 +547,16 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       </Card>
 
       {/* 3. Performance Scorecard & 5 Competencies */}
-      <Card className="rec-block space-y-6">
-        <div className="flex items-center justify-between pb-4">
-          <div>
-            <h2 className="text-16 font-semibold text-ink">Scorecard</h2>
-            <p className="text-12 text-ink-3 mt-0.5">5 competencies · target 4.0</p>
-          </div>
-
-          {scorecard?.latest_evaluation_date ? (
-            <div className="text-right">
-              <span className="text-12 text-ink-3 block">Overall Average</span>
-              <span className="text-22 font-bold font-num text-ink">
-                {Number(scorecard.overall_score).toFixed(1)} / 5.0
-              </span>
-            </div>
-          ) : (
-            <span className="text-12 text-ink-3">Initial evaluations pending</span>
-          )}
-        </div>
-
+      <Disclosure
+        title="Scorecard"
+        subtitle="5 competencies · target 4.0"
+        meta={
+          scorecard?.latest_evaluation_date
+            ? `${Number(scorecard.overall_score).toFixed(1)} / 5.0`
+            : 'Pending'
+        }
+        defaultOpen
+      >
         {isScoreLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-8 w-full" />
@@ -495,7 +570,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         ) : (
           <ScoreLedger competencies={scorecard.competencies} />
         )}
-      </Card>
+      </Disclosure>
 
       {/* 3b. Monthly KPI Trend */}
       {isTrendLoading && (
@@ -534,7 +609,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 </div>
                 <div className="relative h-2.5 w-full bg-hover border border-line rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all ${
+                    className={`h-full rounded-full transition-[width] ${
                       Number(point.overall_average) >= overallTarget ? 'bg-good' : 'bg-warn'
                     }`}
                     style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
@@ -551,71 +626,6 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </div>
         </Disclosure>
       )}
-
-      {/* 3c. Regularization Recommendation */}
-      <Card className="rec-block space-y-4">
-        <div className="flex items-center justify-between pb-3">
-          <div>
-            <h2 className="text-16 font-semibold text-ink">Regularization Recommendation</h2>
-            <p className="text-12 text-ink-3 mt-0.5">
-              AI-assisted decision support at the mid-5th month
-            </p>
-          </div>
-          {user?.role === 'employer' && (
-            <Button
-              variant="secondary"
-              size="sm"
-              isLoading={regularizationMutation.isPending}
-              disabled={!hasEvaluations}
-              title={!hasEvaluations ? 'Submit weekly ratings first' : undefined}
-              onClick={() => regularizationMutation.mutate()}
-            >
-              {regularizationMutation.isPending
-                ? 'Generating...'
-                : regularization
-                ? 'Regenerate'
-                : 'Generate'}
-            </Button>
-          )}
-        </div>
-        {!hasEvaluations ? (
-          <div className="text-14 text-ink-3 space-y-2">
-            <p>
-              No weekly evaluations recorded yet. A supervisor must submit at least one
-              weekly rating before generating AI decision support.
-            </p>
-            {user?.role !== 'probationary_employee' && (
-              <Link
-                to={`/supervisor/rate?employee=${id}`}
-                className="inline-flex items-center gap-1 text-accent font-semibold hover:underline"
-              >
-                Rate Employee
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            )}
-          </div>
-        ) : regularization ? (
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge variant={regularization.recommendation === 'Regularize' ? 'ok' : 'bad'}>
-                {regularization.recommendation}
-              </Badge>
-              <span className="text-14 text-ink-2">{regularization.status_classification}</span>
-              <span className="font-num text-12 text-ink-3">
-                Avg {Number(regularization.overall_average).toFixed(2)}
-              </span>
-            </div>
-            {regularization.rationale && (
-              <p className="text-14 text-ink-2 leading-relaxed">{regularization.rationale}</p>
-            )}
-          </div>
-        ) : (
-          <p className="text-14 text-ink-3">
-            Evaluations recorded. Click "Generate" to run the Random Forest classifier and
-            Gemini decision rationale.
-          </p>
-        )}
-      </Card>
 
       {/* 3d. ML Risk Explanation (feature importances) */}
       {isRiskLoading && (
@@ -642,73 +652,68 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         </CardSkeleton>
       )}
       {!isRiskLoading && riskExplanation && (
-        <Card className="rec-block space-y-5 no-print">
-          <div className="flex items-center justify-between gap-4 pb-3">
-            <div>
-              <h2 className="text-16 font-semibold text-ink">ML Risk Explanation</h2>
-              <p className="text-12 text-ink-3 mt-0.5">Feature importance for legal defensibility · Random Forest</p>
-            </div>
-            <Badge variant="accent">
-              {riskExplanation.predicted_tier} ·{' '}
-              {(Number(riskExplanation.confidence) * 100).toFixed(0)}%
-            </Badge>
-          </div>
+        <div className="no-print">
+          <Disclosure
+            title="ML risk explanation"
+            subtitle="Feature importance for legal defensibility · Random Forest"
+            meta={`${riskExplanation.predicted_tier} · ${(Number(riskExplanation.confidence) * 100).toFixed(0)}%`}
+          >
+            <p className="text-14 text-ink-2 mb-4">
+              The model predicts{' '}
+              <span className="font-semibold text-ink">{riskExplanation.predicted_tier}</span> with{' '}
+              <span className="font-semibold text-ink">
+                {(Number(riskExplanation.confidence) * 100).toFixed(0)}%
+              </span>{' '}
+              confidence. Competencies are ranked by how much each moved this prediction.
+            </p>
 
-          <p className="text-14 text-ink-2">
-            The model predicts{' '}
-            <span className="font-semibold text-ink">{riskExplanation.predicted_tier}</span> with{' '}
-            <span className="font-semibold text-ink">
-              {(Number(riskExplanation.confidence) * 100).toFixed(0)}%
-            </span>{' '}
-            confidence. Competencies are ranked by how much each moved this prediction.
-          </p>
-
-          {/* Feature importance — independent bars, ranked by contribution */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-12 font-medium text-ink-2">Feature importance</span>
-              <span className="flex items-center gap-3 text-12 text-ink-3">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-bad" />
-                  toward gap
+            {/* Feature importance — independent bars, ranked by contribution */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-12 font-medium text-ink-2">Feature importance</span>
+                <span className="flex items-center gap-3 text-12 text-ink-3">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-bad" />
+                    toward gap
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-good" />
+                    away from gap
+                  </span>
                 </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-good" />
-                  away from gap
-                </span>
-              </span>
-            </div>
-            {contributionRows.map(({ key, contribution }) => (
-              <ContributionBar
-                key={key}
-                label={key.replace(/_/g, ' ')}
-                contribution={contribution}
-                maxAbs={maxAbsContribution}
-                isRisk={
-                  (contribution >= 0) === (riskExplanation.shap_risk_polarity === 'risk')
-                }
-              />
-            ))}
-          </div>
-
-          {/* Model-wide importance — single metric (Gini) */}
-          <div className="pt-3 border-t border-line">
-            <p className="text-12 font-medium text-ink-2 mb-2">Model-wide importance</p>
-            <ul className="space-y-1">
-              {modelImportance.map(({ key, value }) => (
-                <li key={key} className="flex justify-between text-12 font-num text-ink-2">
-                  <span className="font-sans">{key.replace(/_/g, ' ')}</span>
-                  <span>{(value * 100).toFixed(1)}%</span>
-                </li>
+              </div>
+              {contributionRows.map(({ key, contribution }) => (
+                <ContributionBar
+                  key={key}
+                  label={key.replace(/_/g, ' ')}
+                  contribution={contribution}
+                  maxAbs={maxAbsContribution}
+                  isRisk={
+                    (contribution >= 0) === (riskExplanation.shap_risk_polarity === 'risk')
+                  }
+                />
               ))}
-            </ul>
-          </div>
+            </div>
 
-          <p className="text-12 text-ink-3">
-            Feature importance explains the model's output for this employee, not an
-            employment decision.
-          </p>
-        </Card>
+            {/* Model-wide importance — single metric (Gini) */}
+            <div className="pt-3 border-t border-line">
+              <p className="text-12 font-medium text-ink-2 mb-2">Model-wide importance</p>
+              <ul className="space-y-1">
+                {modelImportance.map(({ key, value }) => (
+                  <li key={key} className="flex justify-between text-12 font-num text-ink-2">
+                    <span className="font-sans">{key.replace(/_/g, ' ')}</span>
+                    <span>{(value * 100).toFixed(1)}%</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <p className="text-12 text-ink-3 mt-4">
+              Feature importance explains the model's output for this employee, not an
+              employment decision.
+            </p>
+          </Disclosure>
+        </div>
       )}
 
       {/* 4. Immutable Evaluation History Audit Trail */}
@@ -883,7 +888,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   maxLength={500}
                   value={statusReason}
                   onChange={(e) => setStatusReason(e.target.value)}
-                  placeholder="State the documented, performance-based justification for non-regularization..."
+                  placeholder="State the documented, performance-based justification for non-regularization…"
                   className={textareaClass}
                 />
                 <p className="text-12 text-ink-3 mt-1 font-num">

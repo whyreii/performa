@@ -1,12 +1,12 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi } from '../../api';
-import { Button, Skeleton, Card, Page, CountUp } from '../../components/ui';
+import { Button, Skeleton, Card, Page, CountUp, inputClass, GlideSelect, Th } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
-import { milestoneTone, milestoneFor, TONE_TEXT } from '../../utils/status';
-import { Users, Award, ChevronRight } from '../../components/icons';
+import { milestoneTone, milestoneFor, TONE_TEXT, TONE_BG } from '../../utils/status';
+import { Users, Award, ChevronRight, Search } from '../../components/icons';
 
 // Employer dashboard — "refined" layout: a flat hairline stat band over a stack
 // of panels (action required → probationary employees → AI recommendations).
@@ -51,19 +51,57 @@ export default function Dashboard() {
     [employees]
   );
 
+  // Worklist controls — free-text search, statutory milestone filter, column sort.
+  const [search, setSearch] = useState('');
+  const [milestone, setMilestone] = useState('all');
+  const [sortKey, setSortKey] = useState('day');
+  const [sortDir, setSortDir] = useState('desc');
+
+  const onSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'day' ? 'desc' : 'asc');
+    }
+  };
+
+  const worklist = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const list = activeProbationers.filter((e) => {
+      const days = getDaysElapsed(e.start_date);
+      if (milestone === 'pastCap' && !(days > PROBATION_DAYS)) return false;
+      if (milestone === 'due' && !(days >= MILESTONE_REVIEW && days <= PROBATION_DAYS)) return false;
+      if (milestone === 'onTrack' && !(days < MILESTONE_REVIEW)) return false;
+      if (!q) return true;
+      return (
+        (e.user?.full_name || '').toLowerCase().includes(q) ||
+        (e.job_title || '').toLowerCase().includes(q)
+      );
+    });
+    return [...list].sort((a, b) => {
+      let r = 0;
+      if (sortKey === 'name') r = (a.user?.full_name || '').localeCompare(b.user?.full_name || '');
+      else if (sortKey === 'role') r = (a.job_title || '').localeCompare(b.job_title || '');
+      else r = getDaysElapsed(a.start_date) - getDaysElapsed(b.start_date);
+      return sortDir === 'asc' ? r : -r;
+    });
+  }, [activeProbationers, search, milestone, sortKey, sortDir]);
+
   const stats = useMemo(() => {
-    let day150 = 0;
-    let day165 = 0;
-    let day178 = 0;
+    let pastCap = 0;
+    let decisionsDue = 0;
+    let onTrack = 0;
     activeProbationers.forEach((emp) => {
-      const tone = milestoneTone(getDaysElapsed(emp.start_date));
-      if (tone === 'bad') day178 += 1;
-      else if (tone === 'notice') day165 += 1;
-      else if (tone === 'warn') day150 += 1;
+      const d = getDaysElapsed(emp.start_date);
+      if (d > PROBATION_DAYS) pastCap += 1;
+      else if (d >= MILESTONE_REVIEW) decisionsDue += 1;
+      else onTrack += 1;
     });
     return {
-      totalActive: activeProbationers.length,
-      criticalMilestones: day150 + day165 + day178,
+      pastCap,
+      decisionsDue,
+      onTrack,
       pendingPlans: plans.filter((p) => p.status === 'pending_approval').length,
     };
   }, [activeProbationers, plans]);
@@ -82,7 +120,6 @@ export default function Dashboard() {
 
   return (
     <Page
-      kicker="Employer oversight"
       title="Dashboard"
       subtitle={<>Probationary pipeline · Article 296 · <span className="font-num">Asia/Manila</span></>}
       actions={
@@ -96,42 +133,43 @@ export default function Dashboard() {
         </>
       }
     >
-      {/* Stat band — flat, hairline-divided (not boxed cards) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border-y border-line">
-        <div className="bg-bg px-5 py-4">
-          <div className="text-12 text-ink-3">Active probationers</div>
-          <div className="font-num text-30 font-semibold text-ink mt-2">
-            <CountUp value={stats.totalActive} />
+      {/* Stat band — boxed, rounded, hairline-divided (concept) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line rounded-float border border-line overflow-hidden">
+        <div className="bg-surface px-5 py-4">
+          <div className="flex items-center gap-2 text-12 text-ink-3">
+            <span className={`w-2 h-2 rounded-full shrink-0 ${TONE_BG.bad}`} aria-hidden="true" />
+            Past cap · auto-regular
           </div>
-          <div className="text-12 text-ink-2 mt-2">Under {PROBATION_DAYS}-day evaluation</div>
+          <div className="font-num text-30 font-semibold text-ink mt-2">
+            <CountUp value={stats.pastCap} />
+          </div>
+          <div className="text-12 text-ink-2 mt-2">Day {PROBATION_DAYS}+ · regular by operation of law</div>
         </div>
-        <div className="bg-bg px-5 py-4">
-          <div className="text-12 text-ink-3">Milestone alerts</div>
-          <div
-            className={`font-num text-30 font-semibold mt-2 ${
-              stats.criticalMilestones > 0 ? 'text-warn' : 'text-ink'
-            }`}
-          >
-            <CountUp value={stats.criticalMilestones} />
+        <div className="bg-surface px-5 py-4">
+          <div className="flex items-center gap-2 text-12 text-ink-3">
+            <span className={`w-2 h-2 rounded-full shrink-0 ${TONE_BG.warn}`} aria-hidden="true" />
+            Decisions due
+          </div>
+          <div className="font-num text-30 font-semibold text-ink mt-2">
+            <CountUp value={stats.decisionsDue} />
           </div>
           <div className="text-12 text-ink-2 mt-2">
-            Day {MILESTONE_REVIEW} · {MILESTONE_NOTICE} · {MILESTONE_CRITICAL}
+            Day {MILESTONE_REVIEW}–{PROBATION_DAYS} window
           </div>
         </div>
-        <div className="bg-bg px-5 py-4">
-          <div className="text-12 text-ink-3">Regularizing target</div>
+        <div className="bg-surface px-5 py-4">
+          <div className="flex items-center gap-2 text-12 text-ink-3">
+            <span className={`w-2 h-2 rounded-full shrink-0 ${TONE_BG.ok}`} aria-hidden="true" />
+            On track
+          </div>
           <div className="font-num text-30 font-semibold text-ink mt-2">
-            <CountUp value={4} decimals={1} />
+            <CountUp value={stats.onTrack} />
           </div>
-          <div className="text-12 text-ink-2 mt-2">Across 5 competencies</div>
+          <div className="text-12 text-ink-2 mt-2">Below Day {MILESTONE_REVIEW}</div>
         </div>
-        <div className="bg-bg px-5 py-4">
-          <div className="text-12 text-ink-3">Pending interventions</div>
-          <div
-            className={`font-num text-30 font-semibold mt-2 ${
-              stats.pendingPlans === 0 ? 'text-good' : 'text-ink'
-            }`}
-          >
+        <div className="bg-surface px-5 py-4">
+          <div className="text-12 text-ink-3">Interventions pending</div>
+          <div className="font-num text-30 font-semibold text-ink mt-2">
             <CountUp value={stats.pendingPlans} />
           </div>
           <div className="text-12 text-ink-2 mt-2">
@@ -158,11 +196,45 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* Probationary employees */}
+      {/* Worklist — searchable, filterable table; one row per probationer */}
       <Card className="space-y-4">
         <div>
-          <h2 className="text-16 font-semibold text-ink">Probationary employees</h2>
-          <p className="text-12 text-ink-3 mt-0.5">Weekly evaluation schedule</p>
+          <h2 className="text-16 font-semibold text-ink">Needs your action</h2>
+          <p className="text-12 text-ink-3 mt-0.5">
+            {activeProbationers.length} probationary employee
+            {activeProbationers.length === 1 ? '' : 's'} · nearest cap first
+          </p>
+        </div>
+
+        {/* Filters — table toolbar */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name or role…"
+              aria-label="Search probationary employees"
+              className={`${inputClass} pl-9`}
+            />
+          </div>
+          <GlideSelect
+            className="glide-select--control"
+            ariaLabel="Filter by milestone"
+            value={milestone}
+            onChange={(value) => setMilestone(value)}
+            options={[
+              { value: 'all', label: 'All milestones' },
+              { value: 'pastCap', label: 'Past cap' },
+              { value: 'due', label: 'Decisions due' },
+              { value: 'onTrack', label: 'On track' },
+            ]}
+            showTags={false}
+            size="md"
+            radius={8}
+            menuWidth={200}
+          />
         </div>
 
         {isEmpLoading ? (
@@ -176,22 +248,34 @@ export default function Dashboard() {
           <p className="py-8 text-center text-14 text-ink-3">
             No active probationary employees in the current tenant.
           </p>
+        ) : worklist.length === 0 ? (
+          <p className="py-8 text-center text-14 text-ink-3">
+            No probationary employees match the current filter.
+          </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse table-fixed">
+            <table className="w-full text-left border-collapse">
               <caption className="sr-only">
-                Active probationers with day count and statutory milestone
+                Active probationers with statutory day count and milestone
               </caption>
               <thead>
-                <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider">
-                  <th scope="col" className="py-2.5 pr-4 w-[40%]">Employee</th>
-                  <th scope="col" className="py-2.5 pr-4 w-[14%]">Day</th>
-                  <th scope="col" className="py-2.5 pr-4 w-[38%]">Milestone</th>
-                  <th scope="col" className="py-2.5 w-[8%] text-right">Action</th>
+                <tr className="border-b border-line">
+                  <Th sortKey="name" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 pr-4">
+                    Employee
+                  </Th>
+                  <Th sortKey="role" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 pr-4">
+                    Role
+                  </Th>
+                  <Th sortKey="day" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 pr-4">
+                    Deadline
+                  </Th>
+                  <Th align="right" className="py-2.5">
+                    Action
+                  </Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {activeProbationers.map((emp) => {
+                {worklist.map((emp) => {
                   const days = getDaysElapsed(emp.start_date);
                   const { tone, label } = milestoneFor(days, emp.status);
                   return (
@@ -209,9 +293,20 @@ export default function Dashboard() {
                           {emp.user?.full_name}
                         </Link>
                       </td>
-                      <td className="py-3 pr-4 font-num text-14 text-ink">{days}</td>
+                      <td className="py-3 pr-4 text-14 text-ink-3 truncate">
+                        {emp.job_title}
+                      </td>
                       <td className="py-3 pr-4">
-                        <span className={`text-14 font-semibold ${TONE_TEXT[tone]}`}>{label}</span>
+                        <span className="inline-flex items-center gap-2">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${TONE_BG[tone]}`}
+                            aria-hidden="true"
+                          />
+                          <span className="font-num text-14 text-ink inline-block w-14">
+                            Day {days}
+                          </span>
+                          <span className="text-12 text-ink-3">· {label}</span>
+                        </span>
                       </td>
                       <td className="py-3 text-right">
                         <ChevronRight className="w-4 h-4 text-ink-3 inline-block" />
@@ -221,6 +316,15 @@ export default function Dashboard() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {!isEmpLoading && activeProbationers.length > 0 && (
+          <div className="flex flex-wrap justify-between gap-2 text-12 text-ink-3">
+            <span>
+              Showing {worklist.length} of {activeProbationers.length}
+            </span>
+            <span>Select a row to open the record</span>
           </div>
         )}
       </Card>

@@ -1,33 +1,34 @@
-import React from 'react';
-import { Outlet, useParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import EmployeeList from '../../components/employees/EmployeeList';
-import { Page, EmptyState } from '../../components/ui';
-import { Users } from '../../components/icons';
+import AddEmployeeModal from '../../components/employees/AddEmployeeModal';
+import { Page, Button } from '../../components/ui';
+import { Plus } from '../../components/icons';
 
-export function EmployeeEmpty() {
-  return (
-    <div className="flex items-center justify-center min-h-[50vh] px-6">
-      <EmptyState icon={Users} title="Select an employee">
-        Choose a record from the list to view the scorecard, milestone timeline,
-        audit trail, and AI recommendations.
-      </EmptyState>
-    </div>
-  );
-}
-
-// Employees split view (master–detail): the record list is always visible; the
-// right pane renders the selected employee's detail via the :id route param.
+// Employees directory — a full-width searchable/filterable table, consistent
+// with the employer dashboard worklist. Selecting a row opens the record at
+// /employees/:id as a full page (no master–detail split).
 export default function EmployeeSplit() {
-  const { id } = useParams();
+  const { user } = useAuth();
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const canOnboard = user?.role === 'employer';
+
   return (
     <Page
       title="Employees"
       subtitle="Select a record to view the scorecard, milestone timeline, audit trail, and AI recommendations."
+      actions={
+        canOnboard ? (
+          <Button variant="primary" leftIcon={Plus} onClick={() => setIsAddOpen(true)}>
+            Add employee
+          </Button>
+        ) : null
+      }
     >
-      <div className="split">
-        <EmployeeList />
-        <div className="split__detail">{id ? <Outlet /> : <EmployeeEmpty />}</div>
-      </div>
+      <EmployeeList />
+      {canOnboard && (
+        <AddEmployeeModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} />
+      )}
     </Page>
   );
 }

@@ -4,7 +4,7 @@ import { employeeApi, getApiErrorMessage } from '../../api';
 import { manilaTodayISO, addDays, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS } from '../../config/domain';
 import { Button, Modal, TextField, GlideSelect } from '../ui';
-import { X, AlertCircle } from '../icons';
+import { X, AlertCircle, Lock } from '../icons';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
   const queryClient = useQueryClient();
@@ -14,7 +14,6 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
   const [department, setDepartment] = useState('Engineering');
   const [jobTitle, setJobTitle] = useState('');
   const [startDate, setStartDate] = useState(manilaTodayISO);
-  const [password, setPassword] = useState('Password123!');
   const [supervisorId, setSupervisorId] = useState('');
   const [error, setError] = useState('');
 
@@ -52,7 +51,6 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
       setDepartment('Engineering');
       setJobTitle('');
       setStartDate(manilaTodayISO());
-      setPassword('Password123!');
       setSupervisorId('');
       setError('');
     },
@@ -88,7 +86,6 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
       job_title: jobTitle.trim(),
       start_date: startDate,
       supervisor_id: supervisorId,
-      password: password || 'Password123!',
     });
   };
 
@@ -232,10 +229,13 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
             </p>
           </div>
 
-          {/* Initial Password Notice */}
-          <div className="flex items-center justify-between pt-2 text-12 text-ink-3">
-            <span>Initial login password:</span>
-            <span className="font-num font-medium text-ink">Password123!</span>
+          {/* Credentials are generated + emailed server-side (no hard-coded password) */}
+          <div className="flex items-start gap-2 p-3 rounded-ctl bg-hover border border-line text-12 text-ink-2">
+            <Lock className="w-4 h-4 shrink-0 text-accent mt-0.5" />
+            <span>
+              A secure temporary password is generated automatically and emailed to the
+              employee. You never see or set it.
+            </span>
           </div>
 
           <div className="flex justify-end items-center gap-3 pt-4 border-t border-line">

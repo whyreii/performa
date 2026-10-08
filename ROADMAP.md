@@ -70,7 +70,7 @@ Every single screen is live, responsive, and wired to FastAPI:
 Switched via the **Light / Dark / System** control in the header, the command palette, or **`/settings`**:
 
 1. **`paper` (Light)**: Warm cream background (`#f6f3ed`), terracotta accent (`#b94b21`), dark ink text.
-2. **`graphite` (Dark)**: Neutral charcoal (`#0e0f11`), muted steel accent (`#84a8ce`), soft white text.
+2. **`graphite` (Dark · Mono)**: Pure black (`#000000`), white text, white accent, WCAG-AA status tints.
 
 `System` follows the OS preference. Sharp, institutional geometry (2–4px radii), hairline rules, no card shadows; accent = identity, colour = status.
 

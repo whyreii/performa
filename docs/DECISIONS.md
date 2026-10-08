@@ -7,7 +7,8 @@ that were intentionally scoped.
 ## UI overhaul — 2 themes + Split layout
 
 **Decision:** The design system is reduced to **two curated themes** — `paper`
-(light) + `graphite` (dark) — with a **Light / Dark / System** mode toggle. This
+(light) + `graphite` (dark, black/white) — with a **Light / Dark / System** mode
+toggle. This
 supersedes the earlier 5-theme set (`paper`, `midnight`, `dusk`, `mist`, `sage`);
 `AGENTS.md` §1.9 is updated accordingly. Geometry is **soft** (6–8px radii),
 hairline rules, **no card shadows**; accent = identity only, colour = status only.

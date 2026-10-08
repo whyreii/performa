@@ -19,6 +19,11 @@ os.environ.setdefault(
     "DATABASE_URL", f"sqlite+aiosqlite:///{(_TMP_DIR / 'test.db').as_posix()}"
 )
 os.environ.pop("GEMINI_API_KEY", None)
+# Tests must never send real email: force the log provider regardless of .env.
+os.environ["EMAIL_PROVIDER"] = "log"
+os.environ.pop("SENDGRID_API_KEY", None)
+os.environ.pop("RESEND_API_KEY", None)
+os.environ.pop("SMTP_HOST", None)
 
 import httpx  # noqa: E402
 import pytest_asyncio  # noqa: E402

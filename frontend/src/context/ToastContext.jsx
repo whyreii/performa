@@ -116,7 +116,7 @@ function ToastItem({ toast, onDismiss }) {
   return (
     <div
       role="status"
-      className={`pointer-events-auto flex items-start gap-3 p-4 rounded-field bg-surface/95 backdrop-blur-md border ${config.borderColor} shadow-pop animate-in slide-in-from-bottom-2 fade-in duration-200 transition-all`}
+      className={`pointer-events-auto flex items-start gap-3 p-4 rounded-field bg-surface/95 backdrop-blur-md border ${config.borderColor} shadow-pop animate-in slide-in-from-bottom-2 fade-in duration-200 transition-opacity`}
     >
       <div className={`p-1.5 rounded-ctl ${config.badgeBg} ${config.iconColor} shrink-0 mt-0.5`}>
         <Icon className="w-4 h-4" />

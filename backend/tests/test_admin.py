@@ -1,6 +1,8 @@
 """System Administrator, user management, and tenant oversight tests."""
 from __future__ import annotations
 
+import logging
+
 import pytest
 
 from backend.tests.helpers import (
@@ -138,6 +140,34 @@ async def test_admin_reuses_existing_tenant_by_name(client):
     )
     assert created.status_code == 201, created.text
     assert created.json()["organization_id"] == "acme-ph"
+
+
+@pytest.mark.asyncio
+async def test_admin_create_without_password_generates_and_emails(client, caplog):
+    """Omitting the password generates one and emails it (logged without SMTP)."""
+    admin = await login_user(client, ADMIN_EMAIL)
+    with caplog.at_level(logging.WARNING):
+        created = await client.post(
+            "/api/admin/users",
+            headers=admin,
+            json={
+                "email": "auto.credentials@acme.com",
+                "full_name": "Auto Credentials",
+                "role": "supervisor",
+            },
+        )
+    assert created.status_code == 201, created.text
+    assert "password" not in created.json()
+
+    # The generated credential is delivered by email (logged in the no-SMTP fallback).
+    assert "auto.credentials@acme.com" in caplog.text
+
+    # The old shared default must NOT authenticate on the new account.
+    guess = await client.post(
+        "/api/auth/login",
+        data={"username": "auto.credentials@acme.com", "password": DEFAULT_PASSWORD},
+    )
+    assert guess.status_code == 401
 
 
 @pytest.mark.asyncio

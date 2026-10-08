@@ -4,6 +4,7 @@ import { adminApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/datetime';
 import { getInitials } from '../../utils/format';
+import { generatePassword } from '../../utils/password';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Skeleton from '../../components/ui/Skeleton';
@@ -13,6 +14,7 @@ import TextField from '../../components/ui/TextField';
 import Tabs from '../../components/ui/Tabs';
 import Page from '../../components/ui/Page';
 import GlideSelect from '../../components/ui/GlideSelect';
+import Th from '../../components/ui/Th';
 import { inputClass } from '../../components/ui/Field';
 import {
   Users,
@@ -26,6 +28,7 @@ import {
   AlertCircle,
   Building2,
   Lock,
+  Sparkles,
 } from '../../components/icons';
 
 export default function UserManagement() {
@@ -34,6 +37,8 @@ export default function UserManagement() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
+  const [sortKey, setSortKey] = useState('name');
+  const [sortDir, setSortDir] = useState('asc');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [resetPasswordUser, setResetPasswordUser] = useState(null);
   const [actionFeedback, setActionFeedback] = useState(null);
@@ -74,16 +79,38 @@ export default function UserManagement() {
     },
   });
 
-  // Filtered users
+  const onSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'created' ? 'desc' : 'asc');
+    }
+  };
+
+  // Filtered + sorted users
   const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
+    const valueOf = (u) => {
+      if (sortKey === 'role') return (u.role || '').toLowerCase();
+      if (sortKey === 'org') return (u.organization_name || '').toLowerCase();
+      if (sortKey === 'status') return u.is_active ? 1 : 0;
+      if (sortKey === 'created') return u.created_at || '';
+      return (u.full_name || '').toLowerCase();
+    };
+    const list = users.filter((u) => {
       const matchSearch =
         u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.email?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchRole = selectedRole === 'all' || u.role === selectedRole;
       return matchSearch && matchRole;
     });
-  }, [users, searchQuery, selectedRole]);
+    return [...list].sort((a, b) => {
+      const av = valueOf(a);
+      const bv = valueOf(b);
+      const r = av < bv ? -1 : av > bv ? 1 : 0;
+      return sortDir === 'asc' ? r : -r;
+    });
+  }, [users, searchQuery, selectedRole, sortKey, sortDir]);
 
   // Role counts
   const counts = useMemo(() => {
@@ -184,7 +211,7 @@ export default function UserManagement() {
           <Search className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Search by name or email…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Search users"
@@ -258,16 +285,18 @@ export default function UserManagement() {
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        leftIcon={KeyRound}
-                        onClick={() => setResetPasswordUser(u)}
-                        className="h-7 px-2 text-12"
-                        title="Reset password"
-                      >
-                        Reset
-                      </Button>
+                      {u.role !== 'admin' && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          leftIcon={KeyRound}
+                          onClick={() => setResetPasswordUser(u)}
+                          className="h-7 px-2 text-12"
+                          title="Reset password"
+                        >
+                          Reset
+                        </Button>
+                      )}
                       {!isCurrent && (
                         <Button
                           variant={u.is_active ? 'ghost' : 'secondary'}
@@ -301,13 +330,13 @@ export default function UserManagement() {
           <table className="w-full text-left border-collapse text-12">
             <caption className="sr-only">User accounts</caption>
             <thead>
-              <tr className="border-b border-line bg-hover/40 text-ink-3 font-num uppercase text-12 tracking-wider">
-                <th scope="col" className="py-3 px-4">User</th>
-                <th scope="col" className="py-3 px-4">Role</th>
-                <th scope="col" className="py-3 px-4">Organization</th>
-                <th scope="col" className="py-3 px-4">Status</th>
-                <th scope="col" className="py-3 px-4">Created Date</th>
-                <th scope="col" className="py-3 px-4 text-right">Actions</th>
+              <tr className="border-b border-line">
+                <Th sortKey="name" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-3 px-4">User</Th>
+                <Th sortKey="role" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-3 px-4">Role</Th>
+                <Th sortKey="org" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-3 px-4">Organization</Th>
+                <Th sortKey="status" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-3 px-4">Status</Th>
+                <Th sortKey="created" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-3 px-4">Created Date</Th>
+                <Th align="right" className="py-3 px-4">Actions</Th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -393,16 +422,18 @@ export default function UserManagement() {
                       {/* Actions */}
                       <td className="py-3 px-4 text-right">
                         <div className="inline-flex items-center gap-1.5">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            leftIcon={KeyRound}
-                            onClick={() => setResetPasswordUser(u)}
-                            className="h-7 px-2 text-12"
-                            title="Reset password"
-                          >
-                            Reset
-                          </Button>
+                          {u.role !== 'admin' && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              leftIcon={KeyRound}
+                              onClick={() => setResetPasswordUser(u)}
+                              className="h-7 px-2 text-12"
+                              title="Reset password"
+                            >
+                              Reset
+                            </Button>
+                          )}
 
                           {!isCurrent && (
                             <Button
@@ -446,7 +477,7 @@ export default function UserManagement() {
             setIsCreateModalOpen(false);
             setActionFeedback({
               type: 'success',
-              message: `Created ${newUser.role} account for ${newUser.full_name} (${newUser.email}).`,
+              message: `Created ${newUser.role} account for ${newUser.full_name} — credentials emailed to ${newUser.email}.`,
             });
             setTimeout(() => setActionFeedback(null), 5000);
           }}
@@ -473,12 +504,59 @@ export default function UserManagement() {
 }
 
 // -----------------------------------------------------------------------------
+// Generate-password helper (create + reset forms; never shown for an admin target)
+// -----------------------------------------------------------------------------
+function GeneratedPasswordHelp({ value, show, onGenerate }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard unavailable — the value stays visible for manual copy.
+    }
+  };
+
+  return (
+    <div className="mt-1.5">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        leftIcon={Sparkles}
+        onClick={onGenerate}
+      >
+        Generate strong password
+      </Button>
+      {show && value && (
+        <div
+          role="status"
+          className="mt-2 flex items-center gap-2 p-2.5 rounded-ctl bg-hover border border-line"
+        >
+          <code className="flex-1 font-num text-12 text-ink break-all">{value}</code>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            leftIcon={copied ? Check : undefined}
+            onClick={handleCopy}
+          >
+            {copied ? 'Copied' : 'Copy'}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
 // Create User Modal Component
 // -----------------------------------------------------------------------------
 function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, onSuccess }) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [role, setRole] = useState('employer');
   const [orgSelection, setOrgSelection] = useState(defaultOrganizationId || '__new__');
   const [newOrgName, setNewOrgName] = useState('');
@@ -487,12 +565,8 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!fullName.trim() || !email.trim() || !password) {
-      setError('All fields are required.');
-      return;
-    }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+    if (!fullName.trim() || !email.trim()) {
+      setError('Name and email are required.');
       return;
     }
 
@@ -513,7 +587,6 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
       const newUser = await adminApi.createUser({
         full_name: fullName.trim(),
         email: email.trim().toLowerCase(),
-        password,
         role,
         organization_name: organizationName,
       });
@@ -571,17 +644,16 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
             className="[&_input]:font-num"
           />
 
-          <TextField
-            id="m_pass"
-            label="Initial Password * (min 8 characters)"
-            type="password"
-            required
-            minLength={8}
-            placeholder="••••••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="[&_input]:font-num"
-          />
+          <div
+            role="note"
+            className="flex items-start gap-2 p-3 rounded-ctl bg-hover border border-line text-ink-2"
+          >
+            <Lock className="w-4 h-4 shrink-0 text-accent mt-0.5" />
+            <span>
+              A secure temporary password is generated automatically and emailed to
+              the address above. The administrator never sees or sets it.
+            </span>
+          </div>
 
           <div>
             <div id="role-group-label" className="block text-ink-2 font-medium mb-1.5">
@@ -597,7 +669,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
                 role="radio"
                 aria-checked={role === 'employer'}
                 onClick={() => setRole('employer')}
-                className={`p-3 rounded-ctl border text-center transition-all ${
+                className={`p-3 rounded-ctl border text-center transition-colors ${
                   role === 'employer'
                     ? 'border-accent bg-accent/8 text-accent font-semibold'
                     : 'border-line text-ink-2 hover:bg-hover'
@@ -612,7 +684,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
                 role="radio"
                 aria-checked={role === 'supervisor'}
                 onClick={() => setRole('supervisor')}
-                className={`p-3 rounded-ctl border text-center transition-all ${
+                className={`p-3 rounded-ctl border text-center transition-colors ${
                   role === 'supervisor'
                     ? 'border-good bg-good/8 text-good font-semibold'
                     : 'border-line text-ink-2 hover:bg-hover'
@@ -627,7 +699,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
                 role="radio"
                 aria-checked={role === 'probationary_employee'}
                 onClick={() => setRole('probationary_employee')}
-                className={`p-3 rounded-ctl border text-center transition-all ${
+                className={`p-3 rounded-ctl border text-center transition-colors ${
                   role === 'probationary_employee'
                     ? 'border-ink text-ink font-semibold bg-hover'
                     : 'border-line text-ink-2 hover:bg-hover'
@@ -690,6 +762,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
 // -----------------------------------------------------------------------------
 function ResetPasswordModal({ user, onClose, onSuccess }) {
   const [password, setPassword] = useState('');
+  const [generatedPassword, setGeneratedPassword] = useState(false);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -736,18 +809,34 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
           </div>
         )}
 
+        {user.role === 'admin' ? (
+          <p className="text-12 text-ink-2">Administrator accounts are excluded from password resets.</p>
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-4 text-12">
-          <TextField
-            id="r_pass"
-            label="New Password * (min 8 characters)"
-            type="password"
-            required
-            minLength={8}
-            placeholder="Enter new secure password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="[&_input]:font-num"
-          />
+          <div>
+            <TextField
+              id="r_pass"
+              label="New Password * (min 8 characters)"
+              type="password"
+              required
+              minLength={8}
+              placeholder="Enter new secure password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setGeneratedPassword(false);
+              }}
+              className="[&_input]:font-num"
+            />
+            <GeneratedPasswordHelp
+              value={password}
+              show={generatedPassword}
+              onGenerate={() => {
+                setPassword(generatePassword());
+                setGeneratedPassword(true);
+              }}
+            />
+          </div>
 
           <div className="pt-3 border-t border-line flex justify-end gap-2">
             <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>
@@ -758,6 +847,7 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
             </Button>
           </div>
         </form>
+        )}
     </Modal>
   );
 }

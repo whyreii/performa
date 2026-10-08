@@ -430,7 +430,7 @@ export default function RateEmployee() {
               maxLength={500}
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
-              placeholder="Detail specific behavioral evidence, projects completed, coaching provided, and concrete milestones achieved this week..."
+              placeholder="Detail specific behavioral evidence, projects completed, coaching provided, and concrete milestones achieved this week…"
               className={textareaClass}
             />
             <p className="text-12 text-ink-3 mt-1.5 leading-relaxed flex items-center gap-1.5">

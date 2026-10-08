@@ -78,7 +78,7 @@ export default function Modal({
         tabIndex={-1}
         onKeyDown={handleKeyDown}
         onClick={(e) => e.stopPropagation()}
-        className={`w-full ${maxWidth} bg-surface border border-line rounded-float shadow-pop${padded ? ' p-6 space-y-4' : ''}${panelClassName ? ` ${panelClassName}` : ''} outline-none`}
+        className={`w-full ${maxWidth} bg-surface border border-line rounded-float shadow-pop overscroll-contain${padded ? ' p-6 space-y-4' : ''}${panelClassName ? ` ${panelClassName}` : ''} outline-none`}
       >
         {children}
       </div>

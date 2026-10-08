@@ -140,7 +140,7 @@ and it uses a restrained, semantic system.
 **Implementation.**
 - **Semantic design tokens.** All color, type, spacing, radius and motion live in
   `tokens.css`; components consume roles (`--surface`, `--line`, `--ink`, `--accent`),
-  never raw hex. There are **two curated themes — `paper` (light) + `graphite` (dark)** —
+  never raw hex. There are **two curated themes — `paper` (light) + `graphite` (dark, black/white)** —
   plus a **Light / Dark / System** mode toggle (switched via `<html data-theme="…">`).
   The contrast tables later in this doc predate the 2-theme change and are kept as
   historical measurements.
@@ -157,13 +157,15 @@ and it uses a restrained, semantic system.
 numerals that align and characters that never confuse.
 
 **Implementation.**
-- **Typeface.** The UI uses **IBM Plex Sans**, and all numeric/date/score/ID values
-  use **IBM Plex Mono** (`index.css` imports latin-only subsets, weights 400–700;
-  `tokens.css` `--font` / `--mono`; `tailwind.config.js` `fontFamily`).
-- **Tabular numerals.** `.mono` sets `font-variant-numeric: tabular-nums`, so scores
-  and dates align in columns (`index.css`).
-- **Character disambiguation.** IBM Plex Mono is chosen in part because it clearly
-  distinguishes `I` / `l` / `1` and `0` / `O` — important for IDs and hashes.
+- **Typeface.** The UI uses **IBM Plex Sans**, and numeric/date/score values use
+  **IBM Plex Sans** with tabular figures (`--num` / `font-num`). Code, IDs and
+  kickers use **IBM Plex Mono** (`index.css` imports latin-only subsets, weights
+  400–700; `tokens.css` `--font` / `--mono` / `--num`; `tailwind.config.js`
+  `fontFamily`).
+- **Tabular numerals.** `.num` / `.mono` set `font-variant-numeric: tabular-nums`,
+  so scores and dates align in columns (`index.css`).
+- **Character disambiguation.** IBM Plex Mono is used for code/IDs/kickers, where it
+  clearly distinguishes `I` / `l` / `1` and `0` / `O`.
 - **Grid discipline.** Consistent 4/8 px spacing scale (`--s1`…`--s7`) and a shared
   card/float radius (`--r-ctl`, `--r-float`).
 - **Corner-radius scale — one per class, not one global value.** Radii are semantic
@@ -229,13 +231,16 @@ theme surface.
 | Theme | `--ink` on bg / surface | `--ink-2` | `--ink-3` | badge accent / good / bad / warn / notice | on-accent on accent |
 |---|---|---|---|---|---|
 | paper | 16.12 / 17.85 | 6.97 / 7.72 | 4.68 / 5.18 | 4.60 / 4.81 / 6.95 / 4.58 / 4.62 | 5.13 |
-| midnight | 18.03 / 16.10 | 7.78 / 6.94 | 5.19 / 4.64 | 6.13 / 6.16 / 5.88 / 7.19 / 6.86 | 7.74 |
-| dusk | 17.87 / 16.01 | 7.82 / 7.01 | 5.18 / 4.64 | 5.76 / 8.01 / 5.87 / 9.03 / 6.87 | 7.22 |
-| mist | 16.15 / 17.85 | 6.86 / 7.58 | 4.64 / 5.13 | 4.57 / 4.57 / 4.50 / 4.61 / 4.50 | 5.10 |
-| sage | 15.19 / 17.21 | 7.05 / 7.99 | 4.65 / 5.27 | 4.90 / 4.75 / 5.48 / 4.67 / 4.50 | 5.47 |
+| graphite (mono) | 21.00 / 19.44 | 12.42 / 11.50 | 6.08 / 5.63 | 18.42 / 11.44 / 7.57 / 14.56 / 10.70 | 21.00 |
+| midnight *(legacy)* | 18.03 / 16.10 | 7.78 / 6.94 | 5.19 / 4.64 | 6.13 / 6.16 / 5.88 / 7.19 / 6.86 | 7.74 |
+| dusk *(legacy)* | 17.87 / 16.01 | 7.82 / 7.01 | 5.18 / 4.64 | 5.76 / 8.01 / 5.87 / 9.03 / 6.87 | 7.22 |
+| mist *(legacy)* | 16.15 / 17.85 | 6.86 / 7.58 | 4.64 / 5.13 | 4.57 / 4.57 / 4.50 / 4.61 / 4.50 | 5.10 |
+| sage *(legacy)* | 15.19 / 17.21 | 7.05 / 7.99 | 4.65 / 5.27 | 4.90 / 4.75 / 5.48 / 4.67 / 4.50 | 5.47 |
 
-**Result: 0 failures — minimum 4.50:1 across all five themes.** (Each pair is shown
-as *on bg / on surface*.)
+**Result: 0 failures.** The current curated themes are **`paper` + `graphite`
+(black/white)** — minimum **5.63:1** (ink-3 on surface); status tints ≥ **7.00:1**.
+The `midnight`/`dusk`/`mist`/`sage` rows are the superseded 5-theme set, kept for
+history. Each pair is shown as *on bg / on surface*.
 
 ---
 
@@ -244,8 +249,8 @@ as *on bg / on surface*.)
 The circulated list of "7 standards" contained several inaccuracies about Performa.
 Corrected here for the record:
 
-1. **Theme names are wrong.** Performa's themes are **`paper`, `midnight`, `dusk`,
-   `mist`, `sage`** — *not* "Navy, Charcoal, Slate, Cream, Neutral".
+1. **Theme names are wrong.** Performa's themes are **`paper` (light) + `graphite`
+   (dark, black/white)** — *not* "Navy, Charcoal, Slate, Cream, Neutral".
 2. **"Native ₱ symbol rendering" does not apply.** Performa has **no currency**
    anywhere in its UI (verified: zero `₱`/peso/amount usages). It is a performance-
    and-compliance platform, not a payroll system.
@@ -273,3 +278,36 @@ Corrected here for the record:
 | `frontend/src/pages/employees/EmployeeDetail.jsx` | print sheet + signature block; Day-165 tone |
 | `frontend/src/pages/**/*.jsx` | four-stage escalation in all progress bars |
 | `frontend/src/index.css` | scoped `.print-sheet` print rules |
+
+---
+
+## Appendix D — Web Interface Guidelines (Vercel) — adopted deltas
+
+`docs/POUR_AUDIT.md` already covers the WCAG-mapped accessibility surface, and
+that audit remains the primary standard. This appendix records only the
+**non-WCAG, practical UX/performance rules** adopted from Vercel's
+[Web Interface Guidelines](https://vercel.com/design/guidelines) — the layer the
+POUR audit does not cover. Nothing here is stack-specific to Next.js.
+
+**Enforced by lint** (`frontend/eslint.config.js`, `no-restricted-syntax`):
+
+| Rule | Enforcement |
+|---|---|
+| Never `transition: all` — list the animated properties explicitly | `transition-all` is a lint error |
+| Ellipsis is `…`, never `...` (copy, placeholders, loading) | `[A-Za-z0-9]...` is a lint error |
+
+**Verified in code** (review-only; no automated check):
+
+| Rule | Where |
+|---|---|
+| `overscroll-behavior: contain` on modal panels | `components/ui/Modal.jsx` |
+| Visible focus on every control; `:focus-visible` replaces `outline: none` | `index.css`, `GlideSelect.css`, `Field.jsx`, `CommandPalette.jsx` |
+| Locale-safe dates/numbers via `Intl.*` | `utils/datetime.js` |
+| Async feedback announced (`aria-live` / `role="alert"`) | `ToastContext.jsx` + page banners |
+| `touch-action: manipulation` on custom controls | `GlideSelect.css` |
+| Deep-link state in the URL (filters, tabs) | review per screen |
+
+**Deliberately out of scope** (Next.js / Tailwind-v4 / marketing-site rules that
+do not apply to this Vite + React SPA): RSC and `next/font`/`next/image`,
+`nuqs` URL state, autoplay video, hydration-mismatch rules, logo-wall and
+hero/landing-page guidance.

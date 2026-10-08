@@ -240,13 +240,25 @@ Auth column is read from the FastAPI dependency graph.
 |---|---|
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `480` |
 | `ALGORITHM` | `HS256` |
+| `APP_BASE_URL` | `—` |
 | `COOKIE_SECURE` | `False` |
 | `CORS_ORIGINS` | `` |
 | `DATABASE_URL` | `sqlite+aiosqlite:///./performa.db` |
+| `EMAIL_FROM` | `—` |
+| `EMAIL_PROVIDER` | `—` |
 | `GEMINI_API_KEY` | `—` |
 | `LOG_LEVEL` | `INFO` |
 | `PERFORMA_TODAY` | `—` |
+| `RESEND_API_KEY` | `—` |
 | `SECRET_KEY` | `performa-dev-secret-key-32charsmin` |
+| `SENDGRID_API_KEY` | `—` |
+| `SMTP_FROM` | `—` |
+| `SMTP_HOST` | `—` |
+| `SMTP_PASSWORD` | `—` |
+| `SMTP_PORT` | `587` |
+| `SMTP_SSL` | `False` |
+| `SMTP_STARTTLS` | `True` |
+| `SMTP_USER` | `—` |
 | `SQL_ECHO` | `False` |
 | `TRAINING_DATASET` | `—` |
 

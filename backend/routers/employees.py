@@ -23,8 +23,10 @@ from sqlalchemy.orm import Load, selectinload
 from ..auth import get_current_user, get_password_hash, require_role
 from ..audit import record_activity
 from ..database import get_db
-from ..models import ProbationaryEmployee, ProbationStatus, User, UserRole
+from ..emailer import send_credentials_email
+from ..models import Organization, ProbationaryEmployee, ProbationStatus, User, UserRole
 from ..notifications import create_notification
+from ..passwords import generate_password
 from ..schemas import (
     MilestoneEmployee,
     MilestoneReport,
@@ -183,6 +185,8 @@ async def create_employee(
 ) -> ProbationaryEmployee:
     """Create a probationary profile, creating or linking its user account."""
     organization_id = current_user.organization_id
+    generated_password = False
+    raw_password: Optional[str] = None
 
     if payload.user_id is not None:
         user = await db.get(User, payload.user_id)
@@ -205,10 +209,10 @@ async def create_employee(
                 detail="User already has a probationary employee profile",
             )
     else:
-        if not payload.email or not payload.full_name or not payload.password:
+        if not payload.email or not payload.full_name:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="email, full_name, and password are required to create a new user",
+                detail="email and full_name are required to create a new user",
             )
         duplicate = await db.execute(select(User.id).where(User.email == payload.email))
         if duplicate.scalar_one_or_none() is not None:
@@ -216,9 +220,13 @@ async def create_employee(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="A user with this email already exists",
             )
+        # When the caller omits a password, generate one and email it to the new
+        # account (same flow as admin provisioning; delivery never blocks creation).
+        generated_password = payload.password is None
+        raw_password = payload.password or generate_password()
         user = User(
             email=payload.email,
-            hashed_password=get_password_hash(payload.password),
+            hashed_password=get_password_hash(raw_password),
             full_name=payload.full_name,
             role=UserRole.PROBATIONARY_EMPLOYEE,
             organization_id=organization_id,
@@ -297,6 +305,16 @@ async def create_employee(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Could not create the probationary employee profile",
+        )
+
+    if generated_password and raw_password:
+        organization_name = (
+            await db.execute(
+                select(Organization.name).where(Organization.slug == organization_id)
+            )
+        ).scalar_one_or_none()
+        await send_credentials_email(
+            user.email, user.full_name, raw_password, organization_name
         )
 
     return await _fetch_employee(db, employee.id, organization_id)

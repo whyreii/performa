@@ -10,7 +10,7 @@
       (function() {
         try {
           var p = localStorage.getItem("performa-palette");
-          if (/^(midnight|dusk|paper|mist|sage)$/.test(p)) {
+          if (/^(paper|graphite)$/.test(p)) {
             document.documentElement.setAttribute("data-theme", p);
           }
         } catch(e) {}

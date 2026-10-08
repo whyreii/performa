@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
-import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, Page, Th } from '../../components/ui';
 import { History, AlertCircle } from '../../components/icons';
 
 export default function ActivityLog() {
+  const [sortKey, setSortKey] = useState('ts');
+  const [sortDir, setSortDir] = useState('desc');
+
   const {
     data: entries = [],
     isLoading,
@@ -17,12 +20,33 @@ export default function ActivityLog() {
     queryFn: () => adminApi.listActivity({ limit: 200 }),
   });
 
-  return (
-    <Page
-        title="System Activity Log"
-        subtitle="User actions across the tenant · newest first"
-    >
+  const onSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'ts' ? 'desc' : 'asc');
+    }
+  };
 
+  const sorted = useMemo(() => {
+    const valueOf = (e) => {
+      if (sortKey === 'actor') return (e.actor_name || '').toLowerCase();
+      if (sortKey === 'action') return (e.action || '').toLowerCase();
+      if (sortKey === 'entity') return (e.entity_type || '').toLowerCase();
+      if (sortKey === 'detail') return (e.detail || '').toLowerCase();
+      return e.created_at || '';
+    };
+    return [...entries].sort((a, b) => {
+      const av = valueOf(a);
+      const bv = valueOf(b);
+      const r = av < bv ? -1 : av > bv ? 1 : 0;
+      return sortDir === 'asc' ? r : -r;
+    });
+  }, [entries, sortKey, sortDir]);
+
+  return (
+    <Page title="System Activity Log" subtitle="User actions across the tenant · sortable">
       <Card padded={false} className="overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-3">
@@ -49,16 +73,26 @@ export default function ActivityLog() {
             <table className="w-full text-left border-collapse text-12">
               <caption className="sr-only">System activity log</caption>
               <thead>
-                <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
-                  <th scope="col" className="py-3 px-4">Timestamp (Asia/Manila)</th>
-                  <th scope="col" className="py-3 px-4">Actor</th>
-                  <th scope="col" className="py-3 px-4">Action</th>
-                  <th scope="col" className="py-3 px-4">Entity</th>
-                  <th scope="col" className="py-3 px-4">Detail</th>
+                <tr className="border-b border-line">
+                  <Th sortKey="ts" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-3 px-4">
+                    Timestamp (Asia/Manila)
+                  </Th>
+                  <Th sortKey="actor" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-3 px-4">
+                    Actor
+                  </Th>
+                  <Th sortKey="action" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-3 px-4">
+                    Action
+                  </Th>
+                  <Th sortKey="entity" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-3 px-4">
+                    Entity
+                  </Th>
+                  <Th sortKey="detail" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-3 px-4">
+                    Detail
+                  </Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {entries.map((entry) => (
+                {sorted.map((entry) => (
                   <tr key={entry.id} className="hover:bg-hover transition-colors">
                     <td className="py-3 px-4 text-ink-2 font-num whitespace-nowrap">
                       {entry.created_at ? formatDate(entry.created_at, { withTime: true }) : ''}

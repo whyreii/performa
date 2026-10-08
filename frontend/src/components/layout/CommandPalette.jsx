@@ -102,7 +102,7 @@ export default function CommandPalette({ isOpen, onClose }) {
               setQuery(e.target.value);
               setSelectedIndex(0);
             }}
-            placeholder="Type a command or search..."
+            placeholder="Type a command or search…"
             aria-label="Search commands"
             className="w-full h-14 px-3 bg-transparent text-ink placeholder:text-ink-3 text-14 focus:outline-none"
           />

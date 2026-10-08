@@ -52,9 +52,9 @@ export default {
       fontFamily: {
         sans: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
         mono: ['IBM Plex Mono', 'ui-monospace', 'Menlo', 'monospace'],
-        // Numeric/data face: the platform system font (SF Pro / Segoe UI /
-        // Roboto) with tabular figures. See tokens.css --num.
-        num: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'system-ui', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        // Numeric/data face: IBM Plex Sans (owner decision — no platform system
+        // face). Tabular figures are set on `.font-num` in index.css. See --num.
+        num: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
       },
       // Scale B — the only five type sizes (see tokens.css). Mono stays for
       // numbers/dates/IDs; 12px floor uses weight 450–500.

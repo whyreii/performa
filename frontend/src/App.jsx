@@ -120,7 +120,7 @@ function ProtectedRoute({ children, allowedRoles }) {
           </p>
           <Link
             to={homeForRole(user?.role)}
-            className="inline-flex items-center justify-center h-9 px-4 rounded-ctl bg-accent text-accent-foreground text-14 font-medium hover:brightness-110 transition-all"
+            className="inline-flex items-center justify-center h-9 px-4 rounded-ctl bg-accent text-accent-foreground text-14 font-medium hover:brightness-110 transition"
           >
             Go to my dashboard
           </Link>
@@ -189,10 +189,15 @@ export default function App() {
                       <EmployeeSplit />
                     </ProtectedRoute>
                   }
-                >
-                  <Route index element={null} />
-                  <Route path=":id" element={<EmployeeDetail />} />
-                </Route>
+                />
+                <Route
+                  path="/employees/:id"
+                  element={
+                    <ProtectedRoute allowedRoles={['employer', 'supervisor', 'probationary_employee']}>
+                      <EmployeeDetail />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/rollups"
                   element={

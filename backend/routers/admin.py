@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..auth import get_password_hash, require_role
 from ..audit import record_activity
 from ..database import get_db
+from ..emailer import send_credentials_email
 from ..models import (
     ActivityLog,
     MonthlySummary,
@@ -24,6 +25,7 @@ from ..models import (
     User,
     UserRole,
 )
+from ..passwords import generate_password
 from ..schemas import (
     ActivityLogResponse,
     OrganizationResponse,
@@ -40,7 +42,9 @@ DEADLINE_THRESHOLDS = {"day_150": 150, "day_165": 165, "day_178": 178, "day_180"
 class AdminCreateUserRequest(BaseModel):
     email: str = Field(..., max_length=255)
     full_name: str = Field(..., max_length=255)
-    password: str = Field(..., min_length=8, max_length=128)
+    # Optional: when omitted, a strong password is generated and emailed to the
+    # account. Supplying one is kept for API/back-compat and tests.
+    password: Optional[str] = Field(default=None, min_length=8, max_length=128)
     role: UserRole
     # Optional tenant to place the account in. A new name provisions a new
     # Organization (empty workspace); an existing name reuses that tenant.
@@ -168,10 +172,15 @@ async def create_user(
         or current_user.organization_id
     )
 
+    # The caller may supply a password (API/back-compat, e.g. tests); when they
+    # do not, one is generated here and emailed to the new account.
+    generated_password = payload.password is None
+    raw_password = payload.password or generate_password()
+
     new_user = User(
         email=payload.email,
         full_name=payload.full_name,
-        hashed_password=get_password_hash(payload.password),
+        hashed_password=get_password_hash(raw_password),
         role=payload.role,
         organization_id=organization_id,
         is_active=True,
@@ -196,6 +205,21 @@ async def create_user(
             detail=f"An account with email '{payload.email}' already exists.",
         )
     await db.refresh(new_user)
+
+    if generated_password:
+        organization_name = (
+            await db.execute(
+                select(Organization.name).where(Organization.slug == organization_id)
+            )
+        ).scalar_one_or_none()
+        # Delivery never blocks provisioning (see backend/emailer.py).
+        await send_credentials_email(
+            new_user.email,
+            new_user.full_name,
+            raw_password,
+            organization_name,
+        )
+
     return new_user
 
 

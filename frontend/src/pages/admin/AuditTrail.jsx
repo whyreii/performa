@@ -2,9 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { formatDate, manilaDateKey, formatManilaDay, formatManilaTime } from '../../utils/datetime';
+import { formatDate } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
-import { Button, Badge, Skeleton, EmptyState, Card, Page, inputClass, GlideSelect } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, Page, inputClass, GlideSelect, Th } from '../../components/ui';
 import {
   History,
   Printer,
@@ -27,6 +27,8 @@ export default function AuditTrail() {
   const orgLabel = user?.organization_name || user?.organization_id || 'Organization';
   const [competencyFilter, setCompetencyFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortKey, setSortKey] = useState('ts');
+  const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 25;
 
@@ -41,45 +43,52 @@ export default function AuditTrail() {
     queryFn: () => evaluationApi.getTenantAuditTrail(),
   });
 
-  const filteredLogs = auditLogs.filter((log) => {
-    if (competencyFilter !== 'all' && log.competency !== competencyFilter) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      const evaluator = (log.evaluator_name || '').toLowerCase();
-      const comp = (log.competency || '').toLowerCase();
-      const id = (log.id || '').toLowerCase();
-      if (!evaluator.includes(q) && !comp.includes(q) && !id.includes(q)) return false;
+  const onSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'ts' ? 'desc' : 'asc');
     }
-    return true;
-  });
+  };
 
-  // Reset to the first page whenever the filters change.
+  const sortedLogs = useMemo(() => {
+    const filtered = auditLogs.filter((log) => {
+      if (competencyFilter !== 'all' && log.competency !== competencyFilter) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const evaluator = (log.evaluator_name || '').toLowerCase();
+        const comp = (log.competency || '').toLowerCase();
+        const id = (log.id || '').toLowerCase();
+        if (!evaluator.includes(q) && !comp.includes(q) && !id.includes(q)) return false;
+      }
+      return true;
+    });
+    const valueOf = (log) => {
+      if (sortKey === 'evaluator') return (log.evaluator_name || '').toLowerCase();
+      if (sortKey === 'competency') return (log.competency || '').toLowerCase();
+      if (sortKey === 'change') return Number(log.new_score) || 0;
+      return log.created_at || '';
+    };
+    return [...filtered].sort((a, b) => {
+      const av = valueOf(a);
+      const bv = valueOf(b);
+      const r = av < bv ? -1 : av > bv ? 1 : 0;
+      return sortDir === 'asc' ? r : -r;
+    });
+  }, [auditLogs, competencyFilter, searchQuery, sortKey, sortDir]);
+
+  // Reset to the first page whenever the filters or sort change.
   useEffect(() => {
     setPage(1);
-  }, [competencyFilter, searchQuery]);
+  }, [competencyFilter, searchQuery, sortKey, sortDir]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(sortedLogs.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const pageLogs = filteredLogs.slice(
+  const pageLogs = sortedLogs.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
-
-  // Group the current page's entries by Asia/Manila calendar day. The list is
-  // already newest-first, so the day groups stay in order.
-  const dayGroups = useMemo(() => {
-    const byDay = new Map();
-    pageLogs.forEach((log) => {
-      const key = manilaDateKey(log.created_at);
-      if (!byDay.has(key)) byDay.set(key, []);
-      byDay.get(key).push(log);
-    });
-    return Array.from(byDay.entries()).map(([key, logs]) => ({
-      key,
-      label: formatManilaDay(logs[0].created_at),
-      logs,
-    }));
-  }, [pageLogs]);
 
   return (
     <Page
@@ -128,7 +137,7 @@ export default function AuditTrail() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search evaluator or competency..."
+              placeholder="Search evaluator or competency…"
               aria-label="Search audit trail"
               className={`${inputClass} pl-9`}
             />
@@ -174,115 +183,66 @@ export default function AuditTrail() {
               Retry
             </Button>
           </div>
-        ) : filteredLogs.length === 0 ? (
+        ) : sortedLogs.length === 0 ? (
           <EmptyState icon={History} title="No audit entries found">
             Weekly evaluations submitted by supervisors will appear here automatically.
           </EmptyState>
         ) : (
-          <>
-            {/* Stream (screen): chronological, grouped by Asia/Manila day. */}
-            <div className="no-print">
-              {dayGroups.map((group) => (
-                <div key={group.key} className="border-b border-line last:border-b-0">
-                  <p className="px-4 pt-4 pb-1 font-num text-12 text-ink-3">{group.label}</p>
-                  {group.logs.map((log) => {
-                    const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
-                    return (
-                      <div
-                        key={log.id}
-                        className="flex items-baseline gap-3 px-4 py-3 transition-colors hover:bg-hover"
-                      >
-                        <time
-                          dateTime={log.created_at}
-                          className="w-20 shrink-0 font-num text-12 text-ink-3"
-                        >
-                          {formatManilaTime(log.created_at)}
-                        </time>
-                        <span className="min-w-0 flex-1 text-14 text-ink-2">
-                          <span className="font-medium text-ink">{log.evaluator_name}</span>
-                          {' recorded '}
-                          <span className="text-ink">{competencyLabel(log.competency)}</span>
-                        </span>
-                        <span className="flex shrink-0 items-center gap-2 font-num text-12">
-                          {hasPrior ? (
-                            <>
-                              <span className="text-ink-3">{log.prior_score?.toFixed(1)}</span>
-                              <ArrowRight className="h-3 w-3 text-ink-3" />
-                            </>
-                          ) : (
-                            <span className="text-ink-3">Initial</span>
-                          )}
-                          <span className="text-14 font-bold text-ink">{log.new_score?.toFixed(1)}</span>
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-
-            {/* Print-only exhibit table: the DOLE/NLRC legal format is unchanged. */}
-            <div className="overflow-x-auto print-only">
-            <table className="w-full text-left border-collapse text-12">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
               <caption className="sr-only">
                 Evidentiary labor score audit trail (Article 296)
               </caption>
               <thead>
-                <tr className="border-b border-line text-12 font-medium text-ink-3 uppercase tracking-wider bg-hover/40">
-                  <th scope="col" className="py-3 px-4">Timestamp (Asia/Manila)</th>
-                  <th scope="col" className="py-3 px-4">Evaluator</th>
-                  <th scope="col" className="py-3 px-4">Competency</th>
-                  <th scope="col" className="py-3 px-4">Score Transition</th>
-                  <th scope="col" className="py-3 px-4">Integrity Verification</th>
+                <tr className="border-b border-line">
+                  <Th sortKey="ts" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 px-4">
+                    When (Asia/Manila)
+                  </Th>
+                  <Th sortKey="evaluator" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 px-4">
+                    Evaluator
+                  </Th>
+                  <Th sortKey="competency" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 px-4">
+                    Competency
+                  </Th>
+                  <Th sortKey="change" activeKey={sortKey} dir={sortDir} onSort={onSort} align="right" className="py-2.5 px-4">
+                    Change
+                  </Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {pageLogs.map((log) => {
                   const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
                   return (
-                    <tr key={log.id} className="hover:bg-hover transition-colors font-num">
-                      <td className="py-3 px-4 text-ink-2 whitespace-nowrap">
+                    <tr key={log.id} className="hover:bg-hover transition-colors">
+                      <td className="py-3 px-4 font-num text-12 text-ink-3 whitespace-nowrap">
                         {formatDate(log.created_at, { withTime: true })}
                       </td>
-                      <td className="py-3 px-4 font-sans font-medium text-ink">
+                      <td className="py-3 px-4 text-14 font-medium text-ink">
                         {log.evaluator_name}
                       </td>
-                      <td className="py-3 px-4 font-sans">
-                        <Badge variant="neutral" className="capitalize">
-                          {log.competency?.replace(/_/g, ' ')}
-                        </Badge>
+                      <td className="py-3 px-4 text-14 text-ink-2">
+                        {competencyLabel(log.competency)}
                       </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          {hasPrior ? (
-                            <>
-                              <span className="text-ink-3">{log.prior_score?.toFixed(1)}</span>
-                              <ArrowRight className="w-3 h-3 text-ink-3" />
-                            </>
-                          ) : (
-                            <span className="text-ink-3 text-12">Initial -&gt;</span>
-                          )}
-                          <span className="font-bold text-ink text-14">
-                            {log.new_score?.toFixed(1)}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-ok text-12">Append-only</span>
+                      <td className="py-3 px-4 text-right font-num text-14 whitespace-nowrap">
+                        <span className="text-ink-3">
+                          {hasPrior ? `${log.prior_score?.toFixed(1)} → ` : 'Initial → '}
+                        </span>
+                        <span className="font-bold text-ink">
+                          {log.new_score?.toFixed(1)}
+                        </span>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-            </div>
-          </>
+          </div>
         )}
 
         <footer className="p-3 border-t border-line text-12 text-ink-3 font-num flex flex-wrap items-center justify-between gap-2 no-print">
           <span>
-            Showing {filteredLogs.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
-            {Math.min(currentPage * PAGE_SIZE, filteredLogs.length)} of {filteredLogs.length} verified audit records
+            Showing {sortedLogs.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
+            {Math.min(currentPage * PAGE_SIZE, sortedLogs.length)} of {sortedLogs.length} verified audit records
           </span>
           {totalPages > 1 && (
             <div className="flex items-center gap-2">

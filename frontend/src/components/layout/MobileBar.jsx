@@ -58,7 +58,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={nextMode}
-          className="h-8 px-2.5 rounded-ctl border border-line bg-surface/80 text-ink-2 text-12 capitalize flex items-center gap-1.5 active:scale-95 transition-all"
+          className="h-8 px-2.5 rounded-ctl border border-line bg-surface/80 text-ink-2 text-12 capitalize flex items-center gap-1.5 active:scale-95 transition-transform"
           title={`Color mode: ${mode} (tap to change)`}
           aria-label={`Color mode: ${mode}. Tap to change.`}
         >

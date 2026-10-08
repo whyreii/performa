@@ -3,8 +3,9 @@
 // and `accent` hexes here MUST mirror tokens.css (guarded by
 // backend/tests/guardrails/test_theme_palette.py).
 //
-// Two curated themes: paper (light) + graphite (dark). The Light/Dark/System
-// control (ThemeContext) picks the mode; these are the two palettes it maps to.
+// Two curated themes: paper (light) + graphite (dark, black/white). The
+// Light/Dark/System control (ThemeContext) picks the mode; these are the two
+// palettes it maps to.
 export const PALETTES = [
   {
     id: 'paper',
@@ -16,11 +17,11 @@ export const PALETTES = [
   },
   {
     id: 'graphite',
-    name: 'Graphite',
+    name: 'Mono',
     type: 'Dark',
-    desc: 'Neutral charcoal with a muted steel accent',
-    bg: '#0e0f11',
-    accent: '#84a8ce',
+    desc: 'Pure black & white with a single white accent',
+    bg: '#000000',
+    accent: '#ffffff',
   },
 ];
 

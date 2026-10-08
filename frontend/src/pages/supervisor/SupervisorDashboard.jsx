@@ -135,7 +135,7 @@ export default function SupervisorDashboard() {
                       </div>
                       <div className="h-1.5 w-full bg-line rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full transition-all bg-ink-3"
+                          className="h-full rounded-full transition-[width] bg-ink-3"
                           style={{ width: `${progressPct}%` }}
                         />
                       </div>

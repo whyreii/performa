@@ -21,3 +21,4 @@ export { default as Tabs } from './Tabs';
 export { default as Disclosure } from './Disclosure';
 export { default as Field, inputClass, textareaClass } from './Field';
 export { default as TextField } from './TextField';
+export { default as Th } from './Th';
