@@ -13,6 +13,7 @@ export { default as PageHeader } from './PageHeader';
 export { default as Page } from './Page';
 export { default as Split } from './Split';
 export { default as Modal } from './Modal';
+export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as EmptyState } from './EmptyState';
 export { default as CountUp } from './CountUp';
 export { default as RubberSegment } from './RubberSegment';

@@ -15,6 +15,7 @@ import Tabs from '../../components/ui/Tabs';
 import Page from '../../components/ui/Page';
 import GlideSelect from '../../components/ui/GlideSelect';
 import Th from '../../components/ui/Th';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { inputClass } from '../../components/ui/Field';
 import {
   Users,
@@ -41,6 +42,7 @@ export default function UserManagement() {
   const [sortDir, setSortDir] = useState('asc');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [resetPasswordUser, setResetPasswordUser] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
   const [actionFeedback, setActionFeedback] = useState(null);
 
   // Fetch all users in organization
@@ -290,7 +292,7 @@ export default function UserManagement() {
                           variant="secondary"
                           size="sm"
                           leftIcon={KeyRound}
-                          onClick={() => setResetPasswordUser(u)}
+                          onClick={() => setConfirmAction({ kind: 'reset', user: u })}
                           className="h-7 px-2 text-12"
                           title="Reset password"
                         >
@@ -302,12 +304,7 @@ export default function UserManagement() {
                           variant={u.is_active ? 'ghost' : 'secondary'}
                           size="sm"
                           leftIcon={u.is_active ? UserX : UserCheck}
-                          onClick={() =>
-                            statusMutation.mutate({
-                              userId: u.id,
-                              isActive: !u.is_active,
-                            })
-                          }
+                          onClick={() => setConfirmAction({ kind: 'status', user: u })}
                           isLoading={statusMutation.isPending}
                           className={`h-7 px-2 text-12 ${
                             u.is_active ? 'text-bad hover:bg-bad/10' : 'text-good hover:bg-good/10'
@@ -427,7 +424,7 @@ export default function UserManagement() {
                               variant="secondary"
                               size="sm"
                               leftIcon={KeyRound}
-                              onClick={() => setResetPasswordUser(u)}
+                              onClick={() => setConfirmAction({ kind: 'reset', user: u })}
                               className="h-7 px-2 text-12"
                               title="Reset password"
                             >
@@ -499,6 +496,63 @@ export default function UserManagement() {
           }}
         />
       )}
+      {/* Confirmation for consequential row actions */}
+      <ConfirmDialog
+        isOpen={!!confirmAction}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={() => {
+          if (!confirmAction) return;
+          if (confirmAction.kind === 'status') {
+            statusMutation.mutate({
+              userId: confirmAction.user.id,
+              isActive: !confirmAction.user.is_active,
+            });
+          } else {
+            setResetPasswordUser(confirmAction.user);
+          }
+          setConfirmAction(null);
+        }}
+        title={
+          confirmAction?.kind === 'status'
+            ? confirmAction.user.is_active
+              ? 'Deactivate account?'
+              : 'Reactivate account?'
+            : 'Reset password?'
+        }
+        confirmLabel={
+          confirmAction?.kind === 'status'
+            ? confirmAction.user.is_active
+              ? 'Deactivate'
+              : 'Reactivate'
+            : 'Continue'
+        }
+        variant={
+          confirmAction?.kind === 'status' && confirmAction.user.is_active
+            ? 'danger'
+            : 'primary'
+        }
+        isLoading={statusMutation.isPending}
+      >
+        {confirmAction?.kind === 'status' ? (
+          confirmAction.user.is_active ? (
+            <p>
+              Deactivating <b className="text-ink">{confirmAction.user.full_name}</b> blocks
+              their sign-in immediately. You can reactivate them later.
+            </p>
+          ) : (
+            <p>
+              Reactivating <b className="text-ink">{confirmAction.user.full_name}</b> restores
+              their sign-in access.
+            </p>
+          )
+        ) : confirmAction ? (
+          <p>
+            You are resetting the password for{' '}
+            <b className="text-ink">{confirmAction.user.full_name}</b>. You will set or generate
+            a new password in the next step.
+          </p>
+        ) : null}
+      </ConfirmDialog>
     </Page>
   );
 }

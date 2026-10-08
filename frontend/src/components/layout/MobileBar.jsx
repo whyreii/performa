@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { PerformaMark, ChevronLeft, Search, LogOut, Sun, Moon, Monitor } from '../icons';
+import { ConfirmDialog } from '../ui';
 import { getInitials } from '../../utils/format';
 
 const MODES = ['light', 'dark', 'system'];
@@ -13,6 +14,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
   const { mode, setMode } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSignOutOpen, setIsSignOutOpen] = useState(false);
 
   const isSubPage =
     location.pathname.startsWith('/employees/') ||
@@ -76,7 +78,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
 
         <button
           type="button"
-          onClick={logout}
+          onClick={() => setIsSignOutOpen(true)}
           className="w-8 h-8 text-ink-3 hover:text-bad rounded-ctl flex items-center justify-center transition-colors"
           title="Sign out"
           aria-label="Sign out"
@@ -84,6 +86,17 @@ export default function MobileBar({ onOpenCommandPalette }) {
           <LogOut className="w-4 h-4" />
         </button>
       </div>
+
+      <ConfirmDialog
+        isOpen={isSignOutOpen}
+        onClose={() => setIsSignOutOpen(false)}
+        onConfirm={logout}
+        title="Sign out?"
+        confirmLabel="Sign out"
+        variant="danger"
+      >
+        <p>You will be signed out of Performa and returned to the login screen.</p>
+      </ConfirmDialog>
     </header>
   );
 }

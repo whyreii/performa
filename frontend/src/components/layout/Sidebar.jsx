@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { PerformaMark, LogOut, Search, Sun, Moon, ChevronLeft, ChevronRight } from '../icons';
+import { ConfirmDialog } from '../ui';
 import { sidebarNav } from '../../config/nav';
 import { getInitials } from '../../utils/format';
 import { formatManilaClock } from '../../utils/datetime';
@@ -11,6 +12,7 @@ import { prefetchRoute } from '../../routes/loaders';
 export default function Sidebar({ onOpenCommandPalette }) {
   const { user, logout } = useAuth();
   const { isDark, setMode } = useTheme();
+  const [isSignOutOpen, setIsSignOutOpen] = useState(false);
 
   // Binary quick toggle: light ⇄ dark. The full Light/Dark/System control
   // lives in Settings; the sidebar only flips between the two palettes.
@@ -197,7 +199,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
         <button
           type="button"
-          onClick={logout}
+          onClick={() => setIsSignOutOpen(true)}
           className={`inline-flex items-center justify-center text-ink-3 hover:text-bad rounded-ctl hover:bg-bad/10 transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
             collapsed ? 'w-8 h-8' : 'p-1.5'
           }`}
@@ -207,6 +209,17 @@ export default function Sidebar({ onOpenCommandPalette }) {
           <LogOut className="w-4 h-4" />
         </button>
       </div>
+
+      <ConfirmDialog
+        isOpen={isSignOutOpen}
+        onClose={() => setIsSignOutOpen(false)}
+        onConfirm={logout}
+        title="Sign out?"
+        confirmLabel="Sign out"
+        variant="danger"
+      >
+        <p>You will be signed out of Performa and returned to the login screen.</p>
+      </ConfirmDialog>
     </aside>
   );
 }

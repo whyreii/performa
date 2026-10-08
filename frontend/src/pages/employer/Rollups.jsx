@@ -4,7 +4,7 @@ import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect } from '../../components/ui';
+import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect, ConfirmDialog } from '../../components/ui';
 import {
   FileCheck2,
   Sparkles,
@@ -28,6 +28,8 @@ export default function Rollups() {
   const [selectedEmpId, setSelectedEmpId] = useState('');
   const [monthNumber, setMonthNumber] = useState(1);
   const [actionMessage, setActionMessage] = useState({ type: '', text: '' });
+  const [confirmPlan, setConfirmPlan] = useState(null);
+  const [confirmDispatch, setConfirmDispatch] = useState(null);
 
   // Fetch pending interventions
   const {
@@ -220,9 +222,7 @@ export default function Rollups() {
                       size="sm"
                       leftIcon={XCircle}
                       disabled={signOffMutation.isPending}
-                      onClick={() =>
-                        signOffMutation.mutate({ planId: plan.id, approved: false })
-                      }
+                      onClick={() => setConfirmPlan({ plan, approved: false })}
                     >
                       Reject
                     </Button>
@@ -231,9 +231,7 @@ export default function Rollups() {
                       size="sm"
                       leftIcon={CheckCircle2}
                       disabled={signOffMutation.isPending}
-                      onClick={() =>
-                        signOffMutation.mutate({ planId: plan.id, approved: true })
-                      }
+                      onClick={() => setConfirmPlan({ plan, approved: true })}
                     >
                       Approve
                     </Button>
@@ -306,7 +304,7 @@ export default function Rollups() {
                       size="sm"
                       variant="secondary"
                       disabled={dispatchMutation.isPending}
-                      onClick={() => dispatchMutation.mutate(summary.id)}
+                      onClick={() => setConfirmDispatch(summary)}
                     >
                       Dispatch
                     </Button>
@@ -421,6 +419,63 @@ export default function Rollups() {
               </div>
             </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!confirmPlan}
+        onClose={() => setConfirmPlan(null)}
+        onConfirm={() => {
+          if (confirmPlan) {
+            signOffMutation.mutate({
+              planId: confirmPlan.plan.id,
+              approved: confirmPlan.approved,
+            });
+          }
+          setConfirmPlan(null);
+        }}
+        title={confirmPlan?.approved ? 'Approve intervention?' : 'Reject intervention?'}
+        confirmLabel={confirmPlan?.approved ? 'Approve' : 'Reject'}
+        variant={confirmPlan?.approved ? 'primary' : 'danger'}
+        isLoading={signOffMutation.isPending}
+      >
+        {confirmPlan && (
+          <>
+            <p>
+              {confirmPlan.approved ? 'You are approving' : 'You are rejecting'}{' '}
+              <b className="text-ink">{confirmPlan.plan.intervention_title}</b>
+              {confirmPlan.plan.competency
+                ? ` for ${confirmPlan.plan.competency.replace(/_/g, ' ')}`
+                : ''}
+              .
+            </p>
+            <p className="text-12 text-ink-3">
+              This sign-off is recorded in the intervention audit trail.
+            </p>
+          </>
+        )}
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        isOpen={!!confirmDispatch}
+        onClose={() => setConfirmDispatch(null)}
+        onConfirm={() => {
+          if (confirmDispatch) dispatchMutation.mutate(confirmDispatch.id);
+          setConfirmDispatch(null);
+        }}
+        title="Dispatch monthly summary?"
+        confirmLabel="Dispatch"
+        isLoading={dispatchMutation.isPending}
+      >
+        {confirmDispatch && (
+          <p>
+            This sends the Month {confirmDispatch.month_number} summary to{' '}
+            <b className="text-ink">
+              {employees.find((e) => e.id === confirmDispatch.employee_id)?.user?.full_name ||
+                'the employee'}
+            </b>{' '}
+            for digital acknowledgement.
+          </p>
+        )}
+      </ConfirmDialog>
     </Page>
   );
 }
