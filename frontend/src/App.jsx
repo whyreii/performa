@@ -26,6 +26,7 @@ const UserManagement = lazy(routeLoaders['/admin/users']);
 const EmployeeDashboard = lazy(routeLoaders['/employee/dashboard']);
 const EmployeeTraining = lazy(routeLoaders['/employee/training']);
 const Notifications = lazy(routeLoaders['/notifications']);
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function RouteFallback() {
   return (
@@ -266,7 +267,7 @@ export default function App() {
 
               {/* Default fallback */}
               <Route path="/" element={<Navigate to="/login" replace />} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
               </Suspense>
           </BrowserRouter>

@@ -44,8 +44,10 @@ export default function Notifications() {
   } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => notificationApi.list(),
-    // Notifications change rarely; keep them warm so revisits render instantly.
+    // Notifications change rarely; keep them warm so revisits render instantly,
+    // and poll every minute so milestone alerts appear without a manual refresh.
     staleTime: 60_000,
+    refetchInterval: 60_000,
   });
 
   const readMutation = useMutation({
