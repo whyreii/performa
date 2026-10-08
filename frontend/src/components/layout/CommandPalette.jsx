@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { Search, Settings, X, Bell, ArrowUp, ArrowDown, Sun, Moon, Monitor } from '../icons';
+import { Search, Settings, X, Bell, ArrowUp, ArrowDown, Sun, Moon, Monitor, PerformaMark } from '../icons';
 import { commandNav } from '../../config/nav';
 import { prefetchRoute } from '../../routes/loaders';
 import { Modal } from '../ui';
+import { BRAND } from '../../config/brand';
 
 /* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus --
    The palette implements the ARIA combobox/listbox activedescendant pattern: keyboard
@@ -83,6 +84,14 @@ export default function CommandPalette({ isOpen, onClose }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} label="Command palette" maxWidth="max-w-xl" padded={false} panelClassName="overflow-hidden">
       <div>
+        {/* Brand strip */}
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-line">
+          <div className="w-6 h-6 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
+            <PerformaMark className="w-3.5 h-3.5" />
+          </div>
+          <span className="font-semibold text-14 tracking-tight text-ink">{BRAND.name}</span>
+        </div>
+
         {/* Search Input Bar */}
         <div className="relative flex items-center border-b border-line px-4 transition-colors focus-within:border-accent">
           <Search className="w-5 h-5 text-ink-3 shrink-0" />

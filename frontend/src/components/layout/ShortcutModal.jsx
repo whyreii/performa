@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal } from '../ui';
+import { BRAND } from '../../config/brand';
 import { X, Search, Printer, Sliders, Navigation, ShieldCheck } from '../icons';
 
 export default function ShortcutModal({ isOpen, onClose }) {
@@ -89,7 +90,7 @@ export default function ShortcutModal({ isOpen, onClose }) {
 
         {/* Footer */}
         <div className="pt-2 border-t border-line flex items-center justify-between text-12 text-ink-3">
-          <span>Performa Capstone · WCAG 2.1 AA Compliant</span>
+          <span>{BRAND.name} · WCAG 2.1 AA Compliant</span>
           <span className="font-num">Press Esc to exit</span>
         </div>
     </Modal>

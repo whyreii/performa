@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Page } from '../components/ui';
+import { PerformaMark } from '../components/icons';
+import { BRAND } from '../config/brand';
 
 const ROLE_HOME = {
   admin: '/admin/users',
@@ -20,6 +22,12 @@ export default function NotFound() {
     <Page header={false}>
       <div className="min-h-screen bg-bg flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-3">
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-6 h-6 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
+              <PerformaMark className="w-3.5 h-3.5" />
+            </div>
+            <span className="font-semibold text-16 tracking-tight text-ink">{BRAND.name}</span>
+          </div>
           <p className="font-num text-30 font-semibold text-ink-3">404</p>
           <h1 className="text-22 font-semibold text-ink">Page not found</h1>
           <p className="text-14 text-ink-2">

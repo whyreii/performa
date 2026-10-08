@@ -7,6 +7,7 @@ import { useToast } from '../../context/ToastContext';
 import { Button, Badge, StatusDot, MilestonePill, Skeleton, Card, CardSkeleton, Page, Modal, EmptyState, Disclosure, textareaClass, ScoreLedger, TimelineDocket } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET } from '../../config/domain';
+import { BRAND } from '../../config/brand';
 import { milestoneTone } from '../../utils/status';
 import { getInitials } from '../../utils/format';
 import {
@@ -302,6 +303,9 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       <div className="sheet">
       {/* Print-only official document header */}
       <div className="print-only mb-6 pb-4 border-b-2 border-black">
+        <p className="text-center text-12 font-semibold tracking-widest uppercase">
+          {BRAND.name}
+        </p>
         <p className="text-center text-12 font-semibold tracking-widest uppercase">
           Republic of the Philippines
         </p>

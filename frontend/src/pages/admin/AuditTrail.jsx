@@ -275,7 +275,7 @@ export default function AuditTrail() {
       <div className="print-only mt-8 pt-6 border-t-2 border-black text-black space-y-6">
         <p className="text-12 italic leading-relaxed text-gray-700">
           Official Attestation: This evidentiary exhibit is generated directly from the immutable, append-only
-          audit log of the Performa Capstone Platform pursuant to Article 296 of the Philippine Labor Code.
+          audit log of the Performa platform pursuant to Article 296 of the Philippine Labor Code.
           Every weekly competency rating, score delta, and rater identity is permanently preserved for DOLE/NLRC
           compliance verification.
         </p>
