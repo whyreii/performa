@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { kpiApi } from '../../api';
+import { TARGET } from '../../config/domain';
 import { Target, Award, BookOpen, AlertCircle } from '../../components/icons';
 import { Card, Page } from '../../components/ui';
 
@@ -16,8 +17,6 @@ export default function Rubrics() {
       id: 'task',
       competency: 'task_completion',
       name: '1. Task Completion & Work Output',
-      weight: '20%',
-      target: '4.0',
       desc: 'Execution of core job responsibilities, volume of throughput, and adherence to assigned sprint deadlines.',
       levels: [
         { score: '1.0 - 2.9', title: 'Unsatisfactory', text: 'Consistently misses deadlines; output volume significantly below department baseline.' },
@@ -30,8 +29,6 @@ export default function Rubrics() {
       id: 'quality',
       competency: 'quality_of_work',
       name: '2. Quality of Work & Accuracy',
-      weight: '20%',
-      target: '4.0',
       desc: 'Attention to detail, low error rate, and strict compliance with company operational standards and SOPs.',
       levels: [
         { score: '1.0 - 2.9', title: 'Unsatisfactory', text: 'Frequent errors requiring re-work; fails to follow documented quality checklists.' },
@@ -44,8 +41,6 @@ export default function Rubrics() {
       id: 'attendance',
       competency: 'attendance_and_punctuality',
       name: '3. Attendance & Punctuality',
-      weight: '20%',
-      target: '4.0',
       desc: 'On-time shift arrival, dependability during scheduled operational hours, and proper leave compliance.',
       levels: [
         { score: '1.0 - 2.9', title: 'Unsatisfactory', text: 'Repeated unexcused tardiness or unscheduled absences; disrupts shift coverage.' },
@@ -58,8 +53,6 @@ export default function Rubrics() {
       id: 'communication',
       competency: 'communication_and_teamwork',
       name: '4. Communication & Teamwork',
-      weight: '20%',
-      target: '4.0',
       desc: 'Constructive cross-functional collaboration, transparency, courteous peer relations, and responsiveness.',
       levels: [
         { score: '1.0 - 2.9', title: 'Unsatisfactory', text: 'Displays friction with colleagues; fails to communicate status or blockers.' },
@@ -72,8 +65,6 @@ export default function Rubrics() {
       id: 'initiative',
       competency: 'initiative_and_adaptability',
       name: '5. Initiative & Adaptability',
-      weight: '20%',
-      target: '4.0',
       desc: 'Self-driven problem resolution, openness to coaching, and agility when organizational needs shift.',
       levels: [
         { score: '1.0 - 2.9', title: 'Unsatisfactory', text: 'Resistant to feedback; requires constant step-by-step guidance without independent thought.' },
@@ -125,14 +116,11 @@ export default function Rubrics() {
                   Weight:{' '}
                   {rubricMap[rubric.competency]
                     ? `${Math.round(rubricMap[rubric.competency].weight * 100)}%`
-                    : rubric.weight}
+                    : '—'}
                 </span>
                 <span>
                   Target:{' '}
-                  {rubricMap[rubric.competency]
-                    ? rubricMap[rubric.competency].target_score.toFixed(1)
-                    : rubric.target}{' '}
-                  / 5.0
+                  {(rubricMap[rubric.competency]?.target_score ?? TARGET).toFixed(1)} / 5.0
                 </span>
               </div>
             </div>

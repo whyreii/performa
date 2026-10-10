@@ -7,6 +7,7 @@ import { ConfirmDialog } from '../ui';
 import { sidebarNav } from '../../config/nav';
 import { getInitials } from '../../utils/format';
 import { formatManilaClock } from '../../utils/datetime';
+import { modifierKey } from '../../utils/platform';
 import { prefetchRoute } from '../../routes/loaders';
 
 export default function Sidebar({ onOpenCommandPalette }) {
@@ -111,7 +112,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
           type="button"
           onClick={onOpenCommandPalette}
           className="w-8 h-8 mx-auto shrink-0 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          title="Search / command (Ctrl+K)"
+          title={`Search / command (${modifierKey()}+K)`}
           aria-label="Search / command"
         >
           <Search className="w-4 h-4" />
@@ -125,7 +126,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
           <Search className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">Search / command…</span>
           <kbd className="ml-auto font-num text-12 px-1 py-0.5 rounded border border-line shrink-0">
-            Ctrl ⌘ K
+            {modifierKey()} K
           </kbd>
         </button>
       )}

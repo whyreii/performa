@@ -11,6 +11,10 @@ const MODES = [
   { id: 'dark', label: 'Dark', icon: Moon },
 ];
 
+// Demo quick-login is a dev-only aid. Gated so the seeded emails and the plain
+// demo password are tree-shaken out of production bundles.
+const SHOW_DEMO = import.meta.env.DEV;
+
 // Seeded accounts for the panel demo — real logins, not fabricated data.
 const DEMO_ACCOUNTS = [
   { role: 'Admin', email: 'admin@acme.com' },
@@ -78,7 +82,7 @@ export default function Login() {
 
         {/* Color mode */}
         <div
-          role="tablist"
+          role="group"
           aria-label="Color mode"
           className="flex items-center gap-1 p-1 rounded-ctl border border-line bg-hover"
         >
@@ -89,9 +93,8 @@ export default function Login() {
               <button
                 key={m.id}
                 type="button"
-                role="tab"
-                aria-selected={isActive}
-                aria-label={m.label}
+                aria-pressed={isActive}
+                aria-label={`${m.label} mode`}
                 title={m.label}
                 onClick={() => setMode(m.id)}
                 className={`inline-flex items-center justify-center h-8 w-8 rounded-ctl transition-colors ${
@@ -177,25 +180,29 @@ export default function Login() {
               </Button>
             </form>
 
-            <div className="h-px bg-line my-6" />
+            {SHOW_DEMO && (
+              <>
+                <div className="h-px bg-line my-6" />
 
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <span className="text-14 font-semibold text-ink">Fill a seeded demo account</span>
-              <Badge variant="warn">Demo mode</Badge>
-            </div>
-            <div className="grid grid-cols-2 gap-2.5">
-              {DEMO_ACCOUNTS.map((account) => (
-                <button
-                  key={account.email}
-                  type="button"
-                  onClick={() => handleQuickLogin(account.email)}
-                  className="flex flex-col items-start gap-0.5 text-left border border-line rounded-field bg-surface px-3.5 py-3 hover:border-accent/60 hover:bg-hover transition-colors"
-                >
-                  <span className="text-12 font-semibold text-ink">{account.role}</span>
-                  <span className="num text-12 text-ink-3">{account.email}</span>
-                </button>
-              ))}
-            </div>
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <span className="text-14 font-semibold text-ink">Fill a seeded demo account</span>
+                  <Badge variant="warn">Demo mode</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {DEMO_ACCOUNTS.map((account) => (
+                    <button
+                      key={account.email}
+                      type="button"
+                      onClick={() => handleQuickLogin(account.email)}
+                      className="flex flex-col items-start gap-0.5 text-left border border-line rounded-field bg-surface px-3.5 py-3 hover:border-accent/60 hover:bg-hover transition-colors"
+                    >
+                      <span className="text-12 font-semibold text-ink">{account.role}</span>
+                      <span className="num text-12 text-ink-3">{account.email}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </section>
 
           {/* Article 296 card */}

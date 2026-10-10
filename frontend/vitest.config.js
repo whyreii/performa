@@ -11,5 +11,13 @@ export default defineConfig({
     include: ['src/**/*.test.{js,jsx}'],
     css: false,
     restoreMocks: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text'],
+      include: ['src/**/*.{js,jsx}'],
+      exclude: ['src/**/*.test.{js,jsx}', 'src/test/**', 'src/types/**'],
+      // Ratchet baseline (raised as page/E2E tests land). Not a target.
+      thresholds: { statements: 71, branches: 68, functions: 39, lines: 71 },
+    },
   },
 });

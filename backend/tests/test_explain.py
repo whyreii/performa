@@ -98,3 +98,70 @@ def test_out_of_range_score_rejected():
     invalid["quality_of_work"] = 9.0
     with pytest.raises(ValueError):
         shapley_values(invalid)
+
+
+def _reference_shapley(scores: dict, target_class: str) -> dict[str, float]:
+    """Independent exact Shapley via averaging over all n! permutations.
+
+    A different algorithm from the coalition-weight formula in ``explain.py``; used
+    to cross-check the implementation.
+    """
+    import itertools
+
+    from backend.ml.explain import N_FEATURES, _background, _load_model, _validate_scores
+
+    values = _validate_scores(scores)
+    x = np.asarray(values, dtype=float)
+    model = _load_model()
+    classes = [str(label) for label in model.classes_]
+    target_index = classes.index(target_class)
+    background = _background()
+
+    def v(coalition: tuple[int, ...]) -> float:
+        masked = background.copy()
+        for index in coalition:
+            masked[:, index] = x[index]
+        return float(np.mean(model.predict_proba(masked)[:, target_index]))
+
+    phi = np.zeros(N_FEATURES)
+    permutations = list(itertools.permutations(range(N_FEATURES)))
+    for permutation in permutations:
+        prefix: tuple[int, ...] = ()
+        previous = v(prefix)
+        for index in permutation:
+            prefix = prefix + (index,)
+            current = v(prefix)
+            phi[index] += current - previous
+            previous = current
+    phi /= len(permutations)
+    return {name: round(float(value), 4) for name, value in zip(COMPETENCIES, phi)}
+
+
+def test_shapley_matches_permutation_reference():
+    """The coalition-weight implementation equals a permutation-averaged reference."""
+    result = shapley_values(SCORES)
+    reference = _reference_shapley(SCORES, result["target_class"])
+    for name in COMPETENCIES:
+        assert abs(reference[name] - result["shap_values"][name]) < 1e-4
+
+
+@pytest.mark.parametrize(
+    "scores",
+    [
+        SCORES,
+        {name: 3.0 for name in COMPETENCIES},
+        {name: 5.0 for name in COMPETENCIES},
+        {name: 1.0 for name in COMPETENCIES},
+    ],
+)
+def test_shapley_efficiency_holds_for_every_class(scores):
+    """Sum of Shapley values = f(x) - E[f] for the predicted and every other class."""
+    model = _load_model()
+    classes = [str(label) for label in model.classes_]
+    x = np.asarray([[scores[name] for name in COMPETENCIES]], dtype=float)
+    for target_class in classes:
+        result = shapley_values(scores, target_class=target_class)
+        target_index = classes.index(target_class)
+        f_x = float(model.predict_proba(x)[0][target_index])
+        total = sum(result["shap_values"].values())
+        assert abs(total - (f_x - result["base_value"])) < 1e-3

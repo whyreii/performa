@@ -18,11 +18,13 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date, timedelta
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .audit_immutability import drop_statements_for, statements_for
 from .auth import get_password_hash
 from .database import Base, async_session_maker, engine
+from .domain import PROBATION_TERM_DAYS
 from .timeutils import manila_today
 from .models import (
     ActivityLog,
@@ -48,7 +50,6 @@ ORG_SLUG = "acme-ph"
 ADMIN_EMAIL = "admin@acme.com"
 EMPLOYER_EMAIL = "employer@acme.com"
 SUPERVISOR_EMAIL = "supervisor@acme.com"
-PROBATION_TERM_DAYS = 180
 
 
 @dataclass(frozen=True)
@@ -158,12 +159,20 @@ async def _reset(session: AsyncSession) -> None:
             | ActivityLog.actor_id.in_(user_ids)
         )
     )
+    # The Evidentiary Labor Score Audit Trail is DB-immutable. A demo reset is a
+    # bootstrap operation, so it lifts the triggers for this one delete and
+    # re-installs them immediately afterwards.
+    dialect = session.get_bind().dialect.name
+    for statement in drop_statements_for(dialect):
+        await session.execute(text(statement))
     await session.execute(
         delete(EvaluationAuditLog).where(
             EvaluationAuditLog.employee_id.in_(employee_ids)
             | EvaluationAuditLog.evaluator_id.in_(user_ids)
         )
     )
+    for statement in statements_for(dialect):
+        await session.execute(text(statement))
     await session.execute(
         delete(TrainingPlan).where(TrainingPlan.employee_id.in_(employee_ids))
     )

@@ -111,7 +111,11 @@ rewrite the Security and Authentication Layer paragraph to match
 
 - 180-day cap; Day 150 / 165 / 178 milestones (`ARCHITECTURE.md` §2).
 - Exactly five competencies; 4.0 / 5.0 standard.
-- Random Forest classification → Meets / Needs Improvement / Critical Gap.
+- Random Forest as a **learned surrogate** of the deterministic Article 296
+  cascade; it emits one employee-level tier → Meets / Needs Improvement /
+  Critical Gap, and any competency below 3.0 is flagged as a gap. The cascade is
+  the authoritative classifier; the forest carries the explanation
+  (`ARCHITECTURE.md` §4, `docs/XAI_METHODOLOGY.md` §1).
 - Gemini generates **only** summaries + rationales; catalog mapping is
   deterministic; human-in-the-loop employer sign-off (`ARCHITECTURE.md` §4-5).
 - Dual audit separation; print-first DOLE evidence.

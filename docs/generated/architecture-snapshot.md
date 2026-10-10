@@ -34,7 +34,9 @@ Source: `Base.metadata` (no DB connection).
 | id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
 | new_score | FLOAT | no | no | no |  |  |
 | organization_id | VARCHAR(100) | no | no | no |  |  |
+| prev_hash | VARCHAR(64) | yes | no | no |  |  |
 | prior_score | FLOAT | yes | no | no |  |  |
+| record_hash | VARCHAR(64) | yes | no | no |  |  |
 
 ### `kpi_rubrics`
 
@@ -209,6 +211,7 @@ Auth column is read from the FastAPI dependency graph.
 | PATCH | `/api/employees/{employee_id}/status` | roles: employer | update_status |
 | GET | `/api/evaluations/audit-trail` | roles: employer | get_tenant_audit_trail |
 | GET | `/api/evaluations/{employee_id}/audit-trail` | authenticated (any role) | get_audit_trail |
+| GET | `/api/evaluations/{employee_id}/audit-trail/verify` | authenticated (any role) | verify_audit_chain |
 | GET | `/api/evaluations/{employee_id}/regularization-recommendation` | authenticated (any role) | get_regularization_recommendation |
 | POST | `/api/evaluations/{employee_id}/regularization-recommendation` | roles: employer | create_regularization_recommendation |
 | GET | `/api/evaluations/{employee_id}/report` | authenticated (any role) | get_employee_report |

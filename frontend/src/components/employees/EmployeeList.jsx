@@ -1,5 +1,5 @@
 import React, { useDeferredValue, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { Skeleton, EmptyState, Card, inputClass, GlideSelect, Th } from '../../components/ui';
@@ -148,9 +148,13 @@ export default function EmployeeList() {
                       className="hover:bg-hover cursor-pointer transition-colors"
                     >
                       <td className="py-3 px-4">
-                        <span className="font-semibold text-14 text-ink truncate block">
+                        <Link
+                          to={`/employees/${emp.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-semibold text-14 text-ink truncate block hover:text-accent hover:underline"
+                        >
                           {emp.user?.full_name}
-                        </span>
+                        </Link>
                       </td>
                       <td className="py-3 px-4 text-14 text-ink-3 truncate">
                         {emp.job_title}

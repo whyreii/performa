@@ -121,6 +121,14 @@ export default [
               name: '@phosphor-icons/react',
               message: 'Icons are centralized in src/components/icons.js.',
             },
+            {
+              name: '@hugeicons/react',
+              message: 'Icons are centralized in src/components/icons.js.',
+            },
+            {
+              name: '@hugeicons/core-free-icons',
+              message: 'Icons are centralized in src/components/icons.js.',
+            },
           ],
         },
       ],

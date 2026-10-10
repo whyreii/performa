@@ -73,7 +73,13 @@ export default function EmployeeDetail() {
   });
 
   // Fetch audit trail history first (returns [] when there are no evaluations)
-  const { data: auditLogs = [], isLoading: isAuditLoading } = useQuery({
+  const {
+    data: auditLogs = [],
+    isLoading: isAuditLoading,
+    isError: isAuditError,
+    error: auditError,
+    refetch: refetchAudit,
+  } = useQuery({
     queryKey: ['audit-trail', id],
     queryFn: () => evaluationApi.getAuditTrail(id),
     enabled: !!id,
@@ -553,7 +559,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       {/* 3. Performance Scorecard & 5 Competencies */}
       <Disclosure
         title="Scorecard"
-        subtitle="5 competencies · target 4.0"
+        subtitle={`5 competencies · target ${TARGET.toFixed(1)}`}
         meta={
           scorecard?.latest_evaluation_date
             ? `${Number(scorecard.overall_score).toFixed(1)} / 5.0`
@@ -728,6 +734,16 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       >
         {isAuditLoading ? (
           <Skeleton className="h-24 w-full" />
+        ) : isAuditError ? (
+          <div className="py-8 text-center space-y-3">
+            <AlertTriangle className="w-8 h-8 mx-auto text-bad" />
+            <p className="text-12 text-bad">
+              {getApiErrorMessage(auditError, 'Failed to load the evaluation history.')}
+            </p>
+            <Button variant="secondary" size="sm" onClick={() => refetchAudit()}>
+              Retry
+            </Button>
+          </div>
         ) : auditLogs.length === 0 ? (
           <EmptyState icon={History} title="No evaluations yet">
             No evaluations submitted yet for this employee.

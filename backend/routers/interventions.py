@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from statistics import fmean
 from typing import Any
 
@@ -26,6 +26,7 @@ from sqlalchemy.orm import selectinload
 from ..auth import get_current_user, require_role
 from ..audit import record_activity
 from ..database import get_db
+from ..domain import month_window
 from ..notifications import create_notification
 from ..gemini import generate_performance_rationales
 from ..ml.catalog import COMPETENCIES, recommend_courses
@@ -50,8 +51,6 @@ from ..schemas import (
 router = APIRouter(prefix="/api/interventions", tags=["Interventions"])
 
 logger = logging.getLogger(__name__)
-
-PROBATION_MONTH_DAYS = 30
 
 
 def _course_id(course: dict[str, Any]) -> str:
@@ -134,15 +133,7 @@ async def monthly_rollup(
             detail="Monthly rollups can only be generated for active probationary employees.",
         )
 
-    month_start = employee.start_date + timedelta(
-        days=(month_number - 1) * PROBATION_MONTH_DAYS
-    )
-    # Non-overlapping 30-day window: [month_start, month_start + 30 - 1].
-    # The previous inclusive end equalled the next month's start, so a boundary
-    # date (day 30/60/90/120) was counted in two months.
-    month_end = employee.start_date + timedelta(
-        days=month_number * PROBATION_MONTH_DAYS - 1
-    )
+    month_start, month_end = month_window(employee.start_date, month_number)
 
     evaluation_stmt = select(WeeklyEvaluation).where(
         WeeklyEvaluation.employee_id == employee.id,

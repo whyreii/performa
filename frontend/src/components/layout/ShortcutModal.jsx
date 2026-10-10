@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal } from '../ui';
 import { BRAND } from '../../config/brand';
 import { X, Search, Printer, Sliders, Navigation, ShieldCheck } from '../icons';
+import { modifierKey } from '../../utils/platform';
 
 export default function ShortcutModal({ isOpen, onClose }) {
   const shortcutGroups = [
@@ -9,7 +10,7 @@ export default function ShortcutModal({ isOpen, onClose }) {
       title: 'Global Navigation & Commands',
       icon: Navigation,
       items: [
-        { keys: ['Ctrl', '⌘', 'K'], label: 'Open Command Palette & Global Search' },
+        { keys: [modifierKey(), 'K'], label: 'Open Command Palette & Global Search' },
         { keys: ['?'], label: 'Open / Close this Keyboard Shortcut Guide' },
         { keys: ['Esc'], label: 'Dismiss open modal, dialog, or drawer' },
       ],
@@ -18,7 +19,7 @@ export default function ShortcutModal({ isOpen, onClose }) {
       title: 'Compliance & Export Utilities',
       icon: ShieldCheck,
       items: [
-        { keys: ['Ctrl', 'P'], label: 'Print DOLE Evidentiary Audit Exhibit' },
+        { keys: [modifierKey(), 'P'], label: 'Print DOLE Evidentiary Audit Exhibit' },
         { keys: ['Click'], label: 'One-Click Copy Article 296 Legal Summary' },
       ],
     },

@@ -9,10 +9,11 @@ written per competency whose score changed or was set for the first time.
 """
 from __future__ import annotations
 
+import hashlib
 import html
 import logging
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from statistics import fmean
 from typing import Optional
 
@@ -25,6 +26,12 @@ from sqlalchemy.orm import selectinload
 from ..auth import get_current_user, require_role
 from ..audit import record_activity
 from ..database import get_db
+from ..domain import (
+    REGULARIZATION_HORIZON_DAYS,
+    TARGET_SCORE,
+    month_number_for,
+    month_window,
+)
 from ..gemini import generate_performance_rationales
 from ..ml.explain import explain_prediction
 from ..ml.predictor import predict_employee_risk
@@ -40,6 +47,7 @@ from ..models import (
     WeeklyEvaluation,
 )
 from ..schemas import (
+    AuditChainVerificationResponse,
     AuditLogItemResponse,
     CompetencyScoreItem,
     EmployeeScorecardResponse,
@@ -54,10 +62,6 @@ from ..timeutils import manila_today
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Evaluations"])
-
-REGULARIZATION_HORIZON_DAYS = 150
-
-TARGET_SCORE = 4.0
 
 # (model attribute, API key, human-readable label) for the five fixed categories.
 COMPETENCIES: tuple[tuple[str, str], ...] = (
@@ -149,6 +153,58 @@ async def _latest_evaluation(
     return result.scalar_one_or_none()
 
 
+def _hash_timestamp(value: datetime) -> str:
+    """tz-stable ISO form: SQLite drops tzinfo, so normalize everything to UTC."""
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc).isoformat()
+
+
+def _audit_record_hash(
+    prev_hash: Optional[str],
+    organization_id: str,
+    employee_id: uuid.UUID,
+    evaluator_id: uuid.UUID,
+    competency: str,
+    prior_score: Optional[float],
+    new_score: float,
+    created_at: datetime,
+) -> str:
+    """Deterministic hash of an audit row, chained to its predecessor."""
+    payload = "|".join(
+        [
+            prev_hash or "",
+            organization_id,
+            str(employee_id),
+            str(evaluator_id),
+            competency,
+            "" if prior_score is None else f"{float(prior_score):.4f}",
+            f"{float(new_score):.4f}",
+            _hash_timestamp(created_at),
+        ]
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+async def _latest_audit_hash(
+    db: AsyncSession,
+    employee_id: uuid.UUID,
+    organization_id: str,
+) -> Optional[str]:
+    """The ``record_hash`` of the employee's most recent hashed audit row."""
+    stmt = (
+        select(EvaluationAuditLog.record_hash)
+        .where(
+            EvaluationAuditLog.employee_id == employee_id,
+            EvaluationAuditLog.organization_id == organization_id,
+            EvaluationAuditLog.record_hash.isnot(None),
+        )
+        .order_by(EvaluationAuditLog.created_at.desc(), EvaluationAuditLog.id.desc())
+        .limit(1)
+    )
+    return (await db.execute(stmt)).scalar_one_or_none()
+
+
 @router.post(
     "/{employee_id}/weekly",
     response_model=WeeklyEvaluationResponse,
@@ -211,10 +267,29 @@ async def submit_weekly_rating(
     db.add(evaluation)
     await db.flush()
 
+    # Tamper-evident chain: each row hashes its predecessor's hash. Explicit,
+    # strictly-increasing timestamps make the per-employee chain verifiable.
+    previous_hash = await _latest_audit_hash(
+        db, employee.id, current_user.organization_id
+    )
+    base_time = datetime.now(timezone.utc)
+    chain_index = 0
     for attribute, _label in COMPETENCIES:
         prior_score = prior_scores.get(attribute)
         new_score = new_scores[attribute]
         if prior_score is None or prior_score != new_score:
+            created_at = base_time + timedelta(microseconds=chain_index)
+            chain_index += 1
+            record_hash = _audit_record_hash(
+                previous_hash,
+                current_user.organization_id,
+                employee.id,
+                current_user.id,
+                attribute,
+                prior_score,
+                new_score,
+                created_at,
+            )
             db.add(
                 EvaluationAuditLog(
                     employee_id=employee.id,
@@ -223,8 +298,12 @@ async def submit_weekly_rating(
                     competency=attribute,
                     prior_score=prior_score,
                     new_score=new_score,
+                    created_at=created_at,
+                    prev_hash=previous_hash,
+                    record_hash=record_hash,
                 )
             )
+            previous_hash = record_hash
 
     record_activity(
         db,
@@ -376,9 +455,8 @@ async def get_kpi_trend(
 
     buckets: dict[int, list[WeeklyEvaluation]] = {}
     for evaluation in evaluations:
-        days = (evaluation.evaluation_date - employee.start_date).days
         # Align with the monthly-rollup window: month n = [start+(n-1)*30, start+n*30-1].
-        month = max(1, (days // 30) + 1)
+        month = month_number_for(employee.start_date, evaluation.evaluation_date)
         buckets.setdefault(month, []).append(evaluation)
 
     points: list[TrendPoint] = []
@@ -388,11 +466,12 @@ async def get_kpi_trend(
             attribute: fmean(float(getattr(item, attribute)) for item in group)
             for attribute, _ in COMPETENCIES
         }
+        period_start, period_end = month_window(employee.start_date, month)
         points.append(
             TrendPoint(
                 month_number=month,
-                period_start=employee.start_date + timedelta(days=(month - 1) * 30),
-                period_end=employee.start_date + timedelta(days=month * 30 - 1),
+                period_start=period_start,
+                period_end=period_end,
                 overall_average=fmean(scores.values()),
                 **scores,
             )
@@ -673,6 +752,59 @@ async def get_audit_trail(
         )
         for log in logs
     ]
+
+
+def _verify_audit_chain(
+    rows: list[EvaluationAuditLog],
+) -> tuple[bool, Optional[uuid.UUID], int]:
+    """Recompute the per-employee hash chain; return (valid, broken_id, checked)."""
+    running: Optional[str] = None
+    checked = 0
+    for row in rows:
+        if row.record_hash is None:
+            continue
+        expected = _audit_record_hash(
+            running,
+            row.organization_id,
+            row.employee_id,
+            row.evaluator_id,
+            row.competency,
+            row.prior_score,
+            row.new_score,
+            row.created_at,
+        )
+        if row.prev_hash != running or expected != row.record_hash:
+            return False, row.id, checked
+        running = row.record_hash
+        checked += 1
+    return True, None, checked
+
+
+@router.get(
+    "/{employee_id}/audit-trail/verify",
+    response_model=AuditChainVerificationResponse,
+    summary="Verify the tamper-evident audit hash chain",
+)
+async def verify_audit_chain(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> AuditChainVerificationResponse:
+    """Recompute the hash chain and report the first broken record, if any."""
+    employee = await _get_scoped_employee(db, employee_id, current_user)
+    stmt = (
+        select(EvaluationAuditLog)
+        .where(
+            EvaluationAuditLog.employee_id == employee.id,
+            EvaluationAuditLog.organization_id == current_user.organization_id,
+        )
+        .order_by(EvaluationAuditLog.created_at.asc(), EvaluationAuditLog.id.asc())
+    )
+    rows = list((await db.execute(stmt)).scalars().all())
+    valid, broken_id, checked = _verify_audit_chain(rows)
+    return AuditChainVerificationResponse(
+        valid=valid, checked=checked, first_broken_id=broken_id
+    )
 
 
 __all__ = ["router"]

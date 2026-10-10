@@ -1,7 +1,9 @@
 """Database engine, session factory, and declarative base for Performa.
 
-Per ARCHITECTURE.md the backend uses SQLAlchemy 2.0 with the asyncpg driver
-against PostgreSQL. Tables are created from ``Base.metadata`` on startup.
+Per ARCHITECTURE.md the backend uses SQLAlchemy 2.0 (async). The default local
+database is SQLite (``aiosqlite``); production/staging is PostgreSQL via the
+``DATABASE_URL`` environment variable. Tables are created from
+``Base.metadata`` on startup.
 """
 from __future__ import annotations
 

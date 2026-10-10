@@ -3,9 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, MilestonePill, Skeleton, Card, Page, ScoreLedger, TimelineDocket } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Card, Page, ScoreLedger, TimelineDocket, AsyncBoundary } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
-import { PROBATION_DAYS } from '../../config/domain';
+import { PROBATION_DAYS, TARGET } from '../../config/domain';
 import {
   Award,
   Calendar,
@@ -24,7 +24,13 @@ export default function EmployeeDashboard() {
   const toast = useToast();
 
   // Fetch all employees to find current user's profile
-  const { data: employees = [], isLoading: isEmpLoading } = useQuery({
+  const {
+    data: employees = [],
+    isLoading: isEmpLoading,
+    isError: isEmpError,
+    error: empError,
+    refetch: refetchEmployees,
+  } = useQuery({
     queryKey: ['employees'],
     queryFn: () => employeeApi.list(),
   });
@@ -67,6 +73,19 @@ export default function EmployeeDashboard() {
 
   const daysElapsed = myProfile ? getDaysElapsed(myProfile.start_date) : 0;
   const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
+
+  if (isEmpError) {
+    return (
+      <Page title="My Performance Scorecard">
+        <AsyncBoundary
+          isError
+          error={empError}
+          onRetry={refetchEmployees}
+          errorMessage="Failed to load your scorecard."
+        />
+      </Page>
+    );
+  }
 
   return (
     <Page
@@ -122,7 +141,7 @@ export default function EmployeeDashboard() {
           <div>
             <h2 className="text-16 font-semibold text-ink">Competency Standing vs Regularizing Target</h2>
             <p className="text-12 text-ink-3 mt-0.5">
-              Minimum 4.0 average required across all 5 legal competencies
+              Minimum {TARGET.toFixed(1)} average required across all 5 legal competencies
             </p>
           </div>
 

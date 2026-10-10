@@ -155,7 +155,7 @@ Automated tooling is intentionally not present, so verify by hand:
 
 ## 11. Sources
 
-`frontend/src/components/layout/{AppShell,Sidebar,MobileBar,BottomTabBar,CommandPalette,ShortcutModal}.jsx`; `frontend/src/components/employees/AddEmployeeModal.jsx`; `frontend/src/components/ui/{Button,Badge,StatusDot,ScoreMeter,MilestonePill,Skeleton}.jsx`; `frontend/src/pages/**/*.jsx` (15 pages); `frontend/src/utils/a11y.js`; `frontend/src/hooks/useEscapeKey.js`; `frontend/src/context/ToastContext.jsx`; `frontend/src/index.css`; `frontend/src/tokens.css`; `frontend/index.html`; `frontend/eslint.config.js`; `frontend/package.json`; `.github/workflows/ci.yml`; `docs/UIUX_STANDARDS.md`; `docs/UIUX_AUDIT.md`; `docs/DESIGN_QA.md`; `AGENTS.md`.
+`frontend/src/components/layout/{AppShell,Sidebar,MobileBar,BottomTabBar,CommandPalette,ShortcutModal}.jsx`; `frontend/src/components/employees/AddEmployeeModal.jsx`; `frontend/src/components/ui/{Button,Badge,StatusDot,ScoreMeter,MilestonePill,Skeleton}.jsx`; `frontend/src/pages/**/*.jsx` (15 pages); `frontend/src/hooks/useEscapeKey.js`; `frontend/src/context/ToastContext.jsx`; `frontend/src/index.css`; `frontend/src/tokens.css`; `frontend/index.html`; `frontend/eslint.config.js`; `frontend/package.json`; `.github/workflows/ci.yml`; `docs/UIUX_STANDARDS.md`; `docs/UIUX_AUDIT.md`; `docs/DESIGN_QA.md`; `AGENTS.md`.
 
 ---
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ConfirmDialog from './ConfirmDialog';
+import { axeViolations } from '../../test/axe';
 
 describe('ConfirmDialog', () => {
   it('renders nothing when closed', () => {
@@ -43,5 +44,14 @@ describe('ConfirmDialog', () => {
     render(<ConfirmDialog isOpen onClose={onClose} onConfirm={() => {}} title="Proceed?" />);
     screen.getByRole('button', { name: 'Cancel' }).click();
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('has no detectable accessibility violations when open', async () => {
+    const { baseElement } = render(
+      <ConfirmDialog isOpen onClose={() => {}} onConfirm={() => {}} title="Deactivate account?">
+        <p>This blocks sign-in.</p>
+      </ConfirmDialog>
+    );
+    expect(await axeViolations(baseElement)).toEqual([]);
   });
 });

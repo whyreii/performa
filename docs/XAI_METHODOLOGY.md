@@ -19,6 +19,15 @@ Global methods answer *"which competencies matter across the model."* SHAP answe
 arbiter actually asks. This is the manuscript's Chapter 3 explainability
 requirement (Gini + permutation) extended with local attribution.
 
+**Surrogate framing (defense).** The classifier is a **learned surrogate**. The
+authoritative labeling rule is the deterministic Article 296 competency cascade
+(`backend/ml/train.py:_label_row`); the Random Forest (`predictor.py`) is trained
+to reproduce that cascade. The three attribution layers below therefore explain
+the surrogate's *reconstruction* of the rule — which is exactly what makes the
+rule's reasoning attributable. This is deliberate: legal determinism under
+Article 296 wants a rule that cannot "float", and the forest exists to carry the
+explanation, not to invent the decision.
+
 ---
 
 ## 2. Exact Shapley values
@@ -69,6 +78,11 @@ On the seeded Ana Urgent record the endpoint returns contributions summing to
 ## 3. What this does **not** claim (defense framing)
 
 - These values explain the **model's output**, not the employee's true performance.
+- The reported metrics are a **fidelity** measure, not real-world predictive
+  accuracy: because labels come from the deterministic cascade, the held-out
+  score (macro-F1, not accuracy — see `docs/MANUSCRIPT_SYNC.md` §4) quantifies how
+  faithfully the forest reproduces the cascade it was trained on. It does **not**
+  estimate field performance. Full statement: `docs/MODEL_CARD.md`.
 - The current model is trained on a **synthetic** distribution until the partner
   dataset (Small Steps Learning Center) is collected. The background and
   permutation importances are drawn from the same distribution, so they track the

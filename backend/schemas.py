@@ -463,6 +463,14 @@ class AuditLogItemResponse(BaseModel):
     created_at: datetime
 
 
+class AuditChainVerificationResponse(BaseModel):
+    """Result of verifying an employee's tamper-evident audit hash chain."""
+
+    valid: bool
+    checked: int
+    first_broken_id: Optional[uuid.UUID] = None
+
+
 class ActivityLogResponse(BaseModel):
     """A general system activity-log entry."""
 
@@ -531,6 +539,7 @@ __all__ = [
     "TrainingPlanResponse",
     "TrainingPlanSignOff",
     "AuditLogItemResponse",
+    "AuditChainVerificationResponse",
     "ActivityLogResponse",
     "NotificationResponse",
 ]

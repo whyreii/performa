@@ -21,6 +21,7 @@ from sqlalchemy import (
     Boolean,
     Date,
     DateTime,
+    event,
     Float,
     ForeignKey,
     Integer,
@@ -33,6 +34,7 @@ from sqlalchemy import (
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from .audit_immutability import create_audit_triggers
 from .database import Base
 from .timeutils import manila_today
 
@@ -429,6 +431,11 @@ class EvaluationAuditLog(Base):
     competency: Mapped[str] = mapped_column(String(100), nullable=False)
     prior_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     new_score: Mapped[float] = mapped_column(Float, nullable=False)
+    # Tamper-evident chain: ``record_hash`` = sha256(row fields + ``prev_hash``),
+    # where ``prev_hash`` is the previous row's ``record_hash`` for the same
+    # employee. Nullable for rows written before the chain was introduced.
+    prev_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    record_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=_utcnow,
@@ -490,6 +497,12 @@ class Notification(Base):
         nullable=False,
         index=True,
     )
+
+
+# Enforce append-only immutability for the Evidentiary Labor Score Audit Trail at
+# the database level whenever the table is created (dev/tests via create_all;
+# Alembic revision 0003_immutable_audit covers pre-existing databases).
+event.listen(EvaluationAuditLog.__table__, "after_create", create_audit_triggers)
 
 
 __all__ = [

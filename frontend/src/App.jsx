@@ -92,11 +92,11 @@ const ROLE_HOME = {
   probationary_employee: '/employee/dashboard',
 };
 
-function homeForRole(role) {
+export function homeForRole(role) {
   return ROLE_HOME[role] || '/login';
 }
 
-function ProtectedRoute({ children, allowedRoles }) {
+export function ProtectedRoute({ children, allowedRoles }) {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {

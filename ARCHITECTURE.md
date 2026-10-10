@@ -8,7 +8,7 @@ What the system is, and the single source of truth for its values (model IDs, co
 
 | Layer | Choice |
 |---|---|
-| Frontend | React 18 (Vite SPA), Tailwind CSS, Lucide React, TanStack Query. Design tokens in `src/tokens.css` |
+| Frontend | React 18 (Vite SPA), Tailwind CSS, Phosphor Icons, TanStack Query. Design tokens in `src/tokens.css` |
 | Backend | Python 3.10+, FastAPI (async endpoints), SQLAlchemy 2.0 (async), Pydantic v2 |
 | Database | SQLite (`aiosqlite`) for local dev; PostgreSQL (`asyncpg`) for production/staging via `DATABASE_URL` |
 | Schema creation | `Base.metadata.create_all` on startup. Creates missing tables only; never alters existing ones |
@@ -33,7 +33,7 @@ What the system is, and the single source of truth for its values (model IDs, co
 | `initiative_and_adaptability` | |
 | `quality_of_work` | |
 
-- **Competency status** (from the Random Forest): Meets Expectations, Needs Improvement, Critical Gap.
+- **Competency status** (classifier output; the Random Forest is a learned *surrogate* that reproduces and explains it): Meets Expectations, Needs Improvement, Critical Gap.
 
 ---
 
@@ -48,7 +48,7 @@ What the system is, and the single source of truth for its values (model IDs, co
 
 1. **Weekly ratings** per competency, entered by the Employer, or by a Supervisor for assigned direct reports only.
 2. **Monthly rollup**: weekly scores average into one score per competency per month.
-3. **Classification**: the Random Forest labels each competency Meets Expectations / Needs Improvement / Critical Gap.
+3. **Classification**: a learned **Random Forest surrogate** reproduces the deterministic Article 296 competency cascade. It emits one employee-level tier (Meets Expectations / Needs Improvement / Critical Gap); any competency scoring below 3.0 is separately flagged as a gap. The cascade is the authoritative classifier (legal determinism); the forest is a surrogate so that exact Shapley and permutation explanations can be computed over it (see `docs/XAI_METHODOLOGY.md`).
 4. **Catalog mapping**: Needs Improvement and Critical Gap map deterministically to `backend/ml/training_catalog.json`. No model decides which interventions apply.
 5. **Gemini generates ONLY**:
    - a 2-sentence performance summary, and
@@ -102,11 +102,11 @@ Agents: do not guess on anything in this section.
    rely on code-side validation and stored outputs for reproducibility? Test on real prompts first. Do not
    change it unasked.
 
-### 6b. Proposed defaults (NOT confirmed): ask before implementing
+### 6b. Proposed defaults (ask before implementing; marked items are owner-resolved)
 
-1. Audit record also stores competency and period; `prior score` is nullable for a first entry.
-2. The audit row is written in the same DB transaction as the score update (both commit or neither).
-3. No update/delete path for audit rows in app code, plus a DB-level block (permissions or trigger on PostgreSQL).
+1. Audit record also stores competency and period; `prior score` is nullable for a first entry. — **RESOLVED** (owner-confirmed; implemented in `backend/models.py` `EvaluationAuditLog`, tested by `test_audit.py` 6b-1).
+2. The audit row is written in the same DB transaction as the score update (both commit or neither). — **RESOLVED** (owner-confirmed; single commit in `backend/routers/evaluations.py:submit_weekly_rating`, tested by 6b-2).
+3. No update/delete path for audit rows in app code, plus a DB-level block (permissions or trigger on PostgreSQL). — **RESOLVED** (owner-confirmed; dialect triggers in `backend/audit_immutability.py`, applied on `create_all` and by Alembic `0003_immutable_audit`; tested by 6b-3).
 4. Every transition out of `pending_approval` has a server-side Employer role check.
 5. Gemini output is validated in code (sentence count, non-empty). Invalid output is treated as a failure: save empty rationales and log it. Evaluator free text is untrusted input to the prompt.
 6. Each generated summary records which model answered (primary vs fallback), since `gemini-flash-latest` is a moving alias.

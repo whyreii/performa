@@ -1,23 +1,54 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
-// Segmented tab control with correct tablist/tab semantics. Replaces the two
-// hand-rolled tablists (Employees, UserManagement) and the sandbox patterns.
+// Segmented single-select filter. The control filters the same list, so a
+// radiogroup (not a tablist) is the correct pattern — there is no tabpanel.
+// Roving tabindex + Arrow / Home / End keyboard navigation.
 export default function Tabs({ tabs = [], value, onChange, ariaLabel }) {
+  const refs = useRef([]);
+  const selectedIndex = Math.max(0, tabs.findIndex((tab) => tab.id === value));
+
+  const moveTo = (index) => {
+    const clamped = (index + tabs.length) % tabs.length;
+    refs.current[clamped]?.focus();
+    onChange?.(tabs[clamped].id);
+  };
+
+  const onKeyDown = (event, index) => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      moveTo(index + 1);
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      moveTo(index - 1);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      moveTo(0);
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      moveTo(tabs.length - 1);
+    }
+  };
+
   return (
     <div
-      role="tablist"
+      role="radiogroup"
       aria-label={ariaLabel}
       className="inline-flex p-1 rounded-nav bg-hover border border-line"
     >
-      {tabs.map((tab) => {
+      {tabs.map((tab, index) => {
         const selected = value === tab.id;
         return (
           <button
             key={tab.id}
+            ref={(element) => {
+              refs.current[index] = element;
+            }}
             type="button"
-            role="tab"
-            aria-selected={selected}
+            role="radio"
+            aria-checked={selected}
+            tabIndex={index === selectedIndex ? 0 : -1}
             onClick={() => onChange?.(tab.id)}
+            onKeyDown={(event) => onKeyDown(event, index)}
             className={`px-3 py-1.5 rounded-ctl text-12 font-medium transition-colors ${
               selected ? 'bg-surface text-ink font-semibold' : 'text-ink-2 hover:text-ink'
             }`}

@@ -23,6 +23,14 @@ from sqlalchemy.orm import Load, selectinload
 from ..auth import get_current_user, get_password_hash, require_role
 from ..audit import record_activity
 from ..database import get_db
+from ..domain import (
+    MILESTONE_CRITICAL_DAY,
+    MILESTONE_NOTICE_DAY,
+    MILESTONE_REVIEW_DAY,
+    PROBATION_TERM_DAYS,
+    days_elapsed,
+    milestone_dates,
+)
 from ..emailer import send_credentials_email
 from ..models import Organization, ProbationaryEmployee, ProbationStatus, User, UserRole
 from ..notifications import create_notification
@@ -39,7 +47,6 @@ from ..timeutils import manila_today
 
 router = APIRouter(tags=["Employees"])
 
-PROBATION_TERM_DAYS = 180
 MILESTONE_LEAD_DAYS = 7
 
 # Statutory milestone alerts (Article 296). Each fires at most once per
@@ -47,9 +54,9 @@ MILESTONE_LEAD_DAYS = 7
 # only the Day 150 review alert (Manuscript: supervisor is view-only for alerts).
 # (day, employee flag attribute, notification title, category)
 MILESTONE_ALERT_STEPS: tuple[tuple[int, str, str, str], ...] = (
-    (150, "milestone_150_alerted", "Day 150 · Performance appraisal due", "milestone_150"),
-    (165, "milestone_165_alerted", "Day 165 · Written-notice window", "milestone_165"),
-    (178, "milestone_178_alerted", "Day 178 · Critical 48h to regularization", "milestone_178"),
+    (MILESTONE_REVIEW_DAY, "milestone_150_alerted", "Day 150 · Performance appraisal due", "milestone_150"),
+    (MILESTONE_NOTICE_DAY, "milestone_165_alerted", "Day 165 · Written-notice window", "milestone_165"),
+    (MILESTONE_CRITICAL_DAY, "milestone_178_alerted", "Day 178 · Critical 48h to regularization", "milestone_178"),
 )
 
 
@@ -88,21 +95,19 @@ async def _fetch_employee(
 
 def _milestone_item(employee: ProbationaryEmployee, as_of: date) -> MilestoneEmployee:
     """Compute an employee's position relative to the statutory milestones."""
-    day_150_date = employee.start_date + timedelta(days=150)
-    day_165_date = employee.start_date + timedelta(days=165)
-    day_178_date = employee.start_date + timedelta(days=178)
-    days_elapsed = (as_of - employee.start_date).days
+    milestones = milestone_dates(employee.start_date)
+    elapsed = days_elapsed(employee.start_date, as_of)
     days_remaining = (employee.day_180_date - as_of).days
     return MilestoneEmployee(
         employee=employee,
-        days_elapsed=days_elapsed,
+        days_elapsed=elapsed,
         days_remaining=days_remaining,
-        day_150_date=day_150_date,
-        day_165_date=day_165_date,
-        day_178_date=day_178_date,
-        day_150_reached=as_of >= day_150_date,
-        day_165_reached=as_of >= day_165_date,
-        day_178_reached=as_of >= day_178_date,
+        day_150_date=milestones["day_150"],
+        day_165_date=milestones["day_165"],
+        day_178_date=milestones["day_178"],
+        day_150_reached=as_of >= milestones["day_150"],
+        day_165_reached=as_of >= milestones["day_165"],
+        day_178_reached=as_of >= milestones["day_178"],
         overdue=days_remaining < 0,
     )
 
@@ -138,10 +143,10 @@ async def _fire_milestone_alerts(
 
             setattr(employee, flag_attr, True)
             fired += 1
-            days_elapsed = (as_of - employee.start_date).days
+            elapsed = days_elapsed(employee.start_date, as_of)
             name = employee.user.full_name if employee.user else "A probationary employee"
             body = (
-                f"{name} is at Day {days_elapsed} of 180 and has reached the "
+                f"{name} is at Day {elapsed} of 180 and has reached the "
                 f"statutory Day {day} milestone under Article 296."
             )
             create_notification(
@@ -152,7 +157,7 @@ async def _fire_milestone_alerts(
                 body=body,
                 category=category,
             )
-            if day == 150 and employee.supervisor_id is not None:
+            if day == MILESTONE_REVIEW_DAY and employee.supervisor_id is not None:
                 create_notification(
                     db,
                     user_id=employee.supervisor_id,
@@ -385,7 +390,7 @@ async def list_milestones(
             ProbationaryEmployee.organization_id == current_user.organization_id,
             ProbationaryEmployee.status == ProbationStatus.ACTIVE,
             ProbationaryEmployee.start_date
-            <= as_of - timedelta(days=150 - MILESTONE_LEAD_DAYS),
+            <= as_of - timedelta(days=MILESTONE_REVIEW_DAY - MILESTONE_LEAD_DAYS),
         )
     )
     if current_user.role == UserRole.SUPERVISOR:

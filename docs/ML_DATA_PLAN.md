@@ -4,6 +4,17 @@
 work can proceed without losing the ML/data thread. Pick this up before the
 capstone defense.
 
+> **Update:** the surrogate framing from Option A is now **adopted** and
+> documented as the canonical position in `ARCHITECTURE.md` §2/§4 and
+> `docs/XAI_METHODOLOGY.md` §1/§3: the deterministic Article 296 cascade is the
+> authoritative classifier, and the Random Forest is a learned surrogate that
+> carries the Shapley / permutation explanations. Regenerating the generator and
+> securing a real dataset (§5–6) remain open.
+>
+> **Also landed:** `docs/MODEL_CARD.md` (intended use + limitations) and the
+> κ-study scaffolding (`docs/ML_KAPPA_STUDY.md`, `data/kappa/`, `scripts/kappa_study.py`).
+> Open: recruit raters (Option B); supply a real dataset (Option C).
+
 **Context that triggered it:** the Random Forest is trained on **synthetic** data
 and there is **no real dataset** available; the source is undecided.
 

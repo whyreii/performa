@@ -384,10 +384,10 @@ export default function Settings() {
                   <div>
                     <h2>Article 296 Statutory Alert Protocols</h2>
                     <p>
-                      Mandatory · System Active — dispatched automatically in Asia/Manila against the strict 180-day cap
+                      Mandatory · always enforced — dispatched automatically in Asia/Manila against the strict 180-day cap
                     </p>
                   </div>
-                  <span className="text-12 font-medium text-ok shrink-0">System Active</span>
+                  <span className="text-12 font-medium text-ok shrink-0">Statutory</span>
                 </div>
 
                 <div>
@@ -401,7 +401,7 @@ export default function Settings() {
                         Triggers when an employee reaches 150 days of probation. Alerts HR and supervisors to schedule the formal 5th-month performance appraisal.
                       </p>
                     </div>
-                    <span className="salert__live">Active</span>
+                    <span className="salert__live">Enforced</span>
                   </div>
 
                   <div className="salert">
@@ -414,7 +414,7 @@ export default function Settings() {
                         Guarantees the required 15-day notice buffer before Day 180. Alerts employers if any employee under target is in jeopardy of termination or regularization.
                       </p>
                     </div>
-                    <span className="salert__live">Active</span>
+                    <span className="salert__live">Enforced</span>
                   </div>
 
                   <div className="salert">
@@ -427,7 +427,7 @@ export default function Settings() {
                         Final alert: under Philippine law, working on Day 181 confers automatic permanent regular status. Immediate action required.
                       </p>
                     </div>
-                    <span className="salert__live">Active</span>
+                    <span className="salert__live">Enforced</span>
                   </div>
                 </div>
               </section>

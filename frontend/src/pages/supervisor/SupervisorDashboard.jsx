@@ -5,7 +5,7 @@ import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card, Page } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
-import { PROBATION_DAYS } from '../../config/domain';
+import { PROBATION_DAYS, TARGET } from '../../config/domain';
 import { getInitials } from '../../utils/format';
 import {
   Users,
@@ -66,14 +66,16 @@ export default function SupervisorDashboard() {
 
         <Card as="div" padded={false} className="p-5 space-y-2">
           <span className="text-12 text-ink-3">Passing Target</span>
-          <div className="text-22 font-bold font-num text-ink">4.0 / 5.0</div>
-          <p className="text-12 text-ink-2">Statutory regularizing standard</p>
+          <div className="text-16 font-semibold text-ink">
+            Statutory {TARGET.toFixed(1)} / 5.0
+          </div>
+          <p className="text-12 text-ink-2">Article 296 regularizing standard</p>
         </Card>
 
         <Card as="div" padded={false} className="p-5 space-y-2">
           <span className="text-12 text-ink-3">Review Frequency</span>
-          <div className="text-22 font-bold font-num text-ink">Weekly</div>
-          <p className="text-12 text-ink-2">Mandatory evidentiary due process</p>
+          <div className="text-16 font-semibold text-ink">Weekly</div>
+          <p className="text-12 text-ink-2">Evidentiary due-process cadence</p>
         </Card>
       </div>
 

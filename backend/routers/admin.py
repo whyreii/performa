@@ -14,6 +14,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..auth import get_password_hash, require_role
 from ..audit import record_activity
 from ..database import get_db
+from ..domain import (
+    MILESTONE_CRITICAL_DAY,
+    MILESTONE_NOTICE_DAY,
+    MILESTONE_REVIEW_DAY,
+    PROBATION_TERM_DAYS,
+)
 from ..emailer import send_credentials_email
 from ..models import (
     ActivityLog,
@@ -36,7 +42,12 @@ from .kpi import INDUSTRY_TEMPLATES
 
 router = APIRouter(prefix="/api/admin", tags=["Admin User Management"])
 
-DEADLINE_THRESHOLDS = {"day_150": 150, "day_165": 165, "day_178": 178, "day_180": 180}
+DEADLINE_THRESHOLDS = {
+    "day_150": MILESTONE_REVIEW_DAY,
+    "day_165": MILESTONE_NOTICE_DAY,
+    "day_178": MILESTONE_CRITICAL_DAY,
+    "day_180": PROBATION_TERM_DAYS,
+}
 
 
 class AdminCreateUserRequest(BaseModel):
