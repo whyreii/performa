@@ -49,9 +49,6 @@ describe('EmployeeDetail', () => {
     evaluationApi.getAuditTrail.mockRejectedValue(new Error('down'));
     renderDetail();
 
-    // The audit trail lives in a collapsible section (hidden until expanded).
-    fireEvent.click(await screen.findByRole('button', { name: /Evaluation history/ }));
-
     expect(await screen.findByRole('button', { name: 'Retry' })).toBeInTheDocument();
     expect(screen.queryByText('No evaluations yet')).not.toBeInTheDocument();
 

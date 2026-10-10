@@ -72,10 +72,10 @@ export {
   XCircle,
 } from '@phosphor-icons/react';
 
-// Performa brand mark — an L-bracket measured span closing on a milestone dot.
-// A custom SVG kept here so icons.js stays the single source for iconography
-// (the eslint guardrail points every icon import at this file). Built with
-// createElement because this module is a .js file (no JSX transform).
+// Performa brand mark — a performance gauge: a semicircular meter with a needle
+// and hub. A custom SVG kept here so icons.js stays the single source for
+// iconography (the eslint guardrail points every icon import at this file).
+// Built with createElement because this module is a .js file (no JSX transform).
 export function PerformaMark({ className = '', ...props }) {
   return h(
     'svg',
@@ -83,16 +83,15 @@ export function PerformaMark({ className = '', ...props }) {
       viewBox: '0 0 24 24',
       fill: 'none',
       stroke: 'currentColor',
-      strokeWidth: 2.2,
+      strokeWidth: 2.4,
       strokeLinecap: 'round',
       strokeLinejoin: 'round',
       'aria-hidden': true,
       className,
       ...props,
     },
-    h('path', { d: 'M4 6h16' }),
-    h('path', { d: 'M4 6v14' }),
-    h('path', { d: 'M9 20v-6h11v6' }),
-    h('circle', { cx: 20, cy: 10, r: 1.7, fill: 'currentColor', stroke: 'none' })
+    h('path', { d: 'M4 16a8 8 0 0 1 16 0' }),
+    h('path', { d: 'M12 16l5-4' }),
+    h('circle', { cx: 12, cy: 16, r: 1.6, fill: 'currentColor', stroke: 'none' })
   );
 }

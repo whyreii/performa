@@ -26,7 +26,9 @@ def _page_files():
     for dirpath, dirnames, filenames in os.walk(PAGES):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         for name in filenames:
-            if name.endswith(".jsx"):
+            # Co-located test files are not routed pages; they may render the page
+            # under test but are not themselves page components.
+            if name.endswith(".jsx") and not name.endswith(".test.jsx"):
                 yield Path(dirpath) / name
 
 
