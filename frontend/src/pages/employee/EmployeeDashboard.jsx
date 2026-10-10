@@ -289,7 +289,11 @@ export default function EmployeeDashboard() {
       <Card className="p-5">
         <CardHead
           label="How you’re doing"
-          note={overall !== null ? (meetsStandard ? 'On track · target 4.0' : 'Below target 4.0') : 'target 4.0'}
+          note={
+            overall !== null
+              ? `${meetsStandard ? 'On track' : 'Below'} · target ${TARGET.toFixed(1)}`
+              : `target ${TARGET.toFixed(1)}`
+          }
         />
         {isScoreLoading ? (
           <Skeleton className="h-40 w-full" />

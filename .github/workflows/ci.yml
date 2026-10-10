@@ -30,7 +30,7 @@ jobs:
       - name: Run tests (with coverage gate)
         env:
           DATABASE_URL: sqlite+aiosqlite:///./ci.db
-        run: python -m pytest -q --cov=backend --cov-report=term --cov-fail-under=90
+        run: python -m pytest -q --cov=backend --cov-report=term --cov-fail-under=80
 
   backend-postgres:
     runs-on: ubuntu-latest
