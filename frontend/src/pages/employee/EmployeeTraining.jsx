@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
+import { formatDate } from '../../utils/datetime';
 import { Button, Badge, EmptyState, Card, CardSkeleton, Page } from '../../components/ui';
 import { CheckCircle2, AlertCircle } from '../../components/icons';
 
@@ -94,6 +95,11 @@ export default function EmployeeTraining() {
                     <Badge variant={(STATUS[plan.status] || STATUS.pending_approval).variant}>
                       {(STATUS[plan.status] || STATUS.pending_approval).label}
                     </Badge>
+                    {plan.status === 'completed' && plan.completed_at && (
+                      <span className="text-12 text-ink-3 font-num">
+                        Completed {formatDate(plan.completed_at)}
+                      </span>
+                    )}
                     {plan.status === 'approved' && (
                       <Button
                         size="sm"

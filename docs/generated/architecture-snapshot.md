@@ -138,6 +138,7 @@ Unique constraints: (user_id)
 |---|---|---|---|---|---|---|
 | catalog_id | VARCHAR(100) | no | no | no |  |  |
 | competency | VARCHAR(100) | no | no | no |  |  |
+| completed_at | DATETIME | yes | no | no |  |  |
 | created_at | DATETIME | no | no | no | now() |  |
 | default_timeline | VARCHAR(100) | no | no | no |  |  |
 | employee_id | CHAR(32) | no | no | no |  | probationary_employees.id |

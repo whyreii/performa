@@ -81,7 +81,7 @@ export default function Reports() {
               <option value="">Select an employee…</option>
               {sorted.map((e) => (
                 <option key={e.id} value={e.id}>
-                  {e.user?.full_name || '—'} — {e.job_title}
+                  {e.user?.full_name || '—'} · {e.job_title}
                 </option>
               ))}
             </select>
@@ -107,7 +107,7 @@ export default function Reports() {
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-line">
           <p className="text-12 text-ink-3">
-            Opens a print-ready report in a new tab — use “Save as PDF” to export.
+            Opens a print-ready report in a new tab. Use “Save as PDF” to export.
           </p>
           <Button
             variant="primary"

@@ -71,7 +71,7 @@ Impact: silently erases **evidentiary records** (DOLE/NLRC) — a legal and audi
 ### WS3 — End-to-End Lifecycle (live)
 
 **Full pipeline verified working:** supervisor rating → employer rollup (avg 3.32, "Needs Improvement") → 2 pending plans → employer sign-off (`approved`) → dispatch → employee sees summary → employee acknowledgement. **No errors** at any step.
-**Gap:** the Rollups UI offers only months **1–5** (`Rollups.jsx`), but an employee can be past day 150 (month 6) — e.g., emp2 (day 152) has no matching month option. Minor (system is scoped to mid-5th month).
+**Gap (resolved 2026-10-11):** the Rollups UI previously offered only months **1–5** (`Rollups.jsx`). It now offers months **1–6** (Days 0–179, Day-0 ranges), matching backend `month_number_for` (days 150–179 = month 6).
 
 ### WS4 — API Contracts
 
@@ -124,7 +124,7 @@ Clean. `backend/ml/predictor.py` validates all 5 competencies present/numeric/in
 | DATA-2 | ✅ Fixed | Month window is now non-overlapping: `[start + (n-1)*30, start + n*30 - 1]`. |
 | TEST | ✅ Fixed | Added RBAC + rollup-preservation regression tests; updated month-window tests. Suite: **38 passed**. |
 | RBAC-5 | ✅ Fixed | Admin removed from all performance-data endpoints (`/employees/*`, `/evaluations/*`, `/interventions/*`); retains `/admin/*`, `/settings`, `/notifications`, KPI rubric view. |
-| UX (month selector) | ⏸ By design | Months 1–5 only (system scoped to mid-5th month). |
+| UX (month selector) | ✅ Fixed (2026-10-11) | Rollups + the employee month-by-month card now offer months 1–6 (Days 0–179), aligning with backend `month_number_for`. |
 | DOMAIN-1 | ✅ Resolved (label-only) | Kept the existing Day-0 statutory math (internally consistent across milestones/cap/rollups); relabeled the UI start marker to **"Start (Day 0)"** so the label matches the math. No statutory dates changed. |
 
 **Live RBAC verification (post-fix):** rollup / dispatch / sign-off / regularization → `admin=403, employer=404, supervisor=403`.

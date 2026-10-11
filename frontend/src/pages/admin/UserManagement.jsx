@@ -474,7 +474,7 @@ export default function UserManagement() {
             setIsCreateModalOpen(false);
             setActionFeedback({
               type: 'success',
-              message: `Created ${newUser.role} account for ${newUser.full_name} — credentials emailed to ${newUser.email}.`,
+              message: `Created ${newUser.role} account for ${newUser.full_name}. Credentials emailed to ${newUser.email}.`,
             });
             setTimeout(() => setActionFeedback(null), 5000);
           }}

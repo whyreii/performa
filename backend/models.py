@@ -370,6 +370,9 @@ class TrainingPlan(Base):
     employer_approved_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    completed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -358,6 +358,7 @@ async def test_employee_can_complete_approved_training(client):
     done = await client.post(f"/api/interventions/{plan_id}/complete", headers=employee)
     assert done.status_code == 200, done.text
     assert done.json()["status"] == "completed"
+    assert done.json()["completed_at"] is not None
 
     mine = (await client.get("/api/interventions/mine", headers=employee)).json()
     assert any(p["id"] == plan_id and p["status"] == "completed" for p in mine)

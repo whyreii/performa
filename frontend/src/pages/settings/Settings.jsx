@@ -20,10 +20,10 @@ import {
 
 // Statutory milestone day labels + competency/industry display helpers.
 const THRESHOLD_LABELS = {
-  day_150: 'Day 150 — Performance review',
-  day_165: 'Day 165 — Written-notice window',
-  day_178: 'Day 178 — Critical action window',
-  day_180: 'Day 180 — Legal ceiling',
+  day_150: 'Day 150 · Performance review',
+  day_165: 'Day 165 · Written-notice window',
+  day_178: 'Day 178 · Critical action window',
+  day_180: 'Day 180 · Legal ceiling',
 };
 const COMPETENCY_LABELS = new Map(COMPETENCIES.map((c) => [c.key, c.label]));
 const prettyKey = (key) =>
@@ -416,7 +416,7 @@ export default function Settings() {
                   <div>
                     <h2>Article 296 Statutory Alert Protocols</h2>
                     <p>
-                      Mandatory · always enforced — dispatched automatically in Asia/Manila against the strict 180-day cap
+                      Mandatory · always enforced, dispatched automatically in Asia/Manila against the strict 180-day cap
                     </p>
                   </div>
                   <span className="text-12 font-medium text-ok shrink-0">Statutory</span>
@@ -546,7 +546,7 @@ export default function Settings() {
                     <div className="space-y-2">
                       <div className="text-14 font-semibold text-ink">Article 296 deadline thresholds</div>
                       <p className="text-12 text-ink-3">
-                        Fixed statutory milestones — informational, not configurable.
+                        Fixed statutory milestones. Informational only, not configurable.
                       </p>
                       <ul className="space-y-1">
                         {Object.entries(systemSettings.deadline_thresholds || {}).map(([key, day]) => (

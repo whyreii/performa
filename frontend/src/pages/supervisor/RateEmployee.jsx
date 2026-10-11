@@ -291,7 +291,7 @@ export default function RateEmployee() {
                     onChange={(value) => setSelectedId(value)}
                     options={activeProbationers.map((emp) => ({
                       value: emp.id,
-                      label: `${emp.user?.full_name} — ${emp.job_title} (${emp.department})`,
+                      label: `${emp.user?.full_name} · ${emp.job_title} (${emp.department})`,
                     }))}
                   />
                 )}
@@ -436,7 +436,7 @@ export default function RateEmployee() {
             <p className="text-12 text-ink-3 mt-1.5 leading-relaxed flex items-start gap-1.5">
               <Info className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />
               <span>
-                <span className="text-ink-2 font-medium">Write what you actually saw</span> — the
+                <span className="text-ink-2 font-medium">Write what you actually saw</span>: the
                 project, the date, the coaching you gave. Specifics keep the rating fair to the
                 employee and defensible under Article 296 for any regularizing or non-regularizing
                 action before DOLE.

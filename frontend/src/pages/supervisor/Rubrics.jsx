@@ -182,7 +182,7 @@ export default function Rubrics() {
         <div className="p-3 rounded-ctl bg-warn/8 border border-line text-warn text-12 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>
-            Could not load your configured targets/weights right now — showing platform defaults.
+            Could not load your configured targets/weights right now. Showing platform defaults.
           </span>
         </div>
       )}

@@ -922,7 +922,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             </div>
             <div className="border-t border-black pt-1">
               <b>{employee.user?.full_name}</b>
-              <span className="block">Probationary employee — received &amp; acknowledged</span>
+              <span className="block">Probationary employee · received &amp; acknowledged</span>
             </div>
             <div className="border-t border-black pt-1">
               <b>Date</b>

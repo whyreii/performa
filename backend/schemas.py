@@ -431,6 +431,7 @@ class TrainingPlanBase(BaseModel):
     rationale: Optional[str] = None
     status: TrainingStatusEnum = TrainingStatusEnum.PENDING_APPROVAL
     employer_approved_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
 
 
 class TrainingPlanCreate(TrainingPlanBase):

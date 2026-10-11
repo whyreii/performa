@@ -384,6 +384,7 @@ async def complete_my_intervention(
         )
 
     plan.status = TrainingStatusEnum.COMPLETED
+    plan.completed_at = datetime.now(timezone.utc)
     record_activity(
         db,
         organization_id=current_user.organization_id,
