@@ -283,7 +283,7 @@ Corrected here for the record:
 
 ## Appendix D — Web Interface Guidelines (Vercel) — adopted deltas
 
-`docs/POUR_AUDIT.md` already covers the WCAG-mapped accessibility surface, and
+`docs/archive/POUR_AUDIT.md` already covers the WCAG-mapped accessibility surface, and
 that audit remains the primary standard. This appendix records only the
 **non-WCAG, practical UX/performance rules** adopted from Vercel's
 [Web Interface Guidelines](https://vercel.com/design/guidelines) — the layer the

@@ -87,7 +87,7 @@
 - `ab6bb99` — added `public/favicon.svg` + link (removed favicon 404).
 
 ### 3.5 Full project audit (`eb2f931`)
-- `docs/PROJECT_AUDIT.md` (WS1–WS7): RBAC/tenancy, Art. 296 domain, E2E lifecycle, contracts, data integrity, AI/ML, tests. 5 × P1, 2 × P2, 2 × P3, each with `file:line` + live repro.
+- `docs/archive/PROJECT_AUDIT.md` (WS1–WS7): RBAC/tenancy, Art. 296 domain, E2E lifecycle, contracts, data integrity, AI/ML, tests. 5 × P1, 2 × P2, 2 × P3, each with `file:line` + live repro.
 
 ### 3.6 Audit remediation (`3c188b1`)
 - RBAC-1…4 → Employer-only (rollup / dispatch / sign-off / regularization).
@@ -134,7 +134,7 @@ Remaining deep-debug backlog (not yet fixed) is in §7.
 
 ---
 
-## 5. Audit findings (docs/PROJECT_AUDIT.md) & remediation
+## 5. Audit findings (docs/archive/PROJECT_AUDIT.md) & remediation
 
 | ID | Sev | Finding | Status |
 |---|---|---|---|

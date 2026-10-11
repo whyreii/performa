@@ -3,7 +3,7 @@
 > **System Status**: **100% Complete — Full-Stack Live, Tested & Defense-Ready**  
 > **Backend**: FastAPI on `http://localhost:8000` (Status: `ONLINE`, 0 errors)  
 > **Frontend**: React + Vite on `http://localhost:5173` (Status: `RUNNING`, 0 build errors)  
-> **Current Phase**: **Complete — Post-Defense Hardening (see `docs/PROJECT_AUDIT.md`)**
+> **Current Phase**: **Complete — Post-Defense Hardening (see `docs/archive/PROJECT_AUDIT.md`)**
 
 ---
 
@@ -23,7 +23,7 @@ If you feel lost, here is the quick bird's-eye view:
    - **Phases 1–6 (Backend):** 100% Finished (Database, Legal Engine, Weekly Ratings, ML Classifier, GenAI Rollups, Code Hygiene).
    - **Phases 7A–7F (Frontend):** 100% Finished (Tokens, AppShell, Primitives, all screens, QA & accessibility).
    - **Phase 8 (Testing & Hardening):** Complete — consolidated Pytest suite (`backend/tests/`).
-   - **Post-completion:** Full project audit + fixes tracked in `docs/PROJECT_AUDIT.md`.
+   - **Post-completion:** Full project audit + fixes tracked in `docs/archive/PROJECT_AUDIT.md`.
 
 ---
 

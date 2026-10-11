@@ -4,7 +4,7 @@
 **Scope:** `frontend/src/**` (45 files: 15 pages, 7 UI primitives, 5 layout components, contexts/utils)
 **Method:** static scan (occurrence counts + `file:line` examples). No code changed.
 
-> This is the frontend-wide analogue of `docs/POUR_AUDIT.md`. It inventories the "AI slop / vibe-coded" tells and proposes a systematic revamp toward the settled foundation (Ledger skeleton · accent = identity only · colour = status · wordmark-only).
+> This is the frontend-wide analogue of `docs/archive/POUR_AUDIT.md`. It inventories the "AI slop / vibe-coded" tells and proposes a systematic revamp toward the settled foundation (Ledger skeleton · accent = identity only · colour = status · wordmark-only).
 
 ---
 
