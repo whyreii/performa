@@ -1,26 +1,26 @@
 # POUR Audit — Performa Frontend (real app)
 
-**Status:** Audit + **Phase 1 and Phase 2/3 remediation applied (2026-10-04)** · Not a conformance claim
+**Status:** Audit + **Phase 1 (2026-10-04) and Phase 2/3 (2026-10-06) remediation applied**; re-verified against the working tree 2026-10-11 — all structural findings implemented, only `R-1`/`P-2` deferred · Not a conformance claim
 **Scope:** `frontend/src/**` — 15 pages, 7 UI primitives, 5 layout components, contexts/utils.
 **Date basis:** source as of the current working tree (`frontend/src`, `frontend/index.html`, `frontend/eslint.config.js`, `frontend/package.json`, `.github/workflows/ci.yml`).
 **Method:** manual code inspection with `file:line` evidence. Contrast is not re-measured here — it reuses the measured values in `docs/UIUX_STANDARDS.md` §7 Appendix A. No automated accessibility tooling exists in the repo (see `R-1`), so nothing below is machine-verified.
 
-> Originally doc-only. On 2026-10-04 the **Phase 1 quick wins** were implemented in `frontend/src` (no new dependencies, no behavior change, no invariant change). Five findings are now **Fixed**; the rest remain open. See §9 for the remediation log.
+> Originally doc-only. Phase 1 (2026-10-04) and Phase 2/3 (2026-10-06) remediations were implemented in `frontend/src` (no new dependencies, no invariant change). **All structural findings are now implemented** — re-checked against the working tree on 2026-10-11. Only `R-1` (runtime a11y tooling) and `P-2` (automated contrast validation) remain deferred. See §9 for the remediation log.
 
 ---
 
 ## 1. Summary scorecard
 
-| Severity | Count | Fixed | Open | Meaning |
-|---|---|---|---|---|
-| **High** | 7 | 2 (O-1, U-2) | 5 | Blocks or seriously degrades use for keyboard / screen-reader / low-vision users. |
-| **Medium** | 8 | 3 (O-3, U-1, R-2) | 5 | Works, but non-conformant or fragile; should be fixed before defense. |
-| **Low** | 2 | 0 | 2 | Best-practice / minor robustness. |
-| **Info** | 2 | 0 | 2 | Verified pass, or documentation drift to reconcile. |
-| **Total** | 19 | 5 | 14 | |
+| Severity | Count | Status |
+|---|---|---|
+| **High** | 7 | All implemented |
+| **Medium** | 8 | 7 implemented · `R-1` deferred (runtime a11y tooling) |
+| **Low** | 2 | All implemented |
+| **Info** | 2 | `R-5` no action · `P-2` deferred (automated contrast validation) |
+| **Total** | 19 | 17 implemented · 2 deferred |
 
 By principle: **P**erceivable 3 · **O**perable 5 · **U**nderstandable 6 · **R**obust 5.
-Fixed so far: `O-1`, `O-3`, `U-1`, `U-2`, `R-2`. Open: `P-1`, `P-2`, `P-3`, `O-2`, `O-4`, `O-5`, `U-3`, `U-4`, `U-5`, `U-6`, `R-1`, `R-3`, `R-4`, `R-5`.
+Implemented: all findings except `R-1` (runtime a11y tooling — intentionally not in repo) and `P-2` (automated contrast re-validation, Info).
 
 ---
 
@@ -138,7 +138,7 @@ The five quick wins from §8 were implemented. All changes are in `frontend/src`
 
 Runtime verification: `/login` → "Sign in · Performa", `/dashboard` → "Dashboard · Performa"; the skip link is the first focusable element, becomes visible on focus, and targets `#main`.
 
-Still open: `P-1`, `P-2`, `P-3`, `O-2`, `O-4`, `O-5`, `U-3`, `U-4`, `U-5`, `U-6`, `R-1`, `R-3`, `R-4`, `R-5` (see §8 for the Phase 2/3 plan).
+Deferred (non-structural): `R-1` (runtime a11y tooling — intentionally not in the repo) and `P-2` (automated contrast re-validation, Info). All other findings are implemented; see §9.
 
 ---
 
