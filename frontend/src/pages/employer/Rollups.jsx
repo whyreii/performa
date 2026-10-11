@@ -5,7 +5,7 @@ import { daysElapsed as getDaysElapsed, monthNumberFor } from '../../utils/datet
 import { PROBATION_MONTHS, PROBATION_MONTH_DAYS } from '../../config/domain';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect, ConfirmDialog } from '../../components/ui';
+import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect, ConfirmDialog, SectionHead } from '../../components/ui';
 import {
   FileCheck2,
   Sparkles,
@@ -166,13 +166,11 @@ export default function Rollups() {
 
       {/* Pending Interventions Queue */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-16 font-semibold text-ink">Pending approvals</h2>
-            <Badge variant="warn">{pendingPlans.length} Pending</Badge>
-          </div>
-          <span className="text-12 text-ink-3">Article 296 Evidentiary Support</span>
-        </div>
+        <SectionHead
+          title="Pending approvals"
+          subtitle="Article 296 Evidentiary Support"
+          note={<Badge variant="warn">{pendingPlans.length} Pending</Badge>}
+        />
 
         {isPlansLoading ? (
           <div className="space-y-3">
@@ -256,10 +254,10 @@ export default function Rollups() {
 
       {/* Monthly Summaries (dispatch for acknowledgement) */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-16 font-semibold text-ink">Monthly summaries</h2>
-          <span className="text-12 text-ink-3">Dispatch to employees for digital acknowledgement</span>
-        </div>
+        <SectionHead
+          title="Monthly summaries"
+          subtitle="Dispatch to employees for digital acknowledgement"
+        />
         {isSummariesLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-14 w-full" />

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card, Page } from '../../components/ui';
+import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card, Page, SectionHead } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, TARGET } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -68,12 +68,10 @@ export default function SupervisorDashboard() {
 
       {/* Assigned Probationers Table */}
       <Card className="space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-line">
-          <div>
-            <h2 className="text-16 font-semibold text-ink">Assigned Probationary Staff</h2>
-            <p className="text-12 text-ink-3">Weekly evaluation schedule & milestone tracking</p>
-          </div>
-        </div>
+        <SectionHead
+          title="Assigned Probationary Staff"
+          subtitle="Weekly evaluation schedule & milestone tracking"
+        />
 
         {isLoading ? (
           <div className="space-y-3">

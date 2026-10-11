@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { TARGET, COMPETENCIES } from '../../config/domain';
 import { AlertCircle } from '../../components/icons';
-import { Card, Page, Button, Badge, inputClass } from '../../components/ui';
+import { Card, Page, Button, Badge, inputClass, SectionHead } from '../../components/ui';
 
 // Fallback weight used only when the API has not provisioned a tenant default yet.
 const DEFAULT_WEIGHT = 0.2;
@@ -202,16 +202,11 @@ export default function Rubrics() {
       {/* KPI Configuration — Employer only (Art. 296: targets & weights are employer-configurable) */}
       {canEdit && form.length > 0 && (
         <Card className="p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h2 className="text-16 font-semibold text-ink">KPI Configuration</h2>
-              <p className="text-12 text-ink-3 mt-0.5">
-                Set the target and weight for each core competency. Targets are floored at
-                the {TARGET.toFixed(1)} regularizing standard; weights are relative.
-              </p>
-            </div>
-            <Badge variant={weightTotal === 100 ? 'ok' : 'warn'}>Weights {weightTotal}%</Badge>
-          </div>
+          <SectionHead
+            title="KPI Configuration"
+            subtitle={`Set the target and weight for each core competency. Targets are floored at the ${TARGET.toFixed(1)} regularizing standard; weights are relative.`}
+            note={<Badge variant={weightTotal === 100 ? 'ok' : 'warn'}>Weights {weightTotal}%</Badge>}
+          />
 
           <div className="space-y-3">
             {form.map((row) => (
