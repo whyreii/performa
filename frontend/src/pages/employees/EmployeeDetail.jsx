@@ -583,8 +583,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                     : 'Final decision recorded: non-regularization.'}
                 </p>
                 {regularization && (
-                  <div className="mt-4 rounded-ctl bg-hover border border-line p-3.5">
-                    <span className="block text-12 font-semibold text-accent mb-1.5 font-mono">
+                  <div className="mt-4 pt-4 border-t border-line">
+                    <span className="block text-12 font-semibold text-ink-3 mb-1.5">
                       Gemini Performance Rationale
                     </span>
                     <p className="text-12 text-ink-3 mb-1">
@@ -632,8 +632,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   </span>
                 </div>
                 {regularization.rationale && (
-                  <div className="mt-4 rounded-ctl bg-hover border border-line p-3.5">
-                    <span className="block text-12 font-semibold text-accent mb-1.5 font-mono">
+                  <div className="mt-4 pt-4 border-t border-line">
+                    <span className="block text-12 font-semibold text-ink-3 mb-1.5">
                       Gemini Performance Rationale
                     </span>
                     <p className="text-14 text-ink-2 leading-relaxed">{regularization.rationale}</p>
