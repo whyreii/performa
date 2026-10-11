@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { milestoneTone, milestoneFor, scoreTone, TONE_TEXT } from './status';
+import { milestoneTone, milestoneFor, nextMilestone, scoreTone, TONE_TEXT } from './status';
 
 describe('status tones', () => {
   it('maps day counts to statutory milestone tones', () => {
@@ -16,6 +16,17 @@ describe('status tones', () => {
   it('labels active employees by milestone', () => {
     expect(milestoneFor(150, 'active')).toEqual({ tone: 'warn', label: 'Review' });
     expect(milestoneFor(30, 'active')).toEqual({ tone: 'ok', label: 'On track' });
+  });
+
+  it('finds the next statutory milestone day for a day count', () => {
+    expect(nextMilestone(149)).toBe(150);
+    expect(nextMilestone(150)).toBe(150);
+    expect(nextMilestone(164)).toBe(165);
+    expect(nextMilestone(165)).toBe(165);
+    expect(nextMilestone(177)).toBe(178);
+    expect(nextMilestone(178)).toBe(178);
+    expect(nextMilestone(180)).toBe(180);
+    expect(nextMilestone(181)).toBeNull();
   });
 
   it('scores against the regularizing target', () => {

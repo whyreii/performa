@@ -5,6 +5,8 @@ import {
   MILESTONE_REVIEW,
   MILESTONE_NOTICE,
   MILESTONE_CRITICAL,
+  MILESTONES,
+  PROBATION_DAYS,
 } from '../config/domain';
 
 // Four semantic tones, mapped to the four status colours. `text`/`bg` are the
@@ -45,6 +47,15 @@ export function milestoneFor(daysElapsed, status) {
   const label =
     tone === 'bad' ? 'Critical' : tone === 'notice' ? 'Notice' : tone === 'warn' ? 'Review' : 'On track';
   return { tone, label };
+}
+
+// The next statutory milestone day for a day count (the current day counts as
+// "due today"), or null once past the Day 180 cap.
+export function nextMilestone(daysElapsed) {
+  for (const day of [...MILESTONES, PROBATION_DAYS]) {
+    if (daysElapsed <= day) return day;
+  }
+  return null;
 }
 
 // Competency score tone against the regularizing target: >= target passes,

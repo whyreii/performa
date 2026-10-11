@@ -5,7 +5,7 @@ import { employeeApi, interventionApi } from '../../api';
 import { Button, Skeleton, Card, Page, CountUp, inputClass, GlideSelect, Th } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
-import { milestoneTone, milestoneFor, TONE_TEXT, TONE_BG } from '../../utils/status';
+import { milestoneTone, milestoneFor, nextMilestone, TONE_TEXT, TONE_BG } from '../../utils/status';
 import { Users, Award, ChevronRight, Search } from '../../components/icons';
 
 // Employer dashboard — "refined" layout: a flat hairline stat band over a stack
@@ -53,7 +53,9 @@ export default function Dashboard() {
 
   // Worklist controls — free-text search, statutory milestone filter, column sort.
   const [search, setSearch] = useState('');
-  const [milestone, setMilestone] = useState('all');
+  // Default to the action window so the list and its count match the
+  // "Decisions due" tile; the dropdown still reveals all milestones.
+  const [milestone, setMilestone] = useState('due');
   const [sortKey, setSortKey] = useState('day');
   const [sortDir, setSortDir] = useState('desc');
 
@@ -143,7 +145,7 @@ export default function Dashboard() {
           <div className="font-num text-30 font-semibold text-ink mt-2">
             <CountUp value={stats.pastCap} />
           </div>
-          <div className="text-12 text-ink-2 mt-2">Day {PROBATION_DAYS}+ · regular by operation of law</div>
+          <div className="text-12 text-ink-2 mt-2">Past Day {PROBATION_DAYS} · regular by operation of law</div>
         </div>
         <div className="bg-surface px-5 py-4">
           <div className="flex items-center gap-2 text-12 text-ink-3">
@@ -201,8 +203,8 @@ export default function Dashboard() {
         <div>
           <h2 className="text-16 font-semibold text-ink">Needs your action</h2>
           <p className="text-12 text-ink-3 mt-0.5">
-            {activeProbationers.length} probationary employee
-            {activeProbationers.length === 1 ? '' : 's'} · nearest cap first
+            {worklist.length} probationary employee
+            {worklist.length === 1 ? '' : 's'} · nearest cap first
           </p>
         </div>
 
@@ -278,6 +280,7 @@ export default function Dashboard() {
                 {worklist.map((emp) => {
                   const days = getDaysElapsed(emp.start_date);
                   const { tone, label } = milestoneFor(days, emp.status);
+                  const next = nextMilestone(days);
                   return (
                     <tr
                       key={emp.id}
@@ -303,9 +306,11 @@ export default function Dashboard() {
                             aria-hidden="true"
                           />
                           <span className="font-num text-14 text-ink inline-block w-14">
-                            Day {days}
+                            {next ? `${next - days}d` : 'Past cap'}
                           </span>
-                          <span className="text-12 text-ink-3">· {label}</span>
+                          <span className="text-12 text-ink-3">
+                            · {next ? `Day ${next} · ${label}` : label}
+                          </span>
                         </span>
                       </td>
                       <td className="py-3 text-right">

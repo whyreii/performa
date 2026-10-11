@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import EmployeeDashboard from './EmployeeDashboard';
 import { employeeApi, evaluationApi, interventionApi } from '../../api';
@@ -19,7 +19,14 @@ function renderDashboard() {
   });
 }
 
+function primeEmpty() {
+  evaluationApi.getAuditTrail.mockResolvedValue([]);
+  interventionApi.listMySummaries.mockResolvedValue([]);
+  interventionApi.listMine.mockResolvedValue([]);
+}
+
 beforeEach(() => localStorage.clear());
+afterEach(() => vi.unstubAllEnvs());
 
 describe('EmployeeDashboard', () => {
   it('renders the employee-first account (checklist, months, standing)', async () => {
@@ -84,5 +91,29 @@ describe('EmployeeDashboard', () => {
     renderDashboard();
     expect(await screen.findByRole('button', { name: 'Retry' })).toBeInTheDocument();
     expect(screen.getByText('down')).toBeInTheDocument();
+  });
+
+  it('counts down to the Day 150 review, not the Day 180 cap', async () => {
+    vi.stubEnv('VITE_PERFORMA_TODAY', '2026-10-11');
+    employeeApi.list.mockResolvedValue([{ ...myProfile, start_date: '2026-09-04' }]);
+    primeEmpty();
+    renderDashboard();
+    expect(await screen.findByText(/113 days to your review/)).toBeInTheDocument();
+  });
+
+  it('switches to the Day 180 cap once the review has passed', async () => {
+    vi.stubEnv('VITE_PERFORMA_TODAY', '2026-10-11');
+    employeeApi.list.mockResolvedValue([{ ...myProfile, start_date: '2026-04-20' }]);
+    primeEmpty();
+    renderDashboard();
+    expect(await screen.findByText(/6 days until the 180-day cap/)).toBeInTheDocument();
+  });
+
+  it('reports a past-cap record plainly', async () => {
+    vi.stubEnv('VITE_PERFORMA_TODAY', '2026-10-11');
+    employeeApi.list.mockResolvedValue([{ ...myProfile, start_date: '2026-03-01' }]);
+    primeEmpty();
+    renderDashboard();
+    expect(await screen.findByText(/past the 180-day cap/i)).toBeInTheDocument();
   });
 });

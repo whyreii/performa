@@ -5,7 +5,7 @@ import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from 
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, MilestonePill, Skeleton, Card, Page, AsyncBoundary } from '../../components/ui';
-import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
+import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
 import { CheckCircle2, ArrowRight, BookOpen, TrendingUp, UserCheck } from '../../components/icons';
 
@@ -129,11 +129,14 @@ export default function EmployeeDashboard() {
 
   const daysElapsed = myProfile ? getDaysElapsed(myProfile.start_date) : 0;
   const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
+  const daysToReview = myProfile
+    ? daysUntil(milestoneDate(myProfile.start_date, MILESTONE_REVIEW))
+    : null;
   const overall = scorecard ? Number(scorecard.overall_score) : null;
   const meetsStandard = overall !== null && overall >= TARGET;
   const first = (user?.full_name || '').split(' ')[0] || 'there';
   const unacknowledged = useMemo(() => mySummaries.filter((s) => !s.acknowledged_at), [mySummaries]);
-  const currentMonth = Math.max(1, Math.min(5, Math.floor(daysElapsed / 30) + 1));
+  const currentMonth = Math.max(1, Math.min(5, monthNumberFor(daysElapsed)));
   // A terminal record has no "current" month — the probation clock has stopped.
   const isTerminal = myProfile?.status === 'regularized' || myProfile?.status === 'terminated';
 
@@ -187,7 +190,15 @@ export default function EmployeeDashboard() {
         ) : (
           <>
             <p className="text-22 font-semibold tracking-tight text-ink">
-              Hi {first} — {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} to your review.
+              {daysToReview === null ? (
+                <>Hi {first}.</>
+              ) : daysToReview > 0 ? (
+                <>Hi {first}, {daysToReview} {daysToReview === 1 ? 'day' : 'days'} to your review.</>
+              ) : daysElapsed <= PROBATION_DAYS ? (
+                <>Hi {first}, {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} until the {PROBATION_DAYS}-day cap.</>
+              ) : (
+                <>Hi {first}, you are past the {PROBATION_DAYS}-day cap.</>
+              )}
             </p>
             <p className="text-14 text-ink-2 mt-1.5">
               {overall === null

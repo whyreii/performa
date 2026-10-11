@@ -1,6 +1,12 @@
 // Asia/Manila date helpers. Dates are treated as calendar dates (no UTC drift).
 
+import { PROBATION_MONTH_DAYS } from '../config/domain';
+
 export function manilaTodayISO() {
+  // Dev/demo override so the UI timeline can stay in lock-step with the
+  // backend's PERFORMA_TODAY. Read per call; unset in production → real clock.
+  const override = import.meta.env?.VITE_PERFORMA_TODAY;
+  if (override && /^\d{4}-\d{2}-\d{2}$/.test(override)) return override;
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Manila',
     year: 'numeric',
@@ -27,6 +33,14 @@ export function daysElapsed(startDate) {
   return Math.max(0, Math.round((now.getTime() - start.getTime()) / 86400000));
 }
 
+// Whole days from today (Asia/Manila) until a calendar date; negative when past.
+export function daysUntil(value) {
+  const target = value instanceof Date ? value : parseDateOnly(value);
+  if (!target) return null;
+  const now = manilaToday();
+  return Math.round((target.getTime() - now.getTime()) / 86400000);
+}
+
 // Add whole days to a calendar date without UTC drift (shared day-math helper).
 export function addDays(value, days) {
   const base = value instanceof Date ? value : parseDateOnly(value);
@@ -39,6 +53,12 @@ export function addDays(value, days) {
 // Statutory milestone date = start date + N days (Day-0 convention).
 export function milestoneDate(startDate, day) {
   return addDays(startDate, day);
+}
+
+// 1-based probation month for a day count. Mirrors backend
+// domain.month_number_for = max(1, days // 30 + 1).
+export function monthNumberFor(days) {
+  return Math.max(1, Math.floor((Number(days) || 0) / PROBATION_MONTH_DAYS) + 1);
 }
 
 // Live wall-clock time in Asia/Manila (24h, HH:MM:SS). Display only.

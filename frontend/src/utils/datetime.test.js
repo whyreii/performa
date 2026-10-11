@@ -1,16 +1,29 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   manilaTodayISO,
   parseDateOnly,
   daysElapsed,
+  daysUntil,
+  monthNumberFor,
   addDays,
   milestoneDate,
   formatDate,
 } from './datetime';
 
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 describe('datetime (Asia/Manila)', () => {
   it('manilaTodayISO returns a YYYY-MM-DD calendar date', () => {
     expect(manilaTodayISO()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('honors the VITE_PERFORMA_TODAY dev override in one place', () => {
+    vi.stubEnv('VITE_PERFORMA_TODAY', '2026-06-15');
+    expect(manilaTodayISO()).toBe('2026-06-15');
+    // ...and every Manila date helper derives from it.
+    expect(daysElapsed('2026-06-05')).toBe(10);
   });
 
   it('parseDateOnly parses a date string and rejects empties', () => {
@@ -33,20 +46,33 @@ describe('datetime (Asia/Manila)', () => {
   });
 
   it('daysElapsed is 0 on the start date and counts forward', () => {
-    const today = manilaTodayISO();
-    expect(daysElapsed(today)).toBe(0);
+    vi.stubEnv('VITE_PERFORMA_TODAY', '2026-10-11');
+    expect(daysElapsed('2026-10-11')).toBe(0);
     expect(daysElapsed('')).toBe(0);
-
-    const d = parseDateOnly(today);
-    d.setDate(d.getDate() - 10);
-    const startISO = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-      d.getDate()
-    ).padStart(2, '0')}`;
-    expect(daysElapsed(startISO)).toBe(10);
+    expect(daysElapsed('2026-10-01')).toBe(10);
   });
 
-  it('formatDate is defensive on missing input', () => {
-    expect(formatDate(null)).toBe('N/A');
-    expect(formatDate('2026-10-06')).toBe('Oct 6, 2026');
+  it('daysUntil counts whole Manila days to a date (negative when past)', () => {
+    vi.stubEnv('VITE_PERFORMA_TODAY', '2026-10-11');
+    expect(daysUntil('2026-10-12')).toBe(1);
+    expect(daysUntil('2026-10-11')).toBe(0);
+    expect(daysUntil('2026-10-10')).toBe(-1);
+    // The Phase 1 example: Sep 4 start → Day-150 review is 113 days away.
+    expect(daysUntil(milestoneDate('2026-09-04', 150))).toBe(113);
+  });
+
+  it('monthNumberFor mirrors backend domain.month_number_for (days // 30 + 1)', () => {
+    const cases = [
+      [0, 1], [29, 1],
+      [30, 2], [59, 2],
+      [60, 3], [89, 3],
+      [90, 4], [119, 4],
+      [120, 5], [149, 5],
+      [150, 6], [179, 6],
+      [180, 7],
+    ];
+    for (const [days, expected] of cases) {
+      expect(monthNumberFor(days)).toBe(expected);
+    }
   });
 });

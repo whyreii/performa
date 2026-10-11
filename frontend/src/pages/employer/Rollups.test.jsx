@@ -56,4 +56,11 @@ describe('Rollups', () => {
       expect(interventionApi.listPending.mock.calls.length).toBeGreaterThan(callsBefore)
     );
   });
+
+  it('labels the 30-day evaluation months by their true day range (Day-0 convention)', async () => {
+    interventionApi.listPending.mockResolvedValue([]);
+    renderRollups();
+    fireEvent.click(await screen.findByRole('button', { name: /Generate Rollup/i }));
+    expect(await screen.findByText('Month 1 · Days 0-29')).toBeInTheDocument();
+  });
 });

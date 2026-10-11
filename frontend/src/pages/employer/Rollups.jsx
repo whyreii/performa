@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
-import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
+import { daysElapsed as getDaysElapsed, monthNumberFor } from '../../utils/datetime';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect, ConfirmDialog } from '../../components/ui';
@@ -117,7 +117,7 @@ export default function Rollups() {
   const monthForEmployee = (empId) => {
     const emp = activeProbationers.find((e) => e.id === empId);
     if (!emp) return 1;
-    return Math.min(5, Math.max(1, Math.ceil(getDaysElapsed(emp.start_date) / 30)));
+    return Math.min(5, monthNumberFor(getDaysElapsed(emp.start_date)));
   };
 
   const handleOpenGenerate = () => {
@@ -372,11 +372,11 @@ export default function Rollups() {
                   value={monthNumber}
                   onChange={(value) => setMonthNumber(Number(value))}
                   options={[
-                    { value: 1, label: 'Month 1 (Days 1 - 30)' },
-                    { value: 2, label: 'Month 2 (Days 31 - 60)' },
-                    { value: 3, label: 'Month 3 (Days 61 - 90)' },
-                    { value: 4, label: 'Month 4 (Days 91 - 120)' },
-                    { value: 5, label: 'Month 5 (Days 121 - 150 · Pre-Milestone)' },
+                    { value: 1, label: 'Month 1 · Days 0-29' },
+                    { value: 2, label: 'Month 2 · Days 30-59' },
+                    { value: 3, label: 'Month 3 · Days 60-89' },
+                    { value: 4, label: 'Month 4 · Days 90-119' },
+                    { value: 5, label: 'Month 5 · Days 120-149 (pre-milestone)' },
                   ]}
                 />
               </div>
