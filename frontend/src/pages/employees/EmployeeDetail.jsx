@@ -558,7 +558,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <div className="px-5 py-4">
                 <div className="text-12 text-ink-3">Overall average</div>
                 <div
-                  className={`text-22 font-semibold font-num mt-1 ${
+                  className={`text-30 font-semibold font-num mt-1 ${
                     TONE_TEXT[scoreTone(Number(scorecard.overall_score), overallTarget)]
                   }`}
                 >
@@ -568,14 +568,14 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </div>
               <div className="px-5 py-4">
                 <div className="text-12 text-ink-3">Target</div>
-                <div className="text-22 font-semibold font-num mt-1">
+                <div className="text-16 font-semibold font-num mt-1">
                   {overallTarget.toFixed(1)}
                 </div>
                 <div className="text-12 text-ink-2 mt-1">to meet</div>
               </div>
               <div className="px-5 py-4">
                 <div className="text-12 text-ink-3">Day of probation</div>
-                <div className="text-22 font-semibold font-num mt-1">{daysElapsed}</div>
+                <div className="text-16 font-semibold font-num mt-1">{daysElapsed}</div>
                 <div className="text-12 text-ink-2 mt-1">
                   of {PROBATION_DAYS} · {isTerminal ? 'final record' : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining`}
                 </div>
@@ -598,7 +598,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             {latestWeek ? (
               <>
                 <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="text-22 font-semibold font-num text-ink">
+                  <span className="text-30 font-semibold font-num text-ink">
                     {Number(latestWeek.overall_score).toFixed(2)}
                   </span>
                   <span className="text-12 text-ink-3">
@@ -660,7 +660,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             ) : isTerminal ? (
               <>
                 <div
-                  className={`text-22 font-semibold tracking-tight ${
+                    className={`text-30 font-semibold tracking-tight ${
                     employee.status === 'regularized' ? 'text-good' : 'text-bad'
                   }`}
                 >
@@ -706,7 +706,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <>
                 <div className="flex items-baseline gap-2.5 flex-wrap">
                   <span
-                    className={`text-22 font-semibold tracking-tight ${
+                  className={`text-30 font-semibold tracking-tight ${
                       regularization.recommendation === 'Regularize' ? 'text-good' : 'text-bad'
                     }`}
                   >
@@ -845,7 +845,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <p className="text-14 text-ink-3">No behavioral remarks recorded yet.</p>
             ) : (
               <ul className="space-y-4">
-                {notedRemarks.slice(0, 6).map((r) => (
+                {notedRemarks.slice(0, 3).map((r) => (
                   <li key={r.id}>
                     <div className="text-12 text-ink-3">
                       <span className="font-semibold text-ink-2">{r.evaluator_name}</span>
@@ -912,7 +912,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             ) : (
               <>
                 <div className="divide-y divide-line">
-                  {(showAllHistory ? auditLogs : auditLogs.slice(0, 8)).map((log) => {
+                  {(showAllHistory ? auditLogs : auditLogs.slice(0, 5)).map((log) => {
                     const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
                     return (
                       <div
@@ -934,14 +934,14 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                     );
                   })}
                 </div>
-                {auditLogs.length > 8 && (
+                {auditLogs.length > 5 && (
                   <button
                     type="button"
                     onClick={() => setShowAllHistory((v) => !v)}
                     aria-expanded={showAllHistory}
                     className="mt-4 inline-flex items-center gap-1.5 text-12 font-semibold text-accent hover:underline"
                   >
-                    {showAllHistory ? 'Show less' : `Show more · ${auditLogs.length - 8} more`}
+                    {showAllHistory ? 'Show less' : `Show more · ${auditLogs.length - 5} more`}
                     {showAllHistory ? (
                       <ChevronUp className="w-3.5 h-3.5" />
                     ) : (
