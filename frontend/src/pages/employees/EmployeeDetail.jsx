@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
@@ -19,7 +19,6 @@ import {
   History,
   Download,
   FileText,
-  ArrowRight,
   ChevronDown,
   ChevronUp,
 } from '../../components/icons';
@@ -558,15 +557,6 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   No weekly evaluations recorded yet. A supervisor must submit at least one weekly
                   rating before generating AI decision support.
                 </p>
-                {!isTerminal && user?.role !== 'probationary_employee' && (
-                  <Link
-                    to={`/supervisor/rate?employee=${id}`}
-                    className="inline-flex items-center gap-1 text-accent font-semibold hover:underline"
-                  >
-                    Rate Employee
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                )}
               </div>
             ) : isTerminal ? (
               <>
@@ -615,22 +605,22 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </>
             ) : regularization ? (
               <>
-                <div
-                  className={`text-22 font-semibold tracking-tight ${
-                    regularization.recommendation === 'Regularize' ? 'text-good' : 'text-bad'
-                  }`}
-                >
-                  {regularization.recommendation}
-                </div>
-                <div className="mt-3 flex items-center gap-2.5 flex-wrap text-12 text-ink-3">
+                <div className="flex items-baseline gap-2.5 flex-wrap">
+                  <span
+                    className={`text-22 font-semibold tracking-tight ${
+                      regularization.recommendation === 'Regularize' ? 'text-good' : 'text-bad'
+                    }`}
+                  >
+                    {regularization.recommendation}
+                  </span>
                   <Badge variant={regularization.recommendation === 'Regularize' ? 'ok' : 'bad'}>
                     {regularization.status_classification}
                   </Badge>
-                  <span className="font-num">
-                    overall{' '}
-                    <b className="text-ink">{Number(regularization.overall_average).toFixed(2)}</b> / 5.0
-                  </span>
                 </div>
+                <p className="mt-2 text-12 text-ink-3 font-num">
+                  overall{' '}
+                  <b className="text-ink">{Number(regularization.overall_average).toFixed(2)}</b> / 5.0
+                </p>
                 {regularization.rationale && (
                   <div className="mt-4 pt-4 border-t border-line">
                     <span className="block text-12 font-semibold text-ink-3 mb-1.5">
@@ -654,7 +644,14 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
           {/* Competency standing */}
           <Card flat className="p-5">
-            <CardHead label="Competency standing" note={`target ${TARGET.toFixed(1)} / 5.0`} />
+            <CardHead
+              label="Competency standing"
+              note={
+                scorecard?.latest_evaluation_date
+                  ? `Latest week · ${formatDate(scorecard.latest_evaluation_date)}`
+                  : `target ${TARGET.toFixed(1)} / 5.0`
+              }
+            />
             {isScoreLoading ? (
               <div className="space-y-4">
                 <Skeleton className="h-8 w-full" />
