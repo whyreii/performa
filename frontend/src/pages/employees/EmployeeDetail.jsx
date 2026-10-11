@@ -606,7 +606,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   </span>
                 </div>
                 {latestWeek.remarks && (
-                  <p className="text-14 text-ink-2 mt-2 leading-relaxed">“{latestWeek.remarks}”</p>
+                  <p className="text-14 text-ink-2 mt-2 leading-relaxed break-words">“{latestWeek.remarks}”</p>
                 )}
               </>
             ) : (
@@ -617,8 +617,10 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </Card>
         )}
 
-        {/* Record sheet — one flat column of hairline-divided sections */}
-        <div className="mt-4 grid grid-cols-1 gap-4">
+        {/* Record body — a main column plus an evidence rail on desktop */}
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-4 items-start">
+          {/* Main column — the lens lead + competency standing (+ AI for employer) */}
+          <div className="space-y-4 min-w-0">
           {/* Recommendation — full-width lead card (employer/supervisor only; not shown to the employee) */}
           {user?.role !== 'probationary_employee' && (
           <Card className="p-5">
@@ -830,72 +832,6 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             </Card>
           )}
 
-          {/* Probation timeline */}
-          <Card flat className="p-5">
-            <CardHead
-              label="Probation timeline"
-              subtitle="Article 296 · Asia/Manila"
-              note={
-                isTerminal
-                  ? `Day ${daysElapsed} / ${PROBATION_DAYS} · final record`
-                  : `Day ${daysElapsed} / ${PROBATION_DAYS} · ${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining`
-              }
-            />
-            <TimelineDocket
-              startDate={employee.start_date}
-              day180Date={employee.day_180_date}
-              daysElapsed={daysElapsed}
-            />
-          </Card>
-
-          {/* Monthly KPI trend */}
-          {(isTrendLoading || trend.length > 0) && (
-            <Card flat className="p-5">
-              <CardHead
-                label="Monthly KPI trend"
-                subtitle="Monthly rollup"
-                note={`target ≥ ${overallTarget.toFixed(2)}`}
-              />
-              {isTrendLoading ? (
-                <div className="space-y-3">
-                  {[0, 1, 2].map((i) => (
-                    <Skeleton key={i} className="h-6 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {trend.map((point) => (
-                    <div key={point.month_number} className="space-y-1.5">
-                      <div className="flex justify-between text-12 font-num text-ink-2">
-                        <span>Month {point.month_number}</span>
-                        <span
-                          className={`font-semibold ${
-                            Number(point.overall_average) >= overallTarget ? 'text-good' : 'text-warn'
-                          }`}
-                        >
-                          {Number(point.overall_average).toFixed(2)} / 5.0
-                        </span>
-                      </div>
-                      <div className="relative h-2.5 w-full bg-hover border border-line rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-[width] ${
-                            Number(point.overall_average) >= overallTarget ? 'bg-good' : 'bg-warn'
-                          }`}
-                          style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
-                        />
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-ink/60 z-10"
-                          style={{ left: `${(overallTarget / 5) * 100}%` }}
-                          title={`Target ${overallTarget.toFixed(2)} / 5.0`}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          )}
-
           {/* Supervisor remarks (behavioral notes from weekly ratings) */}
           <Card flat className="p-5">
             <CardHead
@@ -916,13 +852,17 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                       {' · '}
                       <span className="font-num">{formatDate(r.evaluation_date)}</span>
                     </div>
-                    <p className="text-14 text-ink-2 mt-1 leading-relaxed">{r.remarks}</p>
+                    <p className="text-14 text-ink-2 mt-1 leading-relaxed break-words">{r.remarks}</p>
                   </li>
                 ))}
               </ul>
             )}
           </Card>
 
+          </div>
+
+          {/* Evidence rail — audit history, statutory timeline, monthly rollup */}
+          <div className="space-y-4 min-w-0">
           {/* Evaluation history (immutable audit trail) */}
           <Card flat className="p-5">
             <CardHead
@@ -1012,6 +952,73 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </>
             )}
           </Card>
+
+          {/* Probation timeline */}
+          <Card flat className="p-5">
+            <CardHead
+              label="Probation timeline"
+              subtitle="Article 296 · Asia/Manila"
+              note={
+                isTerminal
+                  ? `Day ${daysElapsed} / ${PROBATION_DAYS} · final record`
+                  : `Day ${daysElapsed} / ${PROBATION_DAYS} · ${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining`
+              }
+            />
+            <TimelineDocket
+              startDate={employee.start_date}
+              day180Date={employee.day_180_date}
+              daysElapsed={daysElapsed}
+            />
+          </Card>
+
+          {/* Monthly KPI trend */}
+          {(isTrendLoading || trend.length > 0) && (
+            <Card flat className="p-5">
+              <CardHead
+                label="Monthly KPI trend"
+                subtitle="Monthly rollup"
+                note={`target ≥ ${overallTarget.toFixed(2)}`}
+              />
+              {isTrendLoading ? (
+                <div className="space-y-3">
+                  {[0, 1, 2].map((i) => (
+                    <Skeleton key={i} className="h-6 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {trend.map((point) => (
+                    <div key={point.month_number} className="space-y-1.5">
+                      <div className="flex justify-between text-12 font-num text-ink-2">
+                        <span>Month {point.month_number}</span>
+                        <span
+                          className={`font-semibold ${
+                            Number(point.overall_average) >= overallTarget ? 'text-good' : 'text-warn'
+                          }`}
+                        >
+                          {Number(point.overall_average).toFixed(2)} / 5.0
+                        </span>
+                      </div>
+                      <div className="relative h-2.5 w-full bg-hover border border-line rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-[width] ${
+                            Number(point.overall_average) >= overallTarget ? 'bg-good' : 'bg-warn'
+                          }`}
+                          style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
+                        />
+                        <div
+                          className="absolute top-0 bottom-0 w-0.5 bg-ink/60 z-10"
+                          style={{ left: `${(overallTarget / 5) * 100}%` }}
+                          title={`Target ${overallTarget.toFixed(2)} / 5.0`}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
+          </div>
         </div>
 
         {/* Print-only signature block */}
