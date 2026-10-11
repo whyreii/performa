@@ -65,6 +65,7 @@ describe('EmployeeDashboard', () => {
     await waitFor(() =>
       expect(interventionApi.acknowledgeSummary).toHaveBeenCalledWith('s-1')
     );
+    expect(await screen.findByText('Consistent performer.')).toBeInTheDocument();
   });
 
   it('surfaces a retryable error when the profile fetch fails', async () => {

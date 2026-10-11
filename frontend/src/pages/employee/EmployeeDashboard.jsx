@@ -385,34 +385,52 @@ export default function EmployeeDashboard() {
           </>
         )}
 
-        {/* Needs your attention */}
-        <div className="mt-5 pt-5 border-t border-line">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="w-5 h-5 shrink-0 text-ink-3" aria-hidden="true" />
-              <div>
-                <div className="text-14 text-ink">Monthly summaries to acknowledge</div>
-                <div className="text-12 text-ink-3 mt-0.5">
-                  {isSummariesLoading
-                    ? 'Loading…'
-                    : unacknowledged.length
-                    ? `${unacknowledged.length} awaiting your acknowledgment`
-                    : 'All caught up'}
-                </div>
+        {/* Monthly summaries */}
+        {!isSummariesLoading && mySummaries.length > 0 && (
+          <div className="mt-5 pt-5 border-t border-line">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="w-5 h-5 shrink-0 text-ink-3" aria-hidden="true" />
+                <div className="text-14 text-ink">Monthly summaries</div>
               </div>
+              {unacknowledged.length === 0 && <Badge variant="ok">All acknowledged</Badge>}
             </div>
-            {!isSummariesLoading && unacknowledged.length > 0 && (
-              <Button
-                size="sm"
-                variant="primary"
-                isLoading={ackSummaryMutation.isPending}
-                onClick={() => ackSummaryMutation.mutate(unacknowledged[0].id)}
-              >
-                Acknowledge Month {unacknowledged[0].month_number}
-              </Button>
-            )}
+            <ul className="space-y-4">
+              {[...mySummaries]
+                .sort((a, b) => a.month_number - b.month_number)
+                .map((s) => (
+                  <li key={s.id}>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="text-12">
+                        <span className="font-semibold text-ink">Month {s.month_number}</span>
+                        <span className="text-ink-3 font-num ml-2">
+                          Avg {Number(s.overall_average).toFixed(2)}
+                        </span>
+                        <span className="text-ink-3 ml-2 capitalize">
+                          {s.status_classification?.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      {s.acknowledged_at ? (
+                        <Badge variant="ok">Acknowledged</Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          isLoading={ackSummaryMutation.isPending}
+                          onClick={() => ackSummaryMutation.mutate(s.id)}
+                        >
+                          Acknowledge Month {s.month_number}
+                        </Button>
+                      )}
+                    </div>
+                    {s.performance_summary && (
+                      <p className="text-14 text-ink-2 mt-1.5 leading-relaxed">{s.performance_summary}</p>
+                    )}
+                  </li>
+                ))}
+            </ul>
           </div>
-        </div>
+        )}
       </Card>
 
       <div className="flex justify-end">

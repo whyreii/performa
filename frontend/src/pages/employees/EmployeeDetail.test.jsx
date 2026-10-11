@@ -92,4 +92,19 @@ describe('EmployeeDetail', () => {
       await screen.findByText('Consistently strong delivery and clear communication.')
     ).toBeInTheDocument();
   });
+
+  it('shows the non-regularization reason when the employee is terminated', async () => {
+    primeHappyPath();
+    employeeApi.getById.mockResolvedValue(
+      employee({
+        status: 'terminated',
+        status_reason: 'Repeated failure to meet quality standards.',
+      })
+    );
+    renderDetail();
+    expect(await screen.findByText('Non-regularization reason:')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Repeated failure to meet quality standards.')
+    ).toBeInTheDocument();
+  });
 });

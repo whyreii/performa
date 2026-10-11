@@ -277,37 +277,42 @@ export default function Rollups() {
             {summaries.map((summary) => {
               const emp = employees.find((e) => e.id === summary.employee_id);
               return (
-                <div key={summary.id} className="p-4 flex items-center justify-between gap-4">
-                  <div className="text-12">
-                    <span className="font-semibold text-ink">
-                      {emp?.user?.full_name || 'Unknown employee'}
-                    </span>
-                    {emp?.department && (
-                      <span className="text-ink-3 ml-2">{emp.department}</span>
+                <div key={summary.id} className="p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="text-12">
+                      <span className="font-semibold text-ink">
+                        {emp?.user?.full_name || 'Unknown employee'}
+                      </span>
+                      {emp?.department && (
+                        <span className="text-ink-3 ml-2">{emp.department}</span>
+                      )}
+                      <span className="text-ink-3 font-num ml-2">
+                        Month {summary.month_number}
+                      </span>
+                      <span className="text-ink-3 font-num ml-2">
+                        Avg {Number(summary.overall_average).toFixed(2)}
+                      </span>
+                      <span className="text-ink-3 ml-2 capitalize">
+                        {summary.status_classification?.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    {summary.acknowledged_at ? (
+                      <Badge variant="ok">Acknowledged</Badge>
+                    ) : summary.dispatched_at ? (
+                      <Badge variant="accent">Dispatched</Badge>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={dispatchMutation.isPending}
+                        onClick={() => setConfirmDispatch(summary)}
+                      >
+                        Dispatch
+                      </Button>
                     )}
-                    <span className="text-ink-3 font-num ml-2">
-                      Month {summary.month_number}
-                    </span>
-                    <span className="text-ink-3 font-num ml-2">
-                      Avg {Number(summary.overall_average).toFixed(2)}
-                    </span>
-                    <span className="text-ink-3 ml-2 capitalize">
-                      {summary.status_classification?.replace(/_/g, ' ')}
-                    </span>
                   </div>
-                  {summary.acknowledged_at ? (
-                    <Badge variant="ok">Acknowledged</Badge>
-                  ) : summary.dispatched_at ? (
-                    <Badge variant="accent">Dispatched</Badge>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      disabled={dispatchMutation.isPending}
-                      onClick={() => setConfirmDispatch(summary)}
-                    >
-                      Dispatch
-                    </Button>
+                  {summary.performance_summary && (
+                    <p className="text-12 text-ink-2 leading-relaxed">{summary.performance_summary}</p>
                   )}
                 </div>
               );
