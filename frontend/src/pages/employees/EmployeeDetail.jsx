@@ -412,7 +412,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         </div>
 
         {/* Hero */}
-        <Card className="p-5 mt-4">
+        <Card flat className="p-5 mt-4">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="w-11 h-11 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-16 font-semibold shrink-0">
               {getInitials(employee.user?.full_name)}
@@ -651,7 +651,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </Card>
 
           {/* Competency standing */}
-          <Card className="p-5">
+          <Card flat className="p-5">
             <CardHead label="Competency standing" note={`target ${TARGET.toFixed(1)} / 5.0`} />
             {isScoreLoading ? (
               <div className="space-y-4">
@@ -670,7 +670,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
           {/* ML Risk Explanation */}
           {(isRiskLoading || riskExplanation) && (
-            <Card className="p-5">
+            <Card flat className="p-5">
               <CardHead
                 label="ML Risk Explanation"
                 note={
@@ -729,7 +729,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           )}
 
           {/* Probation timeline */}
-          <Card className="p-5">
+          <Card flat className="p-5">
             <CardHead
               label="Probation timeline"
               note={
@@ -747,7 +747,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
           {/* Monthly KPI trend */}
           {(isTrendLoading || trend.length > 0) && (
-            <Card className="p-5">
+            <Card flat className="p-5">
               <CardHead label="Monthly KPI trend" note={`target ≥ ${overallTarget.toFixed(2)}`} />
               {isTrendLoading ? (
                 <div className="space-y-3">
@@ -790,7 +790,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           )}
 
           {/* Supervisor remarks (behavioral notes from weekly ratings) */}
-          <Card className="p-5 lg:col-span-2">
+          <Card flat className="p-5 lg:col-span-2">
             <CardHead
               label="Supervisor remarks"
               note={notedRemarks.length ? `${notedRemarks.length} noted` : undefined}
@@ -816,7 +816,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </Card>
 
           {/* Evaluation history (immutable audit trail) */}
-          <Card className="p-5 lg:col-span-2">
+          <Card flat className="p-5 lg:col-span-2">
             <CardHead
               label="Evaluation history"
               note={

@@ -189,7 +189,7 @@ export default function EmployeeDashboard() {
       actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}
     >
       {/* Greeting + plain dates */}
-      <Card className="p-5">
+      <Card flat className="p-5">
         {isEmpLoading ? (
           <Skeleton className="h-16 w-full" />
         ) : (
@@ -224,7 +224,7 @@ export default function EmployeeDashboard() {
       </Card>
 
       {/* D — Month by month */}
-      <Card className="p-5">
+      <Card flat className="p-5">
         <CardHead label="Month by month" note="your monthly average" />
         {isTrendLoading ? (
           <Skeleton className="h-20 w-full" />
@@ -267,7 +267,7 @@ export default function EmployeeDashboard() {
       </Card>
 
       {/* E — Checklist */}
-      <Card className="p-5">
+      <Card flat className="p-5">
         <CardHead
           label="Your checklist"
           note={`${checklist.filter((c) => c.done).length} of ${checklist.length} done`}
@@ -354,7 +354,7 @@ export default function EmployeeDashboard() {
       </Card>
 
       {/* G — From your supervisor */}
-      <Card className="p-5">
+      <Card flat className="p-5">
         <CardHead
           label="From your supervisor"
           note={

@@ -211,7 +211,7 @@ export default function Dashboard() {
       )}
 
       {/* Worklist — searchable, filterable table; one row per probationer */}
-      <Card className="space-y-4">
+      <Card flat className="space-y-4">
         <div>
           <h2 className="text-16 font-semibold text-ink">Needs your action</h2>
           <p className="text-12 text-ink-3 mt-0.5">
@@ -347,7 +347,7 @@ export default function Dashboard() {
       </Card>
 
       {/* AI recommendations */}
-      <Card className="space-y-4">
+      <Card flat className="space-y-4">
         <div>
           <h2 className="text-16 font-semibold text-ink">AI recommendations</h2>
           <p className="text-12 text-ink-3 mt-0.5">Random Forest gap classifier</p>

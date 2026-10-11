@@ -14,14 +14,20 @@ export default function Surface({
   tone = 'surface',
   elevated = false,
   padded = false,
+  flat = false,
   className = '',
   children,
   ...props
 }) {
-  const base = `border border-line rounded-float ${TONE[tone] || TONE.surface}`;
+  // `flat` drops the card chrome (border, radius, fill) so a block sits directly
+  // on the page surface as a hairline-separated section (DECISIONS.md: flat
+  // hairline sections over floating cards). Padding/`p-*` classes still apply.
+  const base = flat
+    ? 'border-t border-line'
+    : `border border-line rounded-float ${TONE[tone] || TONE.surface}`;
   return (
     <Tag
-      className={`${base}${elevated ? ' shadow-pop' : ''}${padded ? ' p-6' : ''}${
+      className={`${base}${!flat && elevated ? ' shadow-pop' : ''}${padded ? ' p-6' : ''}${
         className ? ` ${className}` : ''
       }`}
       {...props}
