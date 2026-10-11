@@ -193,11 +193,20 @@ export default function EmployeeDashboard() {
                 : 'Focus on your competencies below. There’s time to build them up.'}
             </p>
             {myProfile && (
-              <p className="text-12 text-ink-3 mt-3">
+              <p className="text-14 text-ink-3 mt-3">
                 Started <span className="font-num text-ink">{formatDate(myProfile.start_date)}</span> · Review{' '}
                 <span className="font-num text-ink">{formatDate(milestoneDate(myProfile.start_date, MILESTONE_REVIEW))}</span> · Probation ends{' '}
                 <span className="font-num text-ink">{formatDate(myProfile.day_180_date)}</span>
               </p>
+            )}
+            {myProfile && (
+              <Link
+                to={`/employees/${myProfile.id}`}
+                className="inline-flex items-center gap-1 text-14 font-semibold text-accent hover:underline mt-3"
+              >
+                View your full record
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             )}
           </>
         )}
