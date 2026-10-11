@@ -10,8 +10,12 @@ import { Card, Page, Button, Badge, inputClass } from '../../components/ui';
 // Fallback weight used only when the API has not provisioned a tenant default yet.
 const DEFAULT_WEIGHT = 0.2;
 
+// "retail" -> "Retail", "bpo" -> "BPO", "food_service" -> "Food Service".
 const prettyTemplate = (key) =>
-  key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
+  key
+    .split('_')
+    .map((word) => (word.length <= 3 ? word.toUpperCase() : word.charAt(0).toUpperCase() + word.slice(1)))
+    .join(' ');
 
 export default function Rubrics() {
   const { user } = useAuth();
