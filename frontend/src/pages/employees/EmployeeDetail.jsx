@@ -365,6 +365,15 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
   const backTo = user?.role === 'probationary_employee' ? '/employee/dashboard' : '/employees';
   const backLabel = user?.role === 'probationary_employee' ? 'My Scorecard' : 'Employees';
 
+  // The record renders one of three role lenses (see ARCHITECTURE: employer =
+  // decision-first, supervisor = rating-first, employee = standing-first). Each
+  // lens keeps the shared evidence; only the framing and lead section differ.
+  const lens =
+    user?.role === 'employer' ? 'employer' : user?.role === 'supervisor' ? 'supervisor' : 'employee';
+  const latestWeek = [...weeklyRemarks].sort((a, b) =>
+    (a.evaluation_date || '') < (b.evaluation_date || '') ? 1 : -1
+  )[0];
+
   return (
     <Page printSheet header={false}>
       <div className="mx-auto max-w-5xl">
@@ -438,6 +447,11 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   onClick={() => navigate(`/supervisor/rate?employee=${employee.id}`)}
                 >
                   Rate Employee
+                </Button>
+              )}
+              {lens === 'supervisor' && (
+                <Button variant="secondary" onClick={() => navigate('/rubrics')}>
+                  KPI Rubrics
                 </Button>
               )}
               {canManageStatus && employee.status === 'active' && (
@@ -563,6 +577,39 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 </div>
               </div>
             </div>
+          </Card>
+        )}
+
+        {/* This week's rating — supervisor lens lead (rating-first) */}
+        {lens === 'supervisor' && employee.status === 'active' && (
+          <Card flat className="p-5 mt-4">
+            <CardHead
+              label="This week's rating"
+              note={
+                latestWeek
+                  ? `Last entered · ${formatDate(latestWeek.evaluation_date)}`
+                  : 'Not yet submitted'
+              }
+            />
+            {latestWeek ? (
+              <>
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  <span className="text-22 font-semibold font-num text-ink">
+                    {Number(latestWeek.overall_score).toFixed(2)}
+                  </span>
+                  <span className="text-12 text-ink-3">
+                    overall score{latestWeek.evaluator_name ? ` · ${latestWeek.evaluator_name}` : ''}
+                  </span>
+                </div>
+                {latestWeek.remarks && (
+                  <p className="text-14 text-ink-2 mt-2 leading-relaxed">“{latestWeek.remarks}”</p>
+                )}
+              </>
+            ) : (
+              <p className="text-14 text-ink-3">
+                No weekly rating submitted yet. Use “Rate Employee” to record this week’s rating.
+              </p>
+            )}
           </Card>
         )}
 
@@ -708,8 +755,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             )}
           </Card>
 
-          {/* ML Risk Explanation */}
-          {(isRiskLoading || riskExplanation) && user?.role !== 'probationary_employee' && (
+          {/* ML Risk Explanation — employer lens only (AI decision support) */}
+          {lens === 'employer' && (isRiskLoading || riskExplanation) && (
             <Card flat className="p-5">
               <CardHead
                 label="ML Risk Explanation"

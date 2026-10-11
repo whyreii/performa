@@ -159,4 +159,17 @@ describe('EmployeeDetail', () => {
       screen.queryByRole('heading', { name: 'ML Risk Explanation' })
     ).not.toBeInTheDocument();
   });
+
+  it('supervisor lens leads with "This week\'s rating" and hides the AI panel', async () => {
+    primeHappyPath();
+    renderDetail('supervisor');
+
+    expect(
+      await screen.findByRole('heading', { name: "This week's rating" })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'ML Risk Explanation' })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Update Status/i })).not.toBeInTheDocument();
+  });
 });
