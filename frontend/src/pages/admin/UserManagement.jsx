@@ -740,7 +740,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
                 onClick={() => setRole('supervisor')}
                 className={`p-3 rounded-ctl border text-center transition-colors ${
                   role === 'supervisor'
-                    ? 'border-good bg-good/8 text-good font-semibold'
+                    ? 'border-accent bg-accent/8 text-accent font-semibold'
                     : 'border-line text-ink-2 hover:bg-hover'
                 }`}
               >
@@ -755,7 +755,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
                 onClick={() => setRole('probationary_employee')}
                 className={`p-3 rounded-ctl border text-center transition-colors ${
                   role === 'probationary_employee'
-                    ? 'border-ink text-ink font-semibold bg-hover'
+                    ? 'border-accent bg-accent/8 text-accent font-semibold'
                     : 'border-line text-ink-2 hover:bg-hover'
                 }`}
               >

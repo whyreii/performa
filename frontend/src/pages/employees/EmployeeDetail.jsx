@@ -349,6 +349,9 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
   const canManageStatus = user?.role === 'employer';
   const canRate = user?.role === 'supervisor' || user?.role === 'employer';
+  // A terminal decision (regularized/terminated) supersedes the live milestone
+  // clock and the pre-decision AI artifact — both must reflect the decision.
+  const isTerminal = employee.status === 'regularized' || employee.status === 'terminated';
 
   const backTo = user?.role === 'probationary_employee' ? '/employee/dashboard' : '/employees';
   const backLabel = user?.role === 'probationary_employee' ? 'My Scorecard' : 'Employees';
@@ -414,8 +417,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <div className="text-22 font-semibold font-num text-ink leading-tight">
                 {daysElapsed} <span className="text-12 text-ink-3 font-normal">/ {PROBATION_DAYS}</span>
               </div>
-              <div className={`text-12 font-semibold mt-1 ${TONE_TEXT[tone]}`}>
-                {MILESTONE_WINDOW_LABEL[tone]}
+              <div className={`text-12 font-semibold mt-1 ${isTerminal ? 'text-ink-3' : TONE_TEXT[tone]}`}>
+                {isTerminal ? 'Final record' : MILESTONE_WINDOW_LABEL[tone]}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2.5 basis-full">
@@ -520,7 +523,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             <CardHead
               label="Recommendation"
               note={
-                user?.role === 'employer' ? (
+                user?.role === 'employer' && !isTerminal ? (
                   <Button
                     variant="secondary"
                     size="sm"
@@ -544,7 +547,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   No weekly evaluations recorded yet. A supervisor must submit at least one weekly
                   rating before generating AI decision support.
                 </p>
-                {user?.role !== 'probationary_employee' && (
+                {!isTerminal && user?.role !== 'probationary_employee' && (
                   <Link
                     to={`/supervisor/rate?employee=${id}`}
                     className="inline-flex items-center gap-1 text-accent font-semibold hover:underline"
@@ -554,6 +557,51 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   </Link>
                 )}
               </div>
+            ) : isTerminal ? (
+              <>
+                <div
+                  className={`text-22 font-semibold tracking-tight ${
+                    employee.status === 'regularized' ? 'text-good' : 'text-bad'
+                  }`}
+                >
+                  {employee.status === 'regularized' ? 'Regularized' : 'Terminated'}
+                </div>
+                <p className="text-12 text-ink-3 mt-2">
+                  {employee.status === 'regularized'
+                    ? 'Final decision recorded: conferring regular status.'
+                    : 'Final decision recorded: non-regularization.'}
+                </p>
+                {regularization && (
+                  <div className="mt-4 rounded-ctl bg-hover border border-line p-3.5">
+                    <span className="block text-12 font-semibold text-accent mb-1.5 font-mono">
+                      Gemini Performance Rationale
+                    </span>
+                    <p className="text-12 text-ink-3 mb-1">
+                      AI recommendation generated before this decision:{' '}
+                      <span
+                        className={
+                          regularization.recommendation === 'Regularize'
+                            ? 'text-good font-semibold'
+                            : 'text-bad font-semibold'
+                        }
+                      >
+                        {regularization.recommendation}
+                      </span>
+                      {' · '}
+                      {regularization.status_classification} · overall{' '}
+                      <span className="font-num">
+                        {Number(regularization.overall_average).toFixed(2)}
+                      </span>{' '}
+                      / 5.0
+                    </p>
+                    {regularization.rationale && (
+                      <p className="text-14 text-ink-2 leading-relaxed">
+                        {regularization.rationale}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </>
             ) : regularization ? (
               <>
                 <div

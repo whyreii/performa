@@ -107,4 +107,28 @@ describe('EmployeeDetail', () => {
       await screen.findByText('Repeated failure to meet quality standards.')
     ).toBeInTheDocument();
   });
+
+  it('shows the final decision, not the AI recommendation, once regularized', async () => {
+    primeHappyPath();
+    employeeApi.getById.mockResolvedValue(employee({ status: 'regularized' }));
+    evaluationApi.getRegularization.mockResolvedValue({
+      recommendation: 'Do Not Regularize',
+      status_classification: 'Needs Improvement',
+      overall_average: 2.8,
+      rationale: 'Below standard across competencies.',
+    });
+    renderDetail();
+
+    expect(
+      await screen.findByText('Final decision recorded: conferring regular status.')
+    ).toBeInTheDocument();
+    // The AI artifact is demoted and clearly labelled as pre-decision.
+    expect(
+      await screen.findByText(/AI recommendation generated before this decision:/)
+    ).toBeInTheDocument();
+    expect(screen.getByText('Do Not Regularize')).toBeInTheDocument();
+    // No live milestone clock, and no regenerate control on a terminal record.
+    expect(screen.getByText('Final record')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Generate|Regenerate/ })).not.toBeInTheDocument();
+  });
 });
