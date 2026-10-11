@@ -212,6 +212,9 @@ export default function EmployeeDashboard() {
       }
       actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}
     >
+      {/* Dashboard body — main column + side rail on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-4 items-start">
+        <div className="space-y-4 min-w-0">
       {/* Greeting + plain dates */}
       <Card flat className="p-5">
         {isEmpLoading ? (
@@ -247,98 +250,7 @@ export default function EmployeeDashboard() {
         )}
       </Card>
 
-      {/* D — Month by month */}
-      <Card flat className="p-5">
-        <CardHead label="Month by month" note="your monthly average" />
-        {isTrendLoading ? (
-          <Skeleton className="h-20 w-full" />
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[1, 2, 3, 4, 5, 6].map((month) => {
-              const point = trend.find((p) => p.month_number === month);
-              const hasData = point !== undefined;
-              const isNow = !isTerminal && month === currentMonth;
-              const meets = hasData && Number(point.overall_average) >= TARGET;
-              return (
-                <div
-                  key={month}
-                  className={`rounded-ctl border p-3.5 ${isNow ? 'border-accent/50' : 'border-line'}${
-                    hasData ? '' : ' opacity-60'
-                  }`}
-                >
-                  <div className="text-12 text-ink-3 font-semibold">Month {month}</div>
-                  {hasData ? (
-                    <>
-                      <div className={`text-22 font-semibold mt-1 font-num ${meets ? 'text-good' : 'text-warn'}`}>
-                        {Number(point.overall_average).toFixed(1)}
-                      </div>
-                      <div className="h-1.5 rounded-full bg-hover mt-2.5 overflow-hidden">
-                        <div
-                          className={meets ? 'h-full rounded-full bg-good' : 'h-full rounded-full bg-warn'}
-                          style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-12 text-ink-3 mt-1.5">{isNow ? 'In progress' : 'Upcoming'}</div>
-                  )}
-                  {isNow && <div className="text-12 font-semibold text-accent mt-2">You are here</div>}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Card>
-
-      {/* E — Checklist */}
-      <Card flat className="p-5">
-        <CardHead
-          label="Your checklist"
-          note={`${checklist.filter((c) => c.done).length} of ${checklist.length} done`}
-        />
-        <ul className="divide-y divide-line">
-          {checklist.map((item) => (
-            <li key={item.label} className="py-3.5 first:pt-0 last:pb-0 flex items-start gap-3">
-              {item.done ? (
-                <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-good" aria-hidden="true" />
-              ) : (
-                <span className="w-5 h-5 shrink-0 mt-0.5 rounded-full border-2 border-ink-3/50" aria-hidden="true" />
-              )}
-              <div className="flex-1 min-w-0 flex items-start justify-between gap-4">
-                <div>
-                  <div className="text-14 text-ink">
-                    {item.label}
-                    <span className="sr-only">{item.done ? ', done' : ', to do'}</span>
-                  </div>
-                  <div className="text-12 text-ink-3 mt-0.5">{item.detail}</div>
-                </div>
-                {item.action?.kind === 'ack' && (
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    isLoading={ackSummaryMutation.isPending}
-                    onClick={() => ackSummaryMutation.mutate(item.action.summary.id)}
-                  >
-                    Acknowledge
-                  </Button>
-                )}
-                {item.action?.kind === 'training' && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    leftIcon={BookOpen}
-                    onClick={() => navigate('/employee/training')}
-                  >
-                    Open
-                  </Button>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </Card>
-
-      {/* F — At a glance */}
+      {/* How you're doing */}
       <Card className="p-5">
         <CardHead
           label="How you’re doing"
@@ -402,7 +314,7 @@ export default function EmployeeDashboard() {
                       {' · '}
                       <span className="font-num">{formatDate(r.evaluation_date)}</span>
                     </div>
-                    <p className="text-14 text-ink-2 mt-1 leading-relaxed">{r.remarks}</p>
+                    <p className="text-14 text-ink-2 mt-1 leading-relaxed break-words">{r.remarks}</p>
                   </li>
                 ))}
               </ul>
@@ -487,6 +399,103 @@ export default function EmployeeDashboard() {
           </div>
         )}
       </Card>
+
+        </div>
+
+        {/* Side rail — next steps + monthly progress */}
+        <div className="space-y-4 min-w-0">
+      {/* Your checklist */}
+      <Card flat className="p-5">
+        <CardHead
+          label="Your checklist"
+          note={`${checklist.filter((c) => c.done).length} of ${checklist.length} done`}
+        />
+        <ul className="divide-y divide-line">
+          {checklist.map((item) => (
+            <li key={item.label} className="py-3.5 first:pt-0 last:pb-0 flex items-start gap-3">
+              {item.done ? (
+                <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-good" aria-hidden="true" />
+              ) : (
+                <span className="w-5 h-5 shrink-0 mt-0.5 rounded-full border-2 border-ink-3/50" aria-hidden="true" />
+              )}
+              <div className="flex-1 min-w-0 flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-14 text-ink">
+                    {item.label}
+                    <span className="sr-only">{item.done ? ', done' : ', to do'}</span>
+                  </div>
+                  <div className="text-12 text-ink-3 mt-0.5">{item.detail}</div>
+                </div>
+                {item.action?.kind === 'ack' && (
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    isLoading={ackSummaryMutation.isPending}
+                    onClick={() => ackSummaryMutation.mutate(item.action.summary.id)}
+                  >
+                    Acknowledge
+                  </Button>
+                )}
+                {item.action?.kind === 'training' && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    leftIcon={BookOpen}
+                    onClick={() => navigate('/employee/training')}
+                  >
+                    Open
+                  </Button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
+      {/* Month by month */}
+      <Card flat className="p-5">
+        <CardHead label="Month by month" note="your monthly average" />
+        {isTrendLoading ? (
+          <Skeleton className="h-20 w-full" />
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {[1, 2, 3, 4, 5, 6].map((month) => {
+              const point = trend.find((p) => p.month_number === month);
+              const hasData = point !== undefined;
+              const isNow = !isTerminal && month === currentMonth;
+              const meets = hasData && Number(point.overall_average) >= TARGET;
+              return (
+                <div
+                  key={month}
+                  className={`rounded-ctl border p-3.5 ${isNow ? 'border-accent/50' : 'border-line'}${
+                    hasData ? '' : ' opacity-60'
+                  }`}
+                >
+                  <div className="text-12 text-ink-3 font-semibold">Month {month}</div>
+                  {hasData ? (
+                    <>
+                      <div className={`text-22 font-semibold mt-1 font-num ${meets ? 'text-good' : 'text-warn'}`}>
+                        {Number(point.overall_average).toFixed(1)}
+                      </div>
+                      <div className="h-1.5 rounded-full bg-hover mt-2.5 overflow-hidden">
+                        <div
+                          className={meets ? 'h-full rounded-full bg-good' : 'h-full rounded-full bg-warn'}
+                          style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-12 text-ink-3 mt-1.5">{isNow ? 'In progress' : 'Upcoming'}</div>
+                  )}
+                  {isNow && <div className="text-12 font-semibold text-accent mt-2">You are here</div>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+        </div>
+      </div>
 
       <div className="flex justify-end">
         <Link to="/employee/training" className="inline-flex items-center gap-1 text-12 font-semibold text-accent hover:underline">
