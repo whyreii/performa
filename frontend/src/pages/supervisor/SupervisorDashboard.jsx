@@ -117,7 +117,7 @@ export default function SupervisorDashboard() {
                   </div>
 
                   <div className="flex items-center gap-3 sm:gap-4 flex-wrap sm:flex-nowrap shrink-0">
-                    <div className="min-w-[130px] space-y-1">
+                    <div className="w-[130px] space-y-1">
                       <div className="flex justify-between font-num text-12 text-ink-2">
                         <span>Day {days}</span>
                         <span className="text-ink-3">{Math.max(0, PROBATION_DAYS - days)}d left</span>
@@ -130,7 +130,9 @@ export default function SupervisorDashboard() {
                       </div>
                     </div>
 
-                    <MilestonePill daysElapsed={days} status={emp.status} />
+                    <div className="w-[208px] flex items-center">
+                      <MilestonePill daysElapsed={days} status={emp.status} />
+                    </div>
 
                     <div className="flex items-center gap-2">
                       <Button
