@@ -209,7 +209,7 @@ export default function Rollups() {
                       </span>
                     </div>
                     <div className="flex items-center gap-3 text-12 text-ink-3 font-num">
-                      <span>Timeline: {plan.default_timeline || '4 hours'}</span>
+                      <span>Timeline: {plan.default_timeline || '—'}</span>
                       <span>·</span>
                       <span>Catalog ID: {plan.catalog_id}</span>
                     </div>
@@ -281,7 +281,7 @@ export default function Rollups() {
                   <div className="flex items-center justify-between gap-4">
                     <div className="text-12">
                       <span className="font-semibold text-ink">
-                        {emp?.user?.full_name || 'Unknown employee'}
+                        {emp?.user?.full_name || '—'}
                       </span>
                       {emp?.department && (
                         <span className="text-ink-3 ml-2">{emp.department}</span>

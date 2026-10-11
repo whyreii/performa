@@ -81,7 +81,7 @@ export default function Reports() {
               <option value="">Select an employee…</option>
               {sorted.map((e) => (
                 <option key={e.id} value={e.id}>
-                  {(e.user?.full_name || 'Unknown')} — {e.job_title}
+                  {e.user?.full_name || '—'} — {e.job_title}
                 </option>
               ))}
             </select>
@@ -146,7 +146,7 @@ export default function Reports() {
             <div key={e.id} className="p-4 flex items-center justify-between gap-4">
               <div className="min-w-0">
                 <div className="text-14 text-ink font-medium truncate">
-                  {e.user?.full_name || 'Unknown employee'}
+                  {e.user?.full_name || '—'}
                 </div>
                 <div className="text-12 text-ink-3 truncate">
                   {e.job_title} · {e.department}

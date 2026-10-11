@@ -54,30 +54,17 @@ export default function SupervisorDashboard() {
         }
     >
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card as="div" padded={false} className="p-5 space-y-2">
-          <span className="text-12 text-ink-3">Direct Reports</span>
+      <Card as="div" padded={false} className="p-5 flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-1">
+          <span className="text-12 text-ink-3">Direct reports</span>
           <div className="text-22 font-bold font-num text-ink">
             {activeProbationers.length}
           </div>
-          <p className="text-12 text-ink-2">Assigned probationary staff</p>
-        </Card>
-
-        <Card as="div" padded={false} className="p-5 space-y-2">
-          <span className="text-12 text-ink-3">Passing Target</span>
-          <div className="text-16 font-semibold text-ink">
-            Statutory {TARGET.toFixed(1)} / 5.0
-          </div>
-          <p className="text-12 text-ink-2">Article 296 regularizing standard</p>
-        </Card>
-
-        <Card as="div" padded={false} className="p-5 space-y-2">
-          <span className="text-12 text-ink-3">Review Frequency</span>
-          <div className="text-16 font-semibold text-ink">Weekly</div>
-          <p className="text-12 text-ink-2">Evidentiary due-process cadence</p>
-        </Card>
-      </div>
+        </div>
+        <p className="text-12 text-ink-3">
+          Statutory {TARGET.toFixed(1)} / 5.0 regularizing standard · Article 296 · rated weekly
+        </p>
+      </Card>
 
       {/* Assigned Probationers Table */}
       <Card className="space-y-4">

@@ -270,8 +270,8 @@ REPUBLIC OF THE PHILIPPINES | LABOR CODE ARTICLE 296
 STATUTORY PROBATIONARY EVALUATION NOTICE
 ========================================================================
 Date Generated: ${formatDate(new Date())} (Asia/Manila Standard Time)
-Organization: ${user?.organization_name || user?.organization_id || 'N/A'}
-Employee: ${employee.user?.full_name || 'N/A'}
+Organization: ${user?.organization_name || user?.organization_id || '—'}
+Employee: ${employee.user?.full_name || '—'}
 Job Title / Department: ${employee.job_title} · ${employee.department}
 Start Date: ${formatDate(employee.start_date)} | Days Elapsed: Day ${elapsed} of ${PROBATION_DAYS}
 Statutory Status: ${
