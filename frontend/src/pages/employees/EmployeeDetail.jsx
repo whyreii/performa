@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, MilestonePill, Skeleton, Card, Page, Modal, EmptyState, textareaClass, ScoreLedger, TimelineDocket } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Card, Page, Modal, EmptyState, textareaClass, ScoreLedger, TimelineDocket, SectionHead, StatBand, GroupCard } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, COMPETENCIES } from '../../config/domain';
 import { BRAND } from '../../config/brand';
@@ -48,20 +48,6 @@ function ContributionBar({ label, contribution, maxAbs, isRisk }) {
   );
 }
 
-// Panel header (record concept): title (16) + optional muted subtitle (12),
-// with an optional right-hand note/tag (12).
-function CardHead({ label, subtitle, note }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 mb-4">
-      <div className="min-w-0">
-        <h2 className="text-16 font-semibold text-ink">{label}</h2>
-        {subtitle ? <p className="text-12 text-ink-3 mt-0.5">{subtitle}</p> : null}
-      </div>
-      {note ? <span className="text-12 text-ink-3 text-right">{note}</span> : null}
-    </div>
-  );
-}
-
 const MILESTONE_WINDOW_LABEL = {
   bad: 'Critical 48h window',
   notice: 'Written-notice window',
@@ -86,6 +72,7 @@ export default function EmployeeDetail() {
   const [statusReason, setStatusReason] = useState('');
   const [actionError, setActionError] = useState('');
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [showModelDetail, setShowModelDetail] = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
 
   // Fetch employee profile
@@ -546,49 +533,44 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         {/* Overall standing — employee self-view (record lens 03) */}
         {user?.role === 'probationary_employee' && scorecard && (
           <Card flat className="p-5 mt-4">
-            <CardHead
-              label="Overall standing"
+            <SectionHead
+              title="Overall standing"
               subtitle={
                 scorecard.latest_evaluation_date
                   ? `Latest week · ${formatDate(scorecard.latest_evaluation_date)}`
                   : undefined
               }
             />
-            <div className="grid grid-cols-3 divide-x divide-line border-y border-line -mx-5">
-              <div className="px-5 py-4">
-                <div className="text-12 text-ink-3">Overall average</div>
-                <div
-                  className={`text-30 font-semibold font-num mt-1 ${
-                    TONE_TEXT[scoreTone(Number(scorecard.overall_score), overallTarget)]
-                  }`}
-                >
-                  {Number(scorecard.overall_score).toFixed(2)}
-                </div>
-                <div className="text-12 text-ink-2 mt-1">across all competencies</div>
-              </div>
-              <div className="px-5 py-4">
-                <div className="text-12 text-ink-3">Target</div>
-                <div className="text-16 font-semibold font-num mt-1">
-                  {overallTarget.toFixed(1)}
-                </div>
-                <div className="text-12 text-ink-2 mt-1">to meet</div>
-              </div>
-              <div className="px-5 py-4">
-                <div className="text-12 text-ink-3">Day of probation</div>
-                <div className="text-16 font-semibold font-num mt-1">{daysElapsed}</div>
-                <div className="text-12 text-ink-2 mt-1">
-                  of {PROBATION_DAYS} · {isTerminal ? 'final record' : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining`}
-                </div>
-              </div>
-            </div>
+            <StatBand
+              className="-mx-5"
+              cells={[
+                {
+                  label: 'Overall average',
+                  value: Number(scorecard.overall_score).toFixed(2),
+                  caption: 'across all competencies',
+                  tone: scoreTone(Number(scorecard.overall_score), overallTarget),
+                },
+                { label: 'Target', value: overallTarget.toFixed(1), caption: 'to meet', size: 'base' },
+                {
+                  label: 'Day of probation',
+                  value: daysElapsed,
+                  caption: `of ${PROBATION_DAYS} · ${
+                    isTerminal
+                      ? 'final record'
+                      : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining`
+                  }`,
+                  size: 'base',
+                },
+              ]}
+            />
           </Card>
         )}
 
         {/* This week's rating — supervisor lens lead (rating-first) */}
         {lens === 'supervisor' && employee.status === 'active' && (
           <Card flat className="p-5 mt-4">
-            <CardHead
-              label="This week's rating"
+            <SectionHead
+              title="This week's rating"
               note={
                 latestWeek
                   ? `Last entered · ${formatDate(latestWeek.evaluation_date)}`
@@ -617,15 +599,13 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </Card>
         )}
 
-        {/* Record body — a main column plus an evidence rail on desktop */}
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-4 items-start">
-          {/* Main column — the lens lead + competency standing (+ AI for employer) */}
-          <div className="space-y-4 min-w-0">
+        {/* Record body — Lead, Evidence, then the full record */}
+        <div className="mt-4 space-y-4">
           {/* Recommendation — full-width lead card (employer/supervisor only; not shown to the employee) */}
           {user?.role !== 'probationary_employee' && (
           <Card className="p-5">
-            <CardHead
-              label="Recommendation"
+            <SectionHead
+              title="Recommendation"
               subtitle={
                 user?.role === 'employer'
                   ? 'Decision support · generated by the classifier'
@@ -743,17 +723,12 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
           {/* Competency standing */}
           <Card flat className="p-5">
-            <CardHead
-              label="Competency standing"
+            <SectionHead
+              title="Competency standing"
               subtitle={
                 scorecard?.latest_evaluation_date
                   ? `Latest week · ${formatDate(scorecard.latest_evaluation_date)}`
                   : `target ${TARGET.toFixed(1)} / 5.0`
-              }
-              note={
-                scorecard?.overall_score != null
-                  ? `Overall ${Number(scorecard.overall_score).toFixed(2)}`
-                  : undefined
               }
             />
             {isScoreLoading ? (
@@ -774,59 +749,139 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           {/* ML Risk Explanation — employer lens only (AI decision support) */}
           {lens === 'employer' && (isRiskLoading || riskExplanation) && (
             <Card flat className="p-5">
-              <CardHead
-                label="ML Risk Explanation"
+              <SectionHead
+                title="ML Risk Explanation"
                 subtitle="Feature importance for legal defensibility"
                 note={
                   riskExplanation
-                    ? `Random Forest · ${riskExplanation.predicted_tier} · ${(Number(riskExplanation.confidence) * 100).toFixed(0)}%`
+                    ? `Random Forest · ${(Number(riskExplanation.confidence) * 100).toFixed(0)}% confidence`
                     : 'Random Forest'
                 }
               />
-              {isRiskLoading ? (
-                <div className="space-y-4">
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <div key={i} className="space-y-1">
-                      <div className="flex justify-between">
-                        <Skeleton className="h-3 w-28" />
-                        <Skeleton className="h-3 w-12" />
-                      </div>
-                      <Skeleton className="h-1.5 w-full" />
+              <button
+                type="button"
+                onClick={() => setShowModelDetail((v) => !v)}
+                aria-expanded={showModelDetail}
+                className="inline-flex items-center gap-1.5 text-12 font-semibold text-accent hover:underline"
+              >
+                {showModelDetail ? 'Hide model detail' : 'Show model detail'}
+                {showModelDetail ? (
+                  <ChevronUp className="w-3.5 h-3.5" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5" />
+                )}
+              </button>
+              {showModelDetail && (
+                <div className="mt-4">
+                  {isRiskLoading ? (
+                    <div className="space-y-4">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <div key={i} className="space-y-1">
+                          <div className="flex justify-between">
+                            <Skeleton className="h-3 w-28" />
+                            <Skeleton className="h-3 w-12" />
+                          </div>
+                          <Skeleton className="h-1.5 w-full" />
+                        </div>
+                      ))}
                     </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <p className="text-12 text-ink-3">
+                        Feature importance for legal defensibility. Ranked by how much each moved this
+                        prediction (exact Shapley); red raises risk, green lowers it.
+                      </p>
+                      <div className="space-y-3">
+                        {contributionRows.map(({ key, contribution }) => (
+                          <ContributionBar
+                            key={key}
+                            label={competencyLabel(key)}
+                            contribution={contribution}
+                            maxAbs={maxAbsContribution}
+                            isRisk={(contribution >= 0) === (riskExplanation.shap_risk_polarity === 'risk')}
+                          />
+                        ))}
+                      </div>
+                      <div className="pt-4 border-t border-line">
+                        <p className="text-12 font-semibold text-ink-2 mb-2">Model-wide importance</p>
+                        <ul className="space-y-1">
+                          {modelImportance.map(({ key, value }) => (
+                            <li key={key} className="flex justify-between text-12 font-num text-ink-2">
+                              <span className="font-sans">{competencyLabel(key)}</span>
+                              <span>{(value * 100).toFixed(1)}%</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <p className="text-12 text-ink-3">
+                        Feature importance explains the model's output for this employee, not an
+                        employment decision.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card>
+          )}
+
+          {/* Full record — the evidence behind the decision */}
+          <GroupCard
+            title="Full record"
+            subtitle="Timeline, monthly trend, remarks, and the audit trail"
+          >
+          {/* Probation timeline */}
+          <Card flat className="p-5">
+            <SectionHead title="Probation timeline" subtitle="Article 296 · Asia/Manila" />
+            <TimelineDocket
+              startDate={employee.start_date}
+              day180Date={employee.day_180_date}
+              daysElapsed={daysElapsed}
+            />
+          </Card>
+
+          {/* Monthly KPI trend */}
+          {(isTrendLoading || trend.length > 0) && (
+            <Card flat className="p-5">
+              <SectionHead
+                title="Monthly KPI trend"
+                subtitle="Monthly rollup"
+                note={`target ≥ ${overallTarget.toFixed(2)}`}
+              />
+              {isTrendLoading ? (
+                <div className="space-y-3">
+                  {[0, 1, 2].map((i) => (
+                    <Skeleton key={i} className="h-6 w-full" />
                   ))}
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-12 text-ink-3">
-                    Feature importance for legal defensibility. Ranked by how much each moved this
-                    prediction (exact Shapley); red raises risk, green lowers it.
-                  </p>
-                  <div className="space-y-3">
-                    {contributionRows.map(({ key, contribution }) => (
-                      <ContributionBar
-                        key={key}
-                        label={competencyLabel(key)}
-                        contribution={contribution}
-                        maxAbs={maxAbsContribution}
-                        isRisk={(contribution >= 0) === (riskExplanation.shap_risk_polarity === 'risk')}
-                      />
-                    ))}
-                  </div>
-                  <div className="pt-4 border-t border-line">
-                    <p className="text-12 font-semibold text-ink-2 mb-2">Model-wide importance</p>
-                    <ul className="space-y-1">
-                      {modelImportance.map(({ key, value }) => (
-                        <li key={key} className="flex justify-between text-12 font-num text-ink-2">
-                          <span className="font-sans">{competencyLabel(key)}</span>
-                          <span>{(value * 100).toFixed(1)}%</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <p className="text-12 text-ink-3">
-                    Feature importance explains the model's output for this employee, not an
-                    employment decision.
-                  </p>
+                  {trend.map((point) => (
+                    <div key={point.month_number} className="space-y-1.5">
+                      <div className="flex justify-between text-12 font-num text-ink-2">
+                        <span>Month {point.month_number}</span>
+                        <span
+                          className={`font-semibold ${
+                            Number(point.overall_average) >= overallTarget ? 'text-good' : 'text-warn'
+                          }`}
+                        >
+                          {Number(point.overall_average).toFixed(2)} / 5.0
+                        </span>
+                      </div>
+                      <div className="relative h-2.5 w-full bg-hover border border-line rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-[width] ${
+                            Number(point.overall_average) >= overallTarget ? 'bg-good' : 'bg-warn'
+                          }`}
+                          style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
+                        />
+                        <div
+                          className="absolute top-0 bottom-0 w-0.5 bg-ink/60 z-10"
+                          style={{ left: `${(overallTarget / 5) * 100}%` }}
+                          title={`Target ${overallTarget.toFixed(2)} / 5.0`}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </Card>
@@ -834,8 +889,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
           {/* Supervisor remarks (behavioral notes from weekly ratings) */}
           <Card flat className="p-5">
-            <CardHead
-              label="Supervisor remarks"
+            <SectionHead
+              title="Supervisor remarks"
               subtitle="From weekly ratings"
               note={notedRemarks.length ? `${notedRemarks.length} noted` : undefined}
             />
@@ -859,14 +914,10 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             )}
           </Card>
 
-          </div>
-
-          {/* Evidence rail — audit history, statutory timeline, monthly rollup */}
-          <div className="space-y-4 min-w-0">
           {/* Evaluation history (immutable audit trail) */}
           <Card flat className="p-5">
-            <CardHead
-              label="Evaluation history"
+            <SectionHead
+              title="Evaluation history"
               subtitle="Immutable · append-only"
               note={
                 <span className="inline-flex items-center gap-2">
@@ -952,73 +1003,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </>
             )}
           </Card>
+          </GroupCard>
 
-          {/* Probation timeline */}
-          <Card flat className="p-5">
-            <CardHead
-              label="Probation timeline"
-              subtitle="Article 296 · Asia/Manila"
-              note={
-                isTerminal
-                  ? `Day ${daysElapsed} / ${PROBATION_DAYS} · final record`
-                  : `Day ${daysElapsed} / ${PROBATION_DAYS} · ${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining`
-              }
-            />
-            <TimelineDocket
-              startDate={employee.start_date}
-              day180Date={employee.day_180_date}
-              daysElapsed={daysElapsed}
-            />
-          </Card>
-
-          {/* Monthly KPI trend */}
-          {(isTrendLoading || trend.length > 0) && (
-            <Card flat className="p-5">
-              <CardHead
-                label="Monthly KPI trend"
-                subtitle="Monthly rollup"
-                note={`target ≥ ${overallTarget.toFixed(2)}`}
-              />
-              {isTrendLoading ? (
-                <div className="space-y-3">
-                  {[0, 1, 2].map((i) => (
-                    <Skeleton key={i} className="h-6 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {trend.map((point) => (
-                    <div key={point.month_number} className="space-y-1.5">
-                      <div className="flex justify-between text-12 font-num text-ink-2">
-                        <span>Month {point.month_number}</span>
-                        <span
-                          className={`font-semibold ${
-                            Number(point.overall_average) >= overallTarget ? 'text-good' : 'text-warn'
-                          }`}
-                        >
-                          {Number(point.overall_average).toFixed(2)} / 5.0
-                        </span>
-                      </div>
-                      <div className="relative h-2.5 w-full bg-hover border border-line rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-[width] ${
-                            Number(point.overall_average) >= overallTarget ? 'bg-good' : 'bg-warn'
-                          }`}
-                          style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
-                        />
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-ink/60 z-10"
-                          style={{ left: `${(overallTarget / 5) * 100}%` }}
-                          title={`Target ${overallTarget.toFixed(2)} / 5.0`}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          )}
-          </div>
         </div>
 
         {/* Print-only signature block */}

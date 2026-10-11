@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi } from '../../api';
-import { Button, Skeleton, Card, Page, CountUp, inputClass, GlideSelect, Th } from '../../components/ui';
+import { Button, Skeleton, Card, Page, CountUp, inputClass, GlideSelect, Th, SectionHead, StatBand } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { milestoneTone, milestoneFor, nextMilestone, TONE_TEXT, TONE_BG } from '../../utils/status';
@@ -145,60 +145,42 @@ export default function Dashboard() {
         </>
       }
     >
-      {/* Stat band — boxed, rounded, hairline-divided (concept) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line rounded-float border border-line overflow-hidden">
-        <div className="bg-surface px-5 py-4">
-          <div className="flex items-center gap-2 text-12 text-ink-3">
-            <span className={`w-2 h-2 rounded-full shrink-0 ${TONE_BG.bad}`} aria-hidden="true" />
-            Past cap · auto-regular
-          </div>
-          <div className="font-num text-30 font-semibold text-ink mt-2">
-            <CountUp value={stats.pastCap} />
-          </div>
-          <div className="text-12 text-ink-2 mt-2">Past Day {PROBATION_DAYS} · regular by operation of law</div>
-        </div>
-        <div className="bg-surface px-5 py-4">
-          <div className="flex items-center gap-2 text-12 text-ink-3">
-            <span className={`w-2 h-2 rounded-full shrink-0 ${TONE_BG.warn}`} aria-hidden="true" />
-            Decisions due
-          </div>
-          <div className="font-num text-30 font-semibold text-ink mt-2">
-            <CountUp value={stats.decisionsDue} />
-          </div>
-          <div className="text-12 text-ink-2 mt-2">
-            Day {MILESTONE_REVIEW}–{PROBATION_DAYS} window
-          </div>
-        </div>
-        <div className="bg-surface px-5 py-4">
-          <div className="flex items-center gap-2 text-12 text-ink-3">
-            <span className={`w-2 h-2 rounded-full shrink-0 ${TONE_BG.ok}`} aria-hidden="true" />
-            On track
-          </div>
-          <div className="font-num text-30 font-semibold text-ink mt-2">
-            <CountUp value={stats.onTrack} />
-          </div>
-          <div className="text-12 text-ink-2 mt-2">Below Day {MILESTONE_REVIEW}</div>
-        </div>
-        <div className="bg-surface px-5 py-4">
-          <div className="text-12 text-ink-3">Interventions pending</div>
-          <div className="font-num text-30 font-semibold text-ink mt-2">
-            <CountUp value={stats.pendingPlans} />
-          </div>
-          <div className="text-12 text-ink-2 mt-2">
-            {stats.pendingPlans === 0 ? 'None awaiting sign-off' : 'Awaiting sign-off'}
-          </div>
-        </div>
-      </div>
+      {/* Stat band — the canonical hairline-divided row */}
+      <StatBand
+        cells={[
+          {
+            label: 'Past cap · auto-regular',
+            value: <CountUp value={stats.pastCap} />,
+            caption: `Past Day ${PROBATION_DAYS} · regular by operation of law`,
+            tone: 'bad',
+          },
+          {
+            label: 'Decisions due',
+            value: <CountUp value={stats.decisionsDue} />,
+            caption: `Day ${MILESTONE_REVIEW}–${PROBATION_DAYS} window`,
+            tone: 'warn',
+          },
+          {
+            label: 'On track',
+            value: <CountUp value={stats.onTrack} />,
+            caption: `Below Day ${MILESTONE_REVIEW}`,
+            tone: 'ok',
+          },
+          {
+            label: 'Interventions pending',
+            value: <CountUp value={stats.pendingPlans} />,
+            caption: stats.pendingPlans === 0 ? 'None awaiting sign-off' : 'Awaiting sign-off',
+          },
+        ]}
+      />
 
       {/* Action required before Day 180 */}
       {showUrgent && (
         <Card className="space-y-3">
-          <div>
-            <h2 className="text-16 font-semibold text-ink">Action required before Day {PROBATION_DAYS}</h2>
-            <p className="text-12 text-ink-3 mt-0.5 font-num">
-              {urgent.emp.user?.full_name} · Day {urgent.days}
-            </p>
-          </div>
+          <SectionHead
+            title={`Action required before Day ${PROBATION_DAYS}`}
+            subtitle={`${urgent.emp.user?.full_name} · Day ${urgent.days}`}
+          />
           <p className="text-14 text-ink-2 leading-relaxed">
             <span className={`font-semibold ${TONE_TEXT[urgent.tone]}`}>
               {milestoneFor(urgent.days, 'active').label}
@@ -212,13 +194,12 @@ export default function Dashboard() {
 
       {/* Worklist — searchable, filterable table; one row per probationer */}
       <Card flat className="space-y-4">
-        <div>
-          <h2 className="text-16 font-semibold text-ink">Needs your action</h2>
-          <p className="text-12 text-ink-3 mt-0.5">
-            {worklist.length} probationary employee
-            {worklist.length === 1 ? '' : 's'} · nearest cap first
-          </p>
-        </div>
+        <SectionHead
+          title="Needs your action"
+          subtitle={`${worklist.length} probationary employee${
+            worklist.length === 1 ? '' : 's'
+          } · nearest cap first`}
+        />
 
         {/* Filters — table toolbar */}
         <div className="flex flex-wrap items-center gap-2">
@@ -348,10 +329,7 @@ export default function Dashboard() {
 
       {/* AI recommendations */}
       <Card flat className="space-y-4">
-        <div>
-          <h2 className="text-16 font-semibold text-ink">AI recommendations</h2>
-          <p className="text-12 text-ink-3 mt-0.5">Random Forest gap classifier</p>
-        </div>
+        <SectionHead title="AI recommendations" subtitle="Random Forest gap classifier" />
 
         {isPlansLoading ? (
           <div className="space-y-3">

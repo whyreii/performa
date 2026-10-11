@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, MilestonePill, Skeleton, Card, Page, AsyncBoundary } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Card, Page, AsyncBoundary, SectionHead } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
 import { CheckCircle2, ArrowRight, BookOpen, TrendingUp, UserCheck } from '../../components/icons';
@@ -34,15 +34,6 @@ function employeeSummaryLine(summary) {
   return summary.status_classification === 'Meets Expectations'
     ? `You're meeting the regularizing standard across all five competencies. Smallest margin: ${lowest.label} (${lowest.value.toFixed(2)}).`
     : `You're below the regularizing standard in at least one competency. Lowest: ${lowest.label} (${lowest.value.toFixed(2)}).`;
-}
-
-function CardHead({ label, note }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 mb-4">
-      <h2 className="text-16 font-semibold text-ink">{label}</h2>
-      {note ? <span className="text-12 text-ink-3 text-right">{note}</span> : null}
-    </div>
-  );
 }
 
 // Competency radar: the employee's five scores as a shape over the 4.0 target ring.
@@ -252,8 +243,8 @@ export default function EmployeeDashboard() {
 
       {/* How you're doing */}
       <Card className="p-5">
-        <CardHead
-          label="How you’re doing"
+        <SectionHead
+          title="How you’re doing"
           note={
             overall !== null
               ? `${meetsStandard ? 'On track' : 'Below'} · target ${TARGET.toFixed(1)}`
@@ -291,8 +282,8 @@ export default function EmployeeDashboard() {
 
       {/* G — From your supervisor */}
       <Card flat className="p-5">
-        <CardHead
-          label="From your supervisor"
+        <SectionHead
+          title="From your supervisor"
           note={
             notedRemarks.length + auditLogs.length
               ? `${notedRemarks.length + auditLogs.length} updates`
@@ -406,8 +397,8 @@ export default function EmployeeDashboard() {
         <div className="space-y-4 min-w-0">
       {/* Your checklist */}
       <Card flat className="p-5">
-        <CardHead
-          label="Your checklist"
+        <SectionHead
+          title="Your checklist"
           note={`${checklist.filter((c) => c.done).length} of ${checklist.length} done`}
         />
         <ul className="divide-y divide-line">
@@ -454,7 +445,7 @@ export default function EmployeeDashboard() {
 
       {/* Month by month */}
       <Card flat className="p-5">
-        <CardHead label="Month by month" note="your monthly average" />
+        <SectionHead title="Month by month" note="your monthly average" />
         {isTrendLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : (
