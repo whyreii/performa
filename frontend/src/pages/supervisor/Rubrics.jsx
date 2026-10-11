@@ -1,16 +1,109 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { kpiApi } from '../../api';
-import { TARGET } from '../../config/domain';
-import { Target, Award, BookOpen, AlertCircle } from '../../components/icons';
-import { Card, Page } from '../../components/ui';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { kpiApi, getApiErrorMessage } from '../../api';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { TARGET, COMPETENCIES } from '../../config/domain';
+import { AlertCircle } from '../../components/icons';
+import { Card, Page, Button, Badge, inputClass } from '../../components/ui';
+
+// Fallback weight used only when the API has not provisioned a tenant default yet.
+const DEFAULT_WEIGHT = 0.2;
+
+const prettyTemplate = (key) =>
+  key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 
 export default function Rubrics() {
+  const { user } = useAuth();
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const canEdit = user?.role === 'employer';
+
   const { data: dbRubrics = [], isError: isRubricsError } = useQuery({
     queryKey: ['kpi-rubrics'],
     queryFn: () => kpiApi.list(),
   });
-  const rubricMap = Object.fromEntries(dbRubrics.map((r) => [r.competency, r]));
+
+  // Industry template presets are only needed by the role that can apply them.
+  const { data: templates = {} } = useQuery({
+    queryKey: ['kpi-templates'],
+    queryFn: () => kpiApi.templates(),
+    enabled: canEdit,
+  });
+
+  const [form, setForm] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+
+  useEffect(() => {
+    if (!dbRubrics.length) return;
+    const map = Object.fromEntries(dbRubrics.map((r) => [r.competency, r]));
+    setForm(
+      COMPETENCIES.map((c) => {
+        const r = map[c.key];
+        return {
+          competency: c.key,
+          label: c.label,
+          target: String(Number(r?.target_score ?? TARGET)),
+          weightPct: String(Math.round(Number(r?.weight ?? DEFAULT_WEIGHT) * 100)),
+        };
+      })
+    );
+  }, [dbRubrics]);
+
+  const rubricMap = useMemo(
+    () => Object.fromEntries(dbRubrics.map((r) => [r.competency, r])),
+    [dbRubrics]
+  );
+
+  const weightTotal = form.reduce((sum, row) => sum + (Number(row.weightPct) || 0), 0);
+
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      Promise.all(
+        form.map((row) =>
+          kpiApi.update(row.competency, {
+            target_score: Number(row.target),
+            weight: (Number(row.weightPct) || 0) / 100,
+          })
+        )
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kpi-rubrics'] });
+      toast.success('KPI configuration saved.');
+    },
+    onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to save KPI configuration.')),
+  });
+
+  const resetMutation = useMutation({
+    mutationFn: () => kpiApi.reset(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kpi-rubrics'] });
+      toast.success('Reset to platform defaults.');
+    },
+    onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to reset KPI configuration.')),
+  });
+
+  function updateRow(competency, patch) {
+    setForm((prev) =>
+      prev.map((row) => (row.competency === competency ? { ...row, ...patch } : row))
+    );
+  }
+
+  function applyTemplate(name) {
+    const tpl = templates[name];
+    if (!tpl) return;
+    setForm((prev) =>
+      prev.map((row) => {
+        const t = tpl[row.competency];
+        if (!t) return row;
+        return {
+          ...row,
+          target: String(Number(t.target_score)),
+          weightPct: String(Math.round(Number(t.weight) * 100)),
+        };
+      })
+    );
+  }
 
   const rubrics = [
     {
@@ -101,6 +194,110 @@ export default function Rubrics() {
           In Philippine labor law, reasonable standards of performance must be made known to the employee at the time of engagement (Day 1). Ratings assigned in weekly evaluations directly enforce these communicated criteria.
         </p>
       </Card>
+
+      {/* KPI Configuration — Employer only (Art. 296: targets & weights are employer-configurable) */}
+      {canEdit && form.length > 0 && (
+        <Card className="p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-16 font-semibold text-ink">KPI Configuration</h2>
+              <p className="text-12 text-ink-3 mt-0.5">
+                Set the target and weight for each statutory competency. Targets are floored at
+                the {TARGET.toFixed(1)} regularizing standard; weights are relative.
+              </p>
+            </div>
+            <Badge variant={weightTotal === 100 ? 'ok' : 'warn'}>Weights {weightTotal}%</Badge>
+          </div>
+
+          <div className="space-y-3">
+            {form.map((row) => (
+              <div key={row.competency} className="flex flex-wrap items-center gap-3">
+                <span className="text-14 text-ink flex-1">{row.label}</span>
+                <div className="flex items-center gap-2">
+                  <label htmlFor={`target-${row.competency}`} className="text-12 text-ink-3">
+                    Target
+                  </label>
+                  <div className="w-20">
+                    <input
+                      id={`target-${row.competency}`}
+                      type="number"
+                      inputMode="decimal"
+                      min={TARGET}
+                      max={TARGET + 1}
+                      step={0.1}
+                      value={row.target}
+                      onChange={(e) => updateRow(row.competency, { target: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label htmlFor={`weight-${row.competency}`} className="text-12 text-ink-3">
+                    Weight %
+                  </label>
+                  <div className="w-20">
+                    <input
+                      id={`weight-${row.competency}`}
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={row.weightPct}
+                      onChange={(e) => updateRow(row.competency, { weightPct: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col lg:flex-row lg:items-end gap-3 pt-3 border-t border-line">
+            <div className="w-full lg:w-64">
+              <label htmlFor="kpi-template" className="block text-12 font-medium text-ink-2 mb-1">
+                Industry template
+              </label>
+              <select
+                id="kpi-template"
+                className={inputClass}
+                value={selectedTemplate}
+                onChange={(e) => setSelectedTemplate(e.target.value)}
+              >
+                <option value="">Choose a template…</option>
+                {Object.keys(templates).map((key) => (
+                  <option key={key} value={key}>
+                    {prettyTemplate(key)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <Button
+              variant="secondary"
+              disabled={!selectedTemplate}
+              onClick={() => applyTemplate(selectedTemplate)}
+            >
+              Apply template
+            </Button>
+            <div className="flex gap-2 lg:ml-auto">
+              <Button
+                variant="secondary"
+                isLoading={resetMutation.isPending}
+                onClick={() => resetMutation.mutate()}
+              >
+                Reset to defaults
+              </Button>
+              <Button
+                variant="primary"
+                isLoading={saveMutation.isPending}
+                onClick={() => saveMutation.mutate()}
+              >
+                Save changes
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Rubrics Grid */}
       <div className="space-y-6">

@@ -142,10 +142,6 @@ export const employeeApi = {
     const response = await apiClient.get('/api/employees/', { params });
     return response.data;
   },
-  getMilestones: async () => {
-    const response = await apiClient.get('/api/employees/milestones');
-    return response.data;
-  },
   scanMilestones: async () => {
     const response = await apiClient.post('/api/employees/milestones/scan');
     return response.data;
@@ -303,10 +299,6 @@ export const adminApi = {
   },
   listActivity: async (params = {}) => {
     const response = await apiClient.get('/api/admin/activity', { params });
-    return response.data;
-  },
-  getSettings: async () => {
-    const response = await apiClient.get('/api/admin/settings');
     return response.data;
   },
   getReportsOverview: async () => {

@@ -44,7 +44,7 @@ export default function SupervisorDashboard() {
         }
         actions={
           <>
-            <Button variant="secondary" onClick={() => navigate('/supervisor/rubrics')}>
+            <Button variant="secondary" onClick={() => navigate('/rubrics')}>
               KPI Rubrics
             </Button>
             <Button variant="primary" leftIcon={Award} onClick={() => navigate('/supervisor/rate')}>

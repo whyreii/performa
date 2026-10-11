@@ -14,7 +14,6 @@ export function createApiMock() {
     },
     employeeApi: {
       list: vi.fn(),
-      getMilestones: vi.fn(),
       scanMilestones: vi.fn(),
       listSupervisors: vi.fn(),
       getById: vi.fn(),
@@ -52,7 +51,6 @@ export function createApiMock() {
       updateStatus: vi.fn(),
       resetPassword: vi.fn(),
       listActivity: vi.fn(),
-      getSettings: vi.fn(),
       getReportsOverview: vi.fn(),
     },
     organizationApi: { update: vi.fn() },

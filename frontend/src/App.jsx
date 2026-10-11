@@ -17,7 +17,7 @@ const EmployeeSplit = lazy(routeLoaders['/employees']);
 const EmployeeDetail = lazy(routeLoaders['/employees/:id']);
 const RateEmployee = lazy(routeLoaders['/supervisor/rate']);
 const SupervisorDashboard = lazy(routeLoaders['/supervisor/dashboard']);
-const Rubrics = lazy(routeLoaders['/supervisor/rubrics']);
+const Rubrics = lazy(routeLoaders['/rubrics']);
 const Dashboard = lazy(routeLoaders['/dashboard']);
 const Rollups = lazy(routeLoaders['/rollups']);
 const AuditTrail = lazy(routeLoaders['/audits']);
@@ -43,7 +43,7 @@ const ROUTE_TITLES = [
   ['/admin/activity', 'Activity Log'],
   ['/supervisor/dashboard', 'Supervisor Dashboard'],
   ['/supervisor/rate', 'Rate Employee'],
-  ['/supervisor/rubrics', 'KPI Rubrics'],
+  ['/rubrics', 'KPI Rubrics'],
   ['/employee/dashboard', 'My Scorecard'],
   ['/employee/training', 'Training Plans'],
   ['/employees', 'Employee Directory'],
@@ -234,9 +234,9 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/supervisor/rubrics"
+                  path="/rubrics"
                   element={
-                    <ProtectedRoute allowedRoles={['supervisor', 'employer']}>
+                    <ProtectedRoute allowedRoles={['admin', 'supervisor', 'employer']}>
                       <Rubrics />
                     </ProtectedRoute>
                   }

@@ -17,7 +17,7 @@ export const routeLoaders = {
   '/rollups': () => import('../pages/employer/Rollups'),
   '/supervisor/dashboard': () => import('../pages/supervisor/SupervisorDashboard'),
   '/supervisor/rate': () => import('../pages/supervisor/RateEmployee'),
-  '/supervisor/rubrics': () => import('../pages/supervisor/Rubrics'),
+  '/rubrics': () => import('../pages/supervisor/Rubrics'),
   '/employee/dashboard': () => import('../pages/employee/EmployeeDashboard'),
   '/employee/training': () => import('../pages/employee/EmployeeTraining'),
 };

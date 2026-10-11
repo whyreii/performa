@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import Rubrics from './Rubrics';
 import { kpiApi } from '../../api';
 import { renderWithProviders } from '../../test/renderWithProviders';
@@ -15,17 +15,58 @@ const RUBRICS = [
   'initiative_and_adaptability',
 ].map((competency) => ({ competency, target_score: 4.4, weight: 0.2 }));
 
+const RETAIL_TEMPLATE = {
+  task_completion: { target_score: 4.5, weight: 0.3 },
+  quality_of_work: { target_score: 4.0, weight: 0.2 },
+  attendance_and_punctuality: { target_score: 4.0, weight: 0.2 },
+  communication_and_teamwork: { target_score: 4.0, weight: 0.15 },
+  initiative_and_adaptability: { target_score: 4.0, weight: 0.15 },
+};
+
 beforeEach(() => localStorage.clear());
 
 describe('Rubrics', () => {
   it('renders the five competency rubrics with targets from the API', async () => {
     kpiApi.list.mockResolvedValue(RUBRICS);
-    renderWithProviders(<Rubrics />, { route: '/supervisor/rubrics', user: testUser('employer') });
+    renderWithProviders(<Rubrics />, { route: '/rubrics', user: testUser('employer') });
     expect(
       await screen.findByRole('heading', { name: 'KPI Performance Rubrics' })
     ).toBeInTheDocument();
     expect(await screen.findByText('1. Task Completion & Work Output')).toBeInTheDocument();
     // Target reflects the configured API value, not the 4.0 fallback literal.
     expect(await screen.findAllByText(/4\.4 \/ 5\.0/)).not.toHaveLength(0);
+  });
+
+  it('lets an employer apply an industry template and save the configuration', async () => {
+    kpiApi.list.mockResolvedValue(RUBRICS);
+    kpiApi.templates.mockResolvedValue({ retail: RETAIL_TEMPLATE });
+    kpiApi.update.mockResolvedValue({});
+    renderWithProviders(<Rubrics />, { route: '/rubrics', user: testUser('employer') });
+
+    expect(
+      await screen.findByRole('heading', { name: 'KPI Configuration' })
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Industry template'), { target: { value: 'retail' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Apply template' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    await waitFor(() => expect(kpiApi.update).toHaveBeenCalledTimes(5));
+    expect(kpiApi.update).toHaveBeenCalledWith('task_completion', {
+      target_score: 4.5,
+      weight: 0.3,
+    });
+  });
+
+  it('shows the rubrics read-only for a supervisor (no configuration controls)', async () => {
+    kpiApi.list.mockResolvedValue(RUBRICS);
+    renderWithProviders(<Rubrics />, { route: '/rubrics', user: testUser('supervisor') });
+
+    expect(
+      await screen.findByRole('heading', { name: 'KPI Performance Rubrics' })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'KPI Configuration' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
+    expect(kpiApi.templates).not.toHaveBeenCalled();
   });
 });

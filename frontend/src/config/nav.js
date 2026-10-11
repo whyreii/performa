@@ -29,7 +29,7 @@ export const ROUTES = {
   rollups: { path: '/rollups', icon: FileCheck2 },
   supervisorDashboard: { path: '/supervisor/dashboard', icon: LayoutDashboard },
   rate: { path: '/supervisor/rate', icon: Award },
-  rubrics: { path: '/supervisor/rubrics', icon: Target },
+  rubrics: { path: '/rubrics', icon: Target },
   employeeDashboard: { path: '/employee/dashboard', icon: Award },
   training: { path: '/employee/training', icon: BookOpen },
 };
@@ -40,23 +40,27 @@ export const NAV_BY_ROLE = {
     sidebar: [
       ['adminUsers', 'User Accounts'],
       ['adminActivity', 'Activity Log'],
+      ['rubrics', 'KPI Rubrics'],
       ['notifications', 'Notifications'],
       ['settings', 'Settings'],
     ],
     tabs: [
       ['adminUsers', 'Accounts'],
       ['adminActivity', 'Activity'],
+      ['rubrics', 'Rubrics'],
       ['settings', 'Settings'],
     ],
     commands: [
       ['adminUsers', 'Manage User Accounts'],
       ['adminActivity', 'System Activity Log'],
+      ['rubrics', 'View KPI Rubrics'],
     ],
   },
   employer: {
     sidebar: [
       ['dashboard', 'Dashboard'],
       ['employees', 'Employees'],
+      ['rubrics', 'KPI Configuration'],
       ['rollups', 'Rollups & AI Plans'],
       ['audits', 'Audit Trail'],
       ['notifications', 'Notifications'],
@@ -72,6 +76,7 @@ export const NAV_BY_ROLE = {
     commands: [
       ['dashboard', 'Go to Employer Dashboard'],
       ['employees', 'View Employee Directory'],
+      ['rubrics', 'KPI Configuration & Rubrics'],
       ['rollups', 'Monthly Rollups & AI Plans'],
       ['audits', 'Audit Trail & Compliance Logs'],
     ],
