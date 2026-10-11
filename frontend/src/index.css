@@ -487,11 +487,12 @@ html {
   }
 }
 
-/* Flat sections (Surface `flat`): no card chrome — a hairline under the section
-   heading separates blocks instead of a full-width rule floating above them. */
-[data-flat] h2 {
+/* Flat sections (Surface `flat`): no card chrome. The section's heading row gets
+   a full-width hairline divider underneath (not a short stub under the label),
+   so blocks read as separated sections without floating rules. */
+[data-flat] > div:first-child {
   border-bottom: 1px solid var(--line);
-  padding-bottom: 0.375rem;
+  padding-bottom: 0.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
