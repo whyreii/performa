@@ -487,6 +487,13 @@ html {
   }
 }
 
+/* Flat sections (Surface `flat`): no card chrome — a hairline under the section
+   heading separates blocks instead of a full-width rule floating above them. */
+[data-flat] h2 {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.375rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -20,13 +20,14 @@ export default function Surface({
   ...props
 }) {
   // `flat` drops the card chrome (border, radius, fill) so a block sits directly
-  // on the page surface as a hairline-separated section (DECISIONS.md: flat
-  // hairline sections over floating cards). Padding/`p-*` classes still apply.
+  // on the page surface. A hairline under the section heading (see index.css,
+  // `[data-flat]`) separates it from the next section instead of a floating rule.
   const base = flat
-    ? 'border-t border-line'
+    ? ''
     : `border border-line rounded-float ${TONE[tone] || TONE.surface}`;
   return (
     <Tag
+      data-flat={flat ? '' : undefined}
       className={`${base}${!flat && elevated ? ' shadow-pop' : ''}${padded ? ' p-6' : ''}${
         className ? ` ${className}` : ''
       }`}
