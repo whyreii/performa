@@ -8,12 +8,12 @@ import { employee, auditRows, scorecard, testUser } from '../../test/apiMock';
 
 vi.mock('../../api', async () => (await import('../../test/apiMock')).createApiMock());
 
-function renderDetail() {
+function renderDetail(role = 'employer') {
   return renderWithProviders(
     <Routes>
       <Route path="/employees/:id" element={<EmployeeDetail />} />
     </Routes>,
-    { route: '/employees/e-1', user: testUser('employer') }
+    { route: '/employees/e-1', user: testUser(role) }
   );
 }
 
@@ -145,5 +145,18 @@ describe('EmployeeDetail', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Verify integrity' }));
     expect(await screen.findByText('Chain verified · 12')).toBeInTheDocument();
     expect(evaluationApi.verifyAuditChain).toHaveBeenCalledWith('e-1');
+  });
+
+  it('hides the recommendation and ML panel from the employee (self view)', async () => {
+    primeHappyPath();
+    renderDetail('probationary_employee');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Competency standing' })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Recommendation' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'ML Risk Explanation' })
+    ).not.toBeInTheDocument();
   });
 });

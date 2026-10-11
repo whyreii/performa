@@ -528,7 +528,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
         {/* Overview board */}
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Recommendation — full-width lead card */}
+          {/* Recommendation — full-width lead card (employer/supervisor only; not shown to the employee) */}
+          {user?.role !== 'probationary_employee' && (
           <Card className="p-5 lg:col-span-2">
             <CardHead
               label="Recommendation"
@@ -649,6 +650,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </p>
             )}
           </Card>
+          )}
 
           {/* Competency standing */}
           <Card flat className="p-5">
@@ -669,7 +671,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </Card>
 
           {/* ML Risk Explanation */}
-          {(isRiskLoading || riskExplanation) && (
+          {(isRiskLoading || riskExplanation) && user?.role !== 'probationary_employee' && (
             <Card flat className="p-5">
               <CardHead
                 label="ML Risk Explanation"
