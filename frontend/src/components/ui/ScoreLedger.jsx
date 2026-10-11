@@ -18,7 +18,7 @@ export default function ScoreLedger({ competencies = [] }) {
             <div className="sc-ledger__l">
               <div className="sc-ledger__n">{comp.label}</div>
               <div className="sc-ledger__d">
-                {COMPETENCY_DESCRIPTIONS[comp.key] || 'Statutory competency'}
+                {COMPETENCY_DESCRIPTIONS[comp.key] || 'Core competency'}
               </div>
               <div
                 className="sc-ledger__track"

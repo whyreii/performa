@@ -395,7 +395,7 @@ export default function RateEmployee() {
             <div>
               <h3 className="text-16 font-semibold text-ink">Overall Evaluation Summary</h3>
               <p className="text-12 text-ink-3 mt-0.5">
-                Calculated across the 5 statutory competencies
+                Calculated across the 5 core competencies
               </p>
             </div>
 

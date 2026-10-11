@@ -175,7 +175,7 @@ export default function Rubrics() {
   return (
     <Page
         title="KPI Performance Rubrics"
-        subtitle="The 5 Statutory Competencies & Regularizing Benchmarks · Philippine Labor Code Art. 296"
+        subtitle="The 5 Core Competencies & Regularizing Benchmarks · Philippine Labor Code Art. 296"
     >
 
       {isRubricsError && (
@@ -206,7 +206,7 @@ export default function Rubrics() {
             <div>
               <h2 className="text-16 font-semibold text-ink">KPI Configuration</h2>
               <p className="text-12 text-ink-3 mt-0.5">
-                Set the target and weight for each statutory competency. Targets are floored at
+                Set the target and weight for each core competency. Targets are floored at
                 the {TARGET.toFixed(1)} regularizing standard; weights are relative.
               </p>
             </div>
