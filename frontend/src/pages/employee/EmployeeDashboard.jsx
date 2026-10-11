@@ -12,6 +12,30 @@ import { CheckCircle2, ArrowRight, BookOpen, TrendingUp, UserCheck } from '../..
 const LABEL_BY_KEY = Object.fromEntries(COMPETENCIES.map((c) => [c.key, c.label]));
 const competencyLabel = (key) => LABEL_BY_KEY[key] || key.replace(/_/g, ' ');
 
+// Monthly-summary competency averages, in the order the API returns them.
+const SUMMARY_COMPETENCY_FIELDS = [
+  { field: 'avg_task_completion', label: 'Task Completion' },
+  { field: 'avg_attendance', label: 'Attendance & Punctuality' },
+  { field: 'avg_communication', label: 'Communication & Teamwork' },
+  { field: 'avg_initiative', label: 'Initiative & Adaptability' },
+  { field: 'avg_quality', label: 'Quality of Work' },
+];
+
+// A second-person, per-lens reading of a monthly summary for the employee's own
+// view. Deterministic (derived from the summary's own averages) so the employee
+// never reads the employer's third-person wording as their own voice.
+function employeeSummaryLine(summary) {
+  const scored = SUMMARY_COMPETENCY_FIELDS.map((c) => ({
+    label: c.label,
+    value: Number(summary[c.field]),
+  })).filter((c) => Number.isFinite(c.value));
+  if (!scored.length) return null;
+  const lowest = scored.reduce((a, b) => (b.value < a.value ? b : a));
+  return summary.status_classification === 'Meets Expectations'
+    ? `You're meeting the regularizing standard across all five competencies. Smallest margin: ${lowest.label} (${lowest.value.toFixed(2)}).`
+    : `You're below the regularizing standard in at least one competency. Lowest: ${lowest.label} (${lowest.value.toFixed(2)}).`;
+}
+
 function CardHead({ label, note }) {
   return (
     <div className="flex items-baseline justify-between gap-3 mb-4">
@@ -448,8 +472,14 @@ export default function EmployeeDashboard() {
                         </Button>
                       )}
                     </div>
+                    {employeeSummaryLine(s) && (
+                      <p className="text-14 text-ink mt-1.5 leading-relaxed">{employeeSummaryLine(s)}</p>
+                    )}
                     {s.performance_summary && (
-                      <p className="text-14 text-ink-2 mt-1.5 leading-relaxed">{s.performance_summary}</p>
+                      <p className="text-14 text-ink-2 mt-1 leading-relaxed">
+                        <span className="text-ink-3">From your employer: </span>
+                        {s.performance_summary}
+                      </p>
                     )}
                   </li>
                 ))}

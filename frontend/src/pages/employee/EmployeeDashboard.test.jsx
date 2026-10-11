@@ -84,6 +84,11 @@ describe('EmployeeDashboard', () => {
       expect(interventionApi.acknowledgeSummary).toHaveBeenCalledWith('s-1')
     );
     expect(await screen.findByText('Consistent performer.')).toBeInTheDocument();
+    // The employee reads a second-person line; the Gemini summary is attributed.
+    expect(
+      await screen.findByText(/Smallest margin: Communication & Teamwork/)
+    ).toBeInTheDocument();
+    expect(screen.getByText('From your employer:')).toBeInTheDocument();
   });
 
   it('surfaces a retryable error when the profile fetch fails', async () => {
