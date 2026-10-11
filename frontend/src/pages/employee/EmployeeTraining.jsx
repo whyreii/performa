@@ -1,10 +1,21 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionApi, getApiErrorMessage } from '../../api';
+import { useToast } from '../../context/ToastContext';
 import { Button, Badge, EmptyState, Card, CardSkeleton, Page } from '../../components/ui';
 import { CheckCircle2, AlertCircle } from '../../components/icons';
 
+const STATUS = {
+  approved: { variant: 'accent', label: 'Active Assignment' },
+  completed: { variant: 'ok', label: 'Completed' },
+  rejected: { variant: 'bad', label: 'Not Assigned' },
+  pending_approval: { variant: 'warn', label: 'Pending Approval' },
+};
+
 export default function EmployeeTraining() {
+  const queryClient = useQueryClient();
+  const toast = useToast();
+
   // Fetch the employee's own assigned intervention plans
   const {
     data: plans = [],
@@ -15,6 +26,15 @@ export default function EmployeeTraining() {
   } = useQuery({
     queryKey: ['my-interventions'],
     queryFn: () => interventionApi.listMine(),
+  });
+
+  const completeMutation = useMutation({
+    mutationFn: (planId) => interventionApi.completePlan(planId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-interventions'] });
+      toast.success('Training marked complete.');
+    },
+    onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to mark training complete.')),
   });
 
   return (
@@ -70,13 +90,24 @@ export default function EmployeeTraining() {
                     </div>
                   </div>
 
-                  <Badge variant={plan.status === 'approved' ? 'ok' : plan.status === 'rejected' ? 'bad' : 'warn'}>
-                    {plan.status === 'approved'
-                      ? 'Active Assignment'
-                      : plan.status === 'rejected'
-                      ? 'Not Assigned'
-                      : 'Pending Approval'}
-                  </Badge>
+                  <div className="flex flex-col items-start sm:items-end gap-2">
+                    <Badge variant={(STATUS[plan.status] || STATUS.pending_approval).variant}>
+                      {(STATUS[plan.status] || STATUS.pending_approval).label}
+                    </Badge>
+                    {plan.status === 'approved' && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        leftIcon={CheckCircle2}
+                        isLoading={
+                          completeMutation.isPending && completeMutation.variables === plan.id
+                        }
+                        onClick={() => completeMutation.mutate(plan.id)}
+                      >
+                        Mark complete
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {plan.rationale && (

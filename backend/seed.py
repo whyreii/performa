@@ -16,7 +16,7 @@ import asyncio
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,7 +25,7 @@ from .audit_immutability import drop_statements_for, statements_for
 from .auth import get_password_hash
 from .database import Base, async_session_maker, engine
 from .domain import PROBATION_TERM_DAYS
-from .timeutils import manila_today
+from .timeutils import MANILA_TZ, manila_today
 from .models import (
     ActivityLog,
     EvaluationAuditLog,
@@ -198,11 +198,25 @@ async def _reset(session: AsyncSession) -> None:
     await session.flush()
 
 
-_DEMO_EVALUATION_SPECS: dict[str, tuple[float, int]] = {
-    "emp1@acme.com": (4.0, 4),   # Carlos Early: Month 1 complete
-    "emp2@acme.com": (4.3, 21),  # Maria Midterm: Months 1-5 complete
-    "emp4@acme.com": (2.8, 25),  # Ana Urgent: critical gaps justifying notice
+_DEMO_EVALUATION_BASE: dict[str, float] = {
+    "emp1@acme.com": 4.0,   # Carlos Early: Month 1 complete
+    "emp2@acme.com": 4.3,   # Maria Midterm: Months 1-5 complete
+    "emp4@acme.com": 2.8,   # Ana Urgent: critical gaps justifying notice
 }
+
+# Varied, realistic weekly remarks (no placeholder text).
+_DEMO_REMARKS: tuple[str, ...] = (
+    "Delivered the weekly deliverables ahead of schedule; quality was solid.",
+    "Met output targets; a couple of items needed minor revisions.",
+    "Collaborated well in the sprint review and flagged blockers early.",
+    "Punctual and dependable; took initiative on the backlog clean-up.",
+    "Quality slipped on two deliverables; coaching on the QC checklist noted.",
+    "Turnaround improved after last week's feedback; keep it up.",
+    "Communicated status clearly; more proactive hand-offs would help.",
+    "Steady output this week; risks could have been raised earlier.",
+    "Strong attention to detail; documentation was thorough.",
+    "Attendance and punctuality were consistent; no concerns.",
+)
 
 _COMPETENCY_KEYS: tuple[str, ...] = (
     "task_completion",
@@ -220,14 +234,21 @@ async def _seed_evaluations(
     organization_id: str,
     today: date,
 ) -> int:
-    """Create realistic demo weekly evaluations (and matching audit entries)."""
+    """Create realistic demo weekly evaluations (and matching audit entries).
+
+    Each employee is rated weekly from their start date up to ``today`` (the
+    statutory Day-0 convention: the start date is the first rating). Audit rows
+    carry the evaluation date so the evidentiary history shows when the score was
+    actually recorded, not the seed run time.
+    """
     created = 0
-    for email, (base, weeks) in _DEMO_EVALUATION_SPECS.items():
+    for ordinal, (email, base) in enumerate(_DEMO_EVALUATION_BASE.items()):
         employee = employees_by_email.get(email)
         if employee is None:
             continue
         previous: dict[str, float] = {}
-        for week in range(1, weeks + 1):
+        week = 1
+        while True:
             evaluation_date = employee.start_date + timedelta(days=(week - 1) * 7)
             if evaluation_date > today:
                 break
@@ -236,6 +257,14 @@ async def _seed_evaluations(
                 for index, key in enumerate(_COMPETENCY_KEYS)
             }
             overall = round(sum(scores.values()) / len(scores), 2)
+            recorded_at = datetime(
+                evaluation_date.year,
+                evaluation_date.month,
+                evaluation_date.day,
+                9,
+                0,
+                tzinfo=MANILA_TZ,
+            )
             session.add(
                 WeeklyEvaluation(
                     employee_id=employee.id,
@@ -244,7 +273,7 @@ async def _seed_evaluations(
                     evaluation_date=evaluation_date,
                     week_number=week,
                     overall_score=overall,
-                    remarks=f"Week {week} evaluation (demo data).",
+                    remarks=_DEMO_REMARKS[(week + ordinal) % len(_DEMO_REMARKS)],
                     **scores,
                 )
             )
@@ -257,10 +286,12 @@ async def _seed_evaluations(
                         competency=key,
                         prior_score=previous.get(key),
                         new_score=scores[key],
+                        created_at=recorded_at,
                     )
                 )
             previous = scores
             created += 1
+            week += 1
     await session.flush()
     return created
 

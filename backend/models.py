@@ -80,6 +80,7 @@ class TrainingStatusEnum(enum.Enum):
     PENDING_APPROVAL = "pending_approval"
     APPROVED = "approved"
     REJECTED = "rejected"
+    COMPLETED = "completed"
 
 
 def _enum_values(enum_cls: type[enum.Enum]) -> list[str]:

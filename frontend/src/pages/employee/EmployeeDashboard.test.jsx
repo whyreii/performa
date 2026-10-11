@@ -116,4 +116,12 @@ describe('EmployeeDashboard', () => {
     renderDashboard();
     expect(await screen.findByText(/past the 180-day cap/i)).toBeInTheDocument();
   });
+
+  it('shows all six probation months (150-179 is month 6)', async () => {
+    employeeApi.list.mockResolvedValue([{ ...myProfile, start_date: '2026-01-01' }]);
+    primeEmpty();
+    renderDashboard();
+    expect(await screen.findByText('Month 1')).toBeInTheDocument();
+    expect(await screen.findByText('Month 6')).toBeInTheDocument();
+  });
 });

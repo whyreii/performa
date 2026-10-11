@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, MilestonePill, Skeleton, Card, Page, AsyncBoundary } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, milestoneDate } from '../../utils/datetime';
-import { PROBATION_DAYS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
+import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
 import { CheckCircle2, ArrowRight, BookOpen, TrendingUp, UserCheck } from '../../components/icons';
 
 const LABEL_BY_KEY = Object.fromEntries(COMPETENCIES.map((c) => [c.key, c.label]));
@@ -136,7 +136,7 @@ export default function EmployeeDashboard() {
   const meetsStandard = overall !== null && overall >= TARGET;
   const first = (user?.full_name || '').split(' ')[0] || 'there';
   const unacknowledged = useMemo(() => mySummaries.filter((s) => !s.acknowledged_at), [mySummaries]);
-  const currentMonth = Math.max(1, Math.min(5, monthNumberFor(daysElapsed)));
+  const currentMonth = Math.max(1, Math.min(PROBATION_MONTHS, monthNumberFor(daysElapsed)));
   // A terminal record has no "current" month — the probation clock has stopped.
   const isTerminal = myProfile?.status === 'regularized' || myProfile?.status === 'terminated';
 
@@ -148,6 +148,7 @@ export default function EmployeeDashboard() {
     );
   }
 
+  const trainingToDo = myTraining.filter((p) => p.status === 'approved');
   const checklist = [
     {
       done: !!myProfile?.standards_acknowledged_at,
@@ -166,10 +167,14 @@ export default function EmployeeDashboard() {
       action: unacknowledged.length ? { kind: 'ack', summary: unacknowledged[0] } : null,
     },
     {
-      done: !isTrainingLoading && myTraining.length === 0,
+      done: !isTrainingLoading && trainingToDo.length === 0,
       label: 'Complete assigned training',
-      detail: myTraining.length ? `${myTraining.length} module${myTraining.length === 1 ? '' : 's'} to complete` : 'No training assigned',
-      action: myTraining.length ? { kind: 'training' } : null,
+      detail: trainingToDo.length
+        ? `${trainingToDo.length} module${trainingToDo.length === 1 ? '' : 's'} to complete`
+        : myTraining.length
+        ? 'All training completed'
+        : 'No training assigned',
+      action: trainingToDo.length ? { kind: 'training' } : null,
     },
   ];
 
@@ -205,7 +210,7 @@ export default function EmployeeDashboard() {
                 ? 'Here’s where you stand and what’s next.'
                 : meetsStandard
                 ? 'You’re meeting the regularizing standard. Keep going.'
-                : 'Focus on your competencies below — there’s time to build them up.'}
+                : 'Focus on your competencies below. There’s time to build them up.'}
             </p>
             {myProfile && (
               <p className="text-12 text-ink-3 mt-3">
@@ -224,8 +229,8 @@ export default function EmployeeDashboard() {
         {isTrendLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {[1, 2, 3, 4, 5].map((month) => {
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[1, 2, 3, 4, 5, 6].map((month) => {
               const point = trend.find((p) => p.month_number === month);
               const hasData = point !== undefined;
               const isNow = !isTerminal && month === currentMonth;
@@ -279,7 +284,7 @@ export default function EmployeeDashboard() {
                 <div>
                   <div className="text-14 text-ink">
                     {item.label}
-                    <span className="sr-only">{item.done ? ' — done' : ' — to do'}</span>
+                    <span className="sr-only">{item.done ? ', done' : ', to do'}</span>
                   </div>
                   <div className="text-12 text-ink-3 mt-0.5">{item.detail}</div>
                 </div>
@@ -350,7 +355,14 @@ export default function EmployeeDashboard() {
 
       {/* G — From your supervisor */}
       <Card className="p-5">
-        <CardHead label="From your supervisor" note={auditLogs.length ? `${auditLogs.length} updates` : undefined} />
+        <CardHead
+          label="From your supervisor"
+          note={
+            notedRemarks.length + auditLogs.length
+              ? `${notedRemarks.length + auditLogs.length} updates`
+              : undefined
+          }
+        />
         {isRemarksLoading || isAuditLoading ? (
           <Skeleton className="h-24 w-full" />
         ) : notedRemarks.length === 0 && auditLogs.length === 0 ? (

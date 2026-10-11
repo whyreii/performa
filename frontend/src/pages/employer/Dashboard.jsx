@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi } from '../../api';
 import { Button, Skeleton, Card, Page, CountUp, inputClass, GlideSelect, Th } from '../../components/ui';
-import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
+import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { milestoneTone, milestoneFor, nextMilestone, TONE_TEXT, TONE_BG } from '../../utils/status';
 import { Users, Award, ChevronRight, Search } from '../../components/icons';
@@ -14,9 +14,19 @@ import { Users, Award, ChevronRight, Search } from '../../components/icons';
 // the employee list carries no score, so we don't invent one).
 const URGENT_MESSAGE = {
   bad: `Working past Day ${PROBATION_DAYS} confers automatic regular status under Article 296. Record a decision or issue written notice.`,
-  notice: `Within the Day ${MILESTONE_NOTICE} written-notice window. Prepare the regularization decision.`,
   warn: `The Day ${MILESTONE_REVIEW} performance appraisal is due.`,
 };
+
+// Day 165 opens the statutory 15-day written-notice window that closes on the
+// Day 180 deadline (ARCHITECTURE.md §2).
+function noticeWindowMessage(daysElapsed, day180Date) {
+  const daysLeft = Math.max(0, PROBATION_DAYS - daysElapsed);
+  const windowDays = PROBATION_DAYS - MILESTONE_NOTICE;
+  const deadline = day180Date ? ` (${formatDate(day180Date)})` : '';
+  return `${windowDays}-day written-notice window open · ${daysLeft} ${
+    daysLeft === 1 ? 'day' : 'days'
+  } to the Day ${PROBATION_DAYS} deadline${deadline}.`;
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -193,7 +203,9 @@ export default function Dashboard() {
             <span className={`font-semibold ${TONE_TEXT[urgent.tone]}`}>
               {milestoneFor(urgent.days, 'active').label}
             </span>{' '}
-            {URGENT_MESSAGE[urgent.tone]}
+            {urgent.tone === 'notice'
+              ? noticeWindowMessage(urgent.days, urgent.emp.day_180_date)
+              : URGENT_MESSAGE[urgent.tone]}
           </p>
         </Card>
       )}

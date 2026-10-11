@@ -239,6 +239,10 @@ export const interventionApi = {
     const response = await apiClient.post(`/api/interventions/${planId}/sign-off`, { approved });
     return response.data;
   },
+  completePlan: async (planId) => {
+    const response = await apiClient.post(`/api/interventions/${planId}/complete`);
+    return response.data;
+  },
   generateRollup: async (employeeId, monthNumber) => {
     const response = await apiClient.post(
       `/api/interventions/${employeeId}/monthly-rollup?month_number=${monthNumber}`

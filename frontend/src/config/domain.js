@@ -5,6 +5,9 @@ export const PROBATION_DAYS = 180;
 // Probation month length (mirrors backend domain.PROBATION_MONTH_DAYS).
 export const PROBATION_MONTH_DAYS = 30;
 
+// Whole 30-day probation months in the 180-day term (mirrors the backend).
+export const PROBATION_MONTHS = PROBATION_DAYS / PROBATION_MONTH_DAYS;
+
 // Article 296 regularizing standard: an immutable 4.0/5.0 floor. Employers may
 // set higher per-competency targets via /api/kpi-rubrics, but never lower.
 export const TARGET = 4.0;

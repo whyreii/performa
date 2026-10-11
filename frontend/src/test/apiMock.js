@@ -38,6 +38,7 @@ export function createApiMock() {
       listPending: vi.fn(),
       listMine: vi.fn(),
       signOff: vi.fn(),
+      completePlan: vi.fn(),
       generateRollup: vi.fn(),
       listSummaries: vi.fn(),
       listMySummaries: vi.fn(),

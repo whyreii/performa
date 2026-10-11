@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
 import { daysElapsed as getDaysElapsed, monthNumberFor } from '../../utils/datetime';
+import { PROBATION_MONTHS, PROBATION_MONTH_DAYS } from '../../config/domain';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect, ConfirmDialog } from '../../components/ui';
@@ -117,7 +118,7 @@ export default function Rollups() {
   const monthForEmployee = (empId) => {
     const emp = activeProbationers.find((e) => e.id === empId);
     if (!emp) return 1;
-    return Math.min(5, monthNumberFor(getDaysElapsed(emp.start_date)));
+    return Math.min(PROBATION_MONTHS, monthNumberFor(getDaysElapsed(emp.start_date)));
   };
 
   const handleOpenGenerate = () => {
@@ -371,13 +372,12 @@ export default function Rollups() {
                   ariaLabel="Evaluation Month"
                   value={monthNumber}
                   onChange={(value) => setMonthNumber(Number(value))}
-                  options={[
-                    { value: 1, label: 'Month 1 · Days 0-29' },
-                    { value: 2, label: 'Month 2 · Days 30-59' },
-                    { value: 3, label: 'Month 3 · Days 60-89' },
-                    { value: 4, label: 'Month 4 · Days 90-119' },
-                    { value: 5, label: 'Month 5 · Days 120-149 (pre-milestone)' },
-                  ]}
+                  options={Array.from({ length: PROBATION_MONTHS }, (_, i) => {
+                    const n = i + 1;
+                    const start = (n - 1) * PROBATION_MONTH_DAYS;
+                    const end = n * PROBATION_MONTH_DAYS - 1;
+                    return { value: n, label: `Month ${n} · Days ${start}-${end}` };
+                  })}
                 />
               </div>
 

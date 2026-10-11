@@ -326,12 +326,76 @@ async def list_my_interventions(
         select(TrainingPlan)
         .where(
             TrainingPlan.employee_id == employee.id,
-            TrainingPlan.status == TrainingStatusEnum.APPROVED,
+            TrainingPlan.status.in_(
+                [TrainingStatusEnum.APPROVED, TrainingStatusEnum.COMPLETED]
+            ),
         )
         .order_by(TrainingPlan.created_at.desc())
     )
     result = await db.execute(stmt)
     return list(result.scalars().all())
+
+
+@router.post(
+    "/{plan_id}/complete",
+    response_model=TrainingPlanResponse,
+    summary="Mark the current employee's own approved training as completed",
+)
+async def complete_my_intervention(
+    plan_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.PROBATIONARY_EMPLOYEE)),
+) -> TrainingPlan:
+    """An employee marks their own approved intervention as completed."""
+    employee = (
+        await db.execute(
+            select(ProbationaryEmployee).where(
+                ProbationaryEmployee.user_id == current_user.id,
+                ProbationaryEmployee.organization_id == current_user.organization_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if employee is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No probationary employee profile is linked to this account",
+        )
+
+    plan = (
+        await db.execute(
+            select(TrainingPlan).where(
+                TrainingPlan.id == plan_id,
+                TrainingPlan.employee_id == employee.id,
+            )
+        )
+    ).scalar_one_or_none()
+    if plan is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Training plan not found",
+        )
+
+    if plan.status == TrainingStatusEnum.COMPLETED:
+        return plan
+    if plan.status != TrainingStatusEnum.APPROVED:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only approved interventions can be marked completed.",
+        )
+
+    plan.status = TrainingStatusEnum.COMPLETED
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="plan.complete",
+        entity_type="training_plan",
+        entity_id=plan.id,
+        detail="completed=true",
+    )
+    await db.commit()
+    await db.refresh(plan)
+    return plan
 
 
 @router.get(

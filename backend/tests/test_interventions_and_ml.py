@@ -309,3 +309,55 @@ async def test_printable_report(client):
     assert response.status_code == 200, response.text
     assert "text/html" in response.headers["content-type"]
     assert "Carlos Early" in response.text
+
+
+@pytest.mark.asyncio
+async def test_employee_can_complete_approved_training(client):
+    """An employee marks an approved intervention completed; not-approved and wrong-role are rejected."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    employee = await login_user(client, EMP1_EMAIL)
+    carlos_id = await find_employee_id(client, employer, "Carlos Early")
+
+    await client.post(
+        f"/api/evaluations/{carlos_id}/weekly",
+        headers=employer,
+        json={
+            "task_completion": 2.0,
+            "attendance_and_punctuality": 2.0,
+            "communication_and_teamwork": 3.0,
+            "initiative_and_adaptability": 3.0,
+            "quality_of_work": 2.0,
+        },
+    )
+    rollup = await client.post(
+        f"/api/interventions/{carlos_id}/monthly-rollup?month_number=2", headers=employer
+    )
+    assert rollup.status_code == 201, rollup.text
+
+    pending = (await client.get("/api/interventions/pending", headers=employer)).json()
+    assert pending
+    plan_id = pending[0]["id"]
+
+    # Cannot complete a plan that has not been approved yet.
+    not_approved = await client.post(
+        f"/api/interventions/{plan_id}/complete", headers=employee
+    )
+    assert not_approved.status_code == 409
+
+    # A non-employee role cannot use the employee completion endpoint.
+    forbidden = await client.post(
+        f"/api/interventions/{plan_id}/complete", headers=employer
+    )
+    assert forbidden.status_code == 403
+
+    sign = await client.post(
+        f"/api/interventions/{plan_id}/sign-off", headers=employer, json={"approved": True}
+    )
+    assert sign.status_code == 200, sign.text
+
+    done = await client.post(f"/api/interventions/{plan_id}/complete", headers=employee)
+    assert done.status_code == 200, done.text
+    assert done.json()["status"] == "completed"
+
+    mine = (await client.get("/api/interventions/mine", headers=employee)).json()
+    assert any(p["id"] == plan_id and p["status"] == "completed" for p in mine)
