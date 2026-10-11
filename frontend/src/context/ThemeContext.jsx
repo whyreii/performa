@@ -9,11 +9,13 @@ import {
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
+  // Default surface is graphite (dark, black/white); paper is the opt-in light
+  // theme. Light/Dark/System remain selectable in Settings — "System" follows the OS.
   const [mode, setModeState] = useState(() => {
     try {
-      return localStorage.getItem('performa-theme-pref') || 'system';
+      return localStorage.getItem('performa-theme-pref') || 'dark';
     } catch {
-      return 'system';
+      return 'dark';
     }
   });
 
@@ -23,10 +25,13 @@ export function ThemeProvider({ children }) {
       if (saved && isValidPalette(saved)) {
         return saved;
       }
+      const pref = localStorage.getItem('performa-theme-pref') || 'dark';
+      if (pref === 'dark') return DEFAULT_DARK_PALETTE;
+      if (pref === 'light') return DEFAULT_LIGHT_PALETTE;
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       return prefersDark ? DEFAULT_DARK_PALETTE : DEFAULT_LIGHT_PALETTE;
     } catch {
-      return DEFAULT_LIGHT_PALETTE;
+      return DEFAULT_DARK_PALETTE;
     }
   });
 
