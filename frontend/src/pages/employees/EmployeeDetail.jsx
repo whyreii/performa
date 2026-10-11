@@ -8,7 +8,7 @@ import { Button, Badge, MilestonePill, Skeleton, Card, Page, Modal, EmptyState, 
 import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, COMPETENCIES } from '../../config/domain';
 import { BRAND } from '../../config/brand';
-import { milestoneTone, TONE_TEXT } from '../../utils/status';
+import { milestoneTone, scoreTone, TONE_TEXT } from '../../utils/status';
 import { getInitials } from '../../utils/format';
 import {
   ArrowLeft,
@@ -523,6 +523,47 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <span>{employee.status_reason}</span>
             </span>
           </div>
+        )}
+
+        {/* Overall standing — employee self-view (record lens 03) */}
+        {user?.role === 'probationary_employee' && scorecard && (
+          <Card flat className="p-5 mt-4">
+            <CardHead
+              label="Overall standing"
+              note={
+                scorecard.latest_evaluation_date
+                  ? `Latest week · ${formatDate(scorecard.latest_evaluation_date)}`
+                  : undefined
+              }
+            />
+            <div className="grid grid-cols-3 divide-x divide-line border-y border-line -mx-5">
+              <div className="px-5 py-4">
+                <div className="text-12 text-ink-3">Overall average</div>
+                <div
+                  className={`text-22 font-semibold font-num mt-1 ${
+                    TONE_TEXT[scoreTone(Number(scorecard.overall_score), overallTarget)]
+                  }`}
+                >
+                  {Number(scorecard.overall_score).toFixed(2)}
+                </div>
+                <div className="text-12 text-ink-2 mt-1">across all competencies</div>
+              </div>
+              <div className="px-5 py-4">
+                <div className="text-12 text-ink-3">Target</div>
+                <div className="text-22 font-semibold font-num mt-1">
+                  {overallTarget.toFixed(1)}
+                </div>
+                <div className="text-12 text-ink-2 mt-1">to meet</div>
+              </div>
+              <div className="px-5 py-4">
+                <div className="text-12 text-ink-3">Day of probation</div>
+                <div className="text-22 font-semibold font-num mt-1">{daysElapsed}</div>
+                <div className="text-12 text-ink-2 mt-1">
+                  of {PROBATION_DAYS} · {isTerminal ? 'final record' : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining`}
+                </div>
+              </div>
+            </div>
+          </Card>
         )}
 
         {/* Overview board */}
