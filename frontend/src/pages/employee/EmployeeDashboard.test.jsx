@@ -29,6 +29,16 @@ describe('EmployeeDashboard', () => {
     evaluationApi.getTrend.mockResolvedValue([]);
     interventionApi.listMySummaries.mockResolvedValue([]);
     interventionApi.listMine.mockResolvedValue([]);
+    evaluationApi.listWeekly.mockResolvedValue([
+      {
+        id: 'w-1',
+        evaluation_date: '2026-03-01',
+        week_number: 1,
+        evaluator_name: 'Supervisor Juan',
+        overall_score: 4,
+        remarks: 'Great progress this week.',
+      },
+    ]);
     renderDashboard();
 
     expect(
@@ -39,6 +49,7 @@ describe('EmployeeDashboard', () => {
     expect(screen.getByText('Month 5')).toBeInTheDocument();
     expect(screen.getByText('You are here')).toBeInTheDocument();
     expect(screen.getAllByText('Upcoming').length).toBeGreaterThan(0);
+    expect(await screen.findByText('Great progress this week.')).toBeInTheDocument();
     expect(screen.queryByText('Day 165 · Notice')).not.toBeInTheDocument();
   });
 

@@ -109,6 +109,17 @@ export default function EmployeeDetail() {
     enabled: !!id,
   });
 
+  // Behavioral remarks attached to weekly evaluations (supervisor narrative)
+  const { data: weeklyRemarks = [], isLoading: isRemarksLoading } = useQuery({
+    queryKey: ['weekly-evaluations', id],
+    queryFn: () => evaluationApi.listWeekly(id),
+    enabled: !!id,
+  });
+  const notedRemarks = useMemo(
+    () => weeklyRemarks.filter((r) => r.remarks && r.remarks.trim()),
+    [weeklyRemarks]
+  );
+
   // Fetch scorecard & competencies only once evaluations exist
   // (scorecard/trend/risk/regularization intentionally return 404 when there are none)
   const hasEvaluations = auditLogs.length > 0;
@@ -696,6 +707,32 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               )}
             </Card>
           )}
+
+          {/* Supervisor remarks (behavioral notes from weekly ratings) */}
+          <Card className="p-5 lg:col-span-2">
+            <CardHead
+              label="Supervisor remarks"
+              note={notedRemarks.length ? `${notedRemarks.length} noted` : undefined}
+            />
+            {isRemarksLoading ? (
+              <Skeleton className="h-16 w-full" />
+            ) : notedRemarks.length === 0 ? (
+              <p className="text-14 text-ink-3">No behavioral remarks recorded yet.</p>
+            ) : (
+              <ul className="space-y-4">
+                {notedRemarks.slice(0, 6).map((r) => (
+                  <li key={r.id}>
+                    <div className="text-12 text-ink-3">
+                      <span className="font-semibold text-ink-2">{r.evaluator_name}</span>
+                      {' · '}
+                      <span className="font-num">{formatDate(r.evaluation_date)}</span>
+                    </div>
+                    <p className="text-14 text-ink-2 mt-1 leading-relaxed">{r.remarks}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
 
           {/* Evaluation history (immutable audit trail) */}
           <Card className="p-5 lg:col-span-2">

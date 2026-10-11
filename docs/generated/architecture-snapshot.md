@@ -218,6 +218,7 @@ Auth column is read from the FastAPI dependency graph.
 | GET | `/api/evaluations/{employee_id}/risk-explanation` | authenticated (any role) | get_risk_explanation |
 | GET | `/api/evaluations/{employee_id}/scorecard` | authenticated (any role) | get_scorecard |
 | GET | `/api/evaluations/{employee_id}/trend` | authenticated (any role) | get_kpi_trend |
+| GET | `/api/evaluations/{employee_id}/weekly` | authenticated (any role) | list_weekly_evaluations |
 | POST | `/api/evaluations/{employee_id}/weekly` | roles: employer, supervisor | submit_weekly_rating |
 | GET | `/api/interventions/mine` | authenticated (any role) | list_my_interventions |
 | GET | `/api/interventions/pending` | roles: employer, supervisor | list_pending_interventions |

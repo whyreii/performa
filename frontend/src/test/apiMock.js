@@ -26,6 +26,7 @@ export function createApiMock() {
       getTenantAuditTrail: vi.fn(),
       getScorecard: vi.fn(),
       getAuditTrail: vi.fn(),
+      listWeekly: vi.fn(),
       submitWeeklyRating: vi.fn(),
       getRiskExplanation: vi.fn(),
       getTrend: vi.fn(),

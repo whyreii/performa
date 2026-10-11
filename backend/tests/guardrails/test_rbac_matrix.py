@@ -59,6 +59,7 @@ MATRIX = {
     ("POST", "/api/employees/{employee_id}/acknowledge-standards"): {"probationary_employee"},
     ("PATCH", "/api/employees/{employee_id}/status"): {"employer"},
     ("POST", "/api/evaluations/{employee_id}/weekly"): {"employer", "supervisor"},
+    ("GET", "/api/evaluations/{employee_id}/weekly"): PERFORMANCE_READERS,
     ("GET", "/api/evaluations/{employee_id}/scorecard"): PERFORMANCE_READERS,
     ("GET", "/api/evaluations/{employee_id}/risk-explanation"): PERFORMANCE_READERS,
     ("GET", "/api/evaluations/{employee_id}/trend"): PERFORMANCE_READERS,

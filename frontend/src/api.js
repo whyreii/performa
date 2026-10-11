@@ -188,6 +188,10 @@ export const evaluationApi = {
     const response = await apiClient.get(`/api/evaluations/${employeeId}/audit-trail`);
     return response.data;
   },
+  listWeekly: async (employeeId) => {
+    const response = await apiClient.get(`/api/evaluations/${employeeId}/weekly`);
+    return response.data;
+  },
   submitWeeklyRating: async (employeeId, data) => {
     const response = await apiClient.post(`/api/evaluations/${employeeId}/weekly`, data);
     return response.data;

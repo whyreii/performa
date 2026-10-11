@@ -433,10 +433,13 @@ export default function RateEmployee() {
               placeholder="Detail specific behavioral evidence, projects completed, coaching provided, and concrete milestones achieved this week…"
               className={textareaClass}
             />
-            <p className="text-12 text-ink-3 mt-1.5 leading-relaxed flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5 text-accent shrink-0" />
+            <p className="text-12 text-ink-3 mt-1.5 leading-relaxed flex items-start gap-1.5">
+              <Info className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />
               <span>
-                Required under Philippine Labor Code Article 296 to sustain any regularizing or non-regularizing action before DOLE.
+                <span className="text-ink-2 font-medium">Write what you actually saw</span> — the
+                project, the date, the coaching you gave. Specifics keep the rating fair to the
+                employee and defensible under Article 296 for any regularizing or non-regularizing
+                action before DOLE.
               </span>
             </p>
           </div>

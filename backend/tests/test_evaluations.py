@@ -171,3 +171,24 @@ async def test_weekly_rating_rejects_future_date(client):
     )
     assert response.status_code == 400, response.text
     assert "future" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_weekly_remarks_are_returned(client):
+    """Behavioral remarks submitted with a rating are retrievable from the record."""
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    emp_id = await find_employee_id(client, supervisor, "Carlos Early")
+
+    payload = {competency: 4.0 for competency in COMPETENCIES}
+    payload["remarks"] = "Strong week; delivered the Q3 reconciliation ahead of schedule."
+    created = await client.post(
+        f"/api/evaluations/{emp_id}/weekly", headers=supervisor, json=payload
+    )
+    assert created.status_code == 201, created.text
+
+    response = await client.get(f"/api/evaluations/{emp_id}/weekly", headers=supervisor)
+    assert response.status_code == 200, response.text
+    rows = response.json()
+    assert rows, "expected at least one weekly evaluation"
+    assert rows[0]["remarks"] == "Strong week; delivered the Q3 reconciliation ahead of schedule."
+    assert rows[0]["evaluator_name"] and rows[0]["evaluator_name"] != "Unknown"

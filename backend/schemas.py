@@ -293,6 +293,19 @@ class WeeklyEvaluationResponse(BaseModel):
     created_at: datetime
 
 
+class WeeklyEvaluationListItem(BaseModel):
+    """A weekly evaluation's behavioral remarks, for the record/history views."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    evaluation_date: date
+    week_number: Optional[int] = None
+    evaluator_name: str
+    overall_score: float
+    remarks: Optional[str] = None
+
+
 class CompetencyScoreItem(BaseModel):
     """A single competency's current score relative to its target."""
 
@@ -524,6 +537,7 @@ __all__ = [
     "KpiRubricUpsert",
     "WeeklyRatingSubmit",
     "WeeklyEvaluationResponse",
+    "WeeklyEvaluationListItem",
     "CompetencyScoreItem",
     "EmployeeScorecardResponse",
     "RiskExplanationResponse",

@@ -36,6 +36,16 @@ function primeHappyPath() {
     explanation_method: 'Exact Shapley',
   });
   evaluationApi.getRegularization.mockRejectedValue({ response: { status: 404 } });
+  evaluationApi.listWeekly.mockResolvedValue([
+    {
+      id: 'w-1',
+      evaluation_date: '2026-03-01',
+      week_number: 1,
+      evaluator_name: 'Supervisor Juan',
+      overall_score: 4,
+      remarks: 'Consistently strong delivery and clear communication.',
+    },
+  ]);
 }
 
 beforeEach(() => {
@@ -72,5 +82,14 @@ describe('EmployeeDetail', () => {
     renderDetail();
     fireEvent.click(await screen.findByRole('button', { name: /Update Status/i }));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('shows the supervisor’s behavioral remarks', async () => {
+    primeHappyPath();
+    renderDetail();
+    expect(await screen.findByRole('heading', { name: 'Supervisor remarks' })).toBeInTheDocument();
+    expect(
+      await screen.findByText('Consistently strong delivery and clear communication.')
+    ).toBeInTheDocument();
   });
 });

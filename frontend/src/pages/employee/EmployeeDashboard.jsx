@@ -107,6 +107,17 @@ export default function EmployeeDashboard() {
     queryFn: () => interventionApi.listMine(),
   });
 
+  // Behavioral notes from weekly ratings (supervisor narrative)
+  const { data: weeklyRemarks = [], isLoading: isRemarksLoading } = useQuery({
+    queryKey: ['weekly-evaluations', myProfile?.id],
+    queryFn: () => evaluationApi.listWeekly(myProfile.id),
+    enabled: !!myProfile?.id,
+  });
+  const notedRemarks = useMemo(
+    () => weeklyRemarks.filter((r) => r.remarks && r.remarks.trim()),
+    [weeklyRemarks]
+  );
+
   const ackSummaryMutation = useMutation({
     mutationFn: (id) => interventionApi.acknowledgeSummary(id),
     onSuccess: () => {
@@ -327,30 +338,51 @@ export default function EmployeeDashboard() {
       {/* G — From your supervisor */}
       <Card className="p-5">
         <CardHead label="From your supervisor" note={auditLogs.length ? `${auditLogs.length} updates` : undefined} />
-        {isAuditLoading ? (
+        {isRemarksLoading || isAuditLoading ? (
           <Skeleton className="h-24 w-full" />
-        ) : auditLogs.length === 0 ? (
+        ) : notedRemarks.length === 0 && auditLogs.length === 0 ? (
           <p className="text-14 text-ink-3">No feedback from your supervisor yet.</p>
         ) : (
-          <ul className="space-y-3.5">
-            {auditLogs.slice(0, 4).map((log) => {
-              const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
-              return (
-                <li key={log.id} className="flex items-start gap-3">
-                  <UserCheck className="w-5 h-5 shrink-0 mt-0.5 text-ink-3" aria-hidden="true" />
-                  <div className="text-14 text-ink-2">
-                    <span className="font-semibold text-ink">{log.evaluator_name || 'Your supervisor'}</span>{' '}
-                    rated <span className="text-ink">{log.competency ? competencyLabel(log.competency) : 'a competency'}</span>{' '}
-                    <span className="font-num text-ink">
-                      {hasPrior ? `${Number(log.prior_score).toFixed(1)} → ` : ''}
-                      {Number(log.new_score).toFixed(1)}
-                    </span>
-                    <div className="text-12 text-ink-3 mt-0.5 font-num">{formatDate(log.created_at)}</div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            {notedRemarks.length > 0 && (
+              <ul className="space-y-4">
+                {notedRemarks.slice(0, 3).map((r) => (
+                  <li key={r.id}>
+                    <div className="text-12 text-ink-3">
+                      <span className="font-semibold text-ink-2">{r.evaluator_name}</span>
+                      {' · '}
+                      <span className="font-num">{formatDate(r.evaluation_date)}</span>
+                    </div>
+                    <p className="text-14 text-ink-2 mt-1 leading-relaxed">{r.remarks}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {auditLogs.length > 0 && (
+              <div className={notedRemarks.length ? 'mt-4 pt-4 border-t border-line' : ''}>
+                <p className="text-12 font-semibold text-ink-3 mb-2">Rating changes</p>
+                <ul className="space-y-3.5">
+                  {auditLogs.slice(0, 4).map((log) => {
+                    const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
+                    return (
+                      <li key={log.id} className="flex items-start gap-3">
+                        <UserCheck className="w-5 h-5 shrink-0 mt-0.5 text-ink-3" aria-hidden="true" />
+                        <div className="text-14 text-ink-2">
+                          <span className="font-semibold text-ink">{log.evaluator_name || 'Your supervisor'}</span>{' '}
+                          rated <span className="text-ink">{log.competency ? competencyLabel(log.competency) : 'a competency'}</span>{' '}
+                          <span className="font-num text-ink">
+                            {hasPrior ? `${Number(log.prior_score).toFixed(1)} → ` : ''}
+                            {Number(log.new_score).toFixed(1)}
+                          </span>
+                          <div className="text-12 text-ink-3 mt-0.5 font-num">{formatDate(log.created_at)}</div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </>
         )}
 
         {/* Needs your attention */}

@@ -54,6 +54,7 @@ from ..schemas import (
     RegularizationRecommendationResponse,
     RiskExplanationResponse,
     TrendPoint,
+    WeeklyEvaluationListItem,
     WeeklyEvaluationResponse,
     WeeklyRatingSubmit,
 )
@@ -648,6 +649,29 @@ async def get_employee_report(
         overall_row = ""
         latest_date = "—"
 
+    remarks_stmt = (
+        select(WeeklyEvaluation)
+        .where(
+            WeeklyEvaluation.employee_id == employee.id,
+            WeeklyEvaluation.organization_id == current_user.organization_id,
+            WeeklyEvaluation.remarks.isnot(None),
+        )
+        .order_by(WeeklyEvaluation.evaluation_date.desc())
+        .limit(5)
+    )
+    remark_rows = (await db.execute(remarks_stmt)).scalars().all()
+    remarks_html = (
+        "".join(
+            "<div class='rem'>"
+            f"<div class='rd'>{row.evaluation_date.isoformat()}</div>"
+            f"<div>{html.escape(row.remarks or '')}</div>"
+            "</div>"
+            for row in remark_rows
+        )
+        if remark_rows
+        else "<p class='meta'>No behavioral remarks recorded.</p>"
+    )
+
     document = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Performa Report — {name}</title>
@@ -659,6 +683,8 @@ async def get_employee_report(
   th, td {{ border: 1px solid #ddd; padding: 8px 10px; font-size: 14px; }}
   th {{ background: #f6f3ed; text-align: left; }}
   .total td {{ font-weight: 700; }}
+  .rem {{ border-top: 1px solid #eee; padding: 8px 0; font-size: 13px; }}
+  .rd {{ color: #57524d; font-size: 12px; margin-bottom: 2px; }}
   @media print {{ .no-print {{ display: none; }} }}
 </style></head>
 <body>
@@ -673,11 +699,53 @@ async def get_employee_report(
     <thead><tr><th>Competency</th><th style="text-align:right">Score (1–5)</th></tr></thead>
     <tbody>{rows}{overall_row}</tbody>
   </table>
+  <h2 style="font-size:16px;margin-top:28px">Supervisor remarks</h2>
+  {remarks_html}
   <p class="no-print" style="margin-top:24px">
     <button onclick="window.print()">Print / Save as PDF</button>
   </p>
 </body></html>"""
     return HTMLResponse(content=document)
+
+
+@router.get(
+    "/{employee_id}/weekly",
+    response_model=list[WeeklyEvaluationListItem],
+    summary="Weekly ratings and behavioral remarks (newest first)",
+)
+async def list_weekly_evaluations(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[WeeklyEvaluationListItem]:
+    """Return weekly evaluations with the evaluator's behavioral remarks, newest first."""
+    employee = await _get_scoped_employee(db, employee_id, current_user)
+
+    stmt = (
+        select(WeeklyEvaluation)
+        .options(selectinload(WeeklyEvaluation.evaluator))
+        .where(
+            WeeklyEvaluation.employee_id == employee.id,
+            WeeklyEvaluation.organization_id == current_user.organization_id,
+        )
+        .order_by(
+            WeeklyEvaluation.evaluation_date.desc(),
+            WeeklyEvaluation.created_at.desc(),
+        )
+    )
+    rows = (await db.execute(stmt)).scalars().all()
+
+    return [
+        WeeklyEvaluationListItem(
+            id=row.id,
+            evaluation_date=row.evaluation_date,
+            week_number=row.week_number,
+            evaluator_name=row.evaluator.full_name if row.evaluator else "Evaluator",
+            overall_score=row.overall_score,
+            remarks=row.remarks,
+        )
+        for row in rows
+    ]
 
 
 @router.get(
