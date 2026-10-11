@@ -242,7 +242,7 @@ export default function AuditTrail() {
         <footer className="p-3 border-t border-line text-12 text-ink-3 font-num flex flex-wrap items-center justify-between gap-2 no-print">
           <span>
             Showing {sortedLogs.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
-            {Math.min(currentPage * PAGE_SIZE, sortedLogs.length)} of {sortedLogs.length} verified audit records
+            {Math.min(currentPage * PAGE_SIZE, sortedLogs.length)} of {sortedLogs.length} append-only audit records
           </span>
           {totalPages > 1 && (
             <div className="flex items-center gap-2">

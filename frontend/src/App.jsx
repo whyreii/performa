@@ -20,6 +20,7 @@ const SupervisorDashboard = lazy(routeLoaders['/supervisor/dashboard']);
 const Rubrics = lazy(routeLoaders['/rubrics']);
 const Dashboard = lazy(routeLoaders['/dashboard']);
 const Rollups = lazy(routeLoaders['/rollups']);
+const Reports = lazy(routeLoaders['/reports']);
 const AuditTrail = lazy(routeLoaders['/audits']);
 const ActivityLog = lazy(routeLoaders['/admin/activity']);
 const UserManagement = lazy(routeLoaders['/admin/users']);
@@ -49,6 +50,7 @@ const ROUTE_TITLES = [
   ['/employees', 'Employee Directory'],
   ['/dashboard', 'Dashboard'],
   ['/rollups', 'Rollups & AI Plans'],
+  ['/reports', 'Reports'],
   ['/audits', 'Audit Trail'],
   ['/notifications', 'Notifications'],
   ['/settings', 'Settings'],
@@ -204,6 +206,14 @@ export default function App() {
                   element={
                     <ProtectedRoute allowedRoles={['employer']}>
                       <Rollups />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports"
+                  element={
+                    <ProtectedRoute allowedRoles={['employer']}>
+                      <Reports />
                     </ProtectedRoute>
                   }
                 />

@@ -184,6 +184,10 @@ export const evaluationApi = {
     const response = await apiClient.get(`/api/evaluations/${employeeId}/audit-trail`);
     return response.data;
   },
+  verifyAuditChain: async (employeeId) => {
+    const response = await apiClient.get(`/api/evaluations/${employeeId}/audit-trail/verify`);
+    return response.data;
+  },
   listWeekly: async (employeeId) => {
     const response = await apiClient.get(`/api/evaluations/${employeeId}/weekly`);
     return response.data;
@@ -299,6 +303,10 @@ export const adminApi = {
   },
   listActivity: async (params = {}) => {
     const response = await apiClient.get('/api/admin/activity', { params });
+    return response.data;
+  },
+  getSettings: async () => {
+    const response = await apiClient.get('/api/admin/settings');
     return response.data;
   },
   getReportsOverview: async () => {

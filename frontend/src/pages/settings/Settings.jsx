@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { authApi, organizationApi, getApiErrorMessage } from '../../api';
+import { authApi, adminApi, organizationApi, getApiErrorMessage } from '../../api';
+import { COMPETENCIES } from '../../config/domain';
 import { Button, Badge, TextField, Page, RubberSegment } from '../../components/ui';
 import {
   User,
@@ -13,7 +15,22 @@ import {
   Sun,
   Moon,
   Monitor,
+  ShieldCheck,
 } from '../../components/icons';
+
+// Statutory milestone day labels + competency/industry display helpers.
+const THRESHOLD_LABELS = {
+  day_150: 'Day 150 — Performance review',
+  day_165: 'Day 165 — Written-notice window',
+  day_178: 'Day 178 — Critical action window',
+  day_180: 'Day 180 — Legal ceiling',
+};
+const COMPETENCY_LABELS = new Map(COMPETENCIES.map((c) => [c.key, c.label]));
+const prettyKey = (key) =>
+  key
+    .split('_')
+    .map((w) => (w.length <= 3 ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join(' ');
 
 const MODES = [
   { id: 'light', label: 'Light', icon: Sun },
@@ -55,6 +72,21 @@ export default function Settings() {
       window.location.hash = id;
     }
   };
+
+  // Administrators get an extra read-only "System settings" section (Manuscript
+  // Scope: global deadline thresholds + industry KPI template library). The rest
+  // of the roles never see it, and a stale #system hash falls back to Profile.
+  const isAdmin = user?.role === 'admin';
+  const sections = isAdmin
+    ? [...SECTIONS, { id: 'system', label: 'System settings', icon: ShieldCheck }]
+    : SECTIONS;
+  const current = sections.some((s) => s.id === active) ? active : 'profile';
+
+  const { data: systemSettings, isError: isSystemError } = useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: () => adminApi.getSettings(),
+    enabled: isAdmin,
+  });
 
   // Profile edit state
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -180,9 +212,9 @@ export default function Settings() {
         {/* Rail */}
         <nav className="srail__nav" aria-label="Settings sections">
           <div className="srail__t">Settings</div>
-          {SECTIONS.map((s) => {
+          {sections.map((s) => {
             const Icon = s.icon;
-            const isActive = active === s.id;
+            const isActive = current === s.id;
             return (
               <button
                 key={s.id}
@@ -201,7 +233,7 @@ export default function Settings() {
         {/* Reading column */}
         <div className="srail__pane">
           <div className="srail__inner">
-            {active === 'profile' && (
+            {current === 'profile' && (
               <section className="ssec">
                 <div className="ssec__h">
                   <div>
@@ -326,7 +358,7 @@ export default function Settings() {
               </section>
             )}
 
-            {active === 'appearance' && (
+            {current === 'appearance' && (
               <section className="ssec">
                 <div className="ssec__h">
                   <div>
@@ -378,7 +410,7 @@ export default function Settings() {
               </section>
             )}
 
-            {active === 'alerts' && (
+            {current === 'alerts' && (
               <section className="ssec">
                 <div className="ssec__h">
                   <div>
@@ -433,7 +465,7 @@ export default function Settings() {
               </section>
             )}
 
-            {active === 'security' && (
+            {current === 'security' && (
               <section className="ssec">
                 <div className="ssec__h">
                   <div>
@@ -492,6 +524,71 @@ export default function Settings() {
                     Update Password
                   </Button>
                 </form>
+              </section>
+            )}
+
+            {current === 'system' && isAdmin && (
+              <section className="ssec">
+                <div className="ssec__h">
+                  <div>
+                    <h2>System settings</h2>
+                    <p>Global statutory configuration · Administrator oversight (read-only)</p>
+                  </div>
+                  <Badge variant="neutral">System</Badge>
+                </div>
+
+                {isSystemError ? (
+                  <p className="text-12 text-bad">Could not load system settings right now.</p>
+                ) : !systemSettings ? (
+                  <p className="text-12 text-ink-3">Loading…</p>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <div className="text-14 font-semibold text-ink">Article 296 deadline thresholds</div>
+                      <p className="text-12 text-ink-3">
+                        Fixed statutory milestones — informational, not configurable.
+                      </p>
+                      <ul className="space-y-1">
+                        {Object.entries(systemSettings.deadline_thresholds || {}).map(([key, day]) => (
+                          <li
+                            key={key}
+                            className="flex items-center justify-between gap-3 text-12 border-b border-line py-1.5 last:border-0"
+                          >
+                            <span className="text-ink-2">{THRESHOLD_LABELS[key] || prettyKey(key)}</span>
+                            <span className="font-num text-ink font-semibold">{day} days</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="text-14 font-semibold text-ink">Industry KPI template library</div>
+                      <p className="text-12 text-ink-3">
+                        Pre-built target/weight presets employers can apply in KPI Configuration.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {Object.entries(systemSettings.kpi_templates || {}).map(([industry, rows]) => (
+                          <div key={industry} className="rounded-ctl border border-line p-3 space-y-2">
+                            <div className="text-12 font-semibold text-ink">{prettyKey(industry)}</div>
+                            <ul className="space-y-0.5">
+                              {Object.entries(rows).map(([comp, cfg]) => (
+                                <li
+                                  key={comp}
+                                  className="flex items-center justify-between gap-3 text-12 text-ink-3"
+                                >
+                                  <span>{COMPETENCY_LABELS.get(comp) || comp}</span>
+                                  <span className="font-num whitespace-nowrap">
+                                    {Number(cfg.target_score).toFixed(1)} · {Math.round(Number(cfg.weight) * 100)}%
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </section>
             )}
           </div>

@@ -132,4 +132,18 @@ describe('EmployeeDetail', () => {
     expect(screen.getByText(/· final record/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Generate|Regenerate/ })).not.toBeInTheDocument();
   });
+
+  it('verifies the tamper-evident audit chain on demand', async () => {
+    primeHappyPath();
+    evaluationApi.verifyAuditChain.mockResolvedValue({
+      valid: true,
+      checked: 12,
+      first_broken_id: null,
+    });
+    renderDetail();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Verify integrity' }));
+    expect(await screen.findByText('Chain verified · 12')).toBeInTheDocument();
+    expect(evaluationApi.verifyAuditChain).toHaveBeenCalledWith('e-1');
+  });
 });

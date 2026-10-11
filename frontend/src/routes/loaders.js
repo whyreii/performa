@@ -15,6 +15,7 @@ export const routeLoaders = {
   '/settings': () => import('../pages/settings/Settings'),
   '/dashboard': () => import('../pages/employer/Dashboard'),
   '/rollups': () => import('../pages/employer/Rollups'),
+  '/reports': () => import('../pages/employer/Reports'),
   '/supervisor/dashboard': () => import('../pages/supervisor/SupervisorDashboard'),
   '/supervisor/rate': () => import('../pages/supervisor/RateEmployee'),
   '/rubrics': () => import('../pages/supervisor/Rubrics'),

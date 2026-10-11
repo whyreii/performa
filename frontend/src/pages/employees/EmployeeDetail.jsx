@@ -83,6 +83,7 @@ export default function EmployeeDetail() {
   const [statusReason, setStatusReason] = useState('');
   const [actionError, setActionError] = useState('');
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [verifyResult, setVerifyResult] = useState(null);
 
   // Fetch employee profile
   const {
@@ -156,6 +157,15 @@ export default function EmployeeDetail() {
     },
     onError: (err) => {
       toast.error(getApiErrorMessage(err, 'Failed to acknowledge standards.'));
+    },
+  });
+
+  // Recompute the tamper-evident audit hash chain and surface the result.
+  const verifyChainMutation = useMutation({
+    mutationFn: () => evaluationApi.verifyAuditChain(id),
+    onSuccess: (data) => setVerifyResult(data),
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, 'Failed to verify the audit chain.'));
     },
   });
 
@@ -809,7 +819,30 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           <Card className="p-5 lg:col-span-2">
             <CardHead
               label="Evaluation history"
-              note={`${auditLogs.length} ${auditLogs.length === 1 ? 'record' : 'records'} · append-only`}
+              note={
+                <span className="inline-flex items-center gap-2">
+                  <span>
+                    {auditLogs.length} {auditLogs.length === 1 ? 'record' : 'records'} · append-only
+                  </span>
+                  {auditLogs.length > 0 &&
+                    (verifyResult ? (
+                      <Badge variant={verifyResult.valid ? 'ok' : 'bad'}>
+                        {verifyResult.valid
+                          ? `Chain verified · ${verifyResult.checked}`
+                          : 'Chain broken'}
+                      </Badge>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => verifyChainMutation.mutate()}
+                        disabled={verifyChainMutation.isPending}
+                        className="text-accent font-semibold hover:underline disabled:opacity-50"
+                      >
+                        {verifyChainMutation.isPending ? 'Verifying…' : 'Verify integrity'}
+                      </button>
+                    ))}
+                </span>
+              }
             />
             {isAuditLoading ? (
               <Skeleton className="h-24 w-full" />

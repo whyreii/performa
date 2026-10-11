@@ -140,3 +140,19 @@ or **–** (not run in that cycle).
 | Cycle | Date | Accounts covered | Failures | Fixed |
 |---|---|---|---|---|
 | 1 | 2026-10-11 | admin, employer, supervisor, emp1, emp2, emp4 | 2 (High: stale verdict; Low: role colours) | 2 |
+
+---
+
+## Gap closure — 2026-10-11
+
+Closing the gaps surfaced after Pass 1.
+
+| # | Gap | Status |
+|---|---|---|
+| 3 | Audit hash-chain verification was backend-only | **Closed** — "Verify integrity" control on the employee record shows a *Chain verified · N* / *Chain broken* chip (`GET …/audit-trail/verify`). |
+| 4 | Admin System Settings not wired | **Closed** — read-only Admin **System settings** section in `/settings` (statutory deadline thresholds + industry KPI template library). |
+| 2 | No employer Reports screen | **Closed (partial)** — new `/reports` report center: pick employee + report type → generate/open. The manuscript's persisted "generated reports list" (title/date/size) is **not** built (no Reports model). |
+| 1 | Report export is HTML, not PDF | **Open (decision)** — print-to-PDF only; a real `.pdf` file requires a generator dependency. |
+| 5 | `/admin/reports/overview` amended-scope conflict | **Open (decision)** — endpoint returns aggregate performance/intervention data the amended scope bars from Admin. |
+| 6 | `week_number` unshown; terminal regenerate | **Open (low)** — the backend regenerate-on-terminal guard is a behavior change (STOP-AND-ASK). |
+
