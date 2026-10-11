@@ -130,6 +130,24 @@ html {
   }
 }
 
+/* Page transition (one whole-page layer, not one per section). Opacity never
+   drops below 0.85 and content is never hidden, so it is safe even when the
+   animation timeline is throttled. The global reduced-motion rule below (and
+   the app's Reduce-motion setting) collapses it to an instant change. */
+@keyframes page-enter {
+  from {
+    opacity: 0.85;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.page-enter {
+  animation: page-enter 180ms var(--ease) backwards;
+}
+
 .note {
   display: flex;
   align-items: center;
