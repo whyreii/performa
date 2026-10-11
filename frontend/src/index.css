@@ -130,36 +130,6 @@ html {
   }
 }
 
-/* Reveal (adapted from React Bits Animated Content): the direct children of a
-   page slide in with a short stagger. Opt-in via <Page reveal>. Transform-only
-   (no opacity) on purpose: animating opacity from 0 leaves content invisible
-   until the animation runs — and permanently blank if it never advances (stuck
-   on a hidden/throttled tab). Content must never depend on an animation to be
-   visible. The reduced-motion rule below collapses this to an instant change. */
-@keyframes reveal-up {
-  from {
-    transform: translateY(10px);
-  }
-  to {
-    transform: none;
-  }
-}
-/* `backwards` (not `both`): the end keyframe animates to `transform: none`,
-   and `both` would retain an identity matrix afterwards — which creates a
-   stacking context on every section and breaks overlay/menu z-order. */
-.reveal > * {
-  animation: reveal-up var(--m) var(--ease) backwards;
-}
-.reveal > *:nth-child(1) { animation-delay: 0ms; }
-.reveal > *:nth-child(2) { animation-delay: 40ms; }
-.reveal > *:nth-child(3) { animation-delay: 80ms; }
-.reveal > *:nth-child(4) { animation-delay: 120ms; }
-.reveal > *:nth-child(5) { animation-delay: 160ms; }
-.reveal > *:nth-child(6) { animation-delay: 200ms; }
-.reveal > *:nth-child(7) { animation-delay: 240ms; }
-.reveal > *:nth-child(8) { animation-delay: 280ms; }
-.reveal > *:nth-child(n + 9) { animation-delay: 320ms; }
-
 .note {
   display: flex;
   align-items: center;
