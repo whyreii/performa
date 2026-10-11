@@ -134,6 +134,8 @@ export default function EmployeeDashboard() {
   const first = (user?.full_name || '').split(' ')[0] || 'there';
   const unacknowledged = useMemo(() => mySummaries.filter((s) => !s.acknowledged_at), [mySummaries]);
   const currentMonth = Math.max(1, Math.min(5, Math.floor(daysElapsed / 30) + 1));
+  // A terminal record has no "current" month — the probation clock has stopped.
+  const isTerminal = myProfile?.status === 'regularized' || myProfile?.status === 'terminated';
 
   if (isEmpError) {
     return (
@@ -215,7 +217,7 @@ export default function EmployeeDashboard() {
             {[1, 2, 3, 4, 5].map((month) => {
               const point = trend.find((p) => p.month_number === month);
               const hasData = point !== undefined;
-              const isNow = month === currentMonth;
+              const isNow = !isTerminal && month === currentMonth;
               const meets = hasData && Number(point.overall_average) >= TARGET;
               return (
                 <div

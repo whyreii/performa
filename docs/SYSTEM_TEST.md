@@ -111,11 +111,27 @@ or **–** (not run in that cycle).
 | 1 | High | A **regularized** employee's record still showed the pre-decision AI verdict ("Do Not Regularize") and the hero read "186 / 180 · Critical 48h window" — the human decision was not reflected. | **Fixed** (`EmployeeDetail.jsx`) |
 | 2 | Low | "Assigned System Role" radios used a different selected colour per role (employer=accent, supervisor=green, employee=grey). | **Fixed** (all → accent) |
 | 3 | Low | Industry template option renders as "Bpo" (should be "BPO"). `prettyTemplate()` only capitalises the first letter. | Open |
-| 4 | Observation | Playwright clicks repeatedly timed out with "element not stable" on otherwise-interactive buttons → smells like a perpetual CSS animation/re-render. Audit animations + `prefers-reduced-motion`. | Open |
+| 4 | Observation | Playwright clicks repeatedly timed out ("performing click action") on otherwise-interactive buttons. | **Resolved — tool artifact** (see audit below) |
 | 5 | By design | A probationary employee can open `/employees` and sees only their own row (self-scoped, not in nav). | Confirmed |
-| 6 | Low | Ana's own dashboard "Month by month" still marks "You are here" at Month 5 (Day 186), and the record's "Probation timeline" reads "0 days remaining". | Open |
+| 6 | Low | Ana's own dashboard "Month by month" still marked "You are here" at Month 5 (Day 186), and the record's "Probation timeline" read "0 days remaining". | **Fixed** (`EmployeeDashboard.jsx`, `EmployeeDetail.jsx`) |
 
 **Commands used:** Playwright browser driver against the live dev stack.
+
+### Animation / reduced-motion audit (finding #4)
+
+- Enumerated running animations with `document.getAnimations()`. The **only** infinite
+  animation in the app is the decorative "live" dot beside the Manila clock
+  (`Sidebar.jsx:103`, `animate-pulse`). Critical `MilestonePill` badges also pulse.
+- Both are already neutralised for sensitive users by the global rules in
+  `index.css:801-821`: `@media (prefers-reduced-motion: reduce)` and
+  `html[data-reduce-motion='true']` force `animation-duration: 0.001ms` and
+  `animation-iteration-count: 1` on every element. **No infinite animation escapes
+  reduced motion.**
+- The repeated Playwright click timeouts are a **tool artifact, not an app defect**:
+  the report shows the element reaching "visible, enabled and stable" and then hanging
+  at "performing click action"; the **login page has zero animations** (`getAnimations()`
+  returned `[]`) yet its buttons timed out too. Native DOM clicks and `browser_type`
+  succeeded. No code change made.
 
 ---
 

@@ -129,6 +129,7 @@ describe('EmployeeDetail', () => {
     expect(screen.getByText('Do Not Regularize')).toBeInTheDocument();
     // No live milestone clock, and no regenerate control on a terminal record.
     expect(screen.getByText('Final record')).toBeInTheDocument();
+    expect(screen.getByText(/· final record/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Generate|Regenerate/ })).not.toBeInTheDocument();
   });
 });

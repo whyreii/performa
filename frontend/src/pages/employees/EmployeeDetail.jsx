@@ -722,7 +722,11 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           <Card className="p-5">
             <CardHead
               label="Probation timeline"
-              note={`Day ${daysElapsed} / ${PROBATION_DAYS} · ${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining`}
+              note={
+                isTerminal
+                  ? `Day ${daysElapsed} / ${PROBATION_DAYS} · final record`
+                  : `Day ${daysElapsed} / ${PROBATION_DAYS} · ${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining`
+              }
             />
             <TimelineDocket
               startDate={employee.start_date}

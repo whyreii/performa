@@ -53,6 +53,17 @@ describe('EmployeeDashboard', () => {
     expect(screen.queryByText('Day 165 · Notice')).not.toBeInTheDocument();
   });
 
+  it('hides the live month marker for a regularized employee', async () => {
+    employeeApi.list.mockResolvedValue([{ ...myProfile, status: 'regularized' }]);
+    evaluationApi.getAuditTrail.mockResolvedValue([]);
+    interventionApi.listMySummaries.mockResolvedValue([]);
+    interventionApi.listMine.mockResolvedValue([]);
+    renderDashboard();
+
+    expect(await screen.findByRole('heading', { name: 'Month by month' })).toBeInTheDocument();
+    expect(screen.queryByText('You are here')).not.toBeInTheDocument();
+  });
+
   it('acknowledges a shared monthly summary', async () => {
     employeeApi.list.mockResolvedValue([myProfile]);
     evaluationApi.getAuditTrail.mockResolvedValue([]);
