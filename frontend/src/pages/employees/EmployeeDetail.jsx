@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, MilestonePill, Skeleton, Card, Page, Modal, EmptyState, textareaClass, ScoreLedger, TimelineDocket, SectionHead, StatBand, GroupCard } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Card, Page, Modal, EmptyState, textareaClass, ScoreLedger, TimelineDocket, SectionHead, GroupCard, PageBrief } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, COMPETENCIES } from '../../config/domain';
 import { BRAND } from '../../config/brand';
@@ -530,73 +530,45 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </div>
         )}
 
-        {/* Overall standing — employee self-view (record lens 03) */}
+        {/* Your standing — employee self-view (record lens 03) */}
         {user?.role === 'probationary_employee' && scorecard && (
-          <Card flat className="p-5 mt-4">
-            <SectionHead
-              title="Overall standing"
-              subtitle={
-                scorecard.latest_evaluation_date
-                  ? `Latest week · ${formatDate(scorecard.latest_evaluation_date)}`
-                  : undefined
-              }
-            />
-            <StatBand
-              className="-mx-5"
-              cells={[
-                {
-                  label: 'Overall average',
-                  value: Number(scorecard.overall_score).toFixed(2),
-                  caption: 'across all competencies',
-                  tone: scoreTone(Number(scorecard.overall_score), overallTarget),
-                },
-                { label: 'Target', value: overallTarget.toFixed(1), caption: 'to meet', size: 'base' },
-                {
-                  label: 'Day of probation',
-                  value: daysElapsed,
-                  caption: `of ${PROBATION_DAYS} · ${
-                    isTerminal
-                      ? 'final record'
-                      : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining`
-                  }`,
-                  size: 'base',
-                },
-              ]}
-            />
-          </Card>
+          <PageBrief
+            className="mt-4"
+            eyebrow="Your standing"
+            figure={Number(scorecard.overall_score).toFixed(2)}
+            tone={scoreTone(Number(scorecard.overall_score), overallTarget)}
+            lead={
+              scoreTone(Number(scorecard.overall_score), overallTarget) === 'ok'
+                ? `You meet the ${overallTarget.toFixed(1)} standard in all five competencies.`
+                : `You are below the ${overallTarget.toFixed(1)} standard in at least one competency.`
+            }
+            note={`Day ${daysElapsed} of ${PROBATION_DAYS} · ${
+              isTerminal
+                ? 'final record'
+                : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining`
+            }`}
+          />
         )}
 
         {/* This week's rating — supervisor lens lead (rating-first) */}
         {lens === 'supervisor' && employee.status === 'active' && (
-          <Card flat className="p-5 mt-4">
-            <SectionHead
-              title="This week's rating"
-              note={
-                latestWeek
-                  ? `Last entered · ${formatDate(latestWeek.evaluation_date)}`
-                  : 'Not yet submitted'
-              }
-            />
-            {latestWeek ? (
-              <>
-                <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="text-30 font-semibold font-num text-ink">
-                    {Number(latestWeek.overall_score).toFixed(2)}
-                  </span>
-                  <span className="text-12 text-ink-3">
-                    overall score{latestWeek.evaluator_name ? ` · ${latestWeek.evaluator_name}` : ''}
-                  </span>
-                </div>
-                {latestWeek.remarks && (
-                  <p className="text-14 text-ink-2 mt-2 leading-relaxed break-words">“{latestWeek.remarks}”</p>
-                )}
-              </>
-            ) : (
-              <p className="text-14 text-ink-3">
-                No weekly rating submitted yet. Use “Rate Employee” to record this week’s rating.
-              </p>
-            )}
-          </Card>
+          <PageBrief
+            className="mt-4"
+            eyebrow="This week's rating"
+            figure={latestWeek ? Number(latestWeek.overall_score).toFixed(2) : null}
+            lead={
+              latestWeek
+                ? `Last rated on ${formatDate(latestWeek.evaluation_date)}${
+                    latestWeek.evaluator_name ? ` by ${latestWeek.evaluator_name}` : ''
+                  }.`
+                : 'No weekly rating submitted yet.'
+            }
+            note={
+              latestWeek?.remarks
+                ? `“${latestWeek.remarks}”`
+                : 'Rate this week’s evaluation — the record is weekly.'
+            }
+          />
         )}
 
         {/* Record body — Lead, Evidence, then the full record */}
@@ -787,7 +759,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <p className="text-12 text-ink-3">
+                      <p className="text-14 text-ink-2">
                         Feature importance for legal defensibility. Ranked by how much each moved this
                         prediction (exact Shapley); red raises risk, green lowers it.
                       </p>

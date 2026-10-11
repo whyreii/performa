@@ -7,6 +7,7 @@ export { default as MilestonePill } from './MilestonePill';
 export { default as Skeleton } from './Skeleton';
 export { default as Card } from './Card';
 export { default as SectionHead } from './SectionHead';
+export { default as PageBrief } from './PageBrief';
 export { default as SectionCard } from './SectionCard';
 export { default as GroupCard } from './GroupCard';
 export { default as StatBand } from './StatBand';

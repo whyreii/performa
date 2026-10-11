@@ -242,7 +242,7 @@ html {
   color: var(--ink);
 }
 .sc-ledger__d {
-  font-size: var(--t-12);
+  font-size: var(--t-14);
   color: var(--ink-3);
   margin-top: 2px;
 }

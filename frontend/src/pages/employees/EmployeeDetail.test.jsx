@@ -164,9 +164,7 @@ describe('EmployeeDetail', () => {
     primeHappyPath();
     renderDetail('supervisor');
 
-    expect(
-      await screen.findByRole('heading', { name: "This week's rating" })
-    ).toBeInTheDocument();
+    expect(await screen.findByText("This week's rating")).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: 'ML Risk Explanation' })
     ).not.toBeInTheDocument();

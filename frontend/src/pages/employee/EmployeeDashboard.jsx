@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, MilestonePill, Skeleton, Card, Page, AsyncBoundary, SectionHead } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Card, Page, AsyncBoundary, SectionHead, ScoreLedger } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
 import { CheckCircle2, ArrowRight, BookOpen, TrendingUp, UserCheck } from '../../components/icons';
@@ -34,44 +34,6 @@ function employeeSummaryLine(summary) {
   return summary.status_classification === 'Meets Expectations'
     ? `You're meeting the regularizing standard across all five competencies. Smallest margin: ${lowest.label} (${lowest.value.toFixed(2)}).`
     : `You're below the regularizing standard in at least one competency. Lowest: ${lowest.label} (${lowest.value.toFixed(2)}).`;
-}
-
-// Competency radar: the employee's five scores as a shape over the 4.0 target ring.
-function Radar({ competencies }) {
-  const cx = 110;
-  const cy = 110;
-  const R = 90;
-  const n = competencies.length || 1;
-  const point = (i, value) => {
-    const a = ((-90 + i * (360 / n)) * Math.PI) / 180;
-    const r = (Math.max(0, Math.min(5, Number(value) || 0)) / 5) * R;
-    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-  };
-  const toPoly = (pts) => pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
-  const outer = toPoly(competencies.map((_, i) => point(i, 5)));
-  const target = toPoly(competencies.map((_, i) => point(i, TARGET)));
-  const shape = toPoly(competencies.map((c, i) => point(i, c.score)));
-  const dots = competencies.map((c, i) => {
-    const [x, y] = point(i, c.score);
-    return { key: c.key, x, y, meets: Number(c.score) >= Number(c.target) };
-  });
-  return (
-    <svg width="230" height="230" viewBox="0 0 220 220" role="img" aria-label="Your competency scores against the 4.0 target">
-      <g fill="none" stroke="var(--line)" strokeWidth="1">
-        <polygon points={outer} />
-        <polygon points={toPoly(competencies.map((_, i) => point(i, 3))) } />
-        {competencies.map((_, i) => {
-          const [x, y] = point(i, 5);
-          return <line key={i} x1={cx} y1={cy} x2={x} y2={y} />;
-        })}
-      </g>
-      <polygon points={target} fill="none" stroke="var(--warn)" strokeWidth="1.5" strokeDasharray="4 4" />
-      <polygon points={shape} fill="color-mix(in srgb, var(--good) 22%, transparent)" stroke="var(--good)" strokeWidth="2" />
-      {dots.map((d) => (
-        <circle key={d.key} cx={d.x} cy={d.y} r="2.6" fill={d.meets ? 'var(--good)' : 'var(--warn)'} />
-      ))}
-    </svg>
-  );
 }
 
 export default function EmployeeDashboard() {
@@ -241,10 +203,15 @@ export default function EmployeeDashboard() {
         )}
       </Card>
 
-      {/* How you're doing */}
-      <Card className="p-5">
+      {/* How you're doing — the competency ledger */}
+      <Card flat className="p-5">
         <SectionHead
           title="How you’re doing"
+          subtitle={
+            scorecard?.latest_evaluation_date
+              ? `Latest week · ${formatDate(scorecard.latest_evaluation_date)}`
+              : undefined
+          }
           note={
             overall !== null
               ? `${meetsStandard ? 'On track' : 'Below'} · target ${TARGET.toFixed(1)}`
@@ -256,27 +223,7 @@ export default function EmployeeDashboard() {
         ) : !scorecard?.competencies?.length ? (
           <p className="text-14 text-ink-3">Your competency scores will appear once you’ve been rated.</p>
         ) : (
-          <div className="flex flex-col lg:flex-row gap-6 items-center">
-            <Radar competencies={scorecard.competencies} />
-            <ul className="flex-1 w-full">
-              {[...scorecard.competencies]
-                .sort((a, b) => Number(b.score) - Number(a.score))
-                .map((c) => {
-                  const meets = Number(c.score) >= Number(c.target);
-                  return (
-                    <li
-                      key={c.key}
-                      className="flex items-baseline justify-between gap-4 py-2.5 border-t border-line first:border-t-0"
-                    >
-                      <span className="text-14 text-ink">{c.label}</span>
-                      <span className={`text-14 font-semibold font-num ${meets ? 'text-good' : 'text-warn'}`}>
-                        {Number(c.score).toFixed(1)}
-                      </span>
-                    </li>
-                  );
-                })}
-            </ul>
-          </div>
+          <ScoreLedger competencies={scorecard.competencies} />
         )}
       </Card>
 
