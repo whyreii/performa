@@ -8,10 +8,9 @@ import PageHeader from './PageHeader';
 // this (docs/SLOP_AUDIT.md; enforced by
 // backend/tests/guardrails/test_page_wrapper.py).
 //
-// `reveal` (default) runs a single whole-page transition on mount — one
-// composited layer, not one per section — and its opacity never drops below
-// 0.85 so content is never hidden/blank even if the animation is throttled.
-// The app's Reduce-motion setting and prefers-reduced-motion collapse it.
+// `reveal` (default) staggers the page's direct children in on mount (React Bits
+// Animated Content). The app's Reduce-motion setting and prefers-reduced-motion
+// collapse it to an instant appearance (see index.css).
 export default function Page({
   kicker,
   title,
@@ -28,7 +27,7 @@ export default function Page({
 }) {
   const classes = [
     'space-y-6',
-    reveal ? 'page-enter' : '',
+    reveal ? 'reveal' : '',
     printSheet ? 'print-sheet' : '',
     className,
   ]
