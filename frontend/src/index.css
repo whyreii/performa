@@ -131,15 +131,16 @@ html {
 }
 
 /* Reveal (adapted from React Bits Animated Content): the direct children of a
-   page fade/slide in with a short stagger. Opt-in via <Page reveal>. The global
-   prefers-reduced-motion rule below collapses this to an instant appearance. */
+   page slide in with a short stagger. Opt-in via <Page reveal>. Transform-only
+   (no opacity) on purpose: animating opacity from 0 leaves content invisible
+   until the animation runs — and permanently blank if it never advances (stuck
+   on a hidden/throttled tab). Content must never depend on an animation to be
+   visible. The reduced-motion rule below collapses this to an instant change. */
 @keyframes reveal-up {
   from {
-    opacity: 0;
     transform: translateY(10px);
   }
   to {
-    opacity: 1;
     transform: none;
   }
 }
