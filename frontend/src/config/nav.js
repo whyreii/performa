@@ -42,20 +42,17 @@ export const NAV_BY_ROLE = {
     sidebar: [
       ['adminUsers', 'User Accounts'],
       ['adminActivity', 'Activity Log'],
-      ['rubrics', 'KPI Rubrics'],
       ['notifications', 'Notifications'],
       ['settings', 'Settings'],
     ],
     tabs: [
       ['adminUsers', 'Accounts'],
       ['adminActivity', 'Activity'],
-      ['rubrics', 'Rubrics'],
       ['settings', 'Settings'],
     ],
     commands: [
       ['adminUsers', 'Manage User Accounts'],
       ['adminActivity', 'System Activity Log'],
-      ['rubrics', 'View KPI Rubrics'],
     ],
   },
   employer: {

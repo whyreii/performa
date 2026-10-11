@@ -78,7 +78,7 @@ MATRIX = {
     ("GET", "/api/interventions/pending"): {"employer", "supervisor"},
     ("POST", "/api/interventions/{plan_id}/sign-off"): {"employer"},
     ("POST", "/api/interventions/{plan_id}/complete"): {"probationary_employee"},
-    ("GET", "/api/kpi-rubrics"): {"admin", "employer", "supervisor"},
+    ("GET", "/api/kpi-rubrics"): {"employer", "supervisor"},
     ("GET", "/api/kpi-rubrics/templates"): ALL,
     ("PUT", "/api/kpi-rubrics/{competency}"): {"employer"},
     ("POST", "/api/kpi-rubrics/reset"): {"employer"},

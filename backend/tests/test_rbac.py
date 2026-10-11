@@ -6,8 +6,8 @@ interventions, and the Evidentiary Labor Score Audit Trail); those are
 Employer/Supervisor/Employee only. Write actions — employee onboarding,
 probationary status changes, and KPI configuration — are exclusive to the
 Employer (ratings are also permitted to the Supervisor for assigned reports).
-The Admin retains system/IT oversight: `/admin/*`, `/settings`, `/notifications`,
-and the KPI rubric library (view-only).
+The Admin retains system/IT oversight: `/admin/*`, `/settings`, `/notifications`.
+The KPI rubric library is Employer/Supervisor only.
 """
 from __future__ import annotations
 
@@ -61,12 +61,12 @@ async def test_admin_cannot_write_employee_records(client):
 
 
 @pytest.mark.asyncio
-async def test_admin_cannot_edit_kpi_rubrics(client):
-    """Admin may view KPIs but not create/edit them (Employer-exclusive)."""
+async def test_admin_cannot_access_kpi_rubrics(client):
+    """Admin has no KPI rubric library access (Employer/Supervisor only)."""
     admin = await login_user(client, ADMIN_EMAIL)
 
     view = await client.get("/api/kpi-rubrics", headers=admin)
-    assert view.status_code == 200, view.text
+    assert view.status_code == 403, view.text
 
     upsert = await client.put(
         "/api/kpi-rubrics/task_completion",
@@ -95,11 +95,11 @@ async def test_admin_has_no_employee_data_access(client):
         await client.get("/api/evaluations/audit-trail", headers=admin)
     ).status_code == 403
 
-    # System/IT oversight (KPI overview + rubric library) is retained.
+    # System/IT oversight (KPI overview) is retained; the rubric library is not.
     assert (
         await client.get("/api/admin/reports/overview", headers=admin)
     ).status_code == 200
-    assert (await client.get("/api/kpi-rubrics", headers=admin)).status_code == 200
+    assert (await client.get("/api/kpi-rubrics", headers=admin)).status_code == 403
 
 
 @pytest.mark.asyncio

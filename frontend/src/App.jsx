@@ -246,7 +246,7 @@ export default function App() {
                 <Route
                   path="/rubrics"
                   element={
-                    <ProtectedRoute allowedRoles={['admin', 'supervisor', 'employer']}>
+                    <ProtectedRoute allowedRoles={['supervisor', 'employer']}>
                       <Rubrics />
                     </ProtectedRoute>
                   }

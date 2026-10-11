@@ -41,13 +41,13 @@ The pipeline rules in `ARCHITECTURE.md` §4-5 (Gemini scope, human approval, aud
 Enforced server-side on every endpoint. Hiding something in the UI is not access control.
 
 - **System Administrator** (`admin@acme.com`): system/IT-level access for platform oversight (Manuscript Scope of the Study). Own routes: `/admin/*`, `/settings`, `/notifications`.
-  - MAY: manage user accounts (create/deactivate/reset); view KPIs system-wide (view-only, via `/admin/reports/overview`); view the KPI rubric library (view-only); manage global system settings (deadline thresholds, KPI template library); view the system-wide IT activity log (`/admin/activity`).
+  - MAY: manage user accounts (create/deactivate/reset); view KPIs system-wide (view-only, via `/admin/reports/overview`); manage global system settings (deadline thresholds, KPI template library); view the system-wide IT activity log (`/admin/activity`).
   - MUST NOT: view probationary employee records, scorecards, evaluations, interventions, or the Evidentiary Labor Score Audit Trail; add/edit employee records; create/edit KPI definitions; enter ratings; or take regularization/termination actions.
 - **Employer** (`employer@acme.com`): full operational oversight of employee performance, weekly ratings, and monthly rollups. Exclusive regularization/termination sign-offs and intervention approvals.
 - **Supervisor** (`supervisor@acme.com`): weekly ratings and scorecards for assigned direct reports only.
 - **Probationary Employee** (`emp1@acme.com`): self-scoped dashboard, notifications, and digital acknowledgment of monthly summaries.
 
-**RESOLVED (Admin)**: Admin has **no access** to probationary-employee performance data (Manuscript Scope of the Study, as amended by the owner). Employee records, scorecards, evaluations, interventions, and the Evidentiary Labor Score Audit Trail are Employer/Supervisor/Employee only. Admin is limited to system/IT oversight (`/admin/*`, `/settings`, `/notifications`) plus the KPI rubric library (view-only). Enforced in `backend/tests/test_rbac.py` and `backend/tests/guardrails/test_rbac_matrix.py`; see `ARCHITECTURE.md` §6a-3.
+**RESOLVED (Admin)**: Admin has **no access** to probationary-employee performance data (Manuscript Scope of the Study, as amended by the owner). Employee records, scorecards, evaluations, interventions, and the Evidentiary Labor Score Audit Trail are Employer/Supervisor/Employee only. Admin is limited to system/IT oversight (`/admin/*`, `/settings`, `/notifications`); the KPI rubric library is Employer/Supervisor only. Enforced in `backend/tests/test_rbac.py` and `backend/tests/guardrails/test_rbac_matrix.py`; see `ARCHITECTURE.md` §6a-3.
 
 ---
 

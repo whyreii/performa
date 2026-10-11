@@ -82,7 +82,7 @@ Agents: do not guess on anything in this section.
 3. **Admin access to performance data**: **none** (Manuscript Scope of the Study, as amended). Admin has no
    access to probationary-employee records, scorecards, evaluations, interventions, or the Evidentiary
    Labor Score Audit Trail; those are Employer/Supervisor/Employee only. Admin retains system/IT oversight
-   (`/admin/*`, `/settings`, `/notifications`) and the KPI rubric library (view-only). Enforced in
+   (`/admin/*`, `/settings`, `/notifications`); the KPI rubric library is Employer/Supervisor only. Enforced in
    `backend/tests/test_rbac.py` and `backend/tests/guardrails/test_rbac_matrix.py`; see `AGENTS.md` §2.
 4. **Deadline thresholds**: **Days 150, 165, and 178 are fixed statutory Article 296 milestones** and are
    **not configurable**. `GET /api/admin/settings` (`backend/routers/admin.py`) exposes `DEADLINE_THRESHOLDS`

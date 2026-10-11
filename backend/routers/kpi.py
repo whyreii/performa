@@ -1,8 +1,8 @@
 """KPI rubric configuration (targets and weights) per tenant.
 
-Employers and admins may configure the target score and weight for each of the
-five fixed competencies. Defaults (target 4.0, weight 0.20) are provisioned
-lazily per organization and can be reset.
+Employers configure the target score and weight for each of the five fixed
+competencies; employers and supervisors may view them. Defaults (target 4.0,
+weight 0.20) are provisioned lazily per organization and can be reset.
 """
 from __future__ import annotations
 
@@ -95,7 +95,7 @@ async def _ensure_defaults(db: AsyncSession, organization_id: str) -> list[KpiRu
 async def list_rubrics(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(
-        require_role(UserRole.ADMIN, UserRole.EMPLOYER, UserRole.SUPERVISOR)
+        require_role(UserRole.EMPLOYER, UserRole.SUPERVISOR)
     ),
 ) -> list[KpiRubric]:
     """Return the tenant's competency targets and weights."""
