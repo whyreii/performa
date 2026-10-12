@@ -43,6 +43,7 @@ export const NAV_BY_ROLE = {
       ['adminUsers', 'User Accounts'],
       ['adminActivity', 'Activity Log'],
       ['notifications', 'Notifications'],
+      ['settings', 'Settings'],
     ],
     tabs: [
       ['adminUsers', 'Accounts'],
@@ -63,6 +64,7 @@ export const NAV_BY_ROLE = {
       ['reports', 'Reports'],
       ['audits', 'Audit Trail'],
       ['notifications', 'Notifications'],
+      ['settings', 'Settings'],
     ],
     tabs: [
       ['dashboard', 'Overview'],
@@ -87,6 +89,7 @@ export const NAV_BY_ROLE = {
       ['rate', 'Rate Employee'],
       ['rubrics', 'KPI Rubrics'],
       ['notifications', 'Notifications'],
+      ['settings', 'Settings'],
     ],
     tabs: [
       ['supervisorDashboard', 'Overview'],
@@ -107,6 +110,7 @@ export const NAV_BY_ROLE = {
       ['employeeDashboard', 'My Scorecard'],
       ['training', 'Training Plans'],
       ['notifications', 'Notifications'],
+      ['settings', 'Settings'],
     ],
     tabs: [
       ['employeeDashboard', 'Scorecard'],
