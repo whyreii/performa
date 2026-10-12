@@ -278,12 +278,12 @@ html {
    Both match the app's input styling so dropdowns sit on the same grid. */
 .glide-select--control .glide-select__trigger,
 .glide-select--field .glide-select__trigger {
-  height: 40px;
-  padding: 0 10px 0 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-field);
-  background: var(--surface);
-  font-size: var(--t-14);
+  height: 32px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--glass-line);
+  border-radius: var(--r-ctl);
+  background: var(--glass);
+  font-size: var(--t-12);
 }
 .glide-select--control .glide-select__trigger:hover,
 .glide-select--control .glide-select__trigger[aria-expanded='true'],
@@ -299,7 +299,7 @@ html {
 }
 .glide-select--control .glide-select__option,
 .glide-select--field .glide-select__option {
-  font-size: var(--t-14);
+  font-size: var(--t-12);
 }
 /* Form field: fill the container and space the label from the chevron. */
 .glide-select--field {

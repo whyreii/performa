@@ -33,7 +33,7 @@ export default function Tabs({ tabs = [], value, onChange, ariaLabel }) {
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className="inline-flex p-1 rounded-nav bg-hover border border-line"
+      className="inline-flex overflow-hidden rounded-full border border-glass-line"
     >
       {tabs.map((tab, index) => {
         const selected = value === tab.id;
@@ -49,13 +49,13 @@ export default function Tabs({ tabs = [], value, onChange, ariaLabel }) {
             tabIndex={index === selectedIndex ? 0 : -1}
             onClick={() => onChange?.(tab.id)}
             onKeyDown={(event) => onKeyDown(event, index)}
-            className={`px-3 py-1.5 rounded-ctl text-12 font-medium transition-colors ${
-              selected ? 'bg-surface text-ink font-semibold' : 'text-ink-2 hover:text-ink'
+            className={`inline-flex items-center h-8 px-3.5 text-12 font-medium transition-colors ${
+              selected ? 'bg-accent text-accent-foreground font-semibold' : 'text-ink-2 hover:bg-hover hover:text-ink'
             }`}
           >
             {tab.label}
             {tab.count != null && (
-              <span className="ml-1.5 font-num text-12 text-ink-3">({tab.count})</span>
+              <span className="ml-1.5 font-num text-12 opacity-70">({tab.count})</span>
             )}
           </button>
         );

@@ -16,8 +16,8 @@ const SLOP = 10;
 const RUBBER = 0.55;
 const SIZES = {
   sm: { height: 28, font: 12, pad: 10, min: 36 },
-  md: { height: 36, font: 13, pad: 14, min: 44 },
-  lg: { height: 44, font: 14, pad: 18, min: 48 }
+  md: { height: 30, font: 12, pad: 12, min: 40 },
+  lg: { height: 40, font: 13, pad: 16, min: 48 }
 };
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
