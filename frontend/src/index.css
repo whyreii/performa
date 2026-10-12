@@ -286,14 +286,6 @@ html {
 /* Sidebar nav section label. A CSS class (not the Tailwind `uppercase`
    utility) because the eslint rule reserves `uppercase` for table/print
    headers — see docs/UIUX_STANDARDS.md §6. */
-.side__label {
-  font-size: var(--t-12);
-  color: var(--ink-3);
-  font-family: var(--mono);
-  text-transform: uppercase;
-  letter-spacing: 0.11em;
-  padding: 2px 8px 6px;
-}
 .srail__nav {
   padding: 2px 0 0;
 }

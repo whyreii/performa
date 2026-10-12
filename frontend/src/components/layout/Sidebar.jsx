@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { PerformaMark, LogOut, Search, Sun, Moon, ChevronLeft, ChevronRight } from '../icons';
+import { PerformaMark, LogOut, Search, Sun, Moon, Settings, ChevronLeft, ChevronRight } from '../icons';
 import { ConfirmDialog } from '../ui';
 import { sidebarNav } from '../../config/nav';
 import { getInitials } from '../../utils/format';
@@ -131,9 +131,8 @@ export default function Sidebar({ onOpenCommandPalette }) {
         </button>
       )}
 
-      {/* Navigation Section */}
+      {/* Navigation */}
       <div className="flex-1 overflow-y-auto">
-        {!collapsed && <div className="side__label">Navigation</div>}
         <nav className={`flex flex-col ${collapsed ? 'gap-1' : 'gap-0.5'}`}>
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -185,6 +184,21 @@ export default function Sidebar({ onOpenCommandPalette }) {
             </div>
           </div>
         )}
+
+        {/* Settings — account-level, so it sits in the footer cluster with the
+            theme toggle and sign-out rather than in the work list. */}
+        <NavLink
+          to="/settings"
+          title="Settings"
+          aria-label="Settings"
+          className={({ isActive }) =>
+            `inline-flex items-center justify-center rounded-ctl transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+              collapsed ? 'w-8 h-8' : 'p-1.5'
+            } ${isActive ? 'text-ink bg-hover' : 'text-ink-3 hover:text-ink hover:bg-hover'}`
+          }
+        >
+          <Settings className="w-4 h-4" />
+        </NavLink>
 
         <button
           type="button"
