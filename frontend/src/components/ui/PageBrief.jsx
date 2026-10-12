@@ -24,7 +24,7 @@ export default function PageBrief({
   className = '',
 }) {
   return (
-    <Card className={`p-5${className ? ` ${className}` : ''}`}>
+    <Card flat padded={false} className={className}>
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="min-w-0">
           {eyebrow ? <div className="text-12 text-ink-3">{eyebrow}</div> : null}

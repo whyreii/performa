@@ -1,32 +1,56 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { employeeApi, interventionApi } from '../../api';
-import { Button, Skeleton, Card, Page, CountUp, inputClass, GlideSelect, Th, SectionHead, StatBand, PageGrid, Row, Col } from '../../components/ui';
-import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
-import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
-import { milestoneTone, milestoneFor, nextMilestone, TONE_TEXT, TONE_BG } from '../../utils/status';
-import { Users, Award, ChevronRight, Search } from '../../components/icons';
+import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query';
+import { employeeApi, evaluationApi, interventionApi } from '../../api';
+import {
+  Button,
+  Skeleton,
+  Page,
+  CountUp,
+  SectionHead,
+  StatBand,
+  PageGrid,
+  Row,
+  Col,
+  Th,
+} from '../../components/ui';
+import { daysElapsed as getDaysElapsed, formatDayMonth, milestoneDate } from '../../utils/datetime';
+import {
+  PROBATION_DAYS,
+  MILESTONE_REVIEW,
+  MILESTONE_NOTICE,
+  MILESTONE_CRITICAL,
+} from '../../config/domain';
+import {
+  milestoneFor,
+  nextMilestone,
+  scoreTone,
+  TONE_TEXT,
+  TONE_BG,
+  TONE_FILL,
+} from '../../utils/status';
+import { Users, Award } from '../../components/icons';
+import { useStatusBar } from '../../context/ChromeContext';
 
-// Employer dashboard — "refined" layout: a flat hairline stat band over a stack
-// of panels (action required → probationary employees → AI recommendations).
-// Colour = status only; every value comes from the API/DB (no score column —
-// the employee list carries no score, so we don't invent one).
-const URGENT_MESSAGE = {
-  bad: `Working past Day ${PROBATION_DAYS} confers automatic regular status under Article 296. Record a decision or issue written notice.`,
-  warn: `The Day ${MILESTONE_REVIEW} performance appraisal is due.`,
+// Employer dashboard — the overview: KPI strip · score-vs-target chart + milestone
+// alerts · next statutory deadlines + AI recommendations. Every value comes from
+// the API/DB (scores via each employee's scorecard; no invented numbers).
+const MILE_LABEL = {
+  [MILESTONE_REVIEW]: `Day ${MILESTONE_REVIEW} review`,
+  [MILESTONE_NOTICE]: `Day ${MILESTONE_NOTICE} notice`,
+  [MILESTONE_CRITICAL]: `Day ${MILESTONE_CRITICAL} critical`,
+  [PROBATION_DAYS]: `Day ${PROBATION_DAYS} cap`,
 };
 
-// Day 165 opens the statutory 15-day written-notice window that closes on the
-// Day 180 deadline (ARCHITECTURE.md §2).
-function noticeWindowMessage(daysElapsed, day180Date) {
-  const daysLeft = Math.max(0, PROBATION_DAYS - daysElapsed);
-  const windowDays = PROBATION_DAYS - MILESTONE_NOTICE;
-  const deadline = day180Date ? ` (${formatDate(day180Date)})` : '';
-  return `${windowDays}-day written-notice window open · ${daysLeft} ${
-    daysLeft === 1 ? 'day' : 'days'
-  } to the Day ${PROBATION_DAYS} deadline${deadline}.`;
-}
+// Current window label for an employee who has reached the review milestone.
+const windowLabel = (days) => {
+  if (days > PROBATION_DAYS) {
+    return `Past the Day ${PROBATION_DAYS} cap · regular by operation of law`;
+  }
+  if (days >= MILESTONE_CRITICAL) return `Critical window · Day ${MILESTONE_CRITICAL} reached`;
+  if (days >= MILESTONE_NOTICE) return `Written-notice window · Day ${MILESTONE_NOTICE} reached`;
+  return `Performance review due · Day ${MILESTONE_REVIEW} reached`;
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -61,44 +85,39 @@ export default function Dashboard() {
     [employees]
   );
 
-  // Worklist controls — free-text search, statutory milestone filter, column sort.
-  const [search, setSearch] = useState('');
-  // Default to the action window so the list and its count match the
-  // "Decisions due" tile; the dropdown still reveals all milestones.
-  const [milestone, setMilestone] = useState('due');
-  const [sortKey, setSortKey] = useState('day');
-  const [sortDir, setSortDir] = useState('desc');
+  // Overall score chart — one scorecard per active probationer (404 = not rated
+  // yet, so it simply drops out rather than showing a made-up number).
+  const scoreQueries = useQueries({
+    queries: activeProbationers.map((e) => ({
+      queryKey: ['scorecard', e.id],
+      // A 404 means "no evaluations yet" — return null so it drops out quietly.
+      queryFn: async () => {
+        try {
+          return (await evaluationApi.getScorecard(e.id)) ?? null;
+        } catch {
+          return null;
+        }
+      },
+      retry: false,
+      staleTime: 60_000,
+    })),
+  });
 
-  const onSort = (key) => {
-    if (sortKey === key) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortKey(key);
-      setSortDir(key === 'day' ? 'desc' : 'asc');
-    }
-  };
-
-  const worklist = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const list = activeProbationers.filter((e) => {
-      const days = getDaysElapsed(e.start_date);
-      if (milestone === 'pastCap' && !(days > PROBATION_DAYS)) return false;
-      if (milestone === 'due' && !(days >= MILESTONE_REVIEW && days <= PROBATION_DAYS)) return false;
-      if (milestone === 'onTrack' && !(days < MILESTONE_REVIEW)) return false;
-      if (!q) return true;
-      return (
-        (e.user?.full_name || '').toLowerCase().includes(q) ||
-        (e.job_title || '').toLowerCase().includes(q)
-      );
-    });
-    return [...list].sort((a, b) => {
-      let r = 0;
-      if (sortKey === 'name') r = (a.user?.full_name || '').localeCompare(b.user?.full_name || '');
-      else if (sortKey === 'role') r = (a.job_title || '').localeCompare(b.job_title || '');
-      else r = getDaysElapsed(a.start_date) - getDaysElapsed(b.start_date);
-      return sortDir === 'asc' ? r : -r;
-    });
-  }, [activeProbationers, search, milestone, sortKey, sortDir]);
+  // Overall score chart — one row per active probationer. A 404 scorecard means
+  // "not rated yet", so the employee is kept and shown as "No score yet" rather
+  // than dropped (the row must not silently disappear from the count).
+  const scores = useMemo(
+    () =>
+      activeProbationers
+        .map((e, i) => ({ emp: e, sc: scoreQueries[i].data }))
+        .sort((a, b) => {
+          const av = a.sc ? Number(a.sc.overall_score) : -1;
+          const bv = b.sc ? Number(b.sc.overall_score) : -1;
+          return bv - av;
+        }),
+    [activeProbationers, scoreQueries]
+  );
+  const scoresLoading = scoreQueries.some((q) => q.isLoading);
 
   const stats = useMemo(() => {
     let pastCap = 0;
@@ -118,22 +137,82 @@ export default function Dashboard() {
     };
   }, [activeProbationers, plans]);
 
-  // The single most urgent active employee (greatest day count).
-  const urgent = useMemo(() => {
-    if (activeProbationers.length === 0) return null;
-    const top = activeProbationers.reduce((best, emp) =>
-      getDaysElapsed(emp.start_date) > getDaysElapsed(best.start_date) ? emp : best
-    );
-    const days = getDaysElapsed(top.start_date);
-    return { emp: top, days, tone: milestoneTone(days) };
-  }, [activeProbationers]);
+  const targetScore = Number(scores[0]?.sc?.target_score) || 4.0;
 
-  const showUrgent = urgent && urgent.tone !== 'ok';
+  // Next deadlines — one row per active probationer, sorted by nearest date.
+  const [sortKey, setSortKey] = useState('date');
+  const [sortDir, setSortDir] = useState('asc');
+  const onSort = (key) => {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const deadlines = useMemo(() => {
+    const list = activeProbationers.map((e) => {
+      const days = getDaysElapsed(e.start_date);
+      const next = nextMilestone(days) || PROBATION_DAYS;
+      return { emp: e, days, next, past: days > PROBATION_DAYS, date: milestoneDate(e.start_date, next) };
+    });
+    list.sort((a, b) => {
+      let r = 0;
+      if (sortKey === 'name') r = (a.emp.user?.full_name || '').localeCompare(b.emp.user?.full_name || '');
+      else if (sortKey === 'milestone') r = a.next - b.next;
+      else r = a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+      return sortDir === 'asc' ? r : -r;
+    });
+    return list;
+  }, [activeProbationers, sortKey, sortDir]);
+
+  // Alerts — one live row per active probationer who has reached the Day 150
+  // review (derived from the same employee data, so the day count is never a
+  // stale snapshot and superseded milestones collapse into the current window).
+  const alerts = useMemo(
+    () =>
+      activeProbationers
+        .map((emp) => ({ emp, days: getDaysElapsed(emp.start_date) }))
+        .filter((a) => a.days >= MILESTONE_REVIEW)
+        .sort((a, b) => b.days - a.days)
+        .map((a) => ({ ...a, tone: milestoneFor(a.days, a.emp.status).tone })),
+    [activeProbationers]
+  );
+
+  useStatusBar(
+    `Day 0–${PROBATION_DAYS} pipeline · ${activeProbationers.length} active · ${stats.decisionsDue} decisions due`,
+    `${stats.pendingPlans} interventions pending · Asia/Manila`
+  );
+
+  const kpis = [
+    {
+      label: 'Past cap · auto-regular',
+      value: <CountUp value={stats.pastCap} />,
+      caption: `Past Day ${PROBATION_DAYS} · regular by operation of law`,
+      tone: 'bad',
+    },
+    {
+      label: 'Decisions due',
+      value: <CountUp value={stats.decisionsDue} />,
+      caption: `Day ${MILESTONE_REVIEW}–${PROBATION_DAYS} window`,
+      tone: 'warn',
+    },
+    {
+      label: 'On track',
+      value: <CountUp value={stats.onTrack} />,
+      caption: `Below Day ${MILESTONE_REVIEW}`,
+      tone: 'ok',
+    },
+    {
+      label: 'Interventions pending',
+      value: <CountUp value={stats.pendingPlans} />,
+      caption: stats.pendingPlans === 0 ? 'None awaiting sign-off' : 'Awaiting sign-off',
+    },
+  ];
 
   return (
     <Page
       title="Dashboard"
-      subtitle={<>Probationary pipeline · Article 296 · <span className="font-num">Asia/Manila</span></>}
       actions={
         <>
           <Button variant="secondary" leftIcon={Users} onClick={() => navigate('/employees')}>
@@ -145,231 +224,220 @@ export default function Dashboard() {
         </>
       }
     >
-      <PageGrid className="space-y-6 lg:space-y-0 lg:gap-y-6">
-      {/* Stat band — full width on the shared grid */}
-      <Row>
-        <Col span={12}>
-      <StatBand
-        cells={[
-          {
-            label: 'Past cap · auto-regular',
-            value: <CountUp value={stats.pastCap} />,
-            caption: `Past Day ${PROBATION_DAYS} · regular by operation of law`,
-            tone: 'bad',
-          },
-          {
-            label: 'Decisions due',
-            value: <CountUp value={stats.decisionsDue} />,
-            caption: `Day ${MILESTONE_REVIEW}–${PROBATION_DAYS} window`,
-            tone: 'warn',
-          },
-          {
-            label: 'On track',
-            value: <CountUp value={stats.onTrack} />,
-            caption: `Below Day ${MILESTONE_REVIEW}`,
-            tone: 'ok',
-          },
-          {
-            label: 'Interventions pending',
-            value: <CountUp value={stats.pendingPlans} />,
-            caption: stats.pendingPlans === 0 ? 'None awaiting sign-off' : 'Awaiting sign-off',
-          },
-        ]}
-      />
-        </Col>
-      </Row>
+      <PageGrid className="space-y-10 lg:space-y-0 lg:gap-y-10">
+        {/* KPI strip */}
+        <Row>
+          <Col span={12}>
+            <StatBand cells={kpis} />
+          </Col>
+        </Row>
 
-      {/* Worklist (1–8) + rail (9–12) */}
-      <Row>
-        <Col span={8}>
-      {/* Worklist — searchable, filterable table; one row per probationer */}
-      <Card flat className="space-y-4">
-        <SectionHead
-          title="Needs your action"
-          subtitle={`${worklist.length} probationary employee${
-            worklist.length === 1 ? '' : 's'
-          } · nearest cap first`}
-        />
-
-        {/* Filters — table toolbar */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[220px]">
-            <Search className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search name or role…"
-              aria-label="Search probationary employees"
-              className={`${inputClass} pl-9`}
-            />
-          </div>
-          <GlideSelect
-            className="glide-select--control"
-            ariaLabel="Filter by milestone"
-            value={milestone}
-            onChange={(value) => setMilestone(value)}
-            options={[
-              { value: 'all', label: 'All milestones' },
-              { value: 'pastCap', label: 'Past cap' },
-              { value: 'due', label: 'Decisions due' },
-              { value: 'onTrack', label: 'On track' },
-            ]}
-            showTags={false}
-            size="md"
-            radius={8}
-            menuWidth={200}
-          />
-        </div>
-
-        {isEmpLoading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-9 w-full" />
-            <Skeleton className="h-11 w-full" />
-            <Skeleton className="h-11 w-full" />
-            <Skeleton className="h-11 w-full" />
-          </div>
-        ) : activeProbationers.length === 0 ? (
-          <p className="py-8 text-center text-14 text-ink-3">
-            No active probationary employees in the current tenant.
-          </p>
-        ) : worklist.length === 0 ? (
-          <p className="py-8 text-center text-14 text-ink-3">
-            No probationary employees match the current filter.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <caption className="sr-only">
-                Active probationers with statutory day count and milestone
-              </caption>
-              <thead>
-                <tr className="border-b border-line">
-                  <Th sortKey="name" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 pr-4">
-                    Employee
-                  </Th>
-                  <Th sortKey="role" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 pr-4">
-                    Role
-                  </Th>
-                  <Th sortKey="day" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 pr-4">
-                    Deadline
-                  </Th>
-                  <Th align="right" className="py-2.5">
-                    Action
-                  </Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {worklist.map((emp) => {
-                  const days = getDaysElapsed(emp.start_date);
-                  const { tone, label } = milestoneFor(days, emp.status);
-                  const next = nextMilestone(days);
-                  return (
-                    <tr
-                      key={emp.id}
-                      onClick={() => navigate(`/employees/${emp.id}`)}
-                      className="hover:bg-hover cursor-pointer transition-colors"
-                    >
-                      <td className="py-3 pr-4">
+        {/* Overall score + Alerts, then Next deadlines + AI — the concept's two rows */}
+        <Row className="lg:items-start">
+          <Col span={7}>
+            <section aria-label="Overall score vs standard">
+              <SectionHead
+                title="Overall score"
+                subtitle={`latest week · target ${targetScore.toFixed(1)}`}
+              />
+              {isEmpLoading || scoresLoading ? (
+                <div className="space-y-3 pt-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ) : scores.length === 0 ? (
+                <p className="py-6 text-14 text-ink-3">No active probationary employees.</p>
+              ) : (
+                <div>
+                  {scores.map(({ emp, sc }) => {
+                    if (!sc) {
+                      return (
+                        <div
+                          key={emp.id}
+                          className="flex items-center gap-3 border-t border-line py-2.5 first:border-t-0"
+                        >
+                          <Link
+                            to={`/employees/${emp.id}`}
+                            className="w-28 shrink-0 truncate text-14 text-ink hover:underline"
+                          >
+                            {emp.user?.full_name}
+                          </Link>
+                          <span className="flex-1 text-14 text-ink-3">No score yet</span>
+                          <span className="w-11 shrink-0" />
+                        </div>
+                      );
+                    }
+                    const score = Number(sc.overall_score);
+                    const target = Number(sc.target_score) || targetScore;
+                    const tone = scoreTone(score, target);
+                    return (
+                      <div
+                        key={emp.id}
+                        className="flex items-center gap-3 border-t border-line py-2.5 first:border-t-0"
+                      >
                         <Link
                           to={`/employees/${emp.id}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="font-semibold text-14 text-ink truncate block"
+                          className="w-28 shrink-0 truncate text-14 text-ink hover:underline"
                         >
                           {emp.user?.full_name}
                         </Link>
-                      </td>
-                      <td className="py-3 pr-4 text-14 text-ink-3 truncate">
-                        {emp.job_title}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <span className="inline-flex items-center gap-2">
-                          <span
-                            className={`w-2 h-2 rounded-full shrink-0 ${TONE_BG[tone]}`}
-                            aria-hidden="true"
+                        <span className="relative h-2 flex-1 rounded-full bg-hover">
+                          <i
+                            className={`absolute inset-y-0 left-0 rounded-full ${TONE_FILL[tone]}`}
+                            style={{ width: `${(score / 5) * 100}%` }}
                           />
-                          <span className="font-num text-14 text-ink inline-block w-14">
-                            {next ? `${next - days}d` : 'Past cap'}
-                          </span>
-                          <span className="text-12 text-ink-3">
-                            · {next ? `Day ${next} · ${label}` : label}
-                          </span>
+                          <i
+                            className="absolute -top-1.5 -bottom-1.5 w-px bg-ink-3/60"
+                            style={{ left: `${(target / 5) * 100}%` }}
+                            title={`Target ${target.toFixed(1)}`}
+                          />
                         </span>
-                      </td>
-                      <td className="py-3 text-right">
-                        <ChevronRight className="w-4 h-4 text-ink-3 inline-block" />
-                      </td>
+                        <span
+                          className={`w-11 shrink-0 text-right text-14 font-semibold font-num ${TONE_TEXT[tone]}`}
+                        >
+                          {score.toFixed(2)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </Col>
+
+          <Col span={5}>
+            <section aria-label="Alerts">
+              <SectionHead title="Alerts" subtitle="employees at or past the review milestone" />
+              {alerts.length === 0 ? (
+                <p className="py-6 text-14 text-ink-3">No employees in a milestone window.</p>
+              ) : (
+                <div>
+                  {alerts.map(({ emp, days, tone }) => (
+                    <div key={emp.id} className="flex items-start gap-2.5 border-t border-line py-3 first:border-t-0">
+                      <span
+                        className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0">
+                        <div className="text-14 text-ink">
+                          <Link to={`/employees/${emp.id}`} className="hover:underline">
+                            {emp.user?.full_name}
+                          </Link>
+                          {' · '}
+                          <span className="font-num">
+                            Day {days} of {PROBATION_DAYS}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 text-14 leading-relaxed text-ink-2">
+                          {windowLabel(days)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </Col>
+
+          <Col span={7}>
+            <section aria-label="Next deadlines">
+              <SectionHead title="Next deadlines" />
+              {isEmpLoading ? (
+                <div className="space-y-3 pt-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ) : deadlines.length === 0 ? (
+                <p className="py-6 text-14 text-ink-3">No active probationary employees.</p>
+              ) : (
+                <table className="w-full border-collapse text-left">
+                  <caption className="sr-only">
+                    Active probationers by their nearest statutory milestone
+                  </caption>
+                  <thead>
+                    <tr className="border-b border-line">
+                      <Th sortKey="date" activeKey={sortKey} dir={sortDir} onSort={onSort} className="w-16 py-2.5 pr-4">
+                        Date
+                      </Th>
+                      <Th sortKey="milestone" activeKey={sortKey} dir={sortDir} onSort={onSort} className="w-32 py-2.5 pr-4">
+                        Milestone
+                      </Th>
+                      <Th sortKey="name" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5">
+                        Employee
+                      </Th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {deadlines.map(({ emp, days, next, past, date }) => {
+                      const tone = milestoneFor(days, emp.status).tone;
+                      return (
+                        <tr
+                          key={emp.id}
+                          onClick={() => navigate(`/employees/${emp.id}`)}
+                          className="cursor-pointer transition-colors hover:bg-hover"
+                        >
+                          <td className="py-3 pr-4 text-14 font-semibold font-num text-ink whitespace-nowrap">
+                            {formatDayMonth(date)}
+                          </td>
+                          <td className="py-3 pr-4 text-14 text-ink-2">
+                            {past ? 'Past cap' : MILE_LABEL[next]}
+                          </td>
+                          <td className="py-3">
+                            <span className="inline-flex items-center gap-2">
+                              <span
+                                className={`h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
+                                aria-hidden="true"
+                              />
+                              <Link
+                                to={`/employees/${emp.id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="truncate text-14 text-ink"
+                              >
+                                {emp.user?.full_name}
+                              </Link>
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </section>
+          </Col>
 
-        {!isEmpLoading && activeProbationers.length > 0 && (
-          <div className="flex flex-wrap justify-between gap-2 text-12 text-ink-3">
-            <span>
-              Showing {worklist.length} of {activeProbationers.length}
-            </span>
-            <span>Select a row to open the record</span>
-          </div>
-        )}
-      </Card>
-        </Col>
-
-        <Col span={4} start={9} className="space-y-6">
-        {/* Action required before Day 180 */}
-        {showUrgent && (
-          <Card className="space-y-3">
-            <SectionHead
-              title={`Action required before Day ${PROBATION_DAYS}`}
-              subtitle={`${urgent.emp.user?.full_name} · Day ${urgent.days}`}
-            />
-            <p className="text-14 text-ink-2 leading-relaxed">
-              <span className={`font-semibold ${TONE_TEXT[urgent.tone]}`}>
-                {milestoneFor(urgent.days, 'active').label}
-              </span>{' '}
-              {urgent.tone === 'notice'
-                ? noticeWindowMessage(urgent.days, urgent.emp.day_180_date)
-                : URGENT_MESSAGE[urgent.tone]}
-            </p>
-          </Card>
-        )}
-
-        {/* AI recommendations */}
-        <Card flat className="space-y-4">
-          <SectionHead title="AI recommendations" subtitle="Random Forest gap classifier" />
-
-        {isPlansLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : isPlansError ? (
-          <p className="py-6 text-center text-14 text-bad">
-            Unable to load AI recommendations right now. Please retry.
-          </p>
-        ) : plans.length === 0 ? (
-          <p className="text-14 text-ink-2">
-            All probationary employees are performing at or above benchmark. No active
-            intervention plans required.
-          </p>
-        ) : (
-          <ul className="space-y-3">
-            {plans.slice(0, 3).map((plan) => (
-              <li key={plan.id} className="border-l-2 border-accent pl-3">
-                <div className="text-14 font-semibold text-ink">{plan.intervention_title}</div>
-                <p className="text-14 text-ink-2 mt-0.5 leading-relaxed">
-                  {plan.rationale || plan.competency?.replace(/_/g, ' ')}
+          <Col span={5}>
+            <section aria-label="Interventions">
+              <SectionHead title="Interventions" subtitle="Training plans pending sign-off" />
+              {isPlansLoading ? (
+                <div className="space-y-3 pt-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : isPlansError ? (
+                <p className="py-6 text-14 text-bad">
+                  Unable to load interventions right now. Please retry.
                 </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-        </Col>
-      </Row>
+              ) : plans.length === 0 ? (
+                <p className="py-3 text-14 leading-relaxed text-ink-2">
+                  No interventions awaiting sign-off.
+                </p>
+              ) : (
+                <ul>
+                  {plans.slice(0, 3).map((plan) => (
+                    <li key={plan.id} className="border-t border-line py-3 first:border-t-0">
+                      <div className="text-14 font-semibold text-ink">{plan.intervention_title}</div>
+                      <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
+                        {plan.rationale || plan.competency?.replace(/_/g, ' ')}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </Col>
+        </Row>
       </PageGrid>
     </Page>
   );

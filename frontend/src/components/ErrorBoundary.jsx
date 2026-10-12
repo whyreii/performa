@@ -32,7 +32,7 @@ export default class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-bg text-ink p-6">
-          <Surface className="max-w-md w-full p-8 text-center space-y-4">
+          <Surface flat className="max-w-md w-full p-8 text-center space-y-4">
             <h1 className="text-22 font-semibold text-ink">Something went wrong</h1>
             <p className="text-12 text-ink-3">
               The application hit an unexpected error. Your data has not been affected.

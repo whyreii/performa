@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import Settings from './Settings';
 import { adminApi } from '../../api';
 import { renderWithProviders } from '../../test/renderWithProviders';
@@ -12,9 +12,7 @@ beforeEach(() => localStorage.clear());
 describe('Settings', () => {
   it('renders the profile section with the signed-in account context', async () => {
     renderWithProviders(<Settings />, { route: '/settings', user: testUser('employer') });
-    expect(
-      await screen.findByRole('heading', { name: 'Settings & Appearance' })
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument();
     expect(await screen.findByText('User Profile & Tenant')).toBeInTheDocument();
     expect(screen.getByText('employer@acme.com')).toBeInTheDocument();
   });
@@ -26,7 +24,7 @@ describe('Settings', () => {
     });
     renderWithProviders(<Settings />, { route: '/settings', user: testUser('admin') });
 
-    fireEvent.click(await screen.findByRole('button', { name: 'System settings' }));
+    expect(await screen.findByRole('heading', { name: 'System settings' })).toBeInTheDocument();
     expect(await screen.findByText('Article 296 deadline thresholds')).toBeInTheDocument();
     expect(await screen.findByText('Industry KPI template library')).toBeInTheDocument();
     expect(await screen.findByText('Retail')).toBeInTheDocument();
@@ -34,7 +32,7 @@ describe('Settings', () => {
 
   it('hides System settings from non-administrators', async () => {
     renderWithProviders(<Settings />, { route: '/settings', user: testUser('employer') });
-    await screen.findByRole('heading', { name: 'Settings & Appearance' });
-    expect(screen.queryByRole('button', { name: 'System settings' })).not.toBeInTheDocument();
+    await screen.findByRole('heading', { name: 'Settings' });
+    expect(screen.queryByRole('heading', { name: 'System settings' })).not.toBeInTheDocument();
   });
 });

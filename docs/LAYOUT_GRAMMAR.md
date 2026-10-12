@@ -8,61 +8,51 @@ top of the design system (`AGENTS.md` §1.9, `src/tokens.css`): it defines
 A page is built from **archetypes** (fixed section order) and **primitives**
 (shared components). If a page needs a new shape, add it here first.
 
+## Page top
+
+The page title and its one primary action render in the **shell toolbar** (the
+iMac concept's window chrome), not in the page body. A page passes `title` and
+`actions` to `<Page>`; `AppShell`'s toolbar reads them through `ChromeContext`.
+The toolbar note is `<org> · <date>`.
+
 ## Page archetypes
 
 | Archetype | Shape | Pages |
 |---|---|---|
-| **Record** | Hero → Lead → Evidence → Full record | `EmployeeDetail` (three role lenses) |
-| **Worklist** | PageHeader → StatBand → Action-required → Table → secondary | `employer/Dashboard`, `supervisor/SupervisorDashboard`, `Rollups`, directory |
-| **Standing** | PageHeader → Lead (standing) → Evidence → Record | `employee/EmployeeDashboard` |
+| **Overview** | KPI strip → score/alerts → deadlines/interventions | `employer/Dashboard` |
+| **Record** | Hero → Standing \| Timeline → Recommendation → Evidence | `EmployeeDetail` (three role lenses) |
+| **Worklist** | StatBand → Table → secondary | `supervisor/SupervisorDashboard`, `Rollups`, directory |
+| **Standing** | Lead (standing) → Evidence → Record | `employee/EmployeeDashboard` |
 
 ## Primitives (`frontend/src/components/ui`)
 
-- **`PageHeader`** — the page top (kicker · title · subtitle · actions). Every
-  page starts here; the Record archetype uses a hero variant for the title
-  block.
+- **`Page`** — the page wrapper: owns the per-page vertical rhythm and routes
+  the title/actions into the toolbar. Every routed page renders through it.
+- **`PageGrid` / `Row` / `Col`** — the 12-column page grid. A page must not
+  declare its own page-level grid.
 - **`SectionHead`** — section title + optional muted subtitle + optional
   right-hand note. The single section heading in the app.
-- **`SectionCard`** — `Card` + `SectionHead` (the standard section).
-- **`GroupCard`** — a bordered card whose sub-sections are hairline-divided
-  (the "Full record" tier: one document instead of a stack of equal cards).
-- **`StatBand`** — one hairline-divided row of figures; each cell = tone dot +
-  label + figure + caption. `tone` is a statutory tone (`milestoneTone` /
-  `scoreTone`) — colour = status, never decoration. `size="base"` steps a
-  supporting cell down from the 30px lead.
-
-## Minimal system (pilots)
-
-The converted pages use the reference's flat system — same grid, no surfaces:
-
-- **`Hero`** — the page top: context (left, holds the page's `h1`), one figure +
-  a plain-language label (center), the next step (right). The figure is the
-  only place `text-hero` is used (fluid 56–120px).
-- **`Section`** — a flat section: one 1px `--ink` rule, a numbered gutter
-  (`01` + one-line description), a title with an optional mono note. No card.
-- **`ListRow` / `ListHead`** — an 80px worklist row on the ten content tracks;
-  place its parts with `<Col span={n}>`. Hairline between rows, hover =
-  `--hover`.
-- **`MilestoneRail`** — the statutory day rail: the full 0–180-day term before
-  Day 150, the 150–180 decision window after it (zones = milestone tones).
-
-Converted: none yet (the rate-form pilot is in review). Pages migrate one per
-commit.
+- **`Card` / `Surface`** — the hairline surface. `Card flat` drops the chrome so
+  a block sits directly on the page surface.
+- **`GroupCard`** — a flat group whose sub-sections are hairline-divided (the
+  "Full record" tier: one document instead of a stack of equal cards).
+- **`StatBand`** — one hairline-divided row of figures (the KPI strip); each
+  cell = tone dot + label + figure + caption. `tone` is a statutory tone
+  (`milestoneTone` / `scoreTone`) — the dot carries status; the figure stays
+  ink. `size="base"` steps a supporting cell down from the 22px lead.
+- **`PageBrief`** — the plain-language lead for a page/lens: one sentence, the
+  one figure it rests on, and the one next step.
 
 ## Rules
 
-1. Every section renders through `SectionCard` (or `GroupCard` for a group); no
-   page defines its own `CardHead` / `SectionHead`.
+1. Every section renders through `SectionHead` (+ `Card`/`GroupCard` as needed);
+   no page defines its own `CardHead` / `SectionHead`.
 2. Every stat row renders through `StatBand`; no hand-rolled stat grids.
 3. One lead figure per page/lens at 30px; supporting cells step down
    (`size="base"`).
 4. Secondary evidence is `ink-3` and capped ("Show more").
-5. One primary action, in the page header.
-6. Hairline / flat only; type scale 12 / 14 / 16 / 22 / 30 + `text-hero` (the
-   hero figure only); no new widget types (no donuts, no bento, no KPI-card
-   grids).
-7. Converted pages (minimal system) use `Hero` + `Section` — no cards.
-   Unconverted pages keep the card grammar until migrated, one page per
-   commit.
+5. One primary action, in the toolbar.
+6. Hairline / flat only; type scale 12 / 14 / 16 / 22 / 30; no new widget types
+   (no donuts, no bento, no KPI-card grids).
 
 Enforced by `backend/tests/guardrails/test_layout_grammar.py`.

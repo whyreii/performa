@@ -151,21 +151,18 @@ and it uses a restrained, semantic system.
 
 ---
 
-## 6. Swiss style / IBM Plex typography
+## 6. Swiss style / Inter typography
 
 **Principle.** Objective, grid-driven layout with a functional type system;
 numerals that align and characters that never confuse.
 
 **Implementation.**
-- **Typeface.** The UI uses **IBM Plex Sans**, and numeric/date/score values use
-  **IBM Plex Sans** with tabular figures (`--num` / `font-num`). Code, IDs and
-  kickers use **IBM Plex Mono** (`index.css` imports latin-only subsets, weights
-  400–700; `tokens.css` `--font` / `--mono` / `--num`; `tailwind.config.js`
-  `fontFamily`).
+- **Typeface.** The UI uses **Inter** — one family for UI and for numeric/date/
+  score values with tabular figures (`--num` / `font-num`). (`index.css` imports
+  latin-only subsets, weights 400–700; `tokens.css` `--font` / `--mono` / `--num`;
+  `tailwind.config.js` `fontFamily`.)
 - **Tabular numerals.** `.num` / `.mono` set `font-variant-numeric: tabular-nums`,
   so scores and dates align in columns (`index.css`).
-- **Character disambiguation.** IBM Plex Mono is used for code/IDs/kickers, where it
-  clearly distinguishes `I` / `l` / `1` and `0` / `O`.
 - **Grid discipline.** Consistent 4/8 px spacing scale (`--s1`…`--s7`) and a shared
   card/float radius (`--r-ctl`, `--r-float`).
 - **Corner-radius scale — one per class, not one global value.** Radii are semantic

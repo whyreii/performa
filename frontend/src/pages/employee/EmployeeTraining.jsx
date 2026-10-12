@@ -52,7 +52,7 @@ export default function EmployeeTraining() {
             <CardSkeleton />
           </div>
         ) : isError ? (
-          <Card padded={false} className="p-10 text-center space-y-3">
+          <Card flat padded={false} className="p-10 text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
             <h3 className="text-16 font-semibold text-ink">Failed to load your training plans</h3>
             <p className="text-12 text-ink-3 max-w-sm mx-auto">
@@ -69,9 +69,10 @@ export default function EmployeeTraining() {
         ) : (
           <div className="space-y-4">
             {plans.map((plan) => (
-              <Card
+              <Card padded={false}
+                flat
                 key={plan.id}
-                className="space-y-3 hover:border-ink-3 transition-colors"
+                className="space-y-3 transition-colors hover:bg-hover"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="space-y-1">

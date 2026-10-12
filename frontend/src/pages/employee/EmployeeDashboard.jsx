@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { Button, Badge, MilestonePill, Skeleton, Card, Page, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
@@ -53,6 +54,13 @@ export default function EmployeeDashboard() {
   const myProfile = useMemo(
     () => employees.find((e) => e.user_id === user?.id || e.user?.email === user?.email),
     [employees, user]
+  );
+
+  useStatusBar(
+    myProfile
+      ? `Day ${getDaysElapsed(myProfile.start_date)} of ${PROBATION_DAYS} · ${myProfile.status}`
+      : 'My scorecard',
+    'Article 296 · Asia/Manila'
   );
 
   const { data: auditLogs = [], isLoading: isAuditLoading } = useQuery({
@@ -169,7 +177,7 @@ export default function EmployeeDashboard() {
       <PageGrid className="space-y-4 lg:space-y-0 lg:gap-y-4 lg:items-start">
         <Col span={8} className="space-y-4 min-w-0">
       {/* Greeting + plain dates */}
-      <Card flat className="p-5">
+      <Card padded={false} flat className="">
         {isEmpLoading ? (
           <Skeleton className="h-16 w-full" />
         ) : (
@@ -213,7 +221,7 @@ export default function EmployeeDashboard() {
       </Card>
 
       {/* How you're doing — the competency ledger */}
-      <Card flat className="p-5">
+      <Card padded={false} flat className="">
         <SectionHead
           title="How you’re doing"
           subtitle={
@@ -237,7 +245,7 @@ export default function EmployeeDashboard() {
       </Card>
 
       {/* G — From your supervisor */}
-      <Card flat className="p-5">
+      <Card padded={false} flat className="">
         <SectionHead
           title="From your supervisor"
           note={
@@ -352,7 +360,7 @@ export default function EmployeeDashboard() {
         {/* Side rail — next steps + monthly progress */}
         <Col span={4} start={9} className="space-y-4 min-w-0">
       {/* Your checklist */}
-      <Card flat className="p-5">
+      <Card padded={false} flat className="">
         <SectionHead
           title="Your checklist"
           note={`${checklist.filter((c) => c.done).length} of ${checklist.length} done`}
@@ -400,7 +408,7 @@ export default function EmployeeDashboard() {
       </Card>
 
       {/* Month by month */}
-      <Card flat className="p-5">
+      <Card padded={false} flat className="">
         <SectionHead title="Month by month" note="your monthly average" />
         {isTrendLoading ? (
           <Skeleton className="h-20 w-full" />

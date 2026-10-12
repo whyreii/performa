@@ -25,6 +25,14 @@ export const TONE_BG = {
   bad: 'bg-bad',
 };
 
+// Muted 60% wash for score bars (the numeral carries the full-strength tone).
+export const TONE_FILL = {
+  ok: 'bg-good/60',
+  warn: 'bg-warn/60',
+  notice: 'bg-notice/60',
+  bad: 'bg-bad/60',
+};
+
 export const TONE_VARIANT = {
   ok: 'ok',
   warn: 'warn',

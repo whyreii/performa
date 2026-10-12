@@ -1,33 +1,22 @@
-import React, { useDeferredValue, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { employeeApi, getApiErrorMessage } from '../../api';
-import { Skeleton, EmptyState, Card, inputClass, GlideSelect, Th } from '../../components/ui';
-import { Search, Users, AlertCircle, ChevronRight } from '../../components/icons';
+import { useQuery, useQueries } from '@tanstack/react-query';
+import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
+import { Skeleton, EmptyState, Card, Badge } from '../../components/ui';
+import { Users, AlertCircle } from '../../components/icons';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
-import { milestoneFor, TONE_BG } from '../../utils/status';
-import { PROBATION_DAYS, MILESTONE_REVIEW } from '../../config/domain';
+import { milestoneFor, scoreTone, TONE_BG, TONE_TEXT } from '../../utils/status';
+import { PROBATION_DAYS, TARGET } from '../../config/domain';
+import { getInitials } from '../../utils/format';
 
-// Full-width employees directory table — same visual language as the employer
-// dashboard worklist. Search + milestone filter; each row opens the record.
+// Employees directory — the iMac concept's roster: a flat hairline table with
+// Employee (avatar · name · title), Department, Day X/180, Overall score and
+// Status. Each row opens the record. Scores come from each employee's scorecard
+// (no invented numbers); a missing scorecard shows "—".
+const STATUS_VARIANT = { active: 'accent', regularized: 'ok', terminated: 'neutral' };
+
 export default function EmployeeList() {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
-  const [milestone, setMilestone] = useState('all');
-  const [sortKey, setSortKey] = useState('day');
-  const [sortDir, setSortDir] = useState('desc');
-  // Keep typing instant while the (potentially long) list filters in the
-  // background — the input stays bound to `query`, the list reads the deferred value.
-  const deferredQuery = useDeferredValue(query);
-
-  const onSort = (key) => {
-    if (sortKey === key) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortKey(key);
-      setSortDir(key === 'day' ? 'desc' : 'asc');
-    }
-  };
 
   const {
     data: employees = [],
@@ -39,159 +28,129 @@ export default function EmployeeList() {
     queryFn: () => employeeApi.list({ limit: 200 }),
   });
 
-  const filtered = useMemo(() => {
-    const q = deferredQuery.trim().toLowerCase();
-    const list = employees.filter((e) => {
-      const days = getDaysElapsed(e.start_date);
-      if (milestone === 'pastCap' && !(days > PROBATION_DAYS)) return false;
-      if (milestone === 'due' && !(days >= MILESTONE_REVIEW && days <= PROBATION_DAYS)) return false;
-      if (milestone === 'onTrack' && !(days < MILESTONE_REVIEW)) return false;
-      if (!q) return true;
-      return [e.user?.full_name, e.user?.email, e.job_title, e.department]
-        .filter(Boolean)
-        .some((value) => value.toLowerCase().includes(q));
+  const scoreQueries = useQueries({
+    queries: employees.map((e) => ({
+      queryKey: ['scorecard', e.id],
+      // 404 = "no evaluations yet" → null so it renders as "—".
+      queryFn: async () => {
+        try {
+          return (await evaluationApi.getScorecard(e.id)) ?? null;
+        } catch {
+          return null;
+        }
+      },
+      retry: false,
+      staleTime: 60_000,
+    })),
+  });
+  const scoresLoading = scoreQueries.some((q) => q.isLoading);
+  const scoreById = useMemo(() => {
+    const map = {};
+    employees.forEach((e, i) => {
+      map[e.id] = scoreQueries[i]?.data || null;
     });
-    return [...list].sort((a, b) => {
-      let r = 0;
-      if (sortKey === 'name') r = (a.user?.full_name || '').localeCompare(b.user?.full_name || '');
-      else if (sortKey === 'role') r = (a.job_title || '').localeCompare(b.job_title || '');
-      else if (sortKey === 'dept') r = (a.department || '').localeCompare(b.department || '');
-      else r = getDaysElapsed(a.start_date) - getDaysElapsed(b.start_date);
-      return sortDir === 'asc' ? r : -r;
-    });
-  }, [employees, deferredQuery, milestone, sortKey, sortDir]);
+    return map;
+  }, [employees, scoreQueries]);
+
+  const rows = useMemo(
+    () => [...employees].sort((a, b) => (a.user?.full_name || '').localeCompare(b.user?.full_name || '')),
+    [employees]
+  );
 
   return (
-    <div className="space-y-4">
-      {/* Filters — table toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[220px]">
-          <Search className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search name, role, or department…"
-            aria-label="Search employees"
-            className={`${inputClass} pl-9`}
-          />
-        </div>
-        <GlideSelect
-          className="glide-select--control"
-          ariaLabel="Filter by milestone"
-          value={milestone}
-          onChange={(value) => setMilestone(value)}
-          options={[
-            { value: 'all', label: 'All milestones' },
-            { value: 'pastCap', label: 'Past cap' },
-            { value: 'due', label: 'Decisions due' },
-            { value: 'onTrack', label: 'On track' },
-          ]}
-          showTags={false}
-          size="md"
-          radius={8}
-          menuWidth={200}
-        />
+    <Card flat padded={false} className="space-y-1">
+      <div className="flex items-baseline justify-between gap-3 pb-2 mb-3 border-b border-line">
+        <b className="text-12 font-medium text-ink-2">Employees</b>
+        <span className="text-12 text-ink-3">
+          {employees.length} probationary record{employees.length === 1 ? '' : 's'}
+        </span>
       </div>
 
-      <Card padded={false} className="overflow-hidden">
-        {isLoading ? (
-          <div className="p-4 space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-11 w-full" />
-            ))}
-          </div>
-        ) : isError ? (
-          <div className="p-8 text-center space-y-2">
-            <AlertCircle className="w-6 h-6 mx-auto text-bad" />
-            <p className="text-12 text-bad">
-              {getApiErrorMessage(error, 'Failed to load employees.')}
-            </p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <EmptyState icon={Users} title="No employees match">
-            Try a different search term or filter.
-          </EmptyState>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <caption className="sr-only">
-                Employees with statutory day count and milestone
-              </caption>
-              <thead>
-                <tr className="border-b border-line">
-                  <Th sortKey="name" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 px-4">
-                    Employee
-                  </Th>
-                  <Th sortKey="role" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 px-4">
-                    Role
-                  </Th>
-                  <Th sortKey="dept" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 px-4">
-                    Department
-                  </Th>
-                  <Th sortKey="day" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 px-4">
-                    Deadline
-                  </Th>
-                  <Th align="right" className="py-2.5 px-4">
-                    Action
-                  </Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {filtered.map((emp) => {
-                  const days = getDaysElapsed(emp.start_date);
-                  const { tone, label } = milestoneFor(days, emp.status);
-                  return (
-                    <tr
-                      key={emp.id}
-                      onClick={() => navigate(`/employees/${emp.id}`)}
-                      className="hover:bg-hover cursor-pointer transition-colors"
-                    >
-                      <td className="py-3 px-4">
+      {isLoading ? (
+        <div className="space-y-3 pt-2">
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+        </div>
+      ) : isError ? (
+        <div className="py-10 text-center space-y-2">
+          <AlertCircle className="w-6 h-6 mx-auto text-bad" />
+          <p className="text-12 text-bad">{getApiErrorMessage(error, 'Failed to load employees.')}</p>
+        </div>
+      ) : rows.length === 0 ? (
+        <EmptyState icon={Users} title="No employees yet">
+          Onboard a probationary employee to get started.
+        </EmptyState>
+      ) : (
+        <table className="w-full border-collapse text-left">
+          <caption className="sr-only">Employees with statutory day count, overall score and status</caption>
+          <thead>
+            <tr className="border-b border-line text-12 text-ink-3">
+              <th scope="col" className="py-2.5 pr-4 font-normal">Employee</th>
+              <th scope="col" className="py-2.5 pr-4 font-normal">Department</th>
+              <th scope="col" className="py-2.5 pr-4 font-normal">Day</th>
+              <th scope="col" className="py-2.5 pr-4 text-right font-normal">Overall</th>
+              <th scope="col" className="py-2.5 text-right font-normal">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {rows.map((emp) => {
+              const days = getDaysElapsed(emp.start_date);
+              const { tone } = milestoneFor(days, emp.status);
+              const sc = scoreById[emp.id];
+              const overall = sc ? Number(sc.overall_score) : null;
+              const target = sc ? Number(sc.target_score) || TARGET : TARGET;
+              const st = overall != null ? scoreTone(overall, target) : null;
+              return (
+                <tr
+                  key={emp.id}
+                  onClick={() => navigate(`/employees/${emp.id}`)}
+                  className="cursor-pointer transition-colors hover:bg-hover"
+                >
+                  <td className="py-3 pr-4">
+                    <span className="flex items-center gap-2.5">
+                      <span
+                        className="w-7 h-7 shrink-0 rounded-full bg-hover text-ink-2 flex items-center justify-center text-12 font-semibold"
+                        aria-hidden="true"
+                      >
+                        {getInitials(emp.user?.full_name)}
+                      </span>
+                      <span className="min-w-0">
                         <Link
                           to={`/employees/${emp.id}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="font-semibold text-14 text-ink truncate block hover:text-accent hover:underline"
+                          className="block truncate text-14 font-semibold text-ink hover:underline"
                         >
                           {emp.user?.full_name}
                         </Link>
-                      </td>
-                      <td className="py-3 px-4 text-14 text-ink-3 truncate">
-                        {emp.job_title}
-                      </td>
-                      <td className="py-3 px-4 text-14 text-ink-3 truncate">
-                        {emp.department}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="inline-flex items-center gap-2">
-                          <span
-                            className={`w-2 h-2 rounded-full shrink-0 ${TONE_BG[tone]}`}
-                            aria-hidden="true"
-                          />
-                          <span className="font-num text-14 text-ink inline-block w-14">
-                            Day {days}
-                          </span>
-                          <span className="text-12 text-ink-3">· {label}</span>
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <ChevronRight className="w-4 h-4 text-ink-3 inline-block" />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-
-      <div className="flex flex-wrap justify-between gap-2 text-12 text-ink-3">
-        <span>
-          Showing {filtered.length} of {employees.length}
-        </span>
-        <span>Select a row to open the record</span>
-      </div>
-    </div>
+                        <span className="block truncate text-12 text-ink-3">{emp.job_title}</span>
+                      </span>
+                    </span>
+                  </td>
+                  <td className="py-3 pr-4 truncate text-14 text-ink-2">{emp.department}</td>
+                  <td className="py-3 pr-4">
+                    <span className="inline-flex items-center gap-2 whitespace-nowrap text-14 font-num text-ink">
+                      <span className={`w-2 h-2 shrink-0 rounded-full ${TONE_BG[tone]}`} aria-hidden="true" />
+                      {days} / {PROBATION_DAYS}
+                    </span>
+                  </td>
+                  <td
+                    className={`py-3 pr-4 text-right text-14 font-semibold font-num ${
+                      st ? TONE_TEXT[st] : 'text-ink-3'
+                    }`}
+                  >
+                    {overall != null ? overall.toFixed(2) : scoresLoading ? '…' : '—'}
+                  </td>
+                  <td className="py-3 text-right">
+                    <Badge variant={STATUS_VARIANT[emp.status] || 'neutral'}>{emp.status}</Badge>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+    </Card>
   );
 }

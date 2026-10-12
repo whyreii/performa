@@ -5,6 +5,7 @@ import { daysElapsed as getDaysElapsed, monthNumberFor } from '../../utils/datet
 import { PROBATION_MONTHS, PROBATION_MONTH_DAYS } from '../../config/domain';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect, ConfirmDialog, SectionHead } from '../../components/ui';
 import {
   FileCheck2,
@@ -98,6 +99,11 @@ export default function Rollups() {
     queryFn: () => interventionApi.listSummaries(),
   });
 
+  useStatusBar(
+    `${pendingPlans.length} interventions pending · ${summaries.length} monthly summaries`,
+    'Gemini summaries · Random Forest recommendations'
+  );
+
   const dispatchMutation = useMutation({
     mutationFn: (id) => interventionApi.dispatchSummary(id),
     onSuccess: () => {
@@ -178,7 +184,7 @@ export default function Rollups() {
             <Skeleton className="h-28 w-full" />
           </div>
         ) : isError ? (
-          <Card padded={false} className="p-8 text-center space-y-3">
+          <Card flat padded={false} className="text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
             <h3 className="text-14 font-semibold text-ink">Failed to load pending plans</h3>
             <p className="text-12 text-ink-3">
@@ -193,9 +199,9 @@ export default function Rollups() {
             All training recommendations have been processed. Click "Generate Rollup" to run the 30-day Gemini evaluation rollup on an active probationer.
           </EmptyState>
         ) : (
-          <Card padded={false} className="divide-y divide-line">
+          <div className="divide-y divide-line">
             {pendingPlans.map((plan) => (
-              <div key={plan.id} className="p-5 space-y-3">
+              <div key={plan.id} className="py-3.5 space-y-2">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-1 min-w-0">
                     <div className="flex flex-wrap items-baseline gap-2">
@@ -239,8 +245,8 @@ export default function Rollups() {
 
                 {/* AI Rationale by Gemini */}
                 {plan.rationale && (
-                  <div className="p-3 rounded-ctl bg-hover/70 border border-line text-12 text-ink-2 space-y-1">
-                    <span className="font-semibold text-accent text-12">
+                  <div className="border-t border-line pt-2.5 text-12 text-ink-2 space-y-1">
+                    <span className="font-semibold text-ink-3 text-12">
                       Gemini Performance Rationale
                     </span>
                     <p className="leading-relaxed">{plan.rationale}</p>
@@ -248,7 +254,7 @@ export default function Rollups() {
                 )}
               </div>
             ))}
-          </Card>
+          </div>
         )}
       </section>
 
@@ -264,59 +270,74 @@ export default function Rollups() {
             <Skeleton className="h-14 w-full" />
           </div>
         ) : isSummariesError ? (
-          <Card padded={false} className="p-6 text-center text-12 text-bad">
+          <Card flat padded={false} className="text-center text-12 text-bad">
             Unable to load monthly summaries right now. Please retry.
           </Card>
         ) : summaries.length === 0 ? (
-          <Card padded={false} className="p-6 text-center text-12 text-ink-3">
+          <Card flat padded={false} className="text-center text-12 text-ink-3">
             No monthly summaries generated yet. Run a rollup above.
           </Card>
         ) : (
-          <Card padded={false} className="divide-y divide-line">
-            {summaries.map((summary) => {
-              const emp = employees.find((e) => e.id === summary.employee_id);
-              return (
-                <div key={summary.id} className="p-4 space-y-2">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="text-12">
-                      <span className="font-semibold text-ink">
+          <table className="w-full border-collapse text-left">
+            <caption className="sr-only">Monthly summaries dispatched for acknowledgement</caption>
+            <thead>
+              <tr className="border-b border-line text-12 text-ink-3">
+                <th scope="col" className="py-2.5 pr-4 font-normal">Employee</th>
+                <th scope="col" className="py-2.5 pr-4 font-normal">Cycle</th>
+                <th scope="col" className="py-2.5 pr-4 text-right font-normal">Overall</th>
+                <th scope="col" className="py-2.5 pr-4 font-normal">Risk tier</th>
+                <th scope="col" className="py-2.5 text-right font-normal">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {summaries.map((summary) => {
+                const emp = employees.find((e) => e.id === summary.employee_id);
+                const cls = summary.status_classification?.replace(/_/g, ' ');
+                const variant = /Meets/i.test(cls || '')
+                  ? 'ok'
+                  : /Critical/i.test(cls || '')
+                  ? 'bad'
+                  : 'warn';
+                return (
+                  <tr key={summary.id}>
+                    <td className="py-3 pr-4">
+                      <div className="text-14 text-ink truncate">
                         {emp?.user?.full_name || '—'}
-                      </span>
-                      {emp?.department && (
-                        <span className="text-ink-3 ml-2">{emp.department}</span>
+                      </div>
+                      {emp?.department ? (
+                        <div className="text-12 text-ink-3 truncate">{emp.department}</div>
+                      ) : null}
+                    </td>
+                    <td className="py-3 pr-4 text-14 font-num text-ink-2">
+                      Month {summary.month_number}
+                    </td>
+                    <td className="py-3 pr-4 text-right text-14 font-semibold font-num text-ink">
+                      {Number(summary.overall_average).toFixed(2)}
+                    </td>
+                    <td className="py-3 pr-4">
+                      {cls ? <Badge variant={variant}>{cls}</Badge> : null}
+                    </td>
+                    <td className="py-3 text-right">
+                      {summary.acknowledged_at ? (
+                        <Badge variant="ok">Acknowledged</Badge>
+                      ) : summary.dispatched_at ? (
+                        <Badge variant="accent">Dispatched</Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={dispatchMutation.isPending}
+                          onClick={() => setConfirmDispatch(summary)}
+                        >
+                          Dispatch
+                        </Button>
                       )}
-                      <span className="text-ink-3 font-num ml-2">
-                        Month {summary.month_number}
-                      </span>
-                      <span className="text-ink-3 font-num ml-2">
-                        Avg {Number(summary.overall_average).toFixed(2)}
-                      </span>
-                      <span className="text-ink-3 ml-2 capitalize">
-                        {summary.status_classification?.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                    {summary.acknowledged_at ? (
-                      <Badge variant="ok">Acknowledged</Badge>
-                    ) : summary.dispatched_at ? (
-                      <Badge variant="accent">Dispatched</Badge>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={dispatchMutation.isPending}
-                        onClick={() => setConfirmDispatch(summary)}
-                      >
-                        Dispatch
-                      </Button>
-                    )}
-                  </div>
-                  {summary.performance_summary && (
-                    <p className="text-12 text-ink-2 leading-relaxed">{summary.performance_summary}</p>
-                  )}
-                </div>
-              );
-            })}
-          </Card>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
       </section>
 

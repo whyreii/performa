@@ -116,7 +116,7 @@ export function ProtectedRoute({ children, allowedRoles }) {
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center p-4">
-        <Surface className="max-w-md w-full p-6 text-center">
+        <Surface flat className="max-w-md w-full p-6 text-center">
           <h2 className="text-22 font-semibold text-bad mb-2">Access Forbidden (403)</h2>
           <p className="text-14 text-ink-2 mb-4">
             Your account ({user?.role}) does not have permission to view this page.

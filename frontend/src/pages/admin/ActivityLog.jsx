@@ -47,7 +47,7 @@ export default function ActivityLog() {
 
   return (
     <Page title="System Activity Log" subtitle="User actions across the tenant · sortable">
-      <Card padded={false} className="overflow-hidden">
+      <Card flat padded={false} className="overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-3">
             <Skeleton className="h-12 w-full" />

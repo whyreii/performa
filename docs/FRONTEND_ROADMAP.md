@@ -20,7 +20,7 @@ A change is not acceptable unless it passes all seven. These are rules, not vibe
 2. **Hairline surfaces, no card shadows, one radius scale.** Cards are `Surface`
    (hairline). Radii come from the tokens (`--r-ctl/field/nav/float`); never a
    bespoke radius.
-3. **Fixed type scale — exactly 12 / 14 / 16 / 22 / 30.** Numbers use IBM Plex Sans
+3. **Fixed type scale — exactly 12 / 14 / 16 / 22 / 30.** Numbers use Inter
    with tabular figures (`.num` / `font-num`). No arbitrary sizes.
 4. **Motion is functional; reduced-motion is honored.** No decorative animation;
    every transition collapses under `prefers-reduced-motion` and the app setting.

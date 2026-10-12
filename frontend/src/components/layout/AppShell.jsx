@@ -3,6 +3,8 @@ import { Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { sidebarNav } from '../../config/nav';
 import { prefetchRoute } from '../../routes/loaders';
+import { ChromeProvider, useChrome } from '../../context/ChromeContext';
+import { manilaTodayLabel } from '../../utils/datetime';
 import Sidebar from './Sidebar';
 import MobileBar from './MobileBar';
 import BottomTabBar from './BottomTabBar';
@@ -10,6 +12,47 @@ import CommandPalette from './CommandPalette';
 import ShortcutModal from './ShortcutModal';
 import ScrollToTop from './ScrollToTop';
 import PageSkeleton from '../ui/PageSkeleton';
+
+// The single "gallery wall": max-width + horizontal padding live here ONCE.
+// Every toolbar, status bar and page column reads from this, so they all share
+// one left edge (docs/LAYOUT_GRAMMAR.md; enforced by
+// backend/tests/guardrails/test_page_wrapper.py). 1104 - 2×32 (lg:px-8) = 1040
+// content, matching the iMac concept's wall.
+const WALL = 'app-wall mx-auto w-full max-w-[1104px] px-4 sm:px-6 lg:px-8';
+
+function Toolbar() {
+  const { title, setActionsEl } = useChrome();
+  const { user } = useAuth();
+  const org = user?.organization_name || user?.organization_id || 'Performa';
+  return (
+    <header className="app-toolbar flex-none h-[46px] border-b border-line bg-glass backdrop-blur-md">
+      <div className={`${WALL} flex h-full items-center gap-3`}>
+        {title ? (
+          <span className="truncate text-16 font-semibold tracking-tight text-ink">{title}</span>
+        ) : null}
+        {/* Concept grammar: the toolbar note is "<org> · <date>", right-aligned. */}
+        <span className="ml-auto hidden truncate text-12 text-ink-3 sm:block">
+          {org} · {manilaTodayLabel()}
+        </span>
+        <div ref={setActionsEl} className="ml-auto flex flex-none items-center gap-2 sm:ml-0" />
+      </div>
+    </header>
+  );
+}
+
+function StatusBar() {
+  const { statusLeft, statusRight } = useChrome();
+  const { user } = useAuth();
+  const org = user?.organization_name || user?.organization_id || 'Performa';
+  return (
+    <footer className="app-statusbar hidden lg:flex flex-none h-[28px] border-t border-line bg-glass text-12 text-ink-3 backdrop-blur-md">
+      <div className={`${WALL} flex h-full items-center justify-between gap-3`}>
+        <span className="truncate">{statusLeft || org}</span>
+        <span className="truncate">{statusRight || 'Asia/Manila'}</span>
+      </div>
+    </footer>
+  );
+}
 
 export default function AppShell({ children }) {
   const { user } = useAuth();
@@ -53,50 +96,56 @@ export default function AppShell({ children }) {
   }, []);
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-bg text-ink transition-colors duration-performa selection:bg-accent/20 selection:text-accent">
-      <ScrollToTop />
+    <ChromeProvider>
+      <div className="app-window relative min-h-screen bg-bg text-ink transition-colors duration-performa selection:bg-accent/20 selection:text-accent lg:flex lg:h-[calc(100vh-3rem)] lg:min-h-0 lg:m-6 lg:overflow-hidden lg:rounded-float lg:border lg:border-line lg:shadow-win">
+        <ScrollToTop />
 
-      {/* Skip link — first focusable element (WCAG 2.4.1 Bypass Blocks) */}
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-ctl focus:bg-surface focus:px-4 focus:py-2 focus:text-14 focus:font-medium focus:text-ink focus:shadow-pop"
-      >
-        Skip to content
-      </a>
+        {/* Skip link — first focusable element (WCAG 2.4.1 Bypass Blocks) */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-ctl focus:bg-surface focus:px-4 focus:py-2 focus:text-14 focus:font-medium focus:text-ink focus:shadow-pop"
+        >
+          Skip to content
+        </a>
 
-      {/* Desktop Persistent Sidebar (>= lg) */}
-      <Sidebar onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
+        {/* Desktop Persistent Sidebar (>= lg) */}
+        <Sidebar onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
 
-      {/* Mobile & Tablet Top App Bar (< lg) */}
-      <MobileBar onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
+        {/* Mobile & Tablet Top App Bar (< lg) */}
+        <MobileBar onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
 
-      {/* Main Content Area */}
-      <main
-        id="main"
-        className="flex-1 min-w-0 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 pb-20 lg:pb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
-        tabIndex={-1}
-      >
-        <div className="max-w-[1120px] mx-auto w-full">
-          <Suspense fallback={<PageSkeleton />}>
-            {children || <Outlet />}
-          </Suspense>
+        {/* Main column: toolbar · scrolling content · status bar */}
+        <div className="lg:flex lg:min-h-0 lg:min-w-0 lg:flex-1 lg:flex-col">
+          <Toolbar />
+
+          <main
+            id="main"
+            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent lg:min-h-0 lg:flex-1 lg:overflow-y-auto"
+            tabIndex={-1}
+          >
+            <div className={`${WALL} pt-6 pb-24 lg:py-6`}>
+              <Suspense fallback={<PageSkeleton />}>{children || <Outlet />}</Suspense>
+            </div>
+          </main>
+
+          <StatusBar />
         </div>
-      </main>
 
-      {/* Mobile Bottom Tab Bar */}
-      <BottomTabBar />
+        {/* Mobile Bottom Tab Bar */}
+        <BottomTabBar />
 
-      {/* Global Command Palette */}
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-      />
+        {/* Global Command Palette */}
+        <CommandPalette
+          isOpen={isCommandPaletteOpen}
+          onClose={() => setIsCommandPaletteOpen(false)}
+        />
 
-      {/* Global Keyboard Shortcut Modal */}
-      <ShortcutModal
-        isOpen={isShortcutModalOpen}
-        onClose={() => setIsShortcutModalOpen(false)}
-      />
-    </div>
+        {/* Global Keyboard Shortcut Modal */}
+        <ShortcutModal
+          isOpen={isShortcutModalOpen}
+          onClose={() => setIsShortcutModalOpen(false)}
+        />
+      </div>
+    </ChromeProvider>
   );
 }

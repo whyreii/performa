@@ -31,6 +31,8 @@ export default {
         line: 'var(--line)',
         hover: 'var(--hover)',
         seg: 'var(--seg)',
+        glass: 'var(--glass)',
+        'glass-line': 'var(--glass-line)',
         accent: {
           DEFAULT: withOpacity('--accent'),
           foreground: 'var(--on-accent)',
@@ -54,25 +56,25 @@ export default {
         'side-collapsed': 'var(--side-w-collapsed)',
       },
       fontFamily: {
-        sans: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'ui-monospace', 'Menlo', 'monospace'],
-        // Numeric/data face: IBM Plex Sans (owner decision — no platform system
-        // face). Tabular figures are set on `.font-num` in index.css. See --num.
-        num: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        // One family app-wide (owner decision): Inter for UI and for
+        // numbers/dates/scores/IDs. Tabular figures are set on `.font-num` in
+        // index.css. See --font / --num in tokens.css.
+        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        mono: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        num: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
       },
-      // Scale B (five text sizes) + the one display size (`hero`: the minimal
-      // system's page hero figure). See tokens.css / docs/LAYOUT_GRAMMAR.md.
+      // Five text sizes. See tokens.css / docs/LAYOUT_GRAMMAR.md.
       fontSize: {
         12: ['var(--t-12)', { lineHeight: '1.5' }],
         14: ['var(--t-14)', { lineHeight: '1.5' }],
         16: ['var(--t-16)', { lineHeight: '1.5' }],
         22: ['var(--t-22)', { lineHeight: '1.3' }],
         30: ['var(--t-30)', { lineHeight: '1.15' }],
-        hero: ['var(--t-hero)', { lineHeight: '0.9', letterSpacing: '-0.03em' }],
       },
       boxShadow: {
         side: 'var(--shadow)',
         pop: 'var(--pop)',
+        win: 'var(--win-shadow)',
       },
       opacity: {
         8: '0.08',

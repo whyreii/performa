@@ -1,8 +1,7 @@
-@import "@fontsource/ibm-plex-sans/latin-400.css";
-@import "@fontsource/ibm-plex-sans/latin-500.css";
-@import "@fontsource/ibm-plex-sans/latin-600.css";
-@import "@fontsource/ibm-plex-sans/latin-700.css";
-@import "@fontsource/ibm-plex-mono/latin-400.css";
+@import "@fontsource/inter/latin-400.css";
+@import "@fontsource/inter/latin-500.css";
+@import "@fontsource/inter/latin-600.css";
+@import "@fontsource/inter/latin-700.css";
 @import "./tokens.css";
 
 @tailwind base;
@@ -60,8 +59,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Numeric/data text uses IBM Plex Sans with tabular figures — see
-     tokens.css --num. */
+  /* Numeric/data text uses Inter with tabular figures — see tokens.css --num. */
   .num {
     font-family: var(--num);
     font-variant-numeric: tabular-nums;
@@ -168,54 +166,6 @@ html {
   font-size: var(--t-12);
   color: var(--ink-2);
 }
-/* Employee record — signature docket: the 180-day window as a vertical ledger
-   (milestones + a highlighted "today" row), replacing the horizontal scale. */
-.docket {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.docket__row {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: baseline;
-  padding: 9px 0;
-  border-top: 1px solid var(--line);
-}
-.docket__row:first-child {
-  border-top: 0;
-}
-.docket__d {
-  font-family: var(--num);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  text-align: right;
-}
-.docket__n {
-  font-size: var(--t-14);
-}
-.docket__dt {
-  font-family: var(--num);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--t-12);
-  color: var(--ink-3);
-}
-.docket__row.is-today {
-  background: var(--hover);
-  margin: 0 -10px;
-  padding: 9px 10px;
-  border-radius: var(--r-ctl);
-  border-top-color: transparent;
-}
-.docket__row.is-today .docket__d,
-.docket__row.is-today .docket__dt {
-  color: var(--accent);
-}
-.docket__row.is-reached .docket__n {
-  font-weight: 600;
-}
-
 /* Employee record — scorecard ledger rows: the numeral is the hero, with a
    hairline track that carries the fixed target notch (colour = status). */
 .sc-ledger {
@@ -275,210 +225,17 @@ html {
   line-height: 1;
 }
 
-/* Minimal system (docs/LAYOUT_GRAMMAR.md): flat sections + the statutory rail.
-   One 1px ink rule per section; rows are hairlines. The 4px rail shows the
-   full 0–180-day term before Day 150 and zooms into the 150–180 decision
-   window after it (zones are statutory; colour = status). */
-.sec {
-  border-top: 1px solid var(--ink);
-  padding-top: 16px;
-}
-.sec + .sec {
-  margin-top: 48px;
-}
-.rail {
-  position: relative;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--line);
-}
-.rail__zone {
-  position: absolute;
-  top: -6px;
-  bottom: -6px;
-}
-.rail__zone--warn-1 {
-  background: color-mix(in srgb, var(--warn) 10%, transparent);
-}
-.rail__zone--warn-2 {
-  background: color-mix(in srgb, var(--warn) 20%, transparent);
-}
-.rail__zone--bad {
-  background: color-mix(in srgb, var(--bad) 25%, transparent);
-}
-.rail__fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  border-radius: 999px;
-  background: var(--ink-2);
-  animation: rail-grow 0.7s var(--ease) both;
-}
-.rail__tick {
-  position: absolute;
-  top: -4px;
-  width: 1px;
-  height: 12px;
-  background: var(--ink-3);
-}
-.rail__dot {
-  position: absolute;
-  top: 50%;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--ink);
-  box-shadow: 0 0 0 3px var(--bg);
-  transform: translate(-50%, -50%);
-  animation: rail-move 0.7s var(--ease) both;
-}
-.rail__dot--warn {
-  background: var(--warn);
-}
-.rail__dot--notice {
-  background: var(--notice);
-}
-.rail__dot--bad {
-  background: var(--bad);
-}
-@keyframes rail-grow {
-  from {
-    width: 0;
-  }
-}
-@keyframes rail-move {
-  from {
-    left: 0;
-  }
-}
-
-/* Settings rail — sectioned settings inside the standard gallery wall (AppShell
-   owns max-width + padding): a nav column beside a reading column. */
-.srail {
-  display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
-  gap: 0 36px;
-  align-items: start;
-}
-/* Sidebar nav section label. A CSS class (not the Tailwind `uppercase`
-   utility) because the eslint rule reserves `uppercase` for table/print
-   headers — see docs/UIUX_STANDARDS.md §6. */
-.srail__nav {
-  padding: 2px 0 0;
-}
-.srail__t {
-  font-size: var(--t-12);
-  color: var(--ink-3);
-  font-family: var(--mono);
-  text-transform: uppercase;
-  letter-spacing: 0.11em;
-  padding: 0 10px 10px;
-}
-.srail__b {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  height: 34px;
-  padding: 0 10px;
-  border: 0;
-  background: transparent;
-  color: var(--ink-2);
-  font-size: var(--t-14);
-  border-radius: var(--r-ctl);
-  text-align: left;
-}
-.srail__b:hover {
-  background: var(--hover);
-  color: var(--ink);
-}
-.srail__b.is-active {
-  background: var(--hover);
-  color: var(--ink);
-  font-weight: 600;
-}
-.srail__ico {
-  width: 16px;
-  height: 16px;
-  flex: none;
-  color: var(--ink-3);
-}
-.srail__b.is-active .srail__ico {
-  color: var(--accent);
-}
-.srail__pane {
-  min-width: 0;
-}
-.srail__inner {
-  max-width: 760px;
-  padding: 0 0 96px;
-}
-
-/* Flat settings section (no card): heading + hairline rows. */
-.ssec {
-  padding: 22px 0 0;
-}
-.ssec__h {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-.ssec__h h2 {
-  font-size: var(--t-16);
-  font-weight: 600;
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-.ssec__h p {
-  font-size: var(--t-12);
-  color: var(--ink-3);
-  margin: 3px 0 0;
-}
-.salert {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 13px 0;
-  border-bottom: 1px solid var(--line);
-}
-.salert:last-child {
-  border-bottom: 0;
-}
-.salert__t {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--t-14);
-  font-weight: 600;
-}
-.salert__b {
-  font-size: var(--t-12);
-  color: var(--ink-2);
-  margin: 3px 0 0;
-  max-width: 56ch;
-}
-.salert__live {
-  font-size: var(--t-12);
-  color: var(--good);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
 /* GlideSelect as an app control — the single dropdown style. `--control` is the
    auto-width toolbar variant; `--field` is the full-width form-field variant.
    Both match the app's input styling so dropdowns sit on the same grid. */
 .glide-select--control .glide-select__trigger,
 .glide-select--field .glide-select__trigger {
-  height: 40px;
-  padding: 0 10px 0 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-field);
-  background: var(--surface);
-  font-size: var(--t-14);
+  height: 32px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--glass-line);
+  border-radius: var(--r-ctl);
+  background: var(--glass);
+  font-size: var(--t-12);
 }
 .glide-select--control .glide-select__trigger:hover,
 .glide-select--control .glide-select__trigger[aria-expanded='true'],
@@ -494,7 +251,7 @@ html {
 }
 .glide-select--control .glide-select__option,
 .glide-select--field .glide-select__option {
-  font-size: var(--t-14);
+  font-size: var(--t-12);
 }
 /* Form field: fill the container and space the label from the chevron. */
 .glide-select--field {
@@ -533,30 +290,6 @@ html {
   letter-spacing: 0.14em;
 }
 
-@media (max-width: 1024px) {
-  .srail {
-    display: block;
-  }
-  .srail__nav {
-    display: flex;
-    gap: 4px;
-    overflow-x: auto;
-    border-bottom: 1px solid var(--line);
-    padding: 0 0 12px;
-    margin-bottom: 6px;
-  }
-  .srail__t {
-    display: none;
-  }
-  .srail__b {
-    width: auto;
-    white-space: nowrap;
-  }
-  .srail__inner {
-    padding: 0 0 72px;
-  }
-}
-
 /* Flat sections (Surface `flat`): no card chrome. The section's heading row gets
    a full-width hairline divider underneath (not a short stub under the label),
    so blocks read as separated sections without floating rules. */
@@ -589,6 +322,28 @@ html[data-reduce-motion='true'] *::after {
 
 /* Print optimization for official legal and audit documentation */
 @media print {
+  /* Neutralize the floating iMac window so pages print full-bleed, and drop
+     the toolbar + status bar chrome. */
+  .app-window {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  .app-toolbar,
+  .app-statusbar {
+    display: none !important;
+  }
+
+  .app-wall {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
   /* Hide interactive web UI controls */
   nav,
   aside,

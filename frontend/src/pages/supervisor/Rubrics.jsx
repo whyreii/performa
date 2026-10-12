@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { kpiApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { TARGET, COMPETENCIES } from '../../config/domain';
 import { AlertCircle } from '../../components/icons';
 import { Card, Page, Button, Badge, inputClass, SectionHead } from '../../components/ui';
@@ -60,6 +61,11 @@ export default function Rubrics() {
   );
 
   const weightTotal = form.reduce((sum, row) => sum + (Number(row.weightPct) || 0), 0);
+
+  useStatusBar(
+    `${COMPETENCIES.length} competencies · weights ${weightTotal}%`,
+    `Target floored at ${TARGET.toFixed(2)} · Asia/Manila`
+  );
 
   const saveMutation = useMutation({
     mutationFn: () =>
@@ -188,7 +194,7 @@ export default function Rubrics() {
       )}
 
       {/* Legal Banner */}
-      <Card padded={false} className="p-5 space-y-2">
+        <Card flat padded={false} className="space-y-2">
         <div className="text-accent font-semibold text-12">
           <span className="font-num text-12">
             Statutory Legal Basis (Aliling v. Feliciano / Tamson Doctrine)
@@ -201,53 +207,57 @@ export default function Rubrics() {
 
       {/* KPI Configuration — Employer only (Art. 296: targets & weights are employer-configurable) */}
       {canEdit && form.length > 0 && (
-        <Card className="p-5 space-y-4">
+        <Card flat padded={false} className="space-y-1">
           <SectionHead
             title="KPI Configuration"
-            subtitle={`Set the target and weight for each core competency. Targets are floored at the ${TARGET.toFixed(1)} regularizing standard; weights are relative.`}
             note={<Badge variant={weightTotal === 100 ? 'ok' : 'warn'}>Weights {weightTotal}%</Badge>}
           />
+          <p className="text-12 text-ink-2 leading-relaxed pb-2">
+            Set the target and weight for each core competency. Targets are floored at the{' '}
+            {TARGET.toFixed(1)} regularizing standard; weights are relative.
+          </p>
 
-          <div className="space-y-3">
+          <div className="space-y-1">
             {form.map((row) => (
-              <div key={row.competency} className="flex flex-wrap items-center gap-3">
-                <span className="text-14 text-ink flex-1">{row.label}</span>
-                <div className="flex items-center gap-2">
-                  <label htmlFor={`target-${row.competency}`} className="text-12 text-ink-3">
-                    Target
-                  </label>
-                  <div className="w-20">
-                    <input
-                      id={`target-${row.competency}`}
-                      type="number"
-                      inputMode="decimal"
-                      min={TARGET}
-                      max={TARGET + 1}
-                      step={0.1}
-                      value={row.target}
-                      onChange={(e) => updateRow(row.competency, { target: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <label htmlFor={`weight-${row.competency}`} className="text-12 text-ink-3">
-                    Weight %
-                  </label>
-                  <div className="w-20">
-                    <input
-                      id={`weight-${row.competency}`}
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      max={100}
-                      step={5}
-                      value={row.weightPct}
-                      onChange={(e) => updateRow(row.competency, { weightPct: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
+              <div
+                key={row.competency}
+                className="grid grid-cols-1 items-center gap-x-4 gap-y-2 border-t border-line py-2 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_168px_168px]"
+              >
+                <span className="text-14 text-ink">{row.label}</span>
+                <label
+                  htmlFor={`target-${row.competency}`}
+                  className="flex items-center gap-2 whitespace-nowrap text-12 text-ink-3"
+                >
+                  Target
+                  <input
+                    id={`target-${row.competency}`}
+                    type="number"
+                    inputMode="decimal"
+                    min={TARGET}
+                    max={TARGET + 1}
+                    step={0.1}
+                    value={row.target}
+                    onChange={(e) => updateRow(row.competency, { target: e.target.value })}
+                    className={`${inputClass} w-24`}
+                  />
+                </label>
+                <label
+                  htmlFor={`weight-${row.competency}`}
+                  className="flex items-center gap-2 whitespace-nowrap text-12 text-ink-3"
+                >
+                  Weight %
+                  <input
+                    id={`weight-${row.competency}`}
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={row.weightPct}
+                    onChange={(e) => updateRow(row.competency, { weightPct: e.target.value })}
+                    className={`${inputClass} w-24`}
+                  />
+                </label>
               </div>
             ))}
           </div>
@@ -301,7 +311,7 @@ export default function Rubrics() {
       {/* Rubrics Grid */}
       <div className="space-y-6">
         {rubrics.map((rubric) => (
-          <Card key={rubric.id} className="space-y-4">
+          <Card padded={false} flat key={rubric.id} className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-line">
               <div>
                 <h2 className="text-16 font-semibold text-ink">{rubric.name}</h2>
@@ -321,33 +331,21 @@ export default function Rubrics() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-              {rubric.levels.map((lvl) => (
-                <div
-                  key={lvl.score}
-                  className={`p-3 rounded-ctl border text-12 space-y-2 ${
-                    lvl.title.includes('Target')
-                      ? 'bg-ok/5 border-line'
-                      : 'bg-hover/60 border-line'
-                  }`}
-                >
-                  <div className="flex items-center justify-between font-num">
-                    <span className="font-bold text-ink">{lvl.score}</span>
-                    <span
-                      className={`text-12 font-sans font-semibold px-1.5 py-0.5 rounded ${
-                        lvl.title.includes('Target')
-                          ? 'bg-ok/20 text-ok'
-                          : lvl.title.includes('Unsatisfactory')
-                          ? 'bg-bad/10 text-bad'
-                          : 'bg-ink-3/10 text-ink-3'
-                      }`}
-                    >
-                      {lvl.title}
-                    </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
+              {rubric.levels.map((lvl) => {
+                const edge = lvl.title.includes('Target')
+                  ? 'border-l-good'
+                  : lvl.title.includes('Unsatisfactory')
+                  ? 'border-l-bad'
+                  : 'border-l-line';
+                return (
+                  <div key={lvl.score} className={`border-l-2 pl-2.5 ${edge}`}>
+                    <span className="block text-12 font-num text-ink-3">{lvl.score}</span>
+                    <span className="block text-12 font-semibold text-ink mt-0.5">{lvl.title}</span>
+                    <p className="mt-1.5 text-14 text-ink-2 leading-relaxed">{lvl.text}</p>
                   </div>
-                  <p className="text-12 text-ink-2 leading-relaxed">{lvl.text}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
         ))}

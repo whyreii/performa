@@ -5,10 +5,11 @@ import { formatDate } from '../../utils/datetime';
 import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { Bell, CheckCheck, AlertCircle } from '../../components/icons';
 
 // Copy reflects what each role actually receives (backend notification
-// categories): Employer → statutory milestone alerts; Supervisor → Day 150 for
+// categories): Employer → probation milestone alerts; Supervisor → Day 150 for
 // their reports; Employee → monthly summaries + training; Admin → system/account
 // only (the Admin is view-only and receives no performance alerts).
 const COPY_BY_ROLE = {
@@ -17,7 +18,7 @@ const COPY_BY_ROLE = {
     empty: 'System and account notifications will appear here.',
   },
   employer: {
-    subtitle: 'Statutory milestone alerts for your probationary employees',
+    subtitle: 'Probation milestone alerts for your probationary employees',
     empty: 'You will be alerted here when an employee reaches a Day 150, 165, or 178 milestone.',
   },
   supervisor: {
@@ -64,6 +65,11 @@ export default function Notifications() {
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
+  useStatusBar(
+    `${unreadCount} unread · ${notifications.length} total`,
+    'Milestone alerts · Asia/Manila'
+  );
+
   return (
     <Page
         title="Notifications"
@@ -84,7 +90,13 @@ export default function Notifications() {
         }
     >
 
-      <Card padded={false} className="overflow-hidden">
+      <Card flat padded={false} className="space-y-1">
+        <div className="flex items-baseline justify-between gap-3 pb-2 mb-3 border-b border-line">
+          <b className="text-12 font-medium text-ink-2">Notifications</b>
+          <span className="text-12 text-ink-3">
+            {unreadCount} unread · {notifications.length} total
+          </span>
+        </div>
         {isLoading ? (
           <div className="divide-y divide-line" aria-hidden="true">
             {[0, 1, 2, 3, 4].map((i) => (
@@ -127,11 +139,11 @@ export default function Notifications() {
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
+                      {n.category && <Badge variant="neutral">{n.category}</Badge>}
                       <span className="font-semibold text-14 text-ink">{n.title}</span>
                       <span className="sr-only">{n.is_read ? 'Read' : 'Unread'}</span>
-                      {n.category && <Badge variant="neutral">{n.category}</Badge>}
                     </div>
-                    {n.body && <p className="text-12 text-ink-2 mt-0.5">{n.body}</p>}
+                    {n.body && <p className="text-14 text-ink-2 mt-0.5">{n.body}</p>}
                     <span className="text-12 text-ink-3 font-num mt-1 block">
                       {n.created_at ? formatDate(n.created_at, { withTime: true, seconds: false }) : ''}
                     </span>

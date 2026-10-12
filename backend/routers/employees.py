@@ -49,9 +49,11 @@ router = APIRouter(tags=["Employees"])
 
 MILESTONE_LEAD_DAYS = 7
 
-# Statutory milestone alerts (Article 296). Each fires at most once per
-# employee; the Employer always receives all three, the assigned Supervisor
-# only the Day 150 review alert (Manuscript: supervisor is view-only for alerts).
+# Probation milestone alerts. Each fires at most once per employee; the Employer
+# always receives all three, the assigned Supervisor only the Day 150 review alert
+# (Manuscript: supervisor is view-only for alerts). The Day 150/165/178 windows
+# are the app's review schedule for the 180-day probation cap, not statutory
+# dates under Article 296.
 # (day, employee flag attribute, notification title, category)
 MILESTONE_ALERT_STEPS: tuple[tuple[int, str, str, str], ...] = (
     (MILESTONE_REVIEW_DAY, "milestone_150_alerted", "Day 150 · Performance appraisal due", "milestone_150"),
@@ -143,11 +145,10 @@ async def _fire_milestone_alerts(
 
             setattr(employee, flag_attr, True)
             fired += 1
-            elapsed = days_elapsed(employee.start_date, as_of)
             name = employee.user.full_name if employee.user else "A probationary employee"
             body = (
-                f"{name} is at Day {elapsed} of 180 and has reached the "
-                f"statutory Day {day} milestone under Article 296."
+                f"{name} reached the Day {day} milestone of the "
+                f"180-day probation timeline."
             )
             create_notification(
                 db,
@@ -418,7 +419,7 @@ async def list_milestones(
 
 @router.post(
     "/milestones/scan",
-    summary="Dispatch due statutory milestone alerts (Employer)",
+    summary="Dispatch due probation milestone alerts (Employer)",
 )
 async def scan_milestone_alerts(
     db: AsyncSession = Depends(get_db),
