@@ -60,7 +60,7 @@ export default function SupervisorDashboard() {
         }
     >
 
-      <Card flat as="div" padded={false} className="p-5 flex flex-wrap items-end justify-between gap-4">
+      <Card flat as="div" padded={false} className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-1">
           <span className="text-12 text-ink-3">Direct reports</span>
           <div className="text-22 font-bold font-num text-ink">
@@ -73,7 +73,7 @@ export default function SupervisorDashboard() {
       </Card>
 
       {/* Assigned Probationers Table */}
-      <Card flat className="space-y-4">
+      <Card padded={false} flat className="space-y-4">
         <SectionHead
           title="Assigned Probationary Staff"
           subtitle="Weekly evaluation schedule & milestone tracking"

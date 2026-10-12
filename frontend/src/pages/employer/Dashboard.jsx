@@ -224,9 +224,9 @@ export default function Dashboard() {
           </Col>
         </Row>
 
-        {/* Overall score + Next deadlines (1–7) · Alerts + AI (8–12) */}
+        {/* Overall score + Alerts, then Next deadlines + AI — the concept's two rows */}
         <Row className="lg:items-start">
-          <Col span={7} className="space-y-6">
+          <Col span={7}>
             <Card flat padded={false} className="space-y-1">
               <SectionHead
                 title="Overall score"
@@ -279,7 +279,38 @@ export default function Dashboard() {
                 </div>
               )}
             </Card>
+          </Col>
 
+          <Col span={5}>
+            <Card flat padded={false} className="space-y-1">
+              <SectionHead title="Alerts" subtitle="milestone notices" />
+              {alerts.length === 0 ? (
+                <p className="py-6 text-14 text-ink-3">No milestone alerts.</p>
+              ) : (
+                <div>
+                  {alerts.map((n) => {
+                    const tone = ALERT_TONE[n.category] || 'warn';
+                    return (
+                      <div key={n.id} className="flex items-start gap-2.5 border-t border-line py-3 first:border-t-0">
+                        <span
+                          className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
+                          aria-hidden="true"
+                        />
+                        <div className="min-w-0">
+                          <div className="text-14 text-ink">{n.title}</div>
+                          {n.body ? (
+                            <div className="mt-0.5 text-12 leading-relaxed text-ink-2">{n.body}</div>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </Col>
+
+          <Col span={7}>
             <Card flat padded={false} className="space-y-1">
               <SectionHead title="Next deadlines" subtitle="nearest statutory date per employee" />
               {isEmpLoading ? (
@@ -346,34 +377,7 @@ export default function Dashboard() {
             </Card>
           </Col>
 
-          <Col span={5} className="space-y-6">
-            <Card flat padded={false} className="space-y-1">
-              <SectionHead title="Alerts" subtitle="milestone notices" />
-              {alerts.length === 0 ? (
-                <p className="py-6 text-14 text-ink-3">No milestone alerts.</p>
-              ) : (
-                <div>
-                  {alerts.map((n) => {
-                    const tone = ALERT_TONE[n.category] || 'warn';
-                    return (
-                      <div key={n.id} className="flex items-start gap-2.5 border-t border-line py-3 first:border-t-0">
-                        <span
-                          className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
-                          aria-hidden="true"
-                        />
-                        <div className="min-w-0">
-                          <div className="text-14 text-ink">{n.title}</div>
-                          {n.body ? (
-                            <div className="mt-0.5 text-12 leading-relaxed text-ink-2">{n.body}</div>
-                          ) : null}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </Card>
-
+          <Col span={5}>
             <Card flat padded={false} className="space-y-1">
               <SectionHead title="AI recommendations" subtitle="Random Forest gap classifier" />
               {isPlansLoading ? (

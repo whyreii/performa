@@ -72,7 +72,7 @@ export default function Reports() {
       subtitle="Generate DOLE Article 296 performance reports per employee"
     >
       {/* Generator */}
-      <Card flat className="p-5 space-y-4">
+      <Card padded={false} flat className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="report-employee" className="block text-12 font-medium text-ink-2 mb-1">

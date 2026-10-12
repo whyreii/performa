@@ -15,7 +15,7 @@ export default function SectionCard({
   ...props
 }) {
   return (
-    <Card flat={flat} className={`p-5${className ? ` ${className}` : ''}`} {...props}>
+    <Card padded={false} flat={flat} className={`p-5${className ? ` ${className}` : ''}`} {...props}>
       {title ? <SectionHead title={title} subtitle={subtitle} note={note} /> : null}
       {children}
     </Card>

@@ -185,25 +185,25 @@ export default function UserManagement() {
       <PageGrid>
         <Row className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-y-0">
           <Col span={3} className="col-span-1">
-            <Card flat padded={false} className="p-4 space-y-1">
+            <Card flat padded={false} className="space-y-1">
               <span className="text-12 text-ink-3">Total Accounts</span>
               <div className="text-22 font-bold font-num text-ink">{counts.all}</div>
             </Card>
           </Col>
           <Col span={3} className="col-span-1">
-            <Card flat padded={false} className="p-4 space-y-1">
+            <Card flat padded={false} className="space-y-1">
               <span className="text-12 text-ink-3">Employers</span>
               <div className="text-22 font-bold font-num text-accent">{counts.employer}</div>
             </Card>
           </Col>
           <Col span={3} className="col-span-1">
-            <Card flat padded={false} className="p-4 space-y-1">
+            <Card flat padded={false} className="space-y-1">
               <span className="text-12 text-ink-3">Supervisors</span>
               <div className="text-22 font-bold font-num text-good">{counts.supervisor}</div>
             </Card>
           </Col>
           <Col span={3} className="col-span-1">
-            <Card flat padded={false} className="p-4 space-y-1">
+            <Card flat padded={false} className="space-y-1">
               <span className="text-12 text-ink-3">Probationary Staff</span>
               <div className="text-22 font-bold font-num text-ink">{counts.employee}</div>
             </Card>

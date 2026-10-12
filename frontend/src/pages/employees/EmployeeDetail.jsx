@@ -419,7 +419,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         </div>
 
         {/* Hero */}
-        <Card flat className="p-5 mt-4">
+        <Card padded={false} flat className="mt-4">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="w-11 h-11 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-16 font-semibold shrink-0">
               {getInitials(employee.user?.full_name)}
@@ -583,7 +583,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         <div className="mt-4 space-y-4">
           {/* Recommendation — full-width lead card (employer/supervisor only; not shown to the employee) */}
           {user?.role !== 'probationary_employee' && (
-          <Card flat className="p-5">
+          <Card padded={false} flat className="">
             <SectionHead
               title="Recommendation"
               subtitle={
@@ -702,7 +702,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           )}
 
           {/* Competency standing */}
-          <Card flat className="p-5">
+          <Card padded={false} flat className="">
             <SectionHead
               title="Competency standing"
               subtitle={
@@ -728,7 +728,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
           {/* ML Risk Explanation — employer lens only (AI decision support) */}
           {lens === 'employer' && (isRiskLoading || riskExplanation) && (
-            <Card flat className="p-5">
+            <Card padded={false} flat className="">
               <SectionHead
                 title="ML Risk Explanation"
                 subtitle="Feature importance for legal defensibility"
@@ -810,7 +810,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             subtitle="Timeline, monthly trend, remarks, and the audit trail"
           >
           {/* Probation timeline */}
-          <Card flat className="p-5">
+          <Card padded={false} flat className="">
             <SectionHead title="Probation timeline" subtitle="Article 296 · Asia/Manila" />
             <TimelineDocket
               startDate={employee.start_date}
@@ -821,7 +821,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
           {/* Monthly KPI trend */}
           {(isTrendLoading || trend.length > 0) && (
-            <Card flat className="p-5">
+            <Card padded={false} flat className="">
               <SectionHead
                 title="Monthly KPI trend"
                 subtitle="Monthly rollup"
@@ -868,7 +868,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           )}
 
           {/* Supervisor remarks (behavioral notes from weekly ratings) */}
-          <Card flat className="p-5">
+          <Card padded={false} flat className="">
             <SectionHead
               title="Supervisor remarks"
               subtitle="From weekly ratings"
@@ -895,7 +895,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </Card>
 
           {/* Evaluation history (immutable audit trail) */}
-          <Card flat className="p-5">
+          <Card padded={false} flat className="">
             <SectionHead
               title="Evaluation history"
               subtitle="Immutable · append-only"

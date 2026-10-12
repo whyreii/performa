@@ -1,9 +1,9 @@
 import React from 'react';
 
-// Canonical section header (layout grammar): title + optional muted subtitle +
-// optional right-hand note, closed by a hairline rule — the iMac concept's
-// quiet section label. The single definition of a section heading across the
-// app — pages must not define their own CardHead/SectionHead. See
+// Canonical section header (layout grammar): a single line — title left, meta
+// (subtitle + note) right — closed by a hairline rule. This is the iMac
+// concept's quiet section label. The single definition of a section heading
+// across the app — pages must not define their own CardHead/SectionHead. See
 // docs/LAYOUT_GRAMMAR.md; enforced by backend/tests/guardrails/test_layout_grammar.py.
 export default function SectionHead({ title, subtitle, note, className = '' }) {
   return (
@@ -12,11 +12,13 @@ export default function SectionHead({ title, subtitle, note, className = '' }) {
         className ? ` ${className}` : ''
       }`}
     >
-      <div className="min-w-0">
-        <h2 className="text-12 font-medium text-ink-2">{title}</h2>
-        {subtitle ? <p className="text-12 text-ink-3 mt-0.5">{subtitle}</p> : null}
-      </div>
-      {note ? <span className="text-12 text-ink-3 text-right">{note}</span> : null}
+      <h2 className="min-w-0 truncate text-12 font-medium text-ink-2">{title}</h2>
+      {subtitle || note ? (
+        <div className="flex flex-none items-baseline gap-3">
+          {subtitle ? <span className="truncate text-12 text-ink-3">{subtitle}</span> : null}
+          {note ? <span className="flex-none text-12 text-ink-3">{note}</span> : null}
+        </div>
+      ) : null}
     </div>
   );
 }

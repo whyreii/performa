@@ -8,10 +8,8 @@ import SectionHead from './SectionHead';
 // docs/LAYOUT_GRAMMAR.md.
 export default function GroupCard({ title, subtitle, note, className = '', children, ...props }) {
   return (
-    <Card padded={false} className={`overflow-hidden${className ? ` ${className}` : ''}`} {...props}>
-      <div className="px-5 pt-5">
-        <SectionHead title={title} subtitle={subtitle} note={note} />
-      </div>
+    <Card flat padded={false} className={className} {...props}>
+      <SectionHead title={title} subtitle={subtitle} note={note} />
       <div className="divide-y divide-line">{children}</div>
     </Card>
   );

@@ -123,7 +123,7 @@ export default function AuditTrail() {
     >
 
       {/* DOLE Evidentiary Standards Banner */}
-        <Card flat padded={false} className="p-5 space-y-2 no-print">
+        <Card flat padded={false} className="space-y-2 no-print">
         <div className="text-accent font-semibold text-12">
           <span className="font-num text-12">
             Statutory Legal Standard · Republic of the Philippines

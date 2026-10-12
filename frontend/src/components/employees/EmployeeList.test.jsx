@@ -24,10 +24,10 @@ describe('EmployeeList', () => {
     expect(link).toHaveAttribute('href', '/employees/e-1');
   });
 
-  it('shows an empty state when nothing matches', async () => {
+  it('shows an empty state when there are no employees', async () => {
     employeeApi.list.mockResolvedValue([]);
     renderList();
-    expect(await screen.findByText('No employees match')).toBeInTheDocument();
+    expect(await screen.findByText('No employees yet')).toBeInTheDocument();
   });
 
   it('surfaces the load error', async () => {

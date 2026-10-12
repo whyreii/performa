@@ -177,7 +177,7 @@ export default function EmployeeDashboard() {
       <PageGrid className="space-y-4 lg:space-y-0 lg:gap-y-4 lg:items-start">
         <Col span={8} className="space-y-4 min-w-0">
       {/* Greeting + plain dates */}
-      <Card flat className="p-5">
+      <Card padded={false} flat className="">
         {isEmpLoading ? (
           <Skeleton className="h-16 w-full" />
         ) : (
@@ -221,7 +221,7 @@ export default function EmployeeDashboard() {
       </Card>
 
       {/* How you're doing — the competency ledger */}
-      <Card flat className="p-5">
+      <Card padded={false} flat className="">
         <SectionHead
           title="How you’re doing"
           subtitle={
@@ -245,7 +245,7 @@ export default function EmployeeDashboard() {
       </Card>
 
       {/* G — From your supervisor */}
-      <Card flat className="p-5">
+      <Card padded={false} flat className="">
         <SectionHead
           title="From your supervisor"
           note={
@@ -360,7 +360,7 @@ export default function EmployeeDashboard() {
         {/* Side rail — next steps + monthly progress */}
         <Col span={4} start={9} className="space-y-4 min-w-0">
       {/* Your checklist */}
-      <Card flat className="p-5">
+      <Card padded={false} flat className="">
         <SectionHead
           title="Your checklist"
           note={`${checklist.filter((c) => c.done).length} of ${checklist.length} done`}
@@ -408,7 +408,7 @@ export default function EmployeeDashboard() {
       </Card>
 
       {/* Month by month */}
-      <Card flat className="p-5">
+      <Card padded={false} flat className="">
         <SectionHead title="Month by month" note="your monthly average" />
         {isTrendLoading ? (
           <Skeleton className="h-20 w-full" />

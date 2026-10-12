@@ -184,7 +184,7 @@ export default function Rollups() {
             <Skeleton className="h-28 w-full" />
           </div>
         ) : isError ? (
-          <Card flat padded={false} className="p-8 text-center space-y-3">
+          <Card flat padded={false} className="text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
             <h3 className="text-14 font-semibold text-ink">Failed to load pending plans</h3>
             <p className="text-12 text-ink-3">
@@ -270,11 +270,11 @@ export default function Rollups() {
             <Skeleton className="h-14 w-full" />
           </div>
         ) : isSummariesError ? (
-          <Card flat padded={false} className="p-6 text-center text-12 text-bad">
+          <Card flat padded={false} className="text-center text-12 text-bad">
             Unable to load monthly summaries right now. Please retry.
           </Card>
         ) : summaries.length === 0 ? (
-          <Card flat padded={false} className="p-6 text-center text-12 text-ink-3">
+          <Card flat padded={false} className="text-center text-12 text-ink-3">
             No monthly summaries generated yet. Run a rollup above.
           </Card>
         ) : (

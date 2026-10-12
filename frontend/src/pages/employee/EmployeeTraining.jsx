@@ -69,7 +69,7 @@ export default function EmployeeTraining() {
         ) : (
           <div className="space-y-4">
             {plans.map((plan) => (
-              <Card
+              <Card padded={false}
                 flat
                 key={plan.id}
                 className="space-y-3 transition-colors hover:bg-hover"
