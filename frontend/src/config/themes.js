@@ -11,17 +11,17 @@ export const PALETTES = [
     id: 'paper',
     name: 'Paper',
     type: 'Light',
-    desc: 'Warm editorial ivory with a terracotta accent',
-    bg: '#f6f3ed',
-    accent: '#b94b21',
+    desc: 'Neutral near-white with a near-black accent',
+    bg: '#fafaf9',
+    accent: '#0f1115',
   },
   {
     id: 'graphite',
     name: 'Mono',
     type: 'Dark',
-    desc: 'Pure black & white with a single white accent',
-    bg: '#000000',
-    accent: '#ffffff',
+    desc: 'Soft near-black with a raised surface and a near-white accent',
+    bg: '#0c0d10',
+    accent: '#f3f4f6',
   },
 ];
 

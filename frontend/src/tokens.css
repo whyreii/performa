@@ -47,72 +47,75 @@
    THEME PALETTES — paper (light) · graphite (dark · black/white)
    ======================================================== */
 
-/* Paper (Light) - Refined Editorial Warmth */
+/* Paper (Light) — palette adopted from "Dashboard – fixed grid.html" (neutral,
+   near-black accent). --ink-3 is kept one step darker than the reference: its
+   #8a8f98 on #fafaf9 measures 3.1:1, below WCAG AA (4.5:1). */
 :root, :root[data-theme="paper"] {
   color-scheme: light;
-  --bg: #f6f3ed;
-  --side: #fcfbfa;
+  --bg: #fafaf9;
+  --side: #ffffff;
   --surface: #ffffff;
-  --ink: #1a1714;
-  --ink-2: #57524d;
-  --ink-3: #726c66;
-  --line: rgba(50, 40, 30, 0.11);
-  --hover: rgba(50, 40, 30, 0.045);
+  --ink: #0f1115;
+  --ink-2: #555b66;
+  --ink-3: #6b7280;
+  --line: rgba(15, 17, 21, 0.1);
+  --hover: rgba(15, 17, 21, 0.04);
   --seg: #ffffff;
-  --accent: #b94b21;
+  --accent: #0f1115;
   --on-accent: #ffffff;
   --good: #1b7a43;
-  --bad: #9f1239;
-  --warn: #b25209;
-  --notice: #c2410c;
-  --off: rgba(120, 115, 110, 0.28);
-  --shadow: 4px 0 24px rgba(40, 30, 20, 0.06);
-  --pop: 0 16px 40px rgba(40, 30, 20, 0.14);
+  --bad: #c2300f;
+  --warn: #a15c07;
+  --notice: #b0460b;
+  --off: rgba(107, 114, 128, 0.32);
+  --shadow: 4px 0 24px rgba(15, 17, 21, 0.08);
+  --pop: 0 12px 40px rgba(15, 17, 21, 0.16);
 }
 
-/* Graphite (Dark) — pure black & white; the single accent is white and status
-   keeps a small set of WCAG-passing tints so milestone urgency stays legible. */
+/* Graphite (Dark) — palette adopted from "Dashboard – fixed grid.html": a soft
+   near-black page with a raised surface. --ink-3 is kept AA-passing (the
+   reference's #6f7580 on #0c0d10 measures 4.2:1). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
-    --bg: #000000;
-    --side: #050505;
-    --surface: #0d0d0d;
-    --ink: #ffffff;
-    --ink-2: #c7c7c7;
-    --ink-3: #8a8a8a;
-    --line: rgba(255, 255, 255, 0.14);
-    --hover: rgba(255, 255, 255, 0.06);
+    --bg: #0c0d10;
+    --side: #101216;
+    --surface: #14161a;
+    --ink: #f3f4f6;
+    --ink-2: #a2a8b3;
+    --ink-3: #8a8f98;
+    --line: rgba(255, 255, 255, 0.1);
+    --hover: rgba(255, 255, 255, 0.05);
     --seg: rgba(255, 255, 255, 0.1);
-    --accent: #ffffff;
-    --on-accent: #000000;
+    --accent: #f3f4f6;
+    --on-accent: #0c0d10;
     --good: #5cd68a;
-    --bad: #ff6b6b;
-    --warn: #ffd166;
-    --notice: #ffa36b;
+    --bad: #ff7a5c;
+    --warn: #f0b04a;
+    --notice: #f79553;
     --off: rgba(255, 255, 255, 0.28);
     --shadow: 6px 0 24px rgba(0, 0, 0, 0.6);
-    --pop: 0 16px 44px rgba(0, 0, 0, 0.75);
+    --pop: 0 12px 40px rgba(0, 0, 0, 0.6);
   }
 }
 
 :root[data-theme="graphite"] {
   color-scheme: dark;
-  --bg: #000000;
-  --side: #050505;
-  --surface: #0d0d0d;
-  --ink: #ffffff;
-  --ink-2: #c7c7c7;
-  --ink-3: #8a8a8a;
-  --line: rgba(255, 255, 255, 0.14);
-  --hover: rgba(255, 255, 255, 0.06);
+  --bg: #0c0d10;
+  --side: #101216;
+  --surface: #14161a;
+  --ink: #f3f4f6;
+  --ink-2: #a2a8b3;
+  --ink-3: #8a8f98;
+  --line: rgba(255, 255, 255, 0.1);
+  --hover: rgba(255, 255, 255, 0.05);
   --seg: rgba(255, 255, 255, 0.1);
-  --accent: #ffffff;
-  --on-accent: #000000;
+  --accent: #f3f4f6;
+  --on-accent: #0c0d10;
   --good: #5cd68a;
-  --bad: #ff6b6b;
-  --warn: #ffd166;
-  --notice: #ffa36b;
+  --bad: #ff7a5c;
+  --warn: #f0b04a;
+  --notice: #f79553;
   --off: rgba(255, 255, 255, 0.28);
   --shadow: 6px 0 24px rgba(0, 0, 0, 0.6);
   --pop: 0 16px 44px rgba(0, 0, 0, 0.75);
