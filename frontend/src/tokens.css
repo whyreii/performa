@@ -4,15 +4,12 @@
    Fonts: Inter — one family for UI, numbers, dates, scores, IDs and hashes. */
 
 :root {
-  /* Type scale — Scale B (5 steps): 12 / 14 / 16 / 22 / 30, plus the one
-     display size (--t-hero) used only by the minimal system's page hero
-     figure (fluid 56–120px). See docs/LAYOUT_GRAMMAR.md. */
+  /* Type scale — 5 steps: 12 / 14 / 16 / 22 / 30. See docs/LAYOUT_GRAMMAR.md. */
   --t-12: 12px;
   --t-14: 14px;
   --t-16: 16px;
   --t-22: 22px;
   --t-30: 30px;
-  --t-hero: clamp(56px, 9vw, 120px);
   --s1: 4px;
   --s2: 8px;
   --s3: 16px;
