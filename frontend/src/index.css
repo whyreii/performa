@@ -275,6 +275,84 @@ html {
   line-height: 1;
 }
 
+/* Minimal system (docs/LAYOUT_GRAMMAR.md): flat sections + the statutory rail.
+   One 1px ink rule per section; rows are hairlines. The 4px rail shows the
+   full 0–180-day term before Day 150 and zooms into the 150–180 decision
+   window after it (zones are statutory; colour = status). */
+.sec {
+  border-top: 1px solid var(--ink);
+  padding-top: 16px;
+}
+.sec + .sec {
+  margin-top: 48px;
+}
+.rail {
+  position: relative;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+}
+.rail__zone {
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+}
+.rail__zone--warn-1 {
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
+}
+.rail__zone--warn-2 {
+  background: color-mix(in srgb, var(--warn) 20%, transparent);
+}
+.rail__zone--bad {
+  background: color-mix(in srgb, var(--bad) 25%, transparent);
+}
+.rail__fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--ink-2);
+  animation: rail-grow 0.7s var(--ease) both;
+}
+.rail__tick {
+  position: absolute;
+  top: -4px;
+  width: 1px;
+  height: 12px;
+  background: var(--ink-3);
+}
+.rail__dot {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 3px var(--bg);
+  transform: translate(-50%, -50%);
+  animation: rail-move 0.7s var(--ease) both;
+}
+.rail__dot--warn {
+  background: var(--warn);
+}
+.rail__dot--notice {
+  background: var(--notice);
+}
+.rail__dot--bad {
+  background: var(--bad);
+}
+@keyframes rail-grow {
+  from {
+    width: 0;
+  }
+}
+@keyframes rail-move {
+  from {
+    left: 0;
+  }
+}
+
 /* Settings rail — sectioned settings inside the standard gallery wall (AppShell
    owns max-width + padding): a nav column beside a reading column. */
 .srail {

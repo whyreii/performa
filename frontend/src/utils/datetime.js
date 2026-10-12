@@ -26,6 +26,16 @@ export function manilaToday() {
   return parseDateOnly(manilaTodayISO());
 }
 
+// "Monday · Oct 12, 2026" for today in Asia/Manila (page context lines).
+export function manilaTodayLabel() {
+  const anchor = new Date(`${manilaTodayISO()}T12:00:00+08:00`);
+  const weekday = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Manila',
+    weekday: 'long',
+  }).format(anchor);
+  return `${weekday} · ${formatManilaDay(anchor)}`;
+}
+
 export function daysElapsed(startDate) {
   const start = parseDateOnly(startDate);
   if (!start) return 0;

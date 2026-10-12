@@ -31,6 +31,23 @@ A page is built from **archetypes** (fixed section order) and **primitives**
   `scoreTone`) — colour = status, never decoration. `size="base"` steps a
   supporting cell down from the 30px lead.
 
+## Minimal system (pilots)
+
+The converted pages use the reference's flat system — same grid, no surfaces:
+
+- **`Hero`** — the page top: context (left, holds the page's `h1`), one figure +
+  a plain-language label (center), the next step (right). The figure is the
+  only place `text-hero` is used (fluid 56–120px).
+- **`Section`** — a flat section: one 1px `--ink` rule, a numbered gutter
+  (`01` + one-line description), a title with an optional mono note. No card.
+- **`ListRow` / `ListHead`** — an 80px worklist row on the ten content tracks;
+  place its parts with `<Col span={n}>`. Hairline between rows, hover =
+  `--hover`.
+- **`MilestoneRail`** — the statutory day rail: the full 0–180-day term before
+  Day 150, the 150–180 decision window after it (zones = milestone tones).
+
+Converted: directory (`EmployeeList`). Pilots in progress: record, rate form.
+
 ## Rules
 
 1. Every section renders through `SectionCard` (or `GroupCard` for a group); no
@@ -40,7 +57,11 @@ A page is built from **archetypes** (fixed section order) and **primitives**
    (`size="base"`).
 4. Secondary evidence is `ink-3` and capped ("Show more").
 5. One primary action, in the page header.
-6. Hairline / flat only; type scale 12 / 14 / 16 / 22 / 30; no new widget types
-   (no donuts, no bento, no KPI-card grids).
+6. Hairline / flat only; type scale 12 / 14 / 16 / 22 / 30 + `text-hero` (the
+   hero figure only); no new widget types (no donuts, no bento, no KPI-card
+   grids).
+7. Converted pages (minimal system) use `Hero` + `Section` — no cards.
+   Unconverted pages keep the card grammar until migrated, one page per
+   commit.
 
 Enforced by `backend/tests/guardrails/test_layout_grammar.py`.

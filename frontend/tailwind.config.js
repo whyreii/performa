@@ -60,14 +60,15 @@ export default {
         // face). Tabular figures are set on `.font-num` in index.css. See --num.
         num: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
       },
-      // Scale B — the only five type sizes (see tokens.css). Mono stays for
-      // numbers/dates/IDs; 12px floor uses weight 450–500.
+      // Scale B (five text sizes) + the one display size (`hero`: the minimal
+      // system's page hero figure). See tokens.css / docs/LAYOUT_GRAMMAR.md.
       fontSize: {
         12: ['var(--t-12)', { lineHeight: '1.5' }],
         14: ['var(--t-14)', { lineHeight: '1.5' }],
         16: ['var(--t-16)', { lineHeight: '1.5' }],
         22: ['var(--t-22)', { lineHeight: '1.3' }],
         30: ['var(--t-30)', { lineHeight: '1.15' }],
+        hero: ['var(--t-hero)', { lineHeight: '0.9', letterSpacing: '-0.03em' }],
       },
       boxShadow: {
         side: 'var(--shadow)',
