@@ -115,6 +115,17 @@ export function formatManilaTime(value) {
   }).format(new Date(value));
 }
 
+// Compact month + day, no year — for dense tables (e.g. "Oct 13").
+export function formatDayMonth(value) {
+  if (!value) return '';
+  try {
+    const date = value instanceof Date ? value : parseDateOnly(value) || new Date(value);
+    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
+  } catch {
+    return '';
+  }
+}
+
 export function formatDate(value, { withTime = false, seconds = true } = {}) {
   if (!value) return 'N/A';
   try {

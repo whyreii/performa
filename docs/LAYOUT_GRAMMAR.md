@@ -26,10 +26,10 @@ A page is built from **archetypes** (fixed section order) and **primitives**
 - **`SectionCard`** — `Card` + `SectionHead` (the standard section).
 - **`GroupCard`** — a bordered card whose sub-sections are hairline-divided
   (the "Full record" tier: one document instead of a stack of equal cards).
-- **`StatBand`** — one hairline-divided row of figures; each cell = tone dot +
-  label + figure + caption. `tone` is a statutory tone (`milestoneTone` /
-  `scoreTone`) — colour = status, never decoration. `size="base"` steps a
-  supporting cell down from the 30px lead.
+- **`StatBand`** — one hairline-divided row of figures (the KPI strip); each
+  cell = tone dot + label + figure + caption. `tone` is a statutory tone
+  (`milestoneTone` / `scoreTone`) — the dot carries status; the figure stays
+  ink. `size="base"` steps a supporting cell down from the 22px lead.
 
 ## Minimal system (pilots)
 

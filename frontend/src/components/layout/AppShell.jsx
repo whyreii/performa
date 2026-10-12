@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { sidebarNav } from '../../config/nav';
 import { prefetchRoute } from '../../routes/loaders';
 import { ChromeProvider, useChrome } from '../../context/ChromeContext';
+import { manilaTodayLabel } from '../../utils/datetime';
 import Sidebar from './Sidebar';
 import MobileBar from './MobileBar';
 import BottomTabBar from './BottomTabBar';
@@ -20,15 +21,20 @@ import PageSkeleton from '../ui/PageSkeleton';
 const WALL = 'app-wall mx-auto w-full max-w-[1104px] px-4 sm:px-6 lg:px-8';
 
 function Toolbar() {
-  const { title, subtitle, setActionsEl } = useChrome();
+  const { title, setActionsEl } = useChrome();
+  const { user } = useAuth();
+  const org = user?.organization_name || user?.organization_id || 'Performa';
   return (
     <header className="app-toolbar flex-none h-[46px] border-b border-line bg-glass backdrop-blur-md">
       <div className={`${WALL} flex h-full items-center gap-3`}>
         {title ? (
           <span className="truncate text-16 font-semibold tracking-tight text-ink">{title}</span>
         ) : null}
-        {subtitle ? <span className="hidden truncate text-12 text-ink-3 sm:block">{subtitle}</span> : null}
-        <div ref={setActionsEl} className="ml-auto flex flex-none items-center gap-2" />
+        {/* Concept grammar: the toolbar note is "<org> · <date>", right-aligned. */}
+        <span className="ml-auto hidden truncate text-12 text-ink-3 sm:block">
+          {org} · {manilaTodayLabel()}
+        </span>
+        <div ref={setActionsEl} className="ml-auto flex flex-none items-center gap-2 sm:ml-0" />
       </div>
     </header>
   );

@@ -5,7 +5,6 @@ import { employeeApi, evaluationApi, interventionApi, notificationApi } from '..
 import {
   Button,
   Skeleton,
-  Card,
   Page,
   CountUp,
   SectionHead,
@@ -15,7 +14,7 @@ import {
   Col,
   Th,
 } from '../../components/ui';
-import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
+import { daysElapsed as getDaysElapsed, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import {
   PROBATION_DAYS,
   MILESTONE_REVIEW,
@@ -29,7 +28,7 @@ import {
   TONE_TEXT,
   TONE_BG,
 } from '../../utils/status';
-import { Users, Award, ChevronRight } from '../../components/icons';
+import { Users, Award } from '../../components/icons';
 import { useStatusBar } from '../../context/ChromeContext';
 
 // Employer dashboard — the overview: KPI strip · score-vs-target chart + milestone
@@ -44,6 +43,15 @@ const MILE_LABEL = {
 
 // Notification category → statutory tone (backend: milestone_150/165/178).
 const ALERT_TONE = { milestone_150: 'warn', milestone_165: 'notice', milestone_178: 'bad' };
+
+// Score-bar fill: the concept's muted 60% status wash (the numeral carries the
+// full-strength tone).
+const TONE_FILL = {
+  ok: 'bg-good/60',
+  warn: 'bg-warn/60',
+  notice: 'bg-notice/60',
+  bad: 'bg-bad/60',
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -171,14 +179,35 @@ export default function Dashboard() {
     `${stats.pendingPlans} interventions pending · Asia/Manila`
   );
 
+  const kpis = [
+    {
+      label: 'Past cap · auto-regular',
+      value: <CountUp value={stats.pastCap} />,
+      caption: `Past Day ${PROBATION_DAYS} · regular by operation of law`,
+      tone: 'bad',
+    },
+    {
+      label: 'Decisions due',
+      value: <CountUp value={stats.decisionsDue} />,
+      caption: `Day ${MILESTONE_REVIEW}–${PROBATION_DAYS} window`,
+      tone: 'warn',
+    },
+    {
+      label: 'On track',
+      value: <CountUp value={stats.onTrack} />,
+      caption: `Below Day ${MILESTONE_REVIEW}`,
+      tone: 'ok',
+    },
+    {
+      label: 'Interventions pending',
+      value: <CountUp value={stats.pendingPlans} />,
+      caption: stats.pendingPlans === 0 ? 'None awaiting sign-off' : 'Awaiting sign-off',
+    },
+  ];
+
   return (
     <Page
       title="Dashboard"
-      subtitle={
-        <>
-          Probationary pipeline · Article 296 · <span className="font-num">Asia/Manila</span>
-        </>
-      }
       actions={
         <>
           <Button variant="secondary" leftIcon={Users} onClick={() => navigate('/employees')}>
@@ -190,44 +219,18 @@ export default function Dashboard() {
         </>
       }
     >
-      <PageGrid className="space-y-6 lg:space-y-0 lg:gap-y-6">
+      <PageGrid className="space-y-10 lg:space-y-0 lg:gap-y-10">
         {/* KPI strip */}
         <Row>
           <Col span={12}>
-            <StatBand
-              cells={[
-                {
-                  label: 'Past cap · auto-regular',
-                  value: <CountUp value={stats.pastCap} />,
-                  caption: `Past Day ${PROBATION_DAYS} · regular by operation of law`,
-                  tone: 'bad',
-                },
-                {
-                  label: 'Decisions due',
-                  value: <CountUp value={stats.decisionsDue} />,
-                  caption: `Day ${MILESTONE_REVIEW}–${PROBATION_DAYS} window`,
-                  tone: 'warn',
-                },
-                {
-                  label: 'On track',
-                  value: <CountUp value={stats.onTrack} />,
-                  caption: `Below Day ${MILESTONE_REVIEW}`,
-                  tone: 'ok',
-                },
-                {
-                  label: 'Interventions pending',
-                  value: <CountUp value={stats.pendingPlans} />,
-                  caption: stats.pendingPlans === 0 ? 'None awaiting sign-off' : 'Awaiting sign-off',
-                },
-              ]}
-            />
+            <StatBand cells={kpis} />
           </Col>
         </Row>
 
         {/* Overall score + Alerts, then Next deadlines + AI — the concept's two rows */}
         <Row className="lg:items-start">
           <Col span={7}>
-            <Card flat padded={false} className="space-y-1">
+            <section aria-label="Overall score vs standard">
               <SectionHead
                 title="Overall score"
                 subtitle={`latest week · target ${targetScore.toFixed(1)}`}
@@ -253,23 +256,23 @@ export default function Dashboard() {
                       >
                         <Link
                           to={`/employees/${emp.id}`}
-                          className="w-32 shrink-0 truncate text-14 text-ink hover:underline"
+                          className="w-28 shrink-0 truncate text-12 text-ink hover:underline"
                         >
                           {emp.user?.full_name}
                         </Link>
                         <span className="relative h-2 flex-1 rounded-full bg-hover">
                           <i
-                            className={`absolute inset-y-0 left-0 rounded-full ${TONE_BG[tone]}`}
+                            className={`absolute inset-y-0 left-0 rounded-full ${TONE_FILL[tone]}`}
                             style={{ width: `${(score / 5) * 100}%` }}
                           />
                           <i
-                            className="absolute -top-1 -bottom-1 w-px bg-ink-3/60"
+                            className="absolute -top-1.5 -bottom-1.5 w-px bg-ink-3/60"
                             style={{ left: `${(target / 5) * 100}%` }}
                             title={`Target ${target.toFixed(1)}`}
                           />
                         </span>
                         <span
-                          className={`w-11 shrink-0 text-right text-14 font-semibold font-num ${TONE_TEXT[tone]}`}
+                          className={`w-11 shrink-0 text-right text-12 font-semibold font-num ${TONE_TEXT[tone]}`}
                         >
                           {score.toFixed(2)}
                         </span>
@@ -278,11 +281,11 @@ export default function Dashboard() {
                   })}
                 </div>
               )}
-            </Card>
+            </section>
           </Col>
 
           <Col span={5}>
-            <Card flat padded={false} className="space-y-1">
+            <section aria-label="Alerts">
               <SectionHead title="Alerts" subtitle="milestone notices" />
               {alerts.length === 0 ? (
                 <p className="py-6 text-14 text-ink-3">No milestone alerts.</p>
@@ -297,7 +300,7 @@ export default function Dashboard() {
                           aria-hidden="true"
                         />
                         <div className="min-w-0">
-                          <div className="text-14 text-ink">{n.title}</div>
+                          <div className="text-12 text-ink">{n.title}</div>
                           {n.body ? (
                             <div className="mt-0.5 text-12 leading-relaxed text-ink-2">{n.body}</div>
                           ) : null}
@@ -307,12 +310,12 @@ export default function Dashboard() {
                   })}
                 </div>
               )}
-            </Card>
+            </section>
           </Col>
 
           <Col span={7}>
-            <Card flat padded={false} className="space-y-1">
-              <SectionHead title="Next deadlines" subtitle="nearest statutory date per employee" />
+            <section aria-label="Next deadlines">
+              <SectionHead title="Next deadlines" />
               {isEmpLoading ? (
                 <div className="space-y-3 pt-2">
                   <Skeleton className="h-4 w-full" />
@@ -327,10 +330,10 @@ export default function Dashboard() {
                   </caption>
                   <thead>
                     <tr className="border-b border-line">
-                      <Th sortKey="date" activeKey={sortKey} dir={sortDir} onSort={onSort} className="w-28 py-2.5 pr-4">
+                      <Th sortKey="date" activeKey={sortKey} dir={sortDir} onSort={onSort} className="w-16 py-2.5 pr-4">
                         Date
                       </Th>
-                      <Th sortKey="milestone" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 pr-4">
+                      <Th sortKey="milestone" activeKey={sortKey} dir={sortDir} onSort={onSort} className="w-28 py-2.5 pr-4">
                         Milestone
                       </Th>
                       <Th sortKey="name" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5">
@@ -347,8 +350,8 @@ export default function Dashboard() {
                           onClick={() => navigate(`/employees/${emp.id}`)}
                           className="cursor-pointer transition-colors hover:bg-hover"
                         >
-                          <td className="py-3 pr-4 text-14 font-semibold font-num text-ink whitespace-nowrap">
-                            {formatDate(date)}
+                          <td className="py-3 pr-4 text-12 font-semibold font-num text-ink whitespace-nowrap">
+                            {formatDayMonth(date)}
                           </td>
                           <td className="py-3 pr-4 text-12 text-ink-2">
                             {past ? 'Past cap' : MILE_LABEL[next]}
@@ -362,7 +365,7 @@ export default function Dashboard() {
                               <Link
                                 to={`/employees/${emp.id}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="truncate text-14 text-ink"
+                                className="truncate text-12 text-ink"
                               >
                                 {emp.user?.full_name}
                               </Link>
@@ -374,11 +377,11 @@ export default function Dashboard() {
                   </tbody>
                 </table>
               )}
-            </Card>
+            </section>
           </Col>
 
           <Col span={5}>
-            <Card flat padded={false} className="space-y-1">
+            <section aria-label="AI recommendations">
               <SectionHead title="AI recommendations" subtitle="Random Forest gap classifier" />
               {isPlansLoading ? (
                 <div className="space-y-3 pt-2">
@@ -399,14 +402,14 @@ export default function Dashboard() {
                   {plans.slice(0, 3).map((plan) => (
                     <li key={plan.id} className="border-t border-line py-3 first:border-t-0">
                       <div className="text-14 font-semibold text-ink">{plan.intervention_title}</div>
-                      <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
+                      <p className="mt-0.5 text-12 leading-relaxed text-ink-2">
                         {plan.rationale || plan.competency?.replace(/_/g, ' ')}
                       </p>
                     </li>
                   ))}
                 </ul>
               )}
-            </Card>
+            </section>
           </Col>
         </Row>
       </PageGrid>
