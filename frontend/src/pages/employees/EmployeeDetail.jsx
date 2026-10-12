@@ -304,7 +304,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
   if (isEmpLoading) {
     return (
       <Page header={false} printSheet>
-        <div className="mx-auto max-w-5xl space-y-4 pt-4">
+        <div className="space-y-4 pt-4">
           <Skeleton className="h-16 w-full" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Skeleton className="h-40 w-full" />
@@ -320,7 +320,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
   if (isEmpError || !employee) {
     return (
       <Page header={false} printSheet>
-        <div className="mx-auto max-w-5xl pt-4">
+        <div className="pt-4">
           <div className="py-16 text-center space-y-4">
             <ShieldAlert className="w-10 h-10 text-bad mx-auto" />
             <h1 className="text-22 font-semibold text-ink">Employee profile not found</h1>
@@ -367,7 +367,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
   return (
     <Page printSheet header={false}>
-      <div className="mx-auto max-w-5xl">
+      <div>
         {/* Print-only official document header */}
         <div className="print-only mb-6 pb-4 border-b-2 border-black">
           <p className="text-center text-12 font-semibold tracking-widest uppercase">

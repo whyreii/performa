@@ -28,6 +28,7 @@ _PAGE_GRID_TOKENS = (
     "grid-cols-12",
     "max-w-[1120px]",
     "max-w-[1100px]",
+    "max-w-5xl",
 )
 
 
