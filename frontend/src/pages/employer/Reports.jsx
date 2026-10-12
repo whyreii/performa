@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
 import { useStatusBar } from '../../context/ChromeContext';
-import { Button, Badge, Card, Skeleton, EmptyState, Page, inputClass } from '../../components/ui';
+import { Button, Badge, Card, Skeleton, EmptyState, Page, inputClass, SectionHead } from '../../components/ui';
 import { FileText, Download, Users } from '../../components/icons';
 
 // Article 296 report catalogue. The performance report is the only evidentiary
@@ -71,16 +71,18 @@ export default function Reports() {
       title="Reports"
       subtitle="Generate DOLE Article 296 performance reports per employee"
     >
-      {/* Generator */}
-      <Card padded={false} flat className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="report-employee" className="block text-12 font-medium text-ink-2 mb-1">
-              Employee
-            </label>
+      {/* Generate report */}
+      <Card flat padded={false} className="space-y-1">
+        <SectionHead title="Generate report" subtitle="DOLE Article 296 · print-ready" />
+        <p className="text-12 text-ink-2 leading-relaxed pb-3">
+          Opens a print-ready report in a new tab. Use “Save as PDF” to export.
+        </p>
+        <div className="flex flex-wrap items-end gap-3">
+          <label htmlFor="report-employee" className="flex flex-col gap-1 text-12 text-ink-3">
+            Employee
             <select
               id="report-employee"
-              className={inputClass}
+              className={`${inputClass} min-w-[220px]`}
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
             >
@@ -91,14 +93,12 @@ export default function Reports() {
                 </option>
               ))}
             </select>
-          </div>
-          <div>
-            <label htmlFor="report-type" className="block text-12 font-medium text-ink-2 mb-1">
-              Report type
-            </label>
+          </label>
+          <label htmlFor="report-type" className="flex flex-col gap-1 text-12 text-ink-3">
+            Report type
             <select
               id="report-type"
-              className={inputClass}
+              className={`${inputClass} min-w-[240px]`}
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
             >
@@ -108,13 +108,7 @@ export default function Reports() {
                 </option>
               ))}
             </select>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-line">
-          <p className="text-12 text-ink-3">
-            Opens a print-ready report in a new tab. Use “Save as PDF” to export.
-          </p>
+          </label>
           <Button
             variant="primary"
             leftIcon={FileText}
@@ -128,15 +122,19 @@ export default function Reports() {
       </Card>
 
       {/* Report library */}
-      <Card flat padded={false} className="divide-y divide-line">
+      <Card flat padded={false} className="space-y-1">
+        <SectionHead
+          title="Report library"
+          subtitle={`${sorted.length} employee${sorted.length === 1 ? '' : 's'}`}
+        />
         {isLoading ? (
-          <div className="p-4 space-y-3">
+          <div className="space-y-3 pt-2">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
           </div>
         ) : isError ? (
-          <div className="p-10 text-center space-y-3">
+          <div className="py-10 text-center space-y-3">
             <h3 className="text-14 font-semibold text-ink">Failed to load employees</h3>
             <p className="text-12 text-ink-3">{getApiErrorMessage(undefined, 'Please retry.')}</p>
             <Button variant="secondary" size="sm" onClick={() => refetch()}>
@@ -148,36 +146,50 @@ export default function Reports() {
             Onboard a probationary employee to generate reports.
           </EmptyState>
         ) : (
-          sorted.map((e) => (
-            <div key={e.id} className="p-4 flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <div className="text-14 text-ink font-medium truncate">
-                  {e.user?.full_name || '—'}
-                </div>
-                <div className="text-12 text-ink-3 truncate">
-                  {e.job_title} · {e.department}
-                </div>
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <Badge
-                  variant={
-                    e.status === 'regularized' ? 'ok' : e.status === 'terminated' ? 'neutral' : 'accent'
-                  }
-                >
-                  {STATUS_LABEL[e.status] || e.status}
-                </Badge>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={Download}
-                  isLoading={generatingId === e.id}
-                  onClick={() => openReport(e.id)}
-                >
-                  Open report
-                </Button>
-              </div>
-            </div>
-          ))
+          <table className="w-full border-collapse text-left">
+            <caption className="sr-only">Employees and their Article 296 reports</caption>
+            <thead>
+              <tr className="border-b border-line text-12 text-ink-3">
+                <th scope="col" className="py-2.5 pr-4 font-normal">Employee</th>
+                <th scope="col" className="py-2.5 pr-4 font-normal">Department</th>
+                <th scope="col" className="py-2.5 pr-4 font-normal">Status</th>
+                <th scope="col" className="py-2.5 text-right font-normal">Report</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {sorted.map((e) => (
+                <tr key={e.id}>
+                  <td className="py-3 pr-4">
+                    <div className="text-14 text-ink font-medium truncate">
+                      {e.user?.full_name || '—'}
+                    </div>
+                    <div className="text-12 text-ink-3 truncate">{e.job_title}</div>
+                  </td>
+                  <td className="py-3 pr-4 text-14 text-ink-2 truncate">{e.department}</td>
+                  <td className="py-3 pr-4">
+                    <Badge
+                      variant={
+                        e.status === 'regularized' ? 'ok' : e.status === 'terminated' ? 'neutral' : 'accent'
+                      }
+                    >
+                      {STATUS_LABEL[e.status] || e.status}
+                    </Badge>
+                  </td>
+                  <td className="py-3 text-right">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      leftIcon={Download}
+                      isLoading={generatingId === e.id}
+                      onClick={() => openReport(e.id)}
+                    >
+                      Open report
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </Card>
     </Page>

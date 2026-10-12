@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useStatusBar } from '../../context/ChromeContext';
 import { formatDate } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
-import { Button, Badge, Skeleton, EmptyState, Card, Page, inputClass, GlideSelect, Th } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, Page, inputClass, GlideSelect, Th, SectionHead } from '../../components/ui';
 import {
   History,
   Printer,
@@ -123,16 +123,21 @@ export default function AuditTrail() {
     >
 
       {/* DOLE Evidentiary Standards Banner */}
-        <Card flat padded={false} className="space-y-2 no-print">
-        <div className="text-accent font-semibold text-12">
-          <span className="font-num text-12">
-            Statutory Legal Standard · Republic of the Philippines
-          </span>
-        </div>
+      <Card flat padded={false} className="space-y-2 no-print">
+        <SectionHead
+          title="Statutory Legal Standard · Republic of the Philippines"
+          subtitle="Article 296 · immutable"
+        />
         <p className="text-12 text-ink-2 leading-relaxed">
           Under Philippine Labor Code Article 296 and established Supreme Court doctrine, employers carry the burden of proof in probationary disputes. Every score entry and modification below is logged with exact timestamps (Asia/Manila) and evaluator credentials for permanent due process records.
         </p>
       </Card>
+
+      {/* Audit log */}
+      <SectionHead
+        title="Audit log"
+        subtitle={`${sortedLogs.length} append-only records`}
+      />
 
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 no-print">

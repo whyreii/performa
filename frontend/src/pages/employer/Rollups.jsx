@@ -278,51 +278,66 @@ export default function Rollups() {
             No monthly summaries generated yet. Run a rollup above.
           </Card>
         ) : (
-          <Card flat padded={false} className="divide-y divide-line">
-            {summaries.map((summary) => {
-              const emp = employees.find((e) => e.id === summary.employee_id);
-              return (
-                <div key={summary.id} className="p-4 space-y-2">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="text-12">
-                      <span className="font-semibold text-ink">
+          <table className="w-full border-collapse text-left">
+            <caption className="sr-only">Monthly summaries dispatched for acknowledgement</caption>
+            <thead>
+              <tr className="border-b border-line text-12 text-ink-3">
+                <th scope="col" className="py-2.5 pr-4 font-normal">Employee</th>
+                <th scope="col" className="py-2.5 pr-4 font-normal">Cycle</th>
+                <th scope="col" className="py-2.5 pr-4 text-right font-normal">Overall</th>
+                <th scope="col" className="py-2.5 pr-4 font-normal">Risk tier</th>
+                <th scope="col" className="py-2.5 text-right font-normal">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {summaries.map((summary) => {
+                const emp = employees.find((e) => e.id === summary.employee_id);
+                const cls = summary.status_classification?.replace(/_/g, ' ');
+                const variant = /Meets/i.test(cls || '')
+                  ? 'ok'
+                  : /Critical/i.test(cls || '')
+                  ? 'bad'
+                  : 'warn';
+                return (
+                  <tr key={summary.id}>
+                    <td className="py-3 pr-4">
+                      <div className="text-14 text-ink truncate">
                         {emp?.user?.full_name || '—'}
-                      </span>
-                      {emp?.department && (
-                        <span className="text-ink-3 ml-2">{emp.department}</span>
+                      </div>
+                      {emp?.department ? (
+                        <div className="text-12 text-ink-3 truncate">{emp.department}</div>
+                      ) : null}
+                    </td>
+                    <td className="py-3 pr-4 text-14 font-num text-ink-2">
+                      Month {summary.month_number}
+                    </td>
+                    <td className="py-3 pr-4 text-right text-14 font-semibold font-num text-ink">
+                      {Number(summary.overall_average).toFixed(2)}
+                    </td>
+                    <td className="py-3 pr-4">
+                      {cls ? <Badge variant={variant}>{cls}</Badge> : null}
+                    </td>
+                    <td className="py-3 text-right">
+                      {summary.acknowledged_at ? (
+                        <Badge variant="ok">Acknowledged</Badge>
+                      ) : summary.dispatched_at ? (
+                        <Badge variant="accent">Dispatched</Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={dispatchMutation.isPending}
+                          onClick={() => setConfirmDispatch(summary)}
+                        >
+                          Dispatch
+                        </Button>
                       )}
-                      <span className="text-ink-3 font-num ml-2">
-                        Month {summary.month_number}
-                      </span>
-                      <span className="text-ink-3 font-num ml-2">
-                        Avg {Number(summary.overall_average).toFixed(2)}
-                      </span>
-                      <span className="text-ink-3 ml-2 capitalize">
-                        {summary.status_classification?.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                    {summary.acknowledged_at ? (
-                      <Badge variant="ok">Acknowledged</Badge>
-                    ) : summary.dispatched_at ? (
-                      <Badge variant="accent">Dispatched</Badge>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={dispatchMutation.isPending}
-                        onClick={() => setConfirmDispatch(summary)}
-                      >
-                        Dispatch
-                      </Button>
-                    )}
-                  </div>
-                  {summary.performance_summary && (
-                    <p className="text-12 text-ink-2 leading-relaxed">{summary.performance_summary}</p>
-                  )}
-                </div>
-              );
-            })}
-          </Card>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
       </section>
 
