@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { PerformaMark, Eye, EyeOff, AlertCircle, Sun, Moon } from '../../components/icons';
-import { TextField, Button, Surface, Badge, inputClass } from '../../components/ui';
+import { TextField, Button, Surface, Badge, inputClass, PageGrid, Row, Col } from '../../components/ui';
 import { COMPETENCIES } from '../../config/domain';
 
 const MODES = [
@@ -71,21 +71,23 @@ export default function Login() {
 
   return (
     <div className="login-shell min-h-screen w-full flex flex-col bg-bg text-ink transition-colors duration-performa">
-      <div className="w-full max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col lg:grid lg:grid-cols-12 lg:gap-x-6 lg:grid-rows-[auto_1fr_auto]">
-      {/* Top bar — the first grid row; brand starts col 1, control ends col 12 */}
-      <header className="lg:col-span-12 lg:grid lg:grid-cols-subgrid lg:gap-x-[normal] lg:items-center flex justify-between items-center gap-4 py-6">
-        <div className="lg:col-span-5 flex items-center gap-3">
+      <PageGrid container className="flex-1 flex flex-col lg:grid-rows-[auto_1fr_auto]">
+      {/* Top bar — the first row; brand starts col 1, control ends col 12 */}
+      <Row as="header" className="lg:items-center flex justify-between items-center gap-4 py-6">
+        <Col span={5} className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
             <PerformaMark className="w-5 h-5" />
           </div>
           <span className="font-semibold text-16 tracking-tight text-ink">Performa</span>
-        </div>
+        </Col>
 
         {/* Color mode */}
-        <div
+        <Col
+          span={6}
+          start={7}
           role="group"
           aria-label="Color mode"
-          className="lg:col-span-6 lg:col-start-7 lg:justify-self-end flex items-center gap-1 p-1 rounded-ctl border border-line bg-hover"
+          className="lg:justify-self-end flex items-center gap-1 p-1 rounded-ctl border border-line bg-hover"
         >
           {MODES.map((m) => {
             const Icon = m.icon;
@@ -108,12 +110,12 @@ export default function Login() {
               </button>
             );
           })}
-        </div>
-      </header>
+        </Col>
+      </Row>
 
-      <main className="reveal lg:col-span-12 flex-1 flex flex-col justify-center gap-10 pb-12 lg:grid lg:grid-cols-subgrid lg:gap-x-[normal] lg:gap-y-0 lg:items-start lg:content-center">
+      <Row as="main" className="reveal flex-1 flex flex-col justify-center gap-10 pb-12 lg:gap-y-0 lg:items-start lg:content-center">
           {/* Form column (heading + form + demo) */}
-          <section className="lg:col-span-5">
+          <Col as="section" span={5}>
             <h1 className="text-30 font-semibold tracking-tight text-ink">Sign in</h1>
             <p className="text-14 text-ink-2 mt-2">Use your work account to continue to Performa.</p>
 
@@ -203,10 +205,10 @@ export default function Login() {
                 </div>
               </>
             )}
-          </section>
+          </Col>
 
           {/* Article 296 card */}
-          <Surface className="lg:col-span-6 lg:col-start-7 p-6 sm:p-7">
+          <Col as={Surface} span={6} start={7} className="p-6 sm:p-7">
             <div className="login-kicker">Article 296 · Philippine Labor Code</div>
             <h2 className="text-22 font-bold tracking-tight text-ink mt-3">
               Ratings, deadlines, and the audit trail behind every decision.
@@ -227,14 +229,14 @@ export default function Login() {
                 </li>
               ))}
             </ul>
-          </Surface>
-      </main>
+          </Col>
+      </Row>
 
-      {/* Footer — the third grid row, on the same column lines */}
-      <footer className="lg:col-span-12 lg:grid lg:grid-cols-subgrid py-6 text-12 text-ink-3">
-        <span className="lg:col-span-5">Asia/Manila (UTC+8) · Article 296, Philippine Labor Code</span>
-      </footer>
-      </div>
+      {/* Footer — the third row, on the same column lines */}
+      <Row as="footer" className="py-6 text-12 text-ink-3">
+        <Col span={5}>Asia/Manila (UTC+8) · Article 296, Philippine Labor Code</Col>
+      </Row>
+      </PageGrid>
     </div>
   );
 }

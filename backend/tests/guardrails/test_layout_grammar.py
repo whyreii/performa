@@ -22,12 +22,34 @@ _STAT_BAND_TOKENS = (
     "divide-x divide-line border-y border-line",
 )
 
+# Page-level grid declarations (must use ui/PageGrid + Row/Col instead, so every
+# page's column lines match and nothing shifts when navigating).
+_PAGE_GRID_TOKENS = (
+    "grid-cols-12",
+    "max-w-[1120px]",
+    "max-w-[1100px]",
+)
+
 
 def _page_files():
     for path in PAGES.rglob("*.jsx"):
         if path.name.endswith(".test.jsx"):
             continue
         yield path
+
+
+def test_pages_do_not_declare_their_own_page_grid():
+    hits: list[str] = []
+    for path in _page_files():
+        text = path.read_text(encoding="utf-8")
+        for token in _PAGE_GRID_TOKENS:
+            if token in text:
+                hits.append(f"{path.relative_to(REPO_ROOT)}: {token!r}")
+    assert not hits, (
+        "Page-level layout must go through PageGrid/Row/Col "
+        "(frontend/src/components/ui/PageGrid.jsx) so the column lines are shared. "
+        "See docs/LAYOUT_GRAMMAR.md:\n" + "\n".join(hits)
+    )
 
 
 def test_pages_do_not_define_their_own_section_header():
