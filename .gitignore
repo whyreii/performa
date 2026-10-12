@@ -30,3 +30,6 @@ dist-ssr/
 .coverage
 htmlcov/
 coverage.xml
+
+# Local dev-server logs
+*.log
