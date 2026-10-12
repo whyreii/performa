@@ -46,7 +46,8 @@ The converted pages use the reference's flat system — same grid, no surfaces:
 - **`MilestoneRail`** — the statutory day rail: the full 0–180-day term before
   Day 150, the 150–180 decision window after it (zones = milestone tones).
 
-Converted: directory (`EmployeeList`). Pilots in progress: record, rate form.
+Converted: none yet (the rate-form pilot is in review). Pages migrate one per
+commit.
 
 ## Rules
 

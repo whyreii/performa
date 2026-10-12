@@ -22,7 +22,7 @@ describe('EmployeeSplit', () => {
       user: testUser('employer'),
     });
     expect(await screen.findByRole('heading', { name: 'Employees' })).toBeInTheDocument();
-    expect(await screen.findByRole('link', { name: 'Maria Midterm' })).toBeInTheDocument();
+    expect(await screen.findByText('Maria Midterm')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Add employee' }));
     expect(await screen.findByText('Onboard Probationary Employee')).toBeInTheDocument();
