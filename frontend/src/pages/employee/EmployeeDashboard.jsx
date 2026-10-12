@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, MilestonePill, Skeleton, Card, Page, AsyncBoundary, SectionHead, ScoreLedger } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Card, Page, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
 import { CheckCircle2, ArrowRight, BookOpen, TrendingUp, UserCheck } from '../../components/icons';
@@ -165,9 +165,9 @@ export default function EmployeeDashboard() {
       }
       actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}
     >
-      {/* Dashboard body — main column + side rail on desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-4 items-start">
-        <div className="space-y-4 min-w-0">
+      {/* Dashboard body — main column (1–8) + side rail (9–12) on the shared grid */}
+      <PageGrid className="space-y-4 lg:space-y-0 lg:gap-y-4 lg:items-start">
+        <Col span={8} className="space-y-4 min-w-0">
       {/* Greeting + plain dates */}
       <Card flat className="p-5">
         {isEmpLoading ? (
@@ -347,10 +347,10 @@ export default function EmployeeDashboard() {
         )}
       </Card>
 
-        </div>
+        </Col>
 
         {/* Side rail — next steps + monthly progress */}
-        <div className="space-y-4 min-w-0">
+        <Col span={4} start={9} className="space-y-4 min-w-0">
       {/* Your checklist */}
       <Card flat className="p-5">
         <SectionHead
@@ -441,8 +441,8 @@ export default function EmployeeDashboard() {
           </div>
         )}
       </Card>
-        </div>
-      </div>
+        </Col>
+      </PageGrid>
 
       <div className="flex justify-end">
         <Link to="/employee/training" className="inline-flex items-center gap-1 text-12 font-semibold text-accent hover:underline">
