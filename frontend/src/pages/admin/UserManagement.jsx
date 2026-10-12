@@ -16,6 +16,7 @@ import Page from '../../components/ui/Page';
 import GlideSelect from '../../components/ui/GlideSelect';
 import Th from '../../components/ui/Th';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import PageGrid, { Row, Col } from '../../components/ui/PageGrid';
 import { inputClass } from '../../components/ui/Field';
 import {
   Users,
@@ -174,24 +175,35 @@ export default function UserManagement() {
       )}
 
       {/* Metric Stat Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <Card padded={false} className="p-4 space-y-1">
-          <span className="text-12 text-ink-3">Total Accounts</span>
-          <div className="text-22 font-bold font-num text-ink">{counts.all}</div>
-        </Card>
-        <Card padded={false} className="p-4 space-y-1">
-          <span className="text-12 text-ink-3">Employers</span>
-          <div className="text-22 font-bold font-num text-accent">{counts.employer}</div>
-        </Card>
-        <Card padded={false} className="p-4 space-y-1">
-          <span className="text-12 text-ink-3">Supervisors</span>
-          <div className="text-22 font-bold font-num text-good">{counts.supervisor}</div>
-        </Card>
-        <Card padded={false} className="p-4 space-y-1">
-          <span className="text-12 text-ink-3">Probationary Staff</span>
-          <div className="text-22 font-bold font-num text-ink">{counts.employee}</div>
-        </Card>
-      </div>
+      {/* Metric stat cards — 2-up on small screens, 4 × span-3 on the shared grid */}
+      <PageGrid>
+        <Row className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-y-0">
+          <Col span={3} className="col-span-1">
+            <Card padded={false} className="p-4 space-y-1">
+              <span className="text-12 text-ink-3">Total Accounts</span>
+              <div className="text-22 font-bold font-num text-ink">{counts.all}</div>
+            </Card>
+          </Col>
+          <Col span={3} className="col-span-1">
+            <Card padded={false} className="p-4 space-y-1">
+              <span className="text-12 text-ink-3">Employers</span>
+              <div className="text-22 font-bold font-num text-accent">{counts.employer}</div>
+            </Card>
+          </Col>
+          <Col span={3} className="col-span-1">
+            <Card padded={false} className="p-4 space-y-1">
+              <span className="text-12 text-ink-3">Supervisors</span>
+              <div className="text-22 font-bold font-num text-good">{counts.supervisor}</div>
+            </Card>
+          </Col>
+          <Col span={3} className="col-span-1">
+            <Card padded={false} className="p-4 space-y-1">
+              <span className="text-12 text-ink-3">Probationary Staff</span>
+              <div className="text-22 font-bold font-num text-ink">{counts.employee}</div>
+            </Card>
+          </Col>
+        </Row>
+      </PageGrid>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
