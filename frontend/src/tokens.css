@@ -1,7 +1,7 @@
 /* Performa design tokens — single source of truth for color, type, spacing, radius, motion.
    Two curated themes: paper (light) + graphite (dark, black/white), switched via <html data-theme>.
    No attribute = follow the OS: paper (light) / graphite (dark).
-   Fonts: IBM Plex Sans (UI) + IBM Plex Mono (numbers, dates, scores, IDs, hashes). */
+   Fonts: Inter — one family for UI, numbers, dates, scores, IDs and hashes. */
 
 :root {
   /* Type scale — Scale B (5 steps): 12 / 14 / 16 / 22 / 30, plus the one
@@ -39,11 +39,11 @@
      Uses `linear()` (Chrome 113+ / Firefox 112+ / Safari 17.2+); the .ease-spring
      utility falls back to --ease via @supports where unsupported. */
   --ease-spring: linear(0, 0.12 6%, 0.34 12%, 0.62 18%, 0.86 24%, 1.02 30%, 1.09 36%, 1.1 42%, 1.06 48%, 1.01 55%, 0.99 62%, 0.995 70%, 1);
-  --font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
-  /* Numeric/data font — IBM Plex Sans with tabular figures. Used for numbers,
-     dates, scores and IDs (owner decision: no platform system face). */
-  --num: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Numeric/data font — Inter with tabular figures. Used for numbers, dates,
+     scores and IDs (owner decision: a single family, no platform system face). */
+  --num: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 /* ========================================================

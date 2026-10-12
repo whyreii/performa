@@ -56,11 +56,12 @@ export default {
         'side-collapsed': 'var(--side-w-collapsed)',
       },
       fontFamily: {
-        sans: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'ui-monospace', 'Menlo', 'monospace'],
-        // Numeric/data face: IBM Plex Sans (owner decision — no platform system
-        // face). Tabular figures are set on `.font-num` in index.css. See --num.
-        num: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        // One family app-wide (owner decision): Inter for UI and for
+        // numbers/dates/scores/IDs. Tabular figures are set on `.font-num` in
+        // index.css. See --font / --num in tokens.css.
+        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        mono: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        num: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
       },
       // Scale B (five text sizes) + the one display size (`hero`: the minimal
       // system's page hero figure). See tokens.css / docs/LAYOUT_GRAMMAR.md.
