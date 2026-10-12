@@ -360,7 +360,7 @@ export default function Dashboard() {
                       <Th sortKey="date" activeKey={sortKey} dir={sortDir} onSort={onSort} className="w-16 py-2.5 pr-4">
                         Date
                       </Th>
-                      <Th sortKey="milestone" activeKey={sortKey} dir={sortDir} onSort={onSort} className="w-28 py-2.5 pr-4">
+                      <Th sortKey="milestone" activeKey={sortKey} dir={sortDir} onSort={onSort} className="w-32 py-2.5 pr-4">
                         Milestone
                       </Th>
                       <Th sortKey="name" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5">

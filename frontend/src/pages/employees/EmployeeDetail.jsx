@@ -637,7 +637,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                             key={comp.key}
                             className="flex items-center gap-3 border-t border-line py-2.5 first:border-t-0"
                           >
-                            <span className="w-40 shrink-0 truncate text-14 text-ink">
+                            <span className="w-44 shrink-0 truncate text-14 text-ink">
                               {comp.label}
                             </span>
                             <span className="relative h-2 flex-1 rounded-full bg-hover">
