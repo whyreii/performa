@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi } from '../../api';
-import { Button, Skeleton, Card, Page, CountUp, inputClass, GlideSelect, Th, SectionHead, StatBand } from '../../components/ui';
+import { Button, Skeleton, Card, Page, CountUp, inputClass, GlideSelect, Th, SectionHead, StatBand, PageGrid, Row, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL } from '../../config/domain';
 import { milestoneTone, milestoneFor, nextMilestone, TONE_TEXT, TONE_BG } from '../../utils/status';
@@ -145,7 +145,10 @@ export default function Dashboard() {
         </>
       }
     >
-      {/* Stat band — the canonical hairline-divided row */}
+      <PageGrid className="space-y-6 lg:space-y-0 lg:gap-y-6">
+      {/* Stat band — full width on the shared grid */}
+      <Row>
+        <Col span={12}>
       <StatBand
         cells={[
           {
@@ -173,25 +176,12 @@ export default function Dashboard() {
           },
         ]}
       />
+        </Col>
+      </Row>
 
-      {/* Action required before Day 180 */}
-      {showUrgent && (
-        <Card className="space-y-3">
-          <SectionHead
-            title={`Action required before Day ${PROBATION_DAYS}`}
-            subtitle={`${urgent.emp.user?.full_name} · Day ${urgent.days}`}
-          />
-          <p className="text-14 text-ink-2 leading-relaxed">
-            <span className={`font-semibold ${TONE_TEXT[urgent.tone]}`}>
-              {milestoneFor(urgent.days, 'active').label}
-            </span>{' '}
-            {urgent.tone === 'notice'
-              ? noticeWindowMessage(urgent.days, urgent.emp.day_180_date)
-              : URGENT_MESSAGE[urgent.tone]}
-          </p>
-        </Card>
-      )}
-
+      {/* Worklist (1–8) + rail (9–12) */}
+      <Row>
+        <Col span={8}>
       {/* Worklist — searchable, filterable table; one row per probationer */}
       <Card flat className="space-y-4">
         <SectionHead
@@ -326,10 +316,30 @@ export default function Dashboard() {
           </div>
         )}
       </Card>
+        </Col>
 
-      {/* AI recommendations */}
-      <Card flat className="space-y-4">
-        <SectionHead title="AI recommendations" subtitle="Random Forest gap classifier" />
+        <Col span={4} start={9} className="space-y-6">
+        {/* Action required before Day 180 */}
+        {showUrgent && (
+          <Card className="space-y-3">
+            <SectionHead
+              title={`Action required before Day ${PROBATION_DAYS}`}
+              subtitle={`${urgent.emp.user?.full_name} · Day ${urgent.days}`}
+            />
+            <p className="text-14 text-ink-2 leading-relaxed">
+              <span className={`font-semibold ${TONE_TEXT[urgent.tone]}`}>
+                {milestoneFor(urgent.days, 'active').label}
+              </span>{' '}
+              {urgent.tone === 'notice'
+                ? noticeWindowMessage(urgent.days, urgent.emp.day_180_date)
+                : URGENT_MESSAGE[urgent.tone]}
+            </p>
+          </Card>
+        )}
+
+        {/* AI recommendations */}
+        <Card flat className="space-y-4">
+          <SectionHead title="AI recommendations" subtitle="Random Forest gap classifier" />
 
         {isPlansLoading ? (
           <div className="space-y-3">
@@ -358,6 +368,9 @@ export default function Dashboard() {
           </ul>
         )}
       </Card>
+        </Col>
+      </Row>
+      </PageGrid>
     </Page>
   );
 }
