@@ -26,15 +26,15 @@ describe('Dashboard', () => {
     interventionApi.listPending.mockResolvedValue([plan()]);
     renderDashboard();
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
-    expect(await screen.findByText('Maria Midterm')).toBeInTheDocument();
+    expect((await screen.findAllByText('Maria Midterm')).length).toBeGreaterThan(0);
   });
 
-  it('surfaces an error when AI recommendations fail to load', async () => {
+  it('surfaces an error when interventions fail to load', async () => {
     employeeApi.list.mockResolvedValue([employee()]);
     interventionApi.listPending.mockRejectedValue(new Error('down'));
     renderDashboard();
     expect(
-      await screen.findByText('Unable to load AI recommendations right now. Please retry.')
+      await screen.findByText('Unable to load interventions right now. Please retry.')
     ).toBeInTheDocument();
   });
 
@@ -48,9 +48,9 @@ describe('Dashboard', () => {
     interventionApi.listPending.mockResolvedValue([]);
     renderDashboard();
 
-    expect(await screen.findByText('Due Person')).toBeInTheDocument();
-    expect(await screen.findByText('On Track Person')).toBeInTheDocument();
-    expect(await screen.findByText('Past Cap Person')).toBeInTheDocument();
+    expect((await screen.findAllByText('Due Person')).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('On Track Person')).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('Past Cap Person')).length).toBeGreaterThan(0);
   });
 
   it('shows the next statutory milestone per employee in Next deadlines', async () => {

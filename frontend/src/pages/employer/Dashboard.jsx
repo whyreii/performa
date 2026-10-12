@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query';
-import { employeeApi, evaluationApi, interventionApi, notificationApi } from '../../api';
+import { employeeApi, evaluationApi, interventionApi } from '../../api';
 import {
   Button,
   Skeleton,
@@ -41,8 +41,15 @@ const MILE_LABEL = {
   [PROBATION_DAYS]: `Day ${PROBATION_DAYS} cap`,
 };
 
-// Notification category → statutory tone (backend: milestone_150/165/178).
-const ALERT_TONE = { milestone_150: 'warn', milestone_165: 'notice', milestone_178: 'bad' };
+// Current window label for an employee who has reached the review milestone.
+const windowLabel = (days) => {
+  if (days > PROBATION_DAYS) {
+    return `Past the Day ${PROBATION_DAYS} cap · regular by operation of law`;
+  }
+  if (days >= MILESTONE_CRITICAL) return `Critical window · Day ${MILESTONE_CRITICAL} reached`;
+  if (days >= MILESTONE_NOTICE) return `Written-notice window · Day ${MILESTONE_NOTICE} reached`;
+  return `Performance review due · Day ${MILESTONE_REVIEW} reached`;
+};
 
 // Score-bar fill: the concept's muted 60% status wash (the numeral carries the
 // full-strength tone).
@@ -81,11 +88,6 @@ export default function Dashboard() {
     queryFn: () => interventionApi.listPending(),
   });
 
-  const { data: notifications = [] } = useQuery({
-    queryKey: ['notifications'],
-    queryFn: async () => (await notificationApi.list()) ?? [],
-  });
-
   const activeProbationers = useMemo(
     () => employees.filter((e) => e.status === 'active'),
     [employees]
@@ -109,12 +111,18 @@ export default function Dashboard() {
     })),
   });
 
+  // Overall score chart — one row per active probationer. A 404 scorecard means
+  // "not rated yet", so the employee is kept and shown as "No score yet" rather
+  // than dropped (the row must not silently disappear from the count).
   const scores = useMemo(
     () =>
       activeProbationers
         .map((e, i) => ({ emp: e, sc: scoreQueries[i].data }))
-        .filter((s) => s.sc)
-        .sort((a, b) => Number(b.sc.overall_score) - Number(a.sc.overall_score)),
+        .sort((a, b) => {
+          const av = a.sc ? Number(a.sc.overall_score) : -1;
+          const bv = b.sc ? Number(b.sc.overall_score) : -1;
+          return bv - av;
+        }),
     [activeProbationers, scoreQueries]
   );
   const scoresLoading = scoreQueries.some((q) => q.isLoading);
@@ -166,12 +174,17 @@ export default function Dashboard() {
     return list;
   }, [activeProbationers, sortKey, sortDir]);
 
+  // Alerts — one live row per active probationer who has reached the Day 150
+  // review (derived from the same employee data, so the day count is never a
+  // stale snapshot and superseded milestones collapse into the current window).
   const alerts = useMemo(
     () =>
-      notifications
-        .filter((n) => String(n.category || '').startsWith('milestone'))
-        .slice(0, 3),
-    [notifications]
+      activeProbationers
+        .map((emp) => ({ emp, days: getDaysElapsed(emp.start_date) }))
+        .filter((a) => a.days >= MILESTONE_REVIEW)
+        .sort((a, b) => b.days - a.days)
+        .map((a) => ({ ...a, tone: milestoneFor(a.days, a.emp.status).tone })),
+    [activeProbationers]
   );
 
   useStatusBar(
@@ -242,10 +255,27 @@ export default function Dashboard() {
                   <Skeleton className="h-4 w-full" />
                 </div>
               ) : scores.length === 0 ? (
-                <p className="py-6 text-14 text-ink-3">No weekly ratings submitted yet.</p>
+                <p className="py-6 text-14 text-ink-3">No active probationary employees.</p>
               ) : (
                 <div>
                   {scores.map(({ emp, sc }) => {
+                    if (!sc) {
+                      return (
+                        <div
+                          key={emp.id}
+                          className="flex items-center gap-3 border-t border-line py-2.5 first:border-t-0"
+                        >
+                          <Link
+                            to={`/employees/${emp.id}`}
+                            className="w-28 shrink-0 truncate text-12 text-ink hover:underline"
+                          >
+                            {emp.user?.full_name}
+                          </Link>
+                          <span className="flex-1 text-12 text-ink-3">No score yet</span>
+                          <span className="w-11 shrink-0" />
+                        </div>
+                      );
+                    }
                     const score = Number(sc.overall_score);
                     const target = Number(sc.target_score) || targetScore;
                     const tone = scoreTone(score, target);
@@ -286,28 +316,33 @@ export default function Dashboard() {
 
           <Col span={5}>
             <section aria-label="Alerts">
-              <SectionHead title="Alerts" subtitle="milestone notices" />
+              <SectionHead title="Alerts" subtitle="employees at or past the review milestone" />
               {alerts.length === 0 ? (
-                <p className="py-6 text-14 text-ink-3">No milestone alerts.</p>
+                <p className="py-6 text-14 text-ink-3">No employees in a milestone window.</p>
               ) : (
                 <div>
-                  {alerts.map((n) => {
-                    const tone = ALERT_TONE[n.category] || 'warn';
-                    return (
-                      <div key={n.id} className="flex items-start gap-2.5 border-t border-line py-3 first:border-t-0">
-                        <span
-                          className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
-                          aria-hidden="true"
-                        />
-                        <div className="min-w-0">
-                          <div className="text-12 text-ink">{n.title}</div>
-                          {n.body ? (
-                            <div className="mt-0.5 text-12 leading-relaxed text-ink-2">{n.body}</div>
-                          ) : null}
+                  {alerts.map(({ emp, days, tone }) => (
+                    <div key={emp.id} className="flex items-start gap-2.5 border-t border-line py-3 first:border-t-0">
+                      <span
+                        className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0">
+                        <div className="text-12 text-ink">
+                          <Link to={`/employees/${emp.id}`} className="hover:underline">
+                            {emp.user?.full_name}
+                          </Link>
+                          {' · '}
+                          <span className="font-num">
+                            Day {days} of {PROBATION_DAYS}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 text-12 leading-relaxed text-ink-2">
+                          {windowLabel(days)}
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               )}
             </section>
@@ -381,8 +416,8 @@ export default function Dashboard() {
           </Col>
 
           <Col span={5}>
-            <section aria-label="AI recommendations">
-              <SectionHead title="AI recommendations" subtitle="Random Forest gap classifier" />
+            <section aria-label="Interventions">
+              <SectionHead title="Interventions" subtitle="Training plans pending sign-off" />
               {isPlansLoading ? (
                 <div className="space-y-3 pt-2">
                   <Skeleton className="h-12 w-full" />
@@ -390,12 +425,11 @@ export default function Dashboard() {
                 </div>
               ) : isPlansError ? (
                 <p className="py-6 text-14 text-bad">
-                  Unable to load AI recommendations right now. Please retry.
+                  Unable to load interventions right now. Please retry.
                 </p>
               ) : plans.length === 0 ? (
                 <p className="py-3 text-14 leading-relaxed text-ink-2">
-                  All probationary employees are performing at or above benchmark. No active
-                  intervention plans required.
+                  No interventions awaiting sign-off.
                 </p>
               ) : (
                 <ul>

@@ -9,7 +9,7 @@ import { useStatusBar } from '../../context/ChromeContext';
 import { Bell, CheckCheck, AlertCircle } from '../../components/icons';
 
 // Copy reflects what each role actually receives (backend notification
-// categories): Employer → statutory milestone alerts; Supervisor → Day 150 for
+// categories): Employer → probation milestone alerts; Supervisor → Day 150 for
 // their reports; Employee → monthly summaries + training; Admin → system/account
 // only (the Admin is view-only and receives no performance alerts).
 const COPY_BY_ROLE = {
@@ -18,7 +18,7 @@ const COPY_BY_ROLE = {
     empty: 'System and account notifications will appear here.',
   },
   employer: {
-    subtitle: 'Statutory milestone alerts for your probationary employees',
+    subtitle: 'Probation milestone alerts for your probationary employees',
     empty: 'You will be alerted here when an employee reaches a Day 150, 165, or 178 milestone.',
   },
   supervisor: {

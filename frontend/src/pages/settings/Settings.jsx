@@ -48,7 +48,7 @@ const MODES = [
 const STATUTORY_ALERTS = [
   {
     title: 'Day 150 Review Due Notice',
-    badge: 'Statutory Milestone',
+    badge: 'Milestone',
     tone: 'warn',
     body: 'Triggers when an employee reaches 150 days of probation. Alerts HR and supervisors to schedule the formal 5th-month performance appraisal.',
   },
@@ -438,7 +438,7 @@ export default function Settings() {
           <Col span={12}>
             <section aria-label="Statutory alerts">
               <SectionHead
-                title="Article 296 Statutory Alert Protocols"
+                title="Article 296 Alert Protocols"
                 subtitle="Mandatory · always enforced · Asia/Manila"
               />
               <div>
