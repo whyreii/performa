@@ -73,7 +73,7 @@ export default function Login() {
     <div className="login-shell min-h-screen w-full flex flex-col bg-bg text-ink transition-colors duration-performa">
       <div className="w-full max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col lg:grid lg:grid-cols-12 lg:gap-x-6 lg:grid-rows-[auto_1fr_auto]">
       {/* Top bar — the first grid row; brand starts col 1, control ends col 12 */}
-      <header className="lg:col-span-12 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:items-center flex justify-between items-center gap-4 py-6">
+      <header className="lg:col-span-12 lg:grid lg:grid-cols-subgrid lg:gap-x-[normal] lg:items-center flex justify-between items-center gap-4 py-6">
         <div className="lg:col-span-5 flex items-center gap-3">
           <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
             <PerformaMark className="w-5 h-5" />
@@ -111,8 +111,7 @@ export default function Login() {
         </div>
       </header>
 
-      <main className="lg:col-span-12 flex-1 flex flex-col justify-center pb-12">
-          <div className="reveal grid gap-10 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:gap-y-0 lg:items-start">
+      <main className="reveal lg:col-span-12 flex-1 flex flex-col justify-center gap-10 pb-12 lg:grid lg:grid-cols-subgrid lg:gap-x-[normal] lg:gap-y-0 lg:items-start lg:content-center">
           {/* Form column (heading + form + demo) */}
           <section className="lg:col-span-5">
             <h1 className="text-30 font-semibold tracking-tight text-ink">Sign in</h1>
@@ -229,11 +228,10 @@ export default function Login() {
               ))}
             </ul>
           </Surface>
-        </div>
       </main>
 
       {/* Footer — the third grid row, on the same column lines */}
-      <footer className="lg:col-span-12 lg:grid lg:grid-cols-12 lg:gap-x-6 py-6 text-12 text-ink-3">
+      <footer className="lg:col-span-12 lg:grid lg:grid-cols-subgrid py-6 text-12 text-ink-3">
         <span className="lg:col-span-5">Asia/Manila (UTC+8) · Article 296, Philippine Labor Code</span>
       </footer>
       </div>
