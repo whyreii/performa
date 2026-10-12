@@ -71,10 +71,10 @@ export default function Login() {
 
   return (
     <div className="login-shell min-h-screen w-full flex flex-col bg-bg text-ink transition-colors duration-performa">
-      <div className="w-full max-w-[1100px] mx-auto px-6 flex-1 flex flex-col">
-      {/* Top bar — inside the centred column so it aligns with the content */}
-      <header className="flex justify-between items-center gap-4 py-6">
-        <div className="flex items-center gap-3">
+      <div className="w-full max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col lg:grid lg:grid-cols-12 lg:gap-x-6 lg:grid-rows-[auto_1fr_auto]">
+      {/* Top bar — the first grid row; brand starts col 1, control ends col 12 */}
+      <header className="lg:col-span-12 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:items-center flex justify-between items-center gap-4 py-6">
+        <div className="lg:col-span-5 flex items-center gap-3">
           <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
             <PerformaMark className="w-5 h-5" />
           </div>
@@ -85,7 +85,7 @@ export default function Login() {
         <div
           role="group"
           aria-label="Color mode"
-          className="flex items-center gap-1 p-1 rounded-ctl border border-line bg-hover"
+          className="lg:col-span-6 lg:col-start-7 lg:justify-self-end flex items-center gap-1 p-1 rounded-ctl border border-line bg-hover"
         >
           {MODES.map((m) => {
             const Icon = m.icon;
@@ -111,10 +111,10 @@ export default function Login() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col justify-center pb-12">
-          <div className="reveal grid gap-10 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-14 lg:items-start">
+      <main className="lg:col-span-12 flex-1 flex flex-col justify-center pb-12">
+          <div className="reveal grid gap-10 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:gap-y-0 lg:items-start">
           {/* Form column (heading + form + demo) */}
-          <section>
+          <section className="lg:col-span-5">
             <h1 className="text-30 font-semibold tracking-tight text-ink">Sign in</h1>
             <p className="text-14 text-ink-2 mt-2">Use your work account to continue to Performa.</p>
 
@@ -207,7 +207,7 @@ export default function Login() {
           </section>
 
           {/* Article 296 card */}
-          <Surface className="p-6 sm:p-7">
+          <Surface className="lg:col-span-6 lg:col-start-7 p-6 sm:p-7">
             <div className="login-kicker">Article 296 · Philippine Labor Code</div>
             <h2 className="text-22 font-bold tracking-tight text-ink mt-3">
               Ratings, deadlines, and the audit trail behind every decision.
@@ -231,13 +231,11 @@ export default function Login() {
           </Surface>
         </div>
       </main>
-      </div>
 
-      {/* Footer info — inside the centred column */}
-      <div className="w-full max-w-[1100px] mx-auto px-6">
-        <footer className="py-6 text-12 text-ink-3">
-          <span>Asia/Manila (UTC+8) · Article 296, Philippine Labor Code</span>
-        </footer>
+      {/* Footer — the third grid row, on the same column lines */}
+      <footer className="lg:col-span-12 lg:grid lg:grid-cols-12 lg:gap-x-6 py-6 text-12 text-ink-3">
+        <span className="lg:col-span-5">Asia/Manila (UTC+8) · Article 296, Philippine Labor Code</span>
+      </footer>
       </div>
     </div>
   );
