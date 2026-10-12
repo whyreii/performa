@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { PerformaMark, Eye, EyeOff, AlertCircle, Sun, Moon, Monitor } from '../../components/icons';
+import { PerformaMark, Eye, EyeOff, AlertCircle, Sun, Moon } from '../../components/icons';
 import { TextField, Button, Surface, Badge, inputClass } from '../../components/ui';
 import { COMPETENCIES } from '../../config/domain';
 
 const MODES = [
   { id: 'light', label: 'Light', icon: Sun },
   { id: 'dark', label: 'Dark', icon: Moon },
-  { id: 'system', label: 'System', icon: Monitor },
 ];
 
 // Demo quick-login is a dev-only aid. Gated so the seeded emails and the plain
@@ -99,14 +98,13 @@ export default function Login() {
                 aria-label={`${m.label} mode`}
                 title={m.label}
                 onClick={() => setMode(m.id)}
-                className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-ctl text-14 font-medium transition-colors ${
+                className={`inline-flex items-center justify-center h-8 w-8 rounded-ctl transition-colors ${
                   isActive
                     ? 'bg-surface text-ink border border-line'
                     : 'text-ink-3 hover:text-ink'
                 }`}
               >
                 <Icon className="w-4 h-4" />
-                {m.label}
               </button>
             );
           })}
