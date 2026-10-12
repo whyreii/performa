@@ -3,10 +3,10 @@ import React from 'react';
 // Shared control class strings — the single source for input/select/textarea
 // styling. Replaces the class literal duplicated across ~9 files (SLOP_AUDIT §3).
 export const inputClass =
-  'w-full h-10 px-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 text-14 focus:outline-none focus:border-accent transition-colors';
+  'w-full h-10 px-3 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3/60 text-14 focus:outline-none focus:border-accent transition-colors';
 
 export const textareaClass =
-  'w-full p-3 text-14 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3 focus:outline-none focus:border-accent transition-colors';
+  'w-full p-3 text-14 border border-line rounded-field bg-transparent text-ink placeholder:text-ink-3/60 focus:outline-none focus:border-accent transition-colors';
 
 export function Field({ id, label, hint, children }) {
   return (

@@ -72,7 +72,7 @@ export default function Login() {
 
   return (
     <div className="login-shell min-h-screen w-full flex flex-col bg-bg text-ink transition-colors duration-performa">
-      <div className="w-full max-w-[1180px] mx-auto px-6 flex-1 flex flex-col">
+      <div className="w-full max-w-[1100px] mx-auto px-6 flex-1 flex flex-col">
       {/* Top bar — inside the centred column so it aligns with the content */}
       <header className="flex justify-between items-center gap-4 py-6">
         <div className="flex items-center gap-3">
@@ -114,7 +114,7 @@ export default function Login() {
       </header>
 
       <main className="flex-1 flex flex-col justify-center pb-12">
-        <div className="reveal grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-14 lg:items-start">
+          <div className="reveal grid gap-10 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-14 lg:items-start">
           {/* Form column (heading + form + demo) */}
           <section>
             <h1 className="text-30 font-semibold tracking-tight text-ink">Sign in</h1>
@@ -236,7 +236,7 @@ export default function Login() {
       </div>
 
       {/* Footer info — inside the centred column */}
-      <div className="w-full max-w-[1180px] mx-auto px-6">
+      <div className="w-full max-w-[1100px] mx-auto px-6">
         <footer className="py-6 text-12 text-ink-3">
           <span>Asia/Manila (UTC+8) · Article 296, Philippine Labor Code</span>
         </footer>
