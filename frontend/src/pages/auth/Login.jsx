@@ -72,8 +72,9 @@ export default function Login() {
 
   return (
     <div className="login-shell min-h-screen w-full flex flex-col bg-bg text-ink transition-colors duration-performa">
-      {/* Top bar with Color mode */}
-      <header className="w-full flex justify-between items-center px-6 py-4 border-b border-line">
+      <div className="w-full max-w-[1180px] mx-auto px-6 flex-1 flex flex-col">
+      {/* Top bar — inside the centred column so it aligns with the content */}
+      <header className="flex justify-between items-center gap-4 py-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-nav bg-accent text-accent-foreground flex items-center justify-center">
             <PerformaMark className="w-5 h-5" />
@@ -112,7 +113,7 @@ export default function Login() {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-[1180px] mx-auto px-6 py-10 flex flex-col justify-center">
+      <main className="flex-1 flex flex-col justify-center pb-12">
         <div className="reveal grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-14 lg:items-start">
           {/* Form column (heading + form + demo) */}
           <section>
@@ -232,11 +233,14 @@ export default function Login() {
           </Surface>
         </div>
       </main>
+      </div>
 
-      {/* Footer info */}
-      <footer className="w-full text-center py-4 text-12 text-ink-3 border-t border-line">
-        <span>Asia/Manila (UTC+8) · Article 296, Philippine Labor Code</span>
-      </footer>
+      {/* Footer info — inside the centred column */}
+      <div className="w-full max-w-[1180px] mx-auto px-6">
+        <footer className="py-6 text-12 text-ink-3">
+          <span>Asia/Manila (UTC+8) · Article 296, Philippine Labor Code</span>
+        </footer>
+      </div>
     </div>
   );
 }
