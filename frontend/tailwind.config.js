@@ -49,6 +49,10 @@ export default {
         float: 'var(--r-float)',
         'float-inner': 'var(--r-float-inner)',
       },
+      width: {
+        side: 'var(--side-w)',
+        'side-collapsed': 'var(--side-w-collapsed)',
+      },
       fontFamily: {
         sans: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
         mono: ['IBM Plex Mono', 'ui-monospace', 'Menlo', 'monospace'],

@@ -57,18 +57,18 @@ export default function Sidebar({ onOpenCommandPalette }) {
   return (
     <aside
       className={`hidden lg:flex flex-col sticky top-0 h-screen shrink-0 bg-side border-r border-line shadow-side z-20 transition-[width,padding,gap] duration-performa ease-spring ${
-        collapsed ? 'w-[72px] p-2 gap-3' : 'w-[270px] p-3 gap-2'
+        collapsed ? 'w-side-collapsed p-2 gap-3' : 'w-side p-3 gap-2'
       }`}
       aria-label="Main Navigation"
     >
       {/* Brand Header + collapse toggle */}
-      <div className={`flex items-center ${collapsed ? 'flex-col gap-3 px-0 pt-1 pb-0' : 'gap-2 px-1 pt-1 pb-2.5'}`}>
+      <div className={`flex items-center ${collapsed ? 'flex-col gap-3 px-0 pt-1 pb-0' : 'gap-2 px-1 pt-1 pb-2'}`}>
         <Link
           to={homePath}
           className="flex items-center gap-2.5 min-w-0 group"
           title="Performa Home"
         >
-          <div className={`${collapsed ? 'w-8 h-8' : 'w-[26px] h-[26px]'} rounded-nav bg-accent text-accent-foreground flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ease-spring`}>
+          <div className={`${collapsed ? 'w-8 h-8' : 'w-8 h-8'} rounded-nav bg-accent text-accent-foreground flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ease-spring`}>
             <PerformaMark className="w-5 h-5" />
           </div>
           {!collapsed && (
@@ -121,7 +121,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="flex items-center gap-2 h-9 mb-1.5 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink text-14 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="flex items-center gap-2 h-9 mb-2 px-2.5 rounded-ctl border border-line bg-surface/60 hover:bg-hover text-ink-3 hover:text-ink text-14 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <Search className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">Search / command…</span>
@@ -165,7 +165,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
       {/* User Footer */}
       <div
         className={`flex items-center border-t border-line ${
-          collapsed ? 'flex-col gap-3 px-0 pt-2' : 'gap-2.5 px-2 pt-2.5'
+          collapsed ? 'flex-col gap-3 px-0 pt-2' : 'gap-2.5 px-2 pt-2'
         }`}
       >
         <div

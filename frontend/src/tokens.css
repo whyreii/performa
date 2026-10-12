@@ -17,6 +17,10 @@
   --s5: 32px;
   --s6: 48px;
   --s7: 64px;
+  /* Shell geometry — the sidebar's width lives here, not as a magic number in
+     Sidebar.jsx, so the shell (sidebar + content) reads from one source. */
+  --side-w: 270px;
+  --side-w-collapsed: 72px;
   /* Round geometry (was soft 6–8px). Chosen in the radius preview:
      controls 10, fields/nav 12, surfaces 14. */
   --r-ctl: 10px;
