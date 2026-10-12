@@ -56,7 +56,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
   return (
     <aside
-      className={`hidden lg:flex flex-col sticky top-0 h-screen shrink-0 bg-side border-r border-line shadow-side z-20 transition-[width,padding,gap] duration-performa ease-spring ${
+      className={`hidden lg:flex flex-col h-full shrink-0 bg-glass backdrop-blur-md border-r border-line z-20 transition-[width,padding,gap] duration-performa ease-spring ${
         collapsed ? 'w-side-collapsed p-2 gap-3' : 'w-side p-3 gap-2'
       }`}
       aria-label="Main Navigation"

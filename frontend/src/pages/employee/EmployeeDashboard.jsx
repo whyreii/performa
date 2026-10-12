@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { Button, Badge, MilestonePill, Skeleton, Card, Page, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
@@ -53,6 +54,13 @@ export default function EmployeeDashboard() {
   const myProfile = useMemo(
     () => employees.find((e) => e.user_id === user?.id || e.user?.email === user?.email),
     [employees, user]
+  );
+
+  useStatusBar(
+    myProfile
+      ? `Day ${getDaysElapsed(myProfile.start_date)} of ${PROBATION_DAYS} · ${myProfile.status}`
+      : 'My scorecard',
+    'Article 296 · Asia/Manila'
   );
 
   const { data: auditLogs = [], isLoading: isAuditLoading } = useQuery({

@@ -31,6 +31,8 @@ export default {
         line: 'var(--line)',
         hover: 'var(--hover)',
         seg: 'var(--seg)',
+        glass: 'var(--glass)',
+        'glass-line': 'var(--glass-line)',
         accent: {
           DEFAULT: withOpacity('--accent'),
           foreground: 'var(--on-accent)',
@@ -73,6 +75,7 @@ export default {
       boxShadow: {
         side: 'var(--shadow)',
         pop: 'var(--pop)',
+        win: 'var(--win-shadow)',
       },
       opacity: {
         8: '0.08',

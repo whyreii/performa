@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { authApi, adminApi, organizationApi, getApiErrorMessage } from '../../api';
 import { COMPETENCIES } from '../../config/domain';
 import { Button, Badge, TextField, Page, RubberSegment } from '../../components/ui';
@@ -63,6 +64,11 @@ export default function Settings() {
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  useStatusBar(
+    `${user?.full_name || 'User'} · ${(user?.role || '').replace(/_/g, ' ')}`,
+    `${user?.organization_name || user?.organization_id || 'Organization'} · Asia/Manila`
+  );
 
   const selectSection = (id) => {
     setActive(id);

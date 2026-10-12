@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { formatDate } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
 import { Button, Badge, Skeleton, EmptyState, Card, Page, inputClass, GlideSelect, Th } from '../../components/ui';
@@ -90,6 +91,11 @@ export default function AuditTrail() {
     currentPage * PAGE_SIZE
   );
 
+  useStatusBar(
+    `${sortedLogs.length} audit records · immutable · append-only`,
+    'Article 296 · Asia/Manila'
+  );
+
   return (
     <Page
         aboveHeader={
@@ -117,7 +123,7 @@ export default function AuditTrail() {
     >
 
       {/* DOLE Evidentiary Standards Banner */}
-      <Card padded={false} className="p-5 space-y-2 no-print">
+        <Card flat padded={false} className="p-5 space-y-2 no-print">
         <div className="text-accent font-semibold text-12">
           <span className="font-num text-12">
             Statutory Legal Standard · Republic of the Philippines
@@ -165,7 +171,7 @@ export default function AuditTrail() {
       </div>
 
       {/* Audit Log Table */}
-      <Card padded={false} className="overflow-hidden">
+      <Card flat padded={false} className="overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-3">
             <Skeleton className="h-12 w-full" />

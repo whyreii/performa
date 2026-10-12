@@ -195,7 +195,7 @@ export default function RateEmployee() {
           </p>
         </div>
 
-        <Card as="div" padded={false} className="p-5 text-left space-y-3 font-num text-12">
+        <Card flat as="div" padded={false} className="p-5 text-left space-y-3 font-num text-12">
           <div className="flex justify-between border-b border-line pb-2">
             <span className="text-ink-3">Overall Average</span>
             <span className="font-bold text-ink text-14">
@@ -255,7 +255,7 @@ export default function RateEmployee() {
 
       {/* Empty: no assigned reports — a single clean empty state (no dead selector) */}
       {!isEmpListLoading && activeProbationers.length === 0 ? (
-        <Card>
+        <Card flat>
           <div role="status" aria-live="polite">
             <EmptyState
               icon={Users}
@@ -274,7 +274,7 @@ export default function RateEmployee() {
       ) : (
         <>
           {/* Employee Selector Bar */}
-          <Card padded={false} className="p-5 space-y-4">
+          <Card flat padded={false} className="p-5 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex-1 max-w-md">
                 <label className="block text-12 font-medium text-ink-2 mb-1.5" htmlFor="empSelect">
@@ -327,6 +327,7 @@ export default function RateEmployee() {
 
             return (
               <Card
+                flat
                 key={comp.key}
                 padded={false}
                 className="p-5 sm:p-6 space-y-4"
@@ -390,7 +391,7 @@ export default function RateEmployee() {
         </div>
 
         {/* Behavioral Remarks & Summary Card */}
-        <Card className="space-y-5">
+        <Card flat className="space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
             <div>
               <h3 className="text-16 font-semibold text-ink">Overall Evaluation Summary</h3>

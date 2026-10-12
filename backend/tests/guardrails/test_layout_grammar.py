@@ -27,6 +27,7 @@ _STAT_BAND_TOKENS = (
 _PAGE_GRID_TOKENS = (
     "grid-cols-12",
     "max-w-[1120px]",
+    "max-w-[1104px]",
     "max-w-[1100px]",
     "max-w-5xl",
 )

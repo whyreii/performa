@@ -589,6 +589,28 @@ html[data-reduce-motion='true'] *::after {
 
 /* Print optimization for official legal and audit documentation */
 @media print {
+  /* Neutralize the floating iMac window so pages print full-bleed, and drop
+     the toolbar + status bar chrome. */
+  .app-window {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  .app-toolbar,
+  .app-statusbar {
+    display: none !important;
+  }
+
+  .app-wall {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
   /* Hide interactive web UI controls */
   nav,
   aside,

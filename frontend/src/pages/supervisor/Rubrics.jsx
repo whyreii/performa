@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { kpiApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { TARGET, COMPETENCIES } from '../../config/domain';
 import { AlertCircle } from '../../components/icons';
 import { Card, Page, Button, Badge, inputClass, SectionHead } from '../../components/ui';
@@ -60,6 +61,11 @@ export default function Rubrics() {
   );
 
   const weightTotal = form.reduce((sum, row) => sum + (Number(row.weightPct) || 0), 0);
+
+  useStatusBar(
+    `${COMPETENCIES.length} competencies · weights ${weightTotal}%`,
+    `Target floored at ${TARGET.toFixed(2)} · Asia/Manila`
+  );
 
   const saveMutation = useMutation({
     mutationFn: () =>
@@ -188,7 +194,7 @@ export default function Rubrics() {
       )}
 
       {/* Legal Banner */}
-      <Card padded={false} className="p-5 space-y-2">
+        <Card flat padded={false} className="p-5 space-y-2">
         <div className="text-accent font-semibold text-12">
           <span className="font-num text-12">
             Statutory Legal Basis (Aliling v. Feliciano / Tamson Doctrine)
@@ -201,7 +207,7 @@ export default function Rubrics() {
 
       {/* KPI Configuration — Employer only (Art. 296: targets & weights are employer-configurable) */}
       {canEdit && form.length > 0 && (
-        <Card className="p-5 space-y-4">
+        <Card flat className="p-5 space-y-4">
           <SectionHead
             title="KPI Configuration"
             subtitle={`Set the target and weight for each core competency. Targets are floored at the ${TARGET.toFixed(1)} regularizing standard; weights are relative.`}
@@ -301,7 +307,7 @@ export default function Rubrics() {
       {/* Rubrics Grid */}
       <div className="space-y-6">
         {rubrics.map((rubric) => (
-          <Card key={rubric.id} className="space-y-4">
+          <Card flat key={rubric.id} className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-line">
               <div>
                 <h2 className="text-16 font-semibold text-ink">{rubric.name}</h2>

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { Button, Badge, MilestonePill, Skeleton, Card, Page, Modal, EmptyState, textareaClass, ScoreLedger, TimelineDocket, SectionHead, GroupCard, PageBrief } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, COMPETENCIES } from '../../config/domain';
@@ -301,6 +302,13 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
       });
   };
 
+  useStatusBar(
+    employee
+      ? `Day ${getDaysElapsed(employee.start_date)} of ${PROBATION_DAYS} · ${employee.status}`
+      : 'Employee record',
+    'Article 296 · Asia/Manila'
+  );
+
   if (isEmpLoading) {
     return (
       <Page header={false} printSheet>
@@ -575,7 +583,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         <div className="mt-4 space-y-4">
           {/* Recommendation — full-width lead card (employer/supervisor only; not shown to the employee) */}
           {user?.role !== 'probationary_employee' && (
-          <Card className="p-5">
+          <Card flat className="p-5">
             <SectionHead
               title="Recommendation"
               subtitle={

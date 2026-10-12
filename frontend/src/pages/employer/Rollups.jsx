@@ -5,6 +5,7 @@ import { daysElapsed as getDaysElapsed, monthNumberFor } from '../../utils/datet
 import { PROBATION_MONTHS, PROBATION_MONTH_DAYS } from '../../config/domain';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect, ConfirmDialog, SectionHead } from '../../components/ui';
 import {
   FileCheck2,
@@ -98,6 +99,11 @@ export default function Rollups() {
     queryFn: () => interventionApi.listSummaries(),
   });
 
+  useStatusBar(
+    `${pendingPlans.length} interventions pending · ${summaries.length} monthly summaries`,
+    'Gemini summaries · Random Forest recommendations'
+  );
+
   const dispatchMutation = useMutation({
     mutationFn: (id) => interventionApi.dispatchSummary(id),
     onSuccess: () => {
@@ -178,7 +184,7 @@ export default function Rollups() {
             <Skeleton className="h-28 w-full" />
           </div>
         ) : isError ? (
-          <Card padded={false} className="p-8 text-center space-y-3">
+          <Card flat padded={false} className="p-8 text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-bad mx-auto" />
             <h3 className="text-14 font-semibold text-ink">Failed to load pending plans</h3>
             <p className="text-12 text-ink-3">
@@ -193,7 +199,7 @@ export default function Rollups() {
             All training recommendations have been processed. Click "Generate Rollup" to run the 30-day Gemini evaluation rollup on an active probationer.
           </EmptyState>
         ) : (
-          <Card padded={false} className="divide-y divide-line">
+          <Card flat padded={false} className="divide-y divide-line">
             {pendingPlans.map((plan) => (
               <div key={plan.id} className="p-5 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -264,15 +270,15 @@ export default function Rollups() {
             <Skeleton className="h-14 w-full" />
           </div>
         ) : isSummariesError ? (
-          <Card padded={false} className="p-6 text-center text-12 text-bad">
+          <Card flat padded={false} className="p-6 text-center text-12 text-bad">
             Unable to load monthly summaries right now. Please retry.
           </Card>
         ) : summaries.length === 0 ? (
-          <Card padded={false} className="p-6 text-center text-12 text-ink-3">
+          <Card flat padded={false} className="p-6 text-center text-12 text-ink-3">
             No monthly summaries generated yet. Run a rollup above.
           </Card>
         ) : (
-          <Card padded={false} className="divide-y divide-line">
+          <Card flat padded={false} className="divide-y divide-line">
             {summaries.map((summary) => {
               const emp = employees.find((e) => e.id === summary.employee_id);
               return (

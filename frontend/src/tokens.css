@@ -73,6 +73,10 @@
   --off: rgba(107, 114, 128, 0.32);
   --shadow: 4px 0 24px rgba(15, 17, 21, 0.08);
   --pop: 0 12px 40px rgba(15, 17, 21, 0.16);
+  /* iMac shell — translucent chrome surfaces + the floating window shadow. */
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-line: rgba(15, 17, 21, 0.08);
+  --win-shadow: 0 24px 70px rgba(15, 17, 21, 0.18), 0 4px 16px rgba(15, 17, 21, 0.08);
 }
 
 /* Graphite (Dark) — palette adopted from "Dashboard – fixed grid.html": a soft
@@ -99,6 +103,9 @@
     --off: rgba(255, 255, 255, 0.28);
     --shadow: 6px 0 24px rgba(0, 0, 0, 0.6);
     --pop: 0 12px 40px rgba(0, 0, 0, 0.6);
+    --glass: rgba(16, 18, 22, 0.72);
+    --glass-line: rgba(255, 255, 255, 0.08);
+    --win-shadow: 0 24px 70px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.4);
   }
 }
 
@@ -122,4 +129,7 @@
   --off: rgba(255, 255, 255, 0.28);
   --shadow: 6px 0 24px rgba(0, 0, 0, 0.6);
   --pop: 0 16px 44px rgba(0, 0, 0, 0.75);
+  --glass: rgba(16, 18, 22, 0.72);
+  --glass-line: rgba(255, 255, 255, 0.08);
+  --win-shadow: 0 24px 70px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.4);
 }

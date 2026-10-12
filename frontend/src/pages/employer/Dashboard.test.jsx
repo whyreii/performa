@@ -38,7 +38,7 @@ describe('Dashboard', () => {
     ).toBeInTheDocument();
   });
 
-  it('defaults the action list to the Day 150-180 window (matches the Decisions-due KPI)', async () => {
+  it('lists every active probationer in Next deadlines with their nearest milestone', async () => {
     vi.stubEnv('VITE_PERFORMA_TODAY', '2026-10-11');
     employeeApi.list.mockResolvedValue([
       employee({ id: 'e-due', start_date: '2026-05-04', user: { id: 'u1', full_name: 'Due Person', email: 'due@acme.com' } }),
@@ -49,20 +49,19 @@ describe('Dashboard', () => {
     renderDashboard();
 
     expect(await screen.findByText('Due Person')).toBeInTheDocument();
-    expect(screen.queryByText('On Track Person')).not.toBeInTheDocument();
-    expect(screen.queryByText('Past Cap Person')).not.toBeInTheDocument();
-    expect(screen.getByText(/1 probationary employee/)).toBeInTheDocument();
+    expect(await screen.findByText('On Track Person')).toBeInTheDocument();
+    expect(await screen.findByText('Past Cap Person')).toBeInTheDocument();
   });
 
-  it('shows days remaining to the next milestone in the Deadline column', async () => {
+  it('shows the next statutory milestone per employee in Next deadlines', async () => {
     vi.stubEnv('VITE_PERFORMA_TODAY', '2026-10-11');
     employeeApi.list.mockResolvedValue([
       employee({ id: 'e-due', start_date: '2026-05-04', user: { id: 'u1', full_name: 'Due Person', email: 'due@acme.com' } }),
     ]);
     interventionApi.listPending.mockResolvedValue([]);
     renderDashboard();
-    // Day 160 → next milestone is Day 165, 5 days away (not the elapsed "Day 160").
-    expect(await screen.findByText('5d')).toBeInTheDocument();
+    // Day 160 → the next milestone is Day 165 (not the elapsed Day 160).
+    expect(await screen.findByText('Day 165 notice')).toBeInTheDocument();
   });
 
   it('labels the past-cap tile as Past Day 180, matching the >180 rule', async () => {

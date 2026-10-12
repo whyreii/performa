@@ -21,7 +21,7 @@ export default function StatBand({ cells = [], className = '' }) {
         const size = cell.size === 'base' ? 'text-16' : 'text-30';
         const valueTone = cell.tone ? TONE_TEXT[cell.tone] : 'text-ink';
         return (
-          <div key={cell.label} className="px-5 py-4 min-w-0">
+          <div key={cell.label} className="px-5 py-4 min-w-0 first:pl-0 last:pr-0">
             <div className="flex items-center gap-2 text-12 text-ink-3">
               {cell.tone ? (
                 <span

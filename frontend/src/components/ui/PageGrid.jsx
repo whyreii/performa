@@ -6,8 +6,8 @@ import React from 'react';
 // its own page-level grid (enforced by
 // backend/tests/guardrails/test_layout_grammar.py).
 //
-// Geometry: max-w 1120 - px-8 (64) = 1056 content, 12 tracks, 11 x 24px gutters
-// -> 66px columns.  At a 1920px viewport: col 1 starts at 432, col 12 ends 1488.
+// Geometry: max-w 1104 - px-8 (64) = 1040 content, 12 tracks, 11 x 24px gutters
+// -> ~64.7px columns.  Matches the iMac concept's 1040 wall (AppShell WALL).
 //
 // Rows use `grid-cols-subgrid` + `column-gap: normal` so they inherit the
 // parent's tracks AND gutters.  Do NOT re-declare `grid-cols-12 gap-x-6` per
@@ -51,10 +51,10 @@ export default function PageGrid({ container = false, className = '', children, 
   return (
     <div
       className={cx(
-        // Authed pages already sit inside AppShell's 1120 container, so they use
+        // Authed pages already sit inside AppShell's 1104 container, so they use
         // the grid alone. Standalone pages (sign-in) pass `container` to own the
-        // same 1120 + px-4/6/8 geometry.
-        container && 'w-full max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8',
+        // same 1104 + px-4/6/8 geometry.
+        container && 'w-full max-w-[1104px] mx-auto px-4 sm:px-6 lg:px-8',
         'lg:grid lg:grid-cols-12 lg:gap-x-6',
         className
       )}

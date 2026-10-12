@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { Button, Badge, Card, Skeleton, EmptyState, Page, inputClass } from '../../components/ui';
 import { FileText, Download, Users } from '../../components/icons';
 
@@ -35,6 +36,11 @@ export default function Reports() {
     [employees]
   );
 
+  useStatusBar(
+    `${employees.length} employees · ${REPORT_TYPES.length} report type`,
+    'DOLE Article 296 · Asia/Manila'
+  );
+
   const openReport = async (id) => {
     if (!id) return;
     try {
@@ -66,7 +72,7 @@ export default function Reports() {
       subtitle="Generate DOLE Article 296 performance reports per employee"
     >
       {/* Generator */}
-      <Card className="p-5 space-y-4">
+      <Card flat className="p-5 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="report-employee" className="block text-12 font-medium text-ink-2 mb-1">
@@ -122,7 +128,7 @@ export default function Reports() {
       </Card>
 
       {/* Report library */}
-      <Card padded={false} className="divide-y divide-line">
+      <Card flat padded={false} className="divide-y divide-line">
         {isLoading ? (
           <div className="p-4 space-y-3">
             <Skeleton className="h-12 w-full" />

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
+import { useStatusBar } from '../../context/ChromeContext';
 import { formatDate } from '../../utils/datetime';
 import { getInitials } from '../../utils/format';
 import { generatePassword } from '../../utils/password';
@@ -62,6 +63,11 @@ export default function UserManagement() {
     queryKey: ['admin-organizations'],
     queryFn: adminApi.listOrganizations,
   });
+
+  useStatusBar(
+    `${users.length} accounts · ${organizations.length} organizations`,
+    'System oversight · Asia/Manila'
+  );
 
   // Toggle user status mutation
   const statusMutation = useMutation({
@@ -179,25 +185,25 @@ export default function UserManagement() {
       <PageGrid>
         <Row className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-y-0">
           <Col span={3} className="col-span-1">
-            <Card padded={false} className="p-4 space-y-1">
+            <Card flat padded={false} className="p-4 space-y-1">
               <span className="text-12 text-ink-3">Total Accounts</span>
               <div className="text-22 font-bold font-num text-ink">{counts.all}</div>
             </Card>
           </Col>
           <Col span={3} className="col-span-1">
-            <Card padded={false} className="p-4 space-y-1">
+            <Card flat padded={false} className="p-4 space-y-1">
               <span className="text-12 text-ink-3">Employers</span>
               <div className="text-22 font-bold font-num text-accent">{counts.employer}</div>
             </Card>
           </Col>
           <Col span={3} className="col-span-1">
-            <Card padded={false} className="p-4 space-y-1">
+            <Card flat padded={false} className="p-4 space-y-1">
               <span className="text-12 text-ink-3">Supervisors</span>
               <div className="text-22 font-bold font-num text-good">{counts.supervisor}</div>
             </Card>
           </Col>
           <Col span={3} className="col-span-1">
-            <Card padded={false} className="p-4 space-y-1">
+            <Card flat padded={false} className="p-4 space-y-1">
               <span className="text-12 text-ink-3">Probationary Staff</span>
               <div className="text-22 font-bold font-num text-ink">{counts.employee}</div>
             </Card>
@@ -235,7 +241,7 @@ export default function UserManagement() {
       </div>
 
       {/* Accounts Table */}
-      <Card padded={false} className="overflow-hidden">
+      <Card flat padded={false} className="overflow-hidden">
         {/* Mobile & Tablet stacked cards (< lg) */}
         <div className="lg:hidden divide-y divide-line">
           {isLoading ? (
