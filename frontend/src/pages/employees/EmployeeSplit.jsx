@@ -1,34 +1,13 @@
-import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import React from 'react';
 import EmployeeList from '../../components/employees/EmployeeList';
-import AddEmployeeModal from '../../components/employees/AddEmployeeModal';
-import { Page, Button } from '../../components/ui';
-import { Plus } from '../../components/icons';
+import { Page } from '../../components/ui';
 
-// Employees directory — a full-width searchable/filterable table, consistent
-// with the employer dashboard worklist. Selecting a row opens the record at
-// /employees/:id as a full page (no master–detail split).
+// Employees directory — the record list. Its minimal hero is the page top
+// (docs/LAYOUT_GRAMMAR.md), so the Page wrapper renders no header.
 export default function EmployeeSplit() {
-  const { user } = useAuth();
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const canOnboard = user?.role === 'employer';
-
   return (
-    <Page
-      title="Employees"
-      subtitle="Select a record to view the scorecard, milestone timeline, audit trail, and AI recommendations."
-      actions={
-        canOnboard ? (
-          <Button variant="primary" leftIcon={Plus} onClick={() => setIsAddOpen(true)}>
-            Add employee
-          </Button>
-        ) : null
-      }
-    >
+    <Page header={false}>
       <EmployeeList />
-      {canOnboard && (
-        <AddEmployeeModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} />
-      )}
     </Page>
   );
 }
