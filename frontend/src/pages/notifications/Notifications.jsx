@@ -143,7 +143,7 @@ export default function Notifications() {
                       <span className="font-semibold text-14 text-ink">{n.title}</span>
                       <span className="sr-only">{n.is_read ? 'Read' : 'Unread'}</span>
                     </div>
-                    {n.body && <p className="text-12 text-ink-2 mt-0.5">{n.body}</p>}
+                    {n.body && <p className="text-14 text-ink-2 mt-0.5">{n.body}</p>}
                     <span className="text-12 text-ink-3 font-num mt-1 block">
                       {n.created_at ? formatDate(n.created_at, { withTime: true, seconds: false }) : ''}
                     </span>

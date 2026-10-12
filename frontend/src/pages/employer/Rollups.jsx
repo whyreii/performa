@@ -199,9 +199,9 @@ export default function Rollups() {
             All training recommendations have been processed. Click "Generate Rollup" to run the 30-day Gemini evaluation rollup on an active probationer.
           </EmptyState>
         ) : (
-          <Card flat padded={false} className="divide-y divide-line">
+          <div className="divide-y divide-line">
             {pendingPlans.map((plan) => (
-              <div key={plan.id} className="p-5 space-y-3">
+              <div key={plan.id} className="py-3.5 space-y-2">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-1 min-w-0">
                     <div className="flex flex-wrap items-baseline gap-2">
@@ -245,8 +245,8 @@ export default function Rollups() {
 
                 {/* AI Rationale by Gemini */}
                 {plan.rationale && (
-                  <div className="p-3 rounded-ctl bg-hover/70 border border-line text-12 text-ink-2 space-y-1">
-                    <span className="font-semibold text-accent text-12">
+                  <div className="border-t border-line pt-2.5 text-12 text-ink-2 space-y-1">
+                    <span className="font-semibold text-ink-3 text-12">
                       Gemini Performance Rationale
                     </span>
                     <p className="leading-relaxed">{plan.rationale}</p>
@@ -254,7 +254,7 @@ export default function Rollups() {
                 )}
               </div>
             ))}
-          </Card>
+          </div>
         )}
       </section>
 

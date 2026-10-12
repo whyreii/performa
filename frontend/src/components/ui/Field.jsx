@@ -12,7 +12,7 @@ export function Field({ id, label, hint, children }) {
   return (
     <div>
       {label && (
-        <label className="block text-12 font-medium text-ink-2 mb-1" htmlFor={id}>
+        <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor={id}>
           {label}
         </label>
       )}

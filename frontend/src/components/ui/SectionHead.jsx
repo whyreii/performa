@@ -12,7 +12,7 @@ export default function SectionHead({ title, subtitle, note, className = '' }) {
         className ? ` ${className}` : ''
       }`}
     >
-      <h2 className="min-w-0 truncate text-12 font-medium text-ink-2">{title}</h2>
+      <h2 className="min-w-0 truncate text-14 font-medium text-ink-2">{title}</h2>
       {subtitle || note ? (
         <div className="flex flex-none items-baseline gap-3">
           {subtitle ? <span className="truncate text-12 text-ink-3">{subtitle}</span> : null}

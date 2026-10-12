@@ -166,54 +166,6 @@ html {
   font-size: var(--t-12);
   color: var(--ink-2);
 }
-/* Employee record — signature docket: the 180-day window as a vertical ledger
-   (milestones + a highlighted "today" row), replacing the horizontal scale. */
-.docket {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.docket__row {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: baseline;
-  padding: 9px 0;
-  border-top: 1px solid var(--line);
-}
-.docket__row:first-child {
-  border-top: 0;
-}
-.docket__d {
-  font-family: var(--num);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  text-align: right;
-}
-.docket__n {
-  font-size: var(--t-14);
-}
-.docket__dt {
-  font-family: var(--num);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--t-12);
-  color: var(--ink-3);
-}
-.docket__row.is-today {
-  background: var(--hover);
-  margin: 0 -10px;
-  padding: 9px 10px;
-  border-radius: var(--r-ctl);
-  border-top-color: transparent;
-}
-.docket__row.is-today .docket__d,
-.docket__row.is-today .docket__dt {
-  color: var(--accent);
-}
-.docket__row.is-reached .docket__n {
-  font-weight: 600;
-}
-
 /* Employee record — scorecard ledger rows: the numeral is the hero, with a
    hairline track that carries the fixed target notch (colour = status). */
 .sc-ledger {

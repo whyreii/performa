@@ -27,6 +27,7 @@ import {
   scoreTone,
   TONE_TEXT,
   TONE_BG,
+  TONE_FILL,
 } from '../../utils/status';
 import { Users, Award } from '../../components/icons';
 import { useStatusBar } from '../../context/ChromeContext';
@@ -49,15 +50,6 @@ const windowLabel = (days) => {
   if (days >= MILESTONE_CRITICAL) return `Critical window · Day ${MILESTONE_CRITICAL} reached`;
   if (days >= MILESTONE_NOTICE) return `Written-notice window · Day ${MILESTONE_NOTICE} reached`;
   return `Performance review due · Day ${MILESTONE_REVIEW} reached`;
-};
-
-// Score-bar fill: the concept's muted 60% status wash (the numeral carries the
-// full-strength tone).
-const TONE_FILL = {
-  ok: 'bg-good/60',
-  warn: 'bg-warn/60',
-  notice: 'bg-notice/60',
-  bad: 'bg-bad/60',
 };
 
 export default function Dashboard() {
@@ -267,11 +259,11 @@ export default function Dashboard() {
                         >
                           <Link
                             to={`/employees/${emp.id}`}
-                            className="w-28 shrink-0 truncate text-12 text-ink hover:underline"
+                            className="w-28 shrink-0 truncate text-14 text-ink hover:underline"
                           >
                             {emp.user?.full_name}
                           </Link>
-                          <span className="flex-1 text-12 text-ink-3">No score yet</span>
+                          <span className="flex-1 text-14 text-ink-3">No score yet</span>
                           <span className="w-11 shrink-0" />
                         </div>
                       );
@@ -286,7 +278,7 @@ export default function Dashboard() {
                       >
                         <Link
                           to={`/employees/${emp.id}`}
-                          className="w-28 shrink-0 truncate text-12 text-ink hover:underline"
+                          className="w-28 shrink-0 truncate text-14 text-ink hover:underline"
                         >
                           {emp.user?.full_name}
                         </Link>
@@ -302,7 +294,7 @@ export default function Dashboard() {
                           />
                         </span>
                         <span
-                          className={`w-11 shrink-0 text-right text-12 font-semibold font-num ${TONE_TEXT[tone]}`}
+                          className={`w-11 shrink-0 text-right text-14 font-semibold font-num ${TONE_TEXT[tone]}`}
                         >
                           {score.toFixed(2)}
                         </span>
@@ -328,7 +320,7 @@ export default function Dashboard() {
                         aria-hidden="true"
                       />
                       <div className="min-w-0">
-                        <div className="text-12 text-ink">
+                        <div className="text-14 text-ink">
                           <Link to={`/employees/${emp.id}`} className="hover:underline">
                             {emp.user?.full_name}
                           </Link>
@@ -337,7 +329,7 @@ export default function Dashboard() {
                             Day {days} of {PROBATION_DAYS}
                           </span>
                         </div>
-                        <div className="mt-0.5 text-12 leading-relaxed text-ink-2">
+                        <div className="mt-0.5 text-14 leading-relaxed text-ink-2">
                           {windowLabel(days)}
                         </div>
                       </div>
@@ -385,10 +377,10 @@ export default function Dashboard() {
                           onClick={() => navigate(`/employees/${emp.id}`)}
                           className="cursor-pointer transition-colors hover:bg-hover"
                         >
-                          <td className="py-3 pr-4 text-12 font-semibold font-num text-ink whitespace-nowrap">
+                          <td className="py-3 pr-4 text-14 font-semibold font-num text-ink whitespace-nowrap">
                             {formatDayMonth(date)}
                           </td>
-                          <td className="py-3 pr-4 text-12 text-ink-2">
+                          <td className="py-3 pr-4 text-14 text-ink-2">
                             {past ? 'Past cap' : MILE_LABEL[next]}
                           </td>
                           <td className="py-3">
@@ -400,7 +392,7 @@ export default function Dashboard() {
                               <Link
                                 to={`/employees/${emp.id}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="truncate text-12 text-ink"
+                                className="truncate text-14 text-ink"
                               >
                                 {emp.user?.full_name}
                               </Link>
@@ -436,7 +428,7 @@ export default function Dashboard() {
                   {plans.slice(0, 3).map((plan) => (
                     <li key={plan.id} className="border-t border-line py-3 first:border-t-0">
                       <div className="text-14 font-semibold text-ink">{plan.intervention_title}</div>
-                      <p className="mt-0.5 text-12 leading-relaxed text-ink-2">
+                      <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
                         {plan.rationale || plan.competency?.replace(/_/g, ' ')}
                       </p>
                     </li>

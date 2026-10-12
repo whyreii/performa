@@ -70,8 +70,8 @@ const STATUTORY_ALERTS = [
 function ProfileRow({ label, children }) {
   return (
     <div className="grid grid-cols-1 gap-x-4 gap-y-1 border-t border-line py-2.5 first:border-t-0 sm:grid-cols-[180px_minmax(0,1fr)] sm:items-center">
-      <span className="text-12 text-ink-3">{label}</span>
-      <span className="min-w-0 text-12 text-ink">{children}</span>
+      <span className="text-14 text-ink-3">{label}</span>
+      <span className="min-w-0 text-14 text-ink">{children}</span>
     </div>
   );
 }
@@ -346,11 +346,11 @@ export default function Settings() {
                 value={mode}
                 onChange={(value) => setMode(value)}
                 trackColor="var(--hover)"
-                thumbColor="var(--ink)"
+                thumbColor="var(--accent)"
                 textColor="var(--ink-2)"
-                activeTextColor="var(--bg)"
+                activeTextColor="var(--on-accent)"
                 size="md"
-                radius={8}
+                radius={999}
               />
 
               <div className="mt-6 flex items-center justify-between gap-4">
@@ -448,8 +448,8 @@ export default function Settings() {
                     className="grid grid-cols-1 gap-x-4 gap-y-1.5 border-t border-line py-3 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_150px_90px] sm:items-center"
                   >
                     <div className="min-w-0">
-                      <div className="text-12 font-semibold text-ink">{a.title}</div>
-                      <p className="mt-0.5 text-12 leading-relaxed text-ink-2">{a.body}</p>
+                      <div className="text-14 font-semibold text-ink">{a.title}</div>
+                      <p className="mt-0.5 text-14 leading-relaxed text-ink-2">{a.body}</p>
                     </div>
                     <div>
                       <Badge variant={a.tone}>{a.badge}</Badge>

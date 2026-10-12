@@ -331,33 +331,21 @@ export default function Rubrics() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-              {rubric.levels.map((lvl) => (
-                <div
-                  key={lvl.score}
-                  className={`p-3 rounded-ctl border text-12 space-y-2 ${
-                    lvl.title.includes('Target')
-                      ? 'bg-ok/5 border-line'
-                      : 'bg-hover/60 border-line'
-                  }`}
-                >
-                  <div className="flex items-center justify-between font-num">
-                    <span className="font-bold text-ink">{lvl.score}</span>
-                    <span
-                      className={`text-12 font-sans font-semibold px-1.5 py-0.5 rounded ${
-                        lvl.title.includes('Target')
-                          ? 'bg-ok/20 text-ok'
-                          : lvl.title.includes('Unsatisfactory')
-                          ? 'bg-bad/10 text-bad'
-                          : 'bg-ink-3/10 text-ink-3'
-                      }`}
-                    >
-                      {lvl.title}
-                    </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
+              {rubric.levels.map((lvl) => {
+                const edge = lvl.title.includes('Target')
+                  ? 'border-l-good'
+                  : lvl.title.includes('Unsatisfactory')
+                  ? 'border-l-bad'
+                  : 'border-l-line';
+                return (
+                  <div key={lvl.score} className={`border-l-2 pl-2.5 ${edge}`}>
+                    <span className="block text-12 font-num text-ink-3">{lvl.score}</span>
+                    <span className="block text-12 font-semibold text-ink mt-0.5">{lvl.title}</span>
+                    <p className="mt-1.5 text-14 text-ink-2 leading-relaxed">{lvl.text}</p>
                   </div>
-                  <p className="text-12 text-ink-2 leading-relaxed">{lvl.text}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
         ))}

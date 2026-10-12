@@ -5,11 +5,11 @@ import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useStatusBar } from '../../context/ChromeContext';
-import { Button, Badge, MilestonePill, Skeleton, Card, Page, Modal, EmptyState, textareaClass, ScoreLedger, TimelineDocket, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
-import { daysElapsed as getDaysElapsed, formatDate, milestoneDate } from '../../utils/datetime';
+import { Button, Badge, MilestonePill, Skeleton, Card, Page, Modal, EmptyState, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
+import { daysElapsed as getDaysElapsed, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, COMPETENCIES } from '../../config/domain';
 import { BRAND } from '../../config/brand';
-import { milestoneTone, scoreTone, TONE_TEXT } from '../../utils/status';
+import { milestoneTone, nextMilestone, scoreTone, TONE_TEXT, TONE_BG, TONE_FILL } from '../../utils/status';
 import { getInitials } from '../../utils/format';
 import {
   ArrowLeft,
@@ -55,6 +55,14 @@ const MILESTONE_WINDOW_LABEL = {
   warn: 'Performance review due',
   ok: 'On track',
 };
+
+// The four probation milestones, in order (the record's timeline rows).
+const MILE_ROWS = [
+  { day: MILESTONE_REVIEW, label: `Day ${MILESTONE_REVIEW} review` },
+  { day: MILESTONE_NOTICE, label: `Day ${MILESTONE_NOTICE} notice` },
+  { day: MILESTONE_CRITICAL, label: `Day ${MILESTONE_CRITICAL} critical` },
+  { day: PROBATION_DAYS, label: `Day ${PROBATION_DAYS} cap` },
+];
 
 // Competency key → human label, so the ML panel uses the same Title Case names
 // as the scorecard (never a raw snake_case key).
@@ -619,7 +627,39 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                         {overallTarget.toFixed(2)} standard
                       </span>
                     </div>
-                    <ScoreLedger competencies={scorecard.competencies} />
+                    <div className="pt-2">
+                      {scorecard.competencies.map((comp) => {
+                        const score = Number(comp.score) || 0;
+                        const target = Number(comp.target) || overallTarget;
+                        const tone = scoreTone(score, target);
+                        return (
+                          <div
+                            key={comp.key}
+                            className="flex items-center gap-3 border-t border-line py-2.5 first:border-t-0"
+                          >
+                            <span className="w-40 shrink-0 truncate text-14 text-ink">
+                              {comp.label}
+                            </span>
+                            <span className="relative h-2 flex-1 rounded-full bg-hover">
+                              <i
+                                className={`absolute inset-y-0 left-0 rounded-full ${TONE_FILL[tone]}`}
+                                style={{ width: `${(score / 5) * 100}%` }}
+                              />
+                              <i
+                                className="absolute -top-1.5 -bottom-1.5 w-px bg-ink-3/60"
+                                style={{ left: `${(target / 5) * 100}%` }}
+                                title={`Target ${target.toFixed(1)}`}
+                              />
+                            </span>
+                            <span
+                              className={`w-11 shrink-0 text-right text-14 font-semibold font-num ${TONE_TEXT[tone]}`}
+                            >
+                              {score.toFixed(1)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </>
                 )}
               </section>
@@ -628,11 +668,31 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             <Col span={5}>
               <section aria-label="Probation timeline">
                 <SectionHead title="Probation timeline" subtitle="Article 296 · Asia/Manila" />
-                <TimelineDocket
-                  startDate={employee.start_date}
-                  day180Date={employee.day_180_date}
-                  daysElapsed={daysElapsed}
-                />
+                <div>
+                  {MILE_ROWS.map(({ day, label }) => {
+                    const done = daysElapsed >= day;
+                    const isNext = !done && day === nextMilestone(daysElapsed) && !isTerminal;
+                    const dot = done
+                      ? TONE_BG.ok
+                      : isNext
+                      ? TONE_BG[milestoneTone(daysElapsed)]
+                      : 'bg-hover';
+                    return (
+                      <div
+                        key={day}
+                        className="grid grid-cols-[14px_minmax(0,1fr)_auto] items-center gap-2.5 border-t border-line py-2.5 first:border-t-0"
+                      >
+                        <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden="true" />
+                        <span className={`text-14 ${done || isNext ? 'text-ink' : 'text-ink-3'}`}>
+                          {label}
+                        </span>
+                        <span className="text-12 font-num text-ink-3">
+                          {formatDayMonth(milestoneDate(employee.start_date, day))}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </section>
             </Col>
           </Row>
@@ -678,7 +738,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   ) : isTerminal ? (
                     <>
                       <div
-                        className={`text-30 font-semibold tracking-tight ${
+                        className={`text-22 font-semibold tracking-tight ${
                           employee.status === 'regularized' ? 'text-good' : 'text-bad'
                         }`}
                       >
@@ -724,7 +784,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                     <>
                       <div className="flex items-baseline gap-2.5 flex-wrap">
                         <span
-                          className={`text-30 font-semibold tracking-tight ${
+                          className={`text-22 font-semibold tracking-tight ${
                             regularization.recommendation === 'Regularize' ? 'text-good' : 'text-bad'
                           }`}
                         >
@@ -980,7 +1040,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                     return (
                       <div
                         key={log.id}
-                        className="py-3 flex items-baseline justify-between gap-4 text-12"
+                        className="py-3 flex items-baseline justify-between gap-4 text-14"
                       >
                         <div className="min-w-0">
                           <div className="text-ink">
