@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, MilestonePill, Skeleton, Page, PageHead, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Page, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
 import { scoreTone, TONE_FILL, TONE_TEXT } from '../../utils/status';
@@ -229,20 +229,13 @@ export default function EmployeeDashboard() {
 
   return (
     <Page
-      toolbarTitle="My Scorecard"
-      title="My Performance"
-      bodyHead={
-        <PageHead
-          kick="My scorecard"
-          title="My Performance"
-          meta={
-            myProfile
-              ? `${myProfile.user?.full_name || user?.full_name || ''} · ${myProfile.department} · Day ${daysElapsed} of ${PROBATION_DAYS}`
-              : user?.organization_name || user?.organization_id
-          }
-          actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}
-        />
+      title="My Performance Scorecard"
+      subtitle={
+        <>
+          Your probation journey · <span className="font-num text-ink">{user?.organization_name || user?.organization_id}</span>
+        </>
       }
+      actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}
     >
       <PageGrid className="space-y-4 lg:space-y-0 lg:gap-y-4 lg:items-start">
         <Col span={8} className="space-y-4 min-w-0">

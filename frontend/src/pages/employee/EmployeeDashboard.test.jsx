@@ -50,7 +50,7 @@ describe('EmployeeDashboard', () => {
     renderDashboard();
 
     expect(
-      await screen.findByRole('heading', { name: 'My Performance' })
+      await screen.findByRole('heading', { name: 'My Performance Scorecard' })
     ).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Your checklist' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Month by month' })).toBeInTheDocument();
@@ -131,7 +131,7 @@ describe('EmployeeDashboard', () => {
     interventionApi.listMine.mockResolvedValue([]);
     renderDashboard();
 
-    await screen.findByRole('heading', { name: 'My Performance' });
+    await screen.findByRole('heading', { name: 'My Performance Scorecard' });
     // Employer-only artifacts must not appear on the employee's own scorecard.
     expect(screen.queryByText(/ML Risk Explanation/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Feature importance for legal defensibility/i)).not.toBeInTheDocument();

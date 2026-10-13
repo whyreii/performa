@@ -17,7 +17,7 @@ describe('SupervisorDashboard', () => {
       user: testUser('supervisor'),
     });
     expect(
-      await screen.findByRole('heading', { name: 'My Direct Reports' })
+      await screen.findByRole('heading', { name: 'Supervisor Workspace' })
     ).toBeInTheDocument();
     expect(await screen.findByText('Maria Midterm')).toBeInTheDocument();
     // Policy value comes from the shared TARGET constant, not a literal.
