@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
-import { Skeleton, EmptyState, Card, Th, SectionHead, Button } from '../../components/ui';
+import { Skeleton, EmptyState, Card, Th, SectionHead } from '../../components/ui';
 import { Users, AlertCircle, Download } from '../../components/icons';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { milestoneFor, milestoneStage, formatProbationDay, stageShort, scoreTone, TONE_BG, TONE_TEXT } from '../../utils/status';
@@ -157,15 +157,15 @@ export default function EmployeeList() {
         title="Probationary employees"
         subtitle={`${employees.length} probationary employee${employees.length === 1 ? '' : 's'}`}
         note={
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={Download}
-            disabled={rows.length === 0}
+          <button
+            type="button"
             onClick={handleExportCsv}
+            disabled={rows.length === 0}
+            className="inline-flex items-center gap-1 font-medium text-accent hover:underline disabled:cursor-default disabled:text-ink-3 disabled:no-underline"
           >
+            <Download className="w-3.5 h-3.5" />
             Export CSV
-          </Button>
+          </button>
         }
       />
 
