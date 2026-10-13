@@ -22,6 +22,18 @@ export function parseDateOnly(value) {
   return new Date(year, month - 1, day);
 }
 
+// Parse an absolute instant from an API datetime. The backend stores UTC
+// (models._utcnow / func.now()) and SQLite strips tzinfo, so an offset-less ISO
+// string is UTC — never browser-local. Date-only strings stay calendar dates.
+export function parseInstant(value) {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  const text = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return parseDateOnly(text);
+  const hasOffset = /([zZ]|[+-]\d{2}:?\d{2})$/.test(text);
+  return new Date(hasOffset ? text : `${text}Z`);
+}
+
 export function manilaToday() {
   return parseDateOnly(manilaTodayISO());
 }
@@ -90,7 +102,7 @@ export function manilaDateKey(value) {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).format(new Date(value));
+  }).format(parseInstant(value));
 }
 
 // Friendly Asia/Manila day label for a grouped log, e.g. "Oct 2, 2026".
@@ -101,7 +113,7 @@ export function formatManilaDay(value) {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  }).format(new Date(value));
+  }).format(parseInstant(value));
 }
 
 // Asia/Manila time only, e.g. "02:22 PM". Display only.
@@ -112,14 +124,14 @@ export function formatManilaTime(value) {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true,
-  }).format(new Date(value));
+  }).format(parseInstant(value));
 }
 
 // Compact month + day, no year — for dense tables (e.g. "Oct 13").
 export function formatDayMonth(value) {
   if (!value) return '';
   try {
-    const date = value instanceof Date ? value : parseDateOnly(value) || new Date(value);
+    const date = value instanceof Date ? value : parseDateOnly(value) || parseInstant(value);
     return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
   } catch {
     return '';
@@ -129,8 +141,21 @@ export function formatDayMonth(value) {
 export function formatDate(value, { withTime = false, seconds = true } = {}) {
   if (!value) return 'N/A';
   try {
-    const date = withTime ? new Date(value) : parseDateOnly(value) || new Date(value);
     const options = { month: 'short', day: 'numeric', year: 'numeric' };
+    // Calendar date (a Date used as a day, or a YYYY-MM-DD string): no tz shift.
+    const isCalendarDate =
+      typeof value === 'string'
+        ? /^\d{4}-\d{2}-\d{2}$/.test(value.trim())
+        : value instanceof Date && !withTime;
+    if (isCalendarDate) {
+      const date = value instanceof Date ? value : parseDateOnly(value);
+      return date.toLocaleDateString('en-US', options);
+    }
+    // Instant (API datetime string, or an explicit Date with a time): render in
+    // Asia/Manila. Offset-less strings are UTC — the backend stores UTC and
+    // SQLite drops tzinfo, so parsing them as browser-local drifted by the offset.
+    const date = parseInstant(value);
+    if (!date) return String(value);
     if (withTime) {
       return date.toLocaleString('en-PH', {
         timeZone: 'Asia/Manila',
@@ -141,7 +166,7 @@ export function formatDate(value, { withTime = false, seconds = true } = {}) {
         hour12: true,
       });
     }
-    return date.toLocaleDateString('en-US', options);
+    return date.toLocaleDateString('en-US', { timeZone: 'Asia/Manila', ...options });
   } catch {
     return String(value);
   }

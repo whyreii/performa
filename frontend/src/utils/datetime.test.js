@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   manilaTodayISO,
   parseDateOnly,
+  parseInstant,
   daysElapsed,
   daysUntil,
   monthNumberFor,
@@ -74,5 +75,33 @@ describe('datetime (Asia/Manila)', () => {
     for (const [days, expected] of cases) {
       expect(monthNumberFor(days)).toBe(expected);
     }
+  });
+
+  it('parseInstant reads an offset-less API datetime as UTC, not browser-local', () => {
+    // Backend stores UTC; SQLite drops tzinfo → naive string must be UTC.
+    const instant = Date.UTC(2026, 9, 13, 4, 13, 23);
+    expect(parseInstant('2026-10-13T04:13:23').getTime()).toBe(instant);
+    // An explicit offset is honored as-is.
+    expect(parseInstant('2026-10-13T04:13:23+00:00').getTime()).toBe(instant);
+    // Date-only strings remain calendar dates.
+    expect(parseInstant('2026-05-05').getDate()).toBe(5);
+    expect(parseInstant('')).toBeNull();
+  });
+
+  it('formatDate renders API instants in Asia/Manila (the 8h drift regression)', () => {
+    // 04:13 UTC is 12:13 in Manila — the exact case that showed 8h early.
+    expect(formatDate('2026-10-13T04:13:23', { withTime: true })).toBe(
+      'Oct 13, 2026, 12:13:23 PM'
+    );
+    // Offset-aware (Postgres) yields the same instant.
+    expect(formatDate('2026-10-13T04:13:23+00:00', { withTime: true })).toBe(
+      'Oct 13, 2026, 12:13:23 PM'
+    );
+    // Date-only strings and calendar Date objects are not shifted.
+    expect(formatDate('2026-05-05')).toBe('May 5, 2026');
+    // A UTC instant that rolls into the next Manila day.
+    expect(formatDate('2026-10-13T20:00:00', { withTime: true })).toBe(
+      'Oct 14, 2026, 04:00:00 AM'
+    );
   });
 });

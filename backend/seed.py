@@ -16,7 +16,7 @@ import asyncio
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -257,6 +257,8 @@ async def _seed_evaluations(
                 for index, key in enumerate(_COMPETENCY_KEYS)
             }
             overall = round(sum(scores.values()) / len(scores), 2)
+            # Stored as UTC (like every other timestamp) so SQLite's tzinfo loss
+            # preserves the instant: 09:00 Manila → 01:00 UTC → renders as 09:00.
             recorded_at = datetime(
                 evaluation_date.year,
                 evaluation_date.month,
@@ -264,7 +266,7 @@ async def _seed_evaluations(
                 9,
                 0,
                 tzinfo=MANILA_TZ,
-            )
+            ).astimezone(timezone.utc)
             session.add(
                 WeeklyEvaluation(
                     employee_id=employee.id,
