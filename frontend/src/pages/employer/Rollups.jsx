@@ -234,37 +234,58 @@ export default function Rollups() {
                     ) : null}
                   </div>
 
-                  {/* AI Rationale by Gemini */}
-                  {plan.rationale && (
-                    <div className="border-t border-line pt-2.5 text-14 text-ink-2 space-y-1">
-                      <span className="font-semibold text-ink-3 text-12">
-                        Gemini Performance Rationale
-                      </span>
-                      <p className="leading-relaxed">{plan.rationale}</p>
+                  {/* AI Rationale by Gemini, with the decision controls beside it */}
+                  {plan.rationale ? (
+                    <div className="border-t border-line pt-2.5 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+                      <div className="min-w-0 flex-1 text-14 text-ink-2 space-y-1">
+                        <span className="font-semibold text-ink-3 text-12">
+                          Gemini Performance Rationale
+                        </span>
+                        <p className="leading-relaxed">{plan.rationale}</p>
+                      </div>
+                      <div className="flex shrink-0 items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={XCircle}
+                          disabled={signOffMutation.isPending}
+                          onClick={() => setConfirmPlan({ plan, approved: false })}
+                        >
+                          Reject
+                        </Button>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          leftIcon={CheckCircle2}
+                          disabled={signOffMutation.isPending}
+                          onClick={() => setConfirmPlan({ plan, approved: true })}
+                        >
+                          Approve
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={XCircle}
+                        disabled={signOffMutation.isPending}
+                        onClick={() => setConfirmPlan({ plan, approved: false })}
+                      >
+                        Reject
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        leftIcon={CheckCircle2}
+                        disabled={signOffMutation.isPending}
+                        onClick={() => setConfirmPlan({ plan, approved: true })}
+                      >
+                        Approve
+                      </Button>
                     </div>
                   )}
-
-                  {/* Actions — after the rationale, so the decision is informed */}
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      leftIcon={XCircle}
-                      disabled={signOffMutation.isPending}
-                      onClick={() => setConfirmPlan({ plan, approved: false })}
-                    >
-                      Reject
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      leftIcon={CheckCircle2}
-                      disabled={signOffMutation.isPending}
-                      onClick={() => setConfirmPlan({ plan, approved: true })}
-                    >
-                      Approve
-                    </Button>
-                  </div>
                 </div>
               );
             })}
