@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
 import { daysElapsed as getDaysElapsed, monthNumberFor } from '../../utils/datetime';
-import { PROBATION_MONTHS, PROBATION_MONTH_DAYS, COMPETENCIES } from '../../config/domain';
+import { PROBATION_MONTHS, PROBATION_MONTH_DAYS, COMPETENCIES, TARGET } from '../../config/domain';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, Skeleton, Modal, EmptyState, Page, Label, GlideSelect, ConfirmDialog, SectionHead, Th } from '../../components/ui';
@@ -10,6 +10,16 @@ import { FileCheck2, Sparkles, CheckCircle2, XCircle, AlertCircle, X, ArrowRight
 
 const LABEL_BY_KEY = Object.fromEntries(COMPETENCIES.map((c) => [c.key, c.label]));
 const competencyLabel = (key) => LABEL_BY_KEY[key] || key?.replace(/_/g, ' ') || '';
+
+// Which MonthlySummary average column backs each competency (for the plan card's
+// structured evidence line). The summary the page already loads carries these.
+const SUMMARY_AVG_FIELD = {
+  task_completion: 'avg_task_completion',
+  quality_of_work: 'avg_quality',
+  attendance_and_punctuality: 'avg_attendance',
+  communication_and_teamwork: 'avg_communication',
+  initiative_and_adaptability: 'avg_initiative',
+};
 
 export default function Rollups() {
   const queryClient = useQueryClient();
@@ -190,15 +200,28 @@ export default function Rollups() {
           </EmptyState>
         ) : (
           <div>
-            {pendingPlans.map((plan) => (
-              <div key={plan.id} className="border-t border-line py-4 first:border-t-0 space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            {pendingPlans.map((plan) => {
+              const summary = plan.monthly_summary_id
+                ? summaries.find((s) => s.id === plan.monthly_summary_id)
+                : null;
+              const avgField = SUMMARY_AVG_FIELD[plan.competency];
+              const rawScore = summary && avgField ? Number(summary[avgField]) : NaN;
+              const gap = rawScore - TARGET;
+              const evidence = Number.isFinite(rawScore)
+                ? `${competencyLabel(plan.competency)} ${rawScore.toFixed(1)} · gap ${
+                    gap >= 0 ? '+' : '−'
+                  }${Math.abs(gap).toFixed(1)} vs ${TARGET.toFixed(1)}`
+                : null;
+              return (
+                <div key={plan.id} className="border-t border-line py-4 first:border-t-0 space-y-2.5">
                   <div className="space-y-1 min-w-0">
                     <div className="flex flex-wrap items-baseline gap-2">
                       <span className="font-semibold text-14 text-ink">
                         {plan.intervention_title}
                       </span>
                       <span className="text-12 text-ink-3">
+                        {plan.employee_name || 'Unknown employee'}
+                        {' · '}
                         {competencyLabel(plan.competency)}
                         {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
                       </span>
@@ -206,10 +229,23 @@ export default function Rollups() {
                     <div className="text-12 text-ink-3 font-num">
                       Timeline: {plan.default_timeline || '—'}
                     </div>
+                    {evidence ? (
+                      <div className="text-12 text-ink-3 font-num">{evidence}</div>
+                    ) : null}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 shrink-0">
+                  {/* AI Rationale by Gemini */}
+                  {plan.rationale && (
+                    <div className="border-t border-line pt-2.5 text-14 text-ink-2 space-y-1">
+                      <span className="font-semibold text-ink-3 text-12">
+                        Gemini Performance Rationale
+                      </span>
+                      <p className="leading-relaxed">{plan.rationale}</p>
+                    </div>
+                  )}
+
+                  {/* Actions — after the rationale, so the decision is informed */}
+                  <div className="flex items-center justify-end gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -230,18 +266,8 @@ export default function Rollups() {
                     </Button>
                   </div>
                 </div>
-
-                {/* AI Rationale by Gemini */}
-                {plan.rationale && (
-                  <div className="border-t border-line pt-2.5 text-14 text-ink-2 space-y-1">
-                    <span className="font-semibold text-ink-3 text-12">
-                      Gemini Performance Rationale
-                    </span>
-                    <p className="leading-relaxed">{plan.rationale}</p>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
@@ -469,7 +495,7 @@ export default function Rollups() {
               {confirmPlan.plan.competency
                 ? ` for ${competencyLabel(confirmPlan.plan.competency)}`
                 : ''}
-              .
+              {` — ${confirmPlan.plan.employee_name || 'Unknown employee'}`}.
             </p>
             <p className="text-12 text-ink-3">
               This sign-off is recorded in the intervention audit trail.

@@ -88,6 +88,7 @@ describe('Score key tiles the whole 1.0–5.0 scale', () => {
     );
 
     await screen.findByRole('heading', { name: 'Competency standing' });
+    await waitFor(() => expect(scoreKeyBands()).toBeTruthy());
     expectTiles(scoreKeyBands());
   });
 
@@ -105,6 +106,7 @@ describe('Score key tiles the whole 1.0–5.0 scale', () => {
     });
 
     await screen.findByRole('heading', { name: 'My Performance Scorecard' });
+    await waitFor(() => expect(scoreKeyBands()).toBeTruthy());
     expectTiles(scoreKeyBands());
   });
 });
@@ -118,14 +120,27 @@ describe('Pending approvals show the employee and put the rationale first', () =
     interventionApi.listPending.mockResolvedValue([plan()]);
     interventionApi.listSummaries.mockResolvedValue([]);
 
-    renderWithProviders(<Rollups />, { route: '/rollups', user: testUser('employer') });
+    renderWithProviders(
+      <Routes>
+        <Route path="/rollups" element={<Rollups />} />
+      </Routes>,
+      { route: '/rollups', user: testUser('employer') }
+    );
 
     const section = await screen.findByRole('region', { name: 'Pending approvals' });
-    // The employee the plan targets must be visible on the card.
-    expect(within(section).getByText('Maria Midterm')).toBeInTheDocument();
+    const titleEl = await within(section).findByText('SOP Workflow & Throughput Optimization');
+    const approve = await within(section).findByRole('button', { name: 'Approve' });
+
+    // The employee the plan targets must be visible on the same card as the
+    // title and the decision controls (walk up to the nearest shared ancestor).
+    let card = titleEl;
+    while (card && !card.contains(approve)) card = card.parentElement;
+    expect(card?.textContent, 'the card must name the employee the plan targets').toContain(
+      'Maria Midterm'
+    );
+
     // The rationale reads before the decision buttons in DOM order.
-    const rationale = within(section).getByText('Targets the throughput gap.');
-    const approve = within(section).getByRole('button', { name: 'Approve' });
+    const rationale = await within(section).findByText('Targets the throughput gap.');
     expect(
       rationale.compareDocumentPosition(approve) & Node.DOCUMENT_POSITION_FOLLOWING,
       'the rationale must come before the Approve/Reject controls'
