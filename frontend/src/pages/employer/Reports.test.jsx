@@ -25,8 +25,8 @@ describe('Reports', () => {
     expect(await screen.findByRole('heading', { name: 'Reports' })).toBeInTheDocument();
     expect(await screen.findByText('Maria Midterm')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('Employee'), { target: { value: 'e-1' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Generate Report' }));
+    // One path to generate: the row's action (no separate selector form).
+    fireEvent.click(screen.getByRole('button', { name: 'Open report' }));
 
     await waitFor(() => expect(evaluationApi.getReportHtml).toHaveBeenCalledWith('e-1'));
   });
