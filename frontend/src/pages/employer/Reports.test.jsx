@@ -46,4 +46,21 @@ describe('Reports', () => {
     expect(reportApi.generate.mock.calls[0][0]).toBe('e-1');
     await waitFor(() => expect(reportApi.downloadPdf).toHaveBeenCalledWith('r-2'));
   });
+
+  it('removes a recorded report only after confirmation', async () => {
+    reportApi.list.mockResolvedValue([RECORDED]);
+    employeeApi.list.mockResolvedValue([employee()]);
+    reportApi.remove.mockResolvedValue({});
+
+    renderWithProviders(<Reports />, { route: '/reports', user: testUser('employer') });
+    expect(await screen.findByText('Maria Midterm')).toBeInTheDocument();
+
+    // Opening the confirm dialog must not call the API yet.
+    fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    expect(await screen.findByText('Remove this report?')).toBeInTheDocument();
+    expect(reportApi.remove).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove report' }));
+    await waitFor(() => expect(reportApi.remove).toHaveBeenCalledWith('r-1'));
+  });
 });

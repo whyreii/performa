@@ -293,6 +293,10 @@ export const reportApi = {
     });
     return response.data;
   },
+  remove: async (reportId) => {
+    const response = await apiClient.delete(`/api/reports/${reportId}`);
+    return response.data;
+  },
 };
 
 // Interventions & Rollups API methods

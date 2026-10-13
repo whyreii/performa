@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from ..audit import record_activity
 from ..auth import require_role
 from ..database import get_db
 from ..models import ProbationaryEmployee, Report, User, UserRole
@@ -139,6 +140,44 @@ async def download_report_pdf(
             "Content-Disposition": f'attachment; filename="performa-report-{report.id}.pdf"'
         },
     )
+
+
+@router.delete(
+    "/{report_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remove a recorded report (Employer)",
+)
+async def delete_report(
+    report_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
+) -> Response:
+    """Remove a report row from the tenant's library (the deletion is logged)."""
+    report = (
+        await db.execute(
+            select(Report).where(
+                Report.id == report_id,
+                Report.organization_id == current_user.organization_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Report not found"
+        )
+
+    await db.delete(report)
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="report.delete",
+        entity_type="report",
+        entity_id=report_id,
+        detail=report.title,
+    )
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 __all__ = ["router"]

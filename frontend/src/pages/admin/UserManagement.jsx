@@ -428,12 +428,7 @@ export default function UserManagement() {
                               variant={u.is_active ? 'ghost' : 'secondary'}
                               size="sm"
                               leftIcon={u.is_active ? UserX : UserCheck}
-                              onClick={() =>
-                                statusMutation.mutate({
-                                  userId: u.id,
-                                  isActive: !u.is_active,
-                                })
-                              }
+                              onClick={() => setConfirmAction({ kind: 'status', user: u })}
                               isLoading={statusMutation.isPending}
                               className={`h-7 px-2 text-12 ${
                                 u.is_active ? 'text-bad hover:bg-bad/10' : 'text-good hover:bg-good/10'

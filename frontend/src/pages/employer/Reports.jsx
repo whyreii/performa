@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, reportApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
 import { formatDate } from '../../utils/datetime';
-import { Button, Skeleton, EmptyState, Page, SectionHead, Modal, Label, GlideSelect } from '../../components/ui';
+import { Button, Skeleton, EmptyState, Page, SectionHead, Modal, Label, GlideSelect, ConfirmDialog } from '../../components/ui';
 import { Download, FileText, Users } from '../../components/icons';
 
 // Article 296 report catalogue. The performance report is the only evidentiary
@@ -24,6 +24,7 @@ export default function Reports() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [employeeId, setEmployeeId] = useState('');
   const [downloadingId, setDownloadingId] = useState(null);
+  const [removeTarget, setRemoveTarget] = useState(null);
 
   const {
     data: reports = [],
@@ -73,6 +74,16 @@ export default function Reports() {
     setIsModalOpen(true);
   };
 
+  const removeMutation = useMutation({
+    mutationFn: (reportId) => reportApi.remove(reportId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      setRemoveTarget(null);
+      toast.success('Report removed from the library.');
+    },
+    onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to remove the report.')),
+  });
+
   return (
     <Page
       title="Reports"
@@ -116,7 +127,7 @@ export default function Reports() {
                   <th scope="col" className="py-2.5 pr-4 font-normal">Employee</th>
                   <th scope="col" className="py-2.5 pr-4 font-normal">Generated</th>
                   <th scope="col" className="py-2.5 pr-4 font-normal text-right">Size</th>
-                  <th scope="col" className="py-2.5 font-normal text-right">Report</th>
+                  <th scope="col" className="py-2.5 font-normal text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -131,16 +142,26 @@ export default function Reports() {
                     <td className="py-3 pr-4 text-14 text-ink-3 font-num text-right whitespace-nowrap">
                       {formatSize(r.size_bytes)}
                     </td>
-                    <td className="py-3 text-right">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        leftIcon={Download}
-                        isLoading={downloadingId === r.id}
-                        onClick={() => downloadPdf(r.id)}
-                      >
-                        PDF
-                      </Button>
+                    <td className="py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          leftIcon={Download}
+                          isLoading={downloadingId === r.id}
+                          onClick={() => downloadPdf(r.id)}
+                        >
+                          PDF
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-bad hover:bg-bad/10"
+                          onClick={() => setRemoveTarget(r)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -149,6 +170,22 @@ export default function Reports() {
           </div>
         )}
       </section>
+
+      <ConfirmDialog
+        isOpen={!!removeTarget}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => removeMutation.mutate(removeTarget.id)}
+        title="Remove this report?"
+        confirmLabel="Remove report"
+        variant="danger"
+        isLoading={removeMutation.isPending}
+      >
+        <p>
+          Removing the recorded report for{' '}
+          <b className="text-ink">{removeTarget?.employee_name || 'this employee'}</b> takes it out
+          of the library. The report can be generated again, and the removal is logged.
+        </p>
+      </ConfirmDialog>
 
       <Modal
         isOpen={isModalOpen}

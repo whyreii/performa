@@ -286,6 +286,7 @@ Auth column is read from the FastAPI dependency graph.
 | PATCH | `/api/organization` | roles: admin, employer | update_organization |
 | GET | `/api/reports` | roles: employer | list_reports |
 | POST | `/api/reports` | roles: employer | generate_report |
+| DELETE | `/api/reports/{report_id}` | roles: employer | delete_report |
 | GET | `/api/reports/{report_id}/pdf` | roles: employer | download_report_pdf |
 | GET | `/health` | not detected | health |
 

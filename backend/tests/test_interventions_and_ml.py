@@ -327,6 +327,40 @@ async def test_report_pdf_download(client):
 
 
 @pytest.mark.asyncio
+async def test_reports_library_generate_list_and_delete(client):
+    """The report library records a generated report and removes it on delete."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    carlos_id = await find_employee_id(client, employer, "Carlos Early")
+    await client.post(
+        f"/api/evaluations/{carlos_id}/weekly",
+        headers=employer,
+        json={competency: 4.0 for competency in COMPETENCIES},
+    )
+
+    created = await client.post(
+        "/api/reports",
+        headers=employer,
+        json={"employee_id": carlos_id, "report_type": "performance"},
+    )
+    assert created.status_code == 201, created.text
+    report_id = created.json()["id"]
+    assert created.json()["employee_name"] == "Carlos Early"
+
+    listed = await client.get("/api/reports", headers=employer)
+    assert listed.status_code == 200, listed.text
+    assert any(r["id"] == report_id for r in listed.json())
+
+    deleted = await client.delete(f"/api/reports/{report_id}", headers=employer)
+    assert deleted.status_code == 204, deleted.text
+
+    after = await client.get("/api/reports", headers=employer)
+    assert all(r["id"] != report_id for r in after.json())
+
+    missing = await client.delete(f"/api/reports/{report_id}", headers=employer)
+    assert missing.status_code == 404, missing.text
+
+
+@pytest.mark.asyncio
 async def test_employee_can_complete_approved_training(client):
     """An employee marks an approved intervention completed; not-approved and wrong-role are rejected."""
     employer = await login_user(client, EMPLOYER_EMAIL)

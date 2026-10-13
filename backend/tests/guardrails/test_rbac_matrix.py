@@ -97,6 +97,7 @@ MATRIX = {
     ("GET", "/api/reports"): {"employer"},
     ("POST", "/api/reports"): {"employer"},
     ("GET", "/api/reports/{report_id}/pdf"): {"employer"},
+    ("DELETE", "/api/reports/{report_id}"): {"employer"},
 }
 
 
