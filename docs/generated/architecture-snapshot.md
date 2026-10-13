@@ -132,6 +132,19 @@ Unique constraints: (user_id)
 | recommendation | VARCHAR(50) | no | no | no |  |  |
 | status_classification | VARCHAR(18) | no | no | no |  |  |
 
+### `reports`
+
+| Column | Type | Nullable | PK | Unique | Default | Foreign key |
+|---|---|---|---|---|---|---|
+| created_at | DATETIME | no | no | no | now() |  |
+| employee_id | CHAR(32) | no | no | no |  | probationary_employees.id |
+| generated_by_id | CHAR(32) | yes | no | no |  | users.id |
+| id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
+| organization_id | VARCHAR(100) | no | no | no |  |  |
+| report_type | VARCHAR(50) | no | no | no | performance |  |
+| size_bytes | INTEGER | no | no | no | 0 |  |
+| title | VARCHAR(255) | no | no | no |  |  |
+
 ### `training_plans`
 
 | Column | Type | Nullable | PK | Unique | Default | Foreign key |
@@ -239,6 +252,9 @@ Auth column is read from the FastAPI dependency graph.
 | POST | `/api/notifications/read-all` | authenticated (any role) | mark_all_read |
 | POST | `/api/notifications/{notification_id}/read` | authenticated (any role) | mark_notification_read |
 | PATCH | `/api/organization` | roles: admin, employer | update_organization |
+| GET | `/api/reports` | roles: employer | list_reports |
+| POST | `/api/reports` | roles: employer | generate_report |
+| GET | `/api/reports/{report_id}/pdf` | roles: employer | download_report_pdf |
 | GET | `/health` | not detected | health |
 
 ## Environment variables

@@ -509,6 +509,39 @@ class Notification(Base):
 event.listen(EvaluationAuditLog.__table__, "after_create", create_audit_triggers)
 
 
+class Report(Base):
+    """A persisted record of a generated performance report (metadata only).
+
+    The manuscript's "generated reports list" (title / date / size). The report
+    body itself is regenerated on demand from current data, so only the metadata
+    is stored here.
+    """
+
+    __tablename__ = "reports"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    employee_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("probationary_employees.id"), nullable=False, index=True
+    )
+    generated_by_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        Uuid, ForeignKey("users.id"), nullable=True
+    )
+    report_type: Mapped[str] = mapped_column(String(50), default="performance", nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=_utcnow,
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+    )
+
+    employee: Mapped["ProbationaryEmployee"] = relationship("ProbationaryEmployee")
+    generated_by: Mapped[Optional["User"]] = relationship("User")
+
+
 __all__ = [
     "UserRole",
     "ProbationStatus",
@@ -526,4 +559,5 @@ __all__ = [
     "RegularizationRecommendation",
     "ActivityLog",
     "Notification",
+    "Report",
 ]

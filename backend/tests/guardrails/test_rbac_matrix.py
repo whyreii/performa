@@ -86,6 +86,9 @@ MATRIX = {
     ("GET", "/api/notifications"): ALL,
     ("POST", "/api/notifications/{notification_id}/read"): ALL,
     ("POST", "/api/notifications/read-all"): ALL,
+    ("GET", "/api/reports"): {"employer"},
+    ("POST", "/api/reports"): {"employer"},
+    ("GET", "/api/reports/{report_id}/pdf"): {"employer"},
 }
 
 
@@ -110,6 +113,7 @@ def _url(path: str, real_emp_id: str) -> str:
         "{employee_id}": employee_id,
         "{summary_id}": FAKE_ID,
         "{plan_id}": FAKE_ID,
+        "{report_id}": FAKE_ID,
         "{notification_id}": FAKE_ID,
         "{competency}": "task_completion",
     }.items():

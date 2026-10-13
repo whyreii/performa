@@ -47,6 +47,7 @@ export function createApiMock() {
       acknowledgeSummary: vi.fn(),
     },
     notificationApi: { list: vi.fn(), markRead: vi.fn(), markAllRead: vi.fn() },
+    reportApi: { list: vi.fn(), generate: vi.fn(), downloadPdf: vi.fn() },
     adminApi: {
       listUsers: vi.fn(),
       listOrganizations: vi.fn(),

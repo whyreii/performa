@@ -231,6 +231,27 @@ export const evaluationApi = {
   },
 };
 
+// Reports API methods (persisted generated-report records)
+export const reportApi = {
+  list: async () => {
+    const response = await apiClient.get('/api/reports');
+    return response.data;
+  },
+  generate: async (employeeId, reportType = 'performance') => {
+    const response = await apiClient.post('/api/reports', {
+      employee_id: employeeId,
+      report_type: reportType,
+    });
+    return response.data;
+  },
+  downloadPdf: async (reportId) => {
+    const response = await apiClient.get(`/api/reports/${reportId}/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+};
+
 // Interventions & Rollups API methods
 export const interventionApi = {
   listPending: async () => {

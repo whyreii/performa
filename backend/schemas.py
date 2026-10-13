@@ -486,6 +486,26 @@ class AuditChainVerificationResponse(BaseModel):
     first_broken_id: Optional[uuid.UUID] = None
 
 
+class ReportResponse(BaseModel):
+    """A persisted generated-report record (metadata only)."""
+
+    id: uuid.UUID
+    employee_id: uuid.UUID
+    employee_name: Optional[str] = None
+    report_type: str
+    title: str
+    size_bytes: int
+    generated_by_name: Optional[str] = None
+    created_at: datetime
+
+
+class ReportGenerateRequest(BaseModel):
+    """Request to generate and record a performance report."""
+
+    employee_id: uuid.UUID
+    report_type: str = "performance"
+
+
 class ActivityLogResponse(BaseModel):
     """A general system activity-log entry."""
 

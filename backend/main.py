@@ -28,6 +28,7 @@ from .routers.interventions import router as interventions_router
 from .routers.kpi import router as kpi_router
 from .routers.notifications import router as notifications_router
 from .routers.organization import router as organization_router
+from .routers.reports import router as reports_router
 
 _settings = get_settings()
 
@@ -146,6 +147,7 @@ app.include_router(interventions_router)
 app.include_router(kpi_router)
 app.include_router(notifications_router)
 app.include_router(organization_router)
+app.include_router(reports_router)
 
 
 @app.get("/", tags=["System"], summary="API Root Information")
