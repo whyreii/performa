@@ -184,6 +184,7 @@ export default function AuditTrail() {
         <GlideSelect
           className="glide-select--control"
           ariaLabel="Filter by competency"
+          align="right"
           value={competencyFilter}
           onChange={(value) => setCompetencyFilter(value)}
           options={[

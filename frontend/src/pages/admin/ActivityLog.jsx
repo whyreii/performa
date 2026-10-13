@@ -117,6 +117,7 @@ export default function ActivityLog() {
           <GlideSelect
             className="glide-select--control"
             ariaLabel="Filter by action"
+            align="right"
             value={actionFilter}
             onChange={(value) => setActionFilter(value)}
             options={[
