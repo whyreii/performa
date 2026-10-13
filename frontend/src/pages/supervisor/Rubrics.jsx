@@ -108,6 +108,17 @@ export default function Rubrics() {
 
   const weightTotal = form.reduce((sum, row) => sum + (Number(row.weightPct) || 0), 0);
 
+  // "Save changes" is a no-op until something actually differs from the saved rubrics.
+  const isDirty = useMemo(() => {
+    if (!form.length) return false;
+    return form.some((row) => {
+      const saved = rubricMap[row.competency];
+      const savedTarget = Number(saved?.target_score ?? TARGET);
+      const savedWeightPct = Math.round(Number(saved?.weight ?? DEFAULT_WEIGHT) * 100);
+      return Number(row.target) !== savedTarget || Number(row.weightPct) !== savedWeightPct;
+    });
+  }, [form, rubricMap]);
+
   const saveMutation = useMutation({
     mutationFn: () =>
       Promise.all(
@@ -210,7 +221,7 @@ export default function Rubrics() {
                     step={0.1}
                     value={row.target}
                     onChange={(e) => updateRow(row.competency, { target: e.target.value })}
-                    className={`${inputClass} w-24`}
+                    className={`${inputClass} w-24 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
                   />
                 </label>
                 <label
@@ -227,12 +238,18 @@ export default function Rubrics() {
                     step={5}
                     value={row.weightPct}
                     onChange={(e) => updateRow(row.competency, { weightPct: e.target.value })}
-                    className={`${inputClass} w-24`}
+                    className={`${inputClass} w-24 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
                   />
                 </label>
               </div>
             ))}
           </div>
+
+          {weightTotal !== 100 && (
+            <p className="text-12 text-warn pt-2">
+              Weights total {weightTotal}% — the five weights should sum to 100%.
+            </p>
+          )}
 
           <div className="flex flex-col lg:flex-row lg:items-end gap-3 pt-3 mt-2 border-t border-line">
             <div className="w-full lg:w-64">
@@ -260,7 +277,8 @@ export default function Rubrics() {
             >
               Apply template
             </Button>
-            <div className="flex gap-2 lg:ml-auto">
+            <div className="flex items-center gap-2 lg:ml-auto">
+              {isDirty && <span className="text-12 text-ink-3">Unsaved changes</span>}
               <Button
                 variant="secondary"
                 isLoading={resetMutation.isPending}
@@ -270,6 +288,7 @@ export default function Rubrics() {
               </Button>
               <Button
                 variant="primary"
+                disabled={!isDirty}
                 isLoading={saveMutation.isPending}
                 onClick={() => saveMutation.mutate()}
               >
