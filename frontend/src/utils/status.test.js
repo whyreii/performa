@@ -3,6 +3,7 @@ import {
   milestoneTone,
   milestoneStage,
   milestoneFor,
+  stageShort,
   formatProbationDay,
   nextMilestone,
   scoreTone,
@@ -75,6 +76,13 @@ describe('status tones', () => {
       label: 'Day 150 · Performance appraisal',
     });
     expect(milestoneFor(30, 'active')).toEqual({ tone: 'ok', label: 'In evaluation' });
+  });
+
+  it('exposes a short stage for dense cells', () => {
+    expect(stageShort(30, 'active')).toBe('In evaluation');
+    expect(stageShort(150, 'active')).toBe('Day 150 appraisal');
+    expect(stageShort(181, 'active')).toBe('Past Day 180');
+    expect(stageShort(100, 'regularized')).toBe('Regularized');
   });
 
   it('finds the next statutory milestone day for a day count', () => {

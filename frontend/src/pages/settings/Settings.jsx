@@ -23,12 +23,12 @@ import {
   Monitor,
 } from '../../components/icons';
 
-// Statutory milestone day labels + competency/industry display helpers.
+// Review-milestone day labels + competency/industry display helpers.
 const THRESHOLD_LABELS = {
-  day_150: 'Day 150 · Performance review',
-  day_165: 'Day 165 · Written-notice window',
-  day_178: 'Day 178 · Critical action window',
-  day_180: 'Day 180 · Legal ceiling',
+  day_150: 'Day 150 · Performance appraisal',
+  day_165: 'Day 165 · Milestone review',
+  day_178: 'Day 178 · Final milestone',
+  day_180: 'Day 180 · Probation cap',
 };
 const COMPETENCY_LABELS = new Map(COMPETENCIES.map((c) => [c.key, c.label]));
 const prettyKey = (key) =>
@@ -43,25 +43,25 @@ const MODES = [
   { id: 'system', label: 'System', icon: Monitor },
 ];
 
-// Article 296 statutory alert protocols — mandatory, always enforced.
+// Article 296 review-milestone protocols — fixed, always enforced.
 const STATUTORY_ALERTS = [
   {
-    title: 'Day 150 Review Due Notice',
+    title: 'Day 150 · Performance appraisal',
     badge: 'Milestone',
     tone: 'warn',
-    body: 'Triggers when an employee reaches 150 days of probation. Alerts HR and supervisors to schedule the formal 5th-month performance appraisal.',
+    body: 'Triggers when an employee reaches Day 150 of probation, so the employer can schedule the performance appraisal before the Day 180 cap.',
   },
   {
-    title: 'Day 165 Written Notice Period Threshold',
-    badge: 'Legal Due Process',
+    title: 'Day 165 · Milestone review',
+    badge: 'Milestone',
     tone: 'warn',
-    body: 'Guarantees the required 15-day notice buffer before Day 180. Alerts employers if any employee under target is in jeopardy of termination or regularization.',
+    body: 'Prompts a review of any employee still below the 4.0 standard, with 15 days left before the Day 180 cap.',
   },
   {
-    title: 'Day 178 Critical Action Window (48h to Auto-Regularization)',
-    badge: 'Critical Threshold',
+    title: 'Day 178 · Final milestone',
+    badge: 'Final milestone',
     tone: 'bad',
-    body: 'Final alert: under Philippine law, working on Day 181 confers automatic permanent regular status. Immediate action required.',
+    body: 'Final alert: under Article 296, an employee who continues to work past Day 180 is regularized (constructive regularization). Record the outcome.',
   },
 ];
 

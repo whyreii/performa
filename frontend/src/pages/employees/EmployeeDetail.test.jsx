@@ -80,7 +80,7 @@ describe('EmployeeDetail', () => {
   it('opens the status transition dialog', async () => {
     primeHappyPath();
     renderDetail();
-    fireEvent.click(await screen.findByRole('button', { name: /Update Status/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Record outcome/i }));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 
@@ -143,7 +143,7 @@ describe('EmployeeDetail', () => {
     renderDetail();
 
     fireEvent.click(await screen.findByRole('button', { name: 'Verify integrity' }));
-    expect(await screen.findByText('Chain verified · 12')).toBeInTheDocument();
+    expect(await screen.findByText(/12 records verified/)).toBeInTheDocument();
     expect(evaluationApi.verifyAuditChain).toHaveBeenCalledWith('e-1');
   });
 

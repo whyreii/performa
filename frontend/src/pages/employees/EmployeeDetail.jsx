@@ -75,6 +75,8 @@ export default function EmployeeDetail() {
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [showModelDetail, setShowModelDetail] = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
+  const [verifiedAt, setVerifiedAt] = useState(null);
+  const [verifyError, setVerifyError] = useState('');
 
   // Fetch employee profile
   const {
@@ -154,9 +156,13 @@ export default function EmployeeDetail() {
   // Recompute the tamper-evident audit hash chain and surface the result.
   const verifyChainMutation = useMutation({
     mutationFn: () => evaluationApi.verifyAuditChain(id),
-    onSuccess: (data) => setVerifyResult(data),
+    onSuccess: (data) => {
+      setVerifyResult(data);
+      setVerifiedAt(new Date());
+      setVerifyError('');
+    },
     onError: (err) => {
-      toast.error(getApiErrorMessage(err, 'Failed to verify the audit chain.'));
+      setVerifyError(getApiErrorMessage(err, 'Failed to verify the audit chain.'));
     },
   });
 
@@ -355,6 +361,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
   const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
   const tone = milestoneTone(daysElapsed);
   const stage = milestoneStage(daysElapsed, employee.status);
+  const pastCap = daysElapsed > PROBATION_DAYS;
 
   const canManageStatus = user?.role === 'employer';
   const canRate = user?.role === 'supervisor' || user?.role === 'employer';
@@ -450,11 +457,11 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             <div className="flex flex-wrap items-center gap-2.5 basis-full">
               {canRate && employee.status === 'active' && (
                 <Button
-                  variant="primary"
+                  variant={pastCap ? 'secondary' : 'primary'}
                   leftIcon={Award}
                   onClick={() => navigate(`/supervisor/rate?employee=${employee.id}`)}
                 >
-                  Rate Employee
+                  Rate employee
                 </Button>
               )}
               {lens === 'supervisor' && (
@@ -464,7 +471,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               )}
               {canManageStatus && employee.status === 'active' && (
                 <Button
-                  variant="secondary"
+                  variant={pastCap ? 'primary' : 'secondary'}
                   onClick={() => {
                     setSelectedStatus('regularized');
                     setStatusReason('');
@@ -472,7 +479,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                     setIsDeactivateModalOpen(true);
                   }}
                 >
-                  Update Status
+                  Record outcome
                 </Button>
               )}
               {user?.role !== 'probationary_employee' && (
@@ -639,7 +646,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                             key={comp.key}
                             className="flex items-center gap-3 border-t border-line py-2.5 first:border-t-0"
                           >
-                            <span className="w-44 shrink-0 truncate text-14 text-ink">
+                            <span className="w-44 shrink-0 truncate text-14 text-ink" title={comp.label}>
                               {comp.label}
                             </span>
                             <span className="relative h-2 flex-1 rounded-full bg-hover">
@@ -1021,12 +1028,21 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                     {auditLogs.length} {auditLogs.length === 1 ? 'record' : 'records'}
                   </span>
                   {auditLogs.length > 0 &&
-                    (verifyResult ? (
-                      <Badge variant={verifyResult.valid ? 'ok' : 'bad'}>
-                        {verifyResult.valid
-                          ? `Chain verified · ${verifyResult.checked}`
-                          : 'Chain broken'}
-                      </Badge>
+                    (verifyError ? (
+                      <span className="font-semibold text-bad">{verifyError}</span>
+                    ) : verifyResult ? (
+                      verifyResult.valid ? (
+                        <span className="font-semibold text-ok">
+                          {verifyResult.checked} records verified
+                          {verifiedAt
+                            ? ` · ${formatDate(verifiedAt, { withTime: true, seconds: false })}`
+                            : ''}
+                        </span>
+                      ) : (
+                        <span className="font-semibold text-bad">
+                          Chain broken · verification failed
+                        </span>
+                      )
                     ) : (
                       <button
                         type="button"
@@ -1061,6 +1077,9 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 <div className="divide-y divide-line">
                   {(showAllHistory ? auditLogs : auditLogs.slice(0, 5)).map((log) => {
                     const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
+                    const delta = hasPrior
+                      ? Number(log.new_score) - Number(log.prior_score)
+                      : null;
                     return (
                       <div
                         key={log.id}
@@ -1074,9 +1093,18 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                           <div className="font-num text-ink-2 mt-1">
                             {hasPrior ? `${Number(log.prior_score).toFixed(1)} → ` : 'Initial → '}
                             <b className="text-ink">{Number(log.new_score).toFixed(1)}</b>
+                            {hasPrior ? (
+                              <span className="text-ink-3">
+                                {' '}
+                                ({delta >= 0 ? '+' : '−'}
+                                {Math.abs(delta).toFixed(1)})
+                              </span>
+                            ) : null}
                           </div>
                         </div>
-                        <span className="font-num text-ink-3 shrink-0">{formatDate(log.created_at)}</span>
+                        <span className="font-num text-ink-3 shrink-0">
+                          {formatDate(log.created_at, { withTime: true, seconds: false })}
+                        </span>
                       </div>
                     );
                   })}

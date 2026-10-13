@@ -22,6 +22,7 @@ import {
 } from '../../config/domain';
 import {
   milestoneFor,
+  milestoneStage,
   nextMilestone,
   scoreTone,
   TONE_TEXT,
@@ -33,27 +34,17 @@ import {
 // comes from the API/DB (scores via each employee's scorecard; no invented
 // numbers).
 const MILE_LABEL = {
-  [MILESTONE_REVIEW]: `Day ${MILESTONE_REVIEW} review`,
-  [MILESTONE_NOTICE]: `Day ${MILESTONE_NOTICE} notice`,
-  [MILESTONE_CRITICAL]: `Day ${MILESTONE_CRITICAL} critical`,
-  [PROBATION_DAYS]: `Day ${PROBATION_DAYS} cap`,
-};
-
-// Current window label for an employee who has reached the review milestone.
-const windowLabel = (days) => {
-  if (days > PROBATION_DAYS) {
-    return `Past the Day ${PROBATION_DAYS} cap · regular by operation of law`;
-  }
-  if (days >= MILESTONE_CRITICAL) return `Critical window · Day ${MILESTONE_CRITICAL} reached`;
-  if (days >= MILESTONE_NOTICE) return `Written-notice window · Day ${MILESTONE_NOTICE} reached`;
-  return `Performance review due · Day ${MILESTONE_REVIEW} reached`;
+  [MILESTONE_REVIEW]: `Day ${MILESTONE_REVIEW} · Performance appraisal`,
+  [MILESTONE_NOTICE]: `Day ${MILESTONE_NOTICE} · Milestone review`,
+  [MILESTONE_CRITICAL]: `Day ${MILESTONE_CRITICAL} · Final milestone`,
+  [PROBATION_DAYS]: `Day ${PROBATION_DAYS} · Probation cap`,
 };
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Dispatch any due statutory milestone alerts (idempotent) on dashboard load.
+  // Dispatch any due probation milestone alerts (idempotent) on dashboard load.
   useEffect(() => {
     employeeApi
       .scanMilestones()
@@ -155,6 +146,7 @@ export default function Dashboard() {
             nextDate: next ? milestoneDate(emp.start_date, next) : null,
             capDate: emp.day_180_date,
             tone: milestoneFor(days, emp.status).tone,
+            label: milestoneStage(days, emp.status).label,
             sc: scById[emp.id] || null,
           };
         })
@@ -165,9 +157,9 @@ export default function Dashboard() {
 
   const kpis = [
     {
-      label: 'Past cap · auto-regular',
+      label: 'Past cap',
       value: <CountUp value={stats.pastCap} />,
-      caption: `Past Day ${PROBATION_DAYS} · regular by operation of law`,
+      caption: `Past Day ${PROBATION_DAYS} · constructive regularization`,
       tone: 'bad',
     },
     {
@@ -305,7 +297,7 @@ export default function Dashboard() {
                 <p className="py-6 text-14 text-ink-3">No employees in a milestone window.</p>
               ) : (
                 <div>
-                  {alerts.map(({ emp, days, next, nextDate, capDate, tone, sc }) => {
+                  {alerts.map(({ emp, days, next, nextDate, capDate, tone, label, sc }) => {
                     const score = sc ? Number(sc.overall_score) : null;
                     const target = sc ? Number(sc.target_score) || targetScore : targetScore;
                     // Show the score only when it changes the story: below target
@@ -328,7 +320,7 @@ export default function Dashboard() {
                             </span>
                           </div>
                           <div className="mt-0.5 text-14 leading-relaxed text-ink-2">
-                            {windowLabel(days)}
+                            {label}
                           </div>
                           {showScore ? (
                             <div

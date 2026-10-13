@@ -61,7 +61,7 @@ describe('Dashboard', () => {
     interventionApi.listPending.mockResolvedValue([]);
     renderDashboard();
     // Day 160 → the next milestone is Day 165 (not the elapsed Day 160).
-    expect(await screen.findByText(/Next: Day 165 notice/)).toBeInTheDocument();
+    expect(await screen.findByText(/Next: Day 165 · Milestone review/)).toBeInTheDocument();
   });
 
   it('labels the past-cap tile as Past Day 180, matching the >180 rule', async () => {

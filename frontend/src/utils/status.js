@@ -55,6 +55,16 @@ export const STAGE_LABEL = {
   past: `Past Day ${PROBATION_DAYS} · constructive regularization`,
 };
 
+// Short stage names for dense cells (the roster's Status column). Same source,
+// sentence case; still manuscript-grounded (no "notice window"/"critical action").
+export const STAGE_SHORT = {
+  ok: 'In evaluation',
+  warn: `Day ${MILESTONE_REVIEW} appraisal`,
+  notice: `Day ${MILESTONE_NOTICE} milestone`,
+  bad: `Day ${MILESTONE_CRITICAL} milestone`,
+  past: `Past Day ${PROBATION_DAYS}`,
+};
+
 // Statutory milestone tone for a day count (Article 296 thresholds).
 export function milestoneTone(day) {
   if (day >= MILESTONE_CRITICAL) return 'bad';
@@ -79,6 +89,14 @@ export function milestoneStage(daysElapsed, status = 'active') {
 export function milestoneFor(daysElapsed, status) {
   const { tone, label } = milestoneStage(daysElapsed, status);
   return { tone, label };
+}
+
+// The short stage name for a day count + status (dense cells).
+export function stageShort(daysElapsed, status = 'active') {
+  const { key } = milestoneStage(daysElapsed, status);
+  if (key === 'regularized') return 'Regularized';
+  if (key === 'terminated') return 'Terminated';
+  return STAGE_SHORT[key] || STAGE_SHORT.ok;
 }
 
 // One shared probation-day formatter (AGENTS.md §1.2): "Day 150 of 180" up to the

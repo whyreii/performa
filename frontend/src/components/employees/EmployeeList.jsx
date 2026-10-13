@@ -2,19 +2,18 @@ import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
-import { Skeleton, EmptyState, Card, Badge } from '../../components/ui';
+import { Skeleton, EmptyState, Card } from '../../components/ui';
 import { Users, AlertCircle } from '../../components/icons';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
-import { milestoneFor, formatProbationDay, scoreTone, TONE_BG, TONE_TEXT } from '../../utils/status';
+import { milestoneFor, formatProbationDay, stageShort, scoreTone, TONE_BG, TONE_TEXT } from '../../utils/status';
 import { TARGET } from '../../config/domain';
 import { getInitials } from '../../utils/format';
 
-// Employees directory — the iMac concept's roster: a flat hairline table with
-// Employee (avatar · name · title), Department, Day X/180, Overall score and
-// Status. Each row opens the record. Scores come from each employee's scorecard
-// (no invented numbers); a missing scorecard shows "—".
-const STATUS_VARIANT = { active: 'accent', regularized: 'ok', terminated: 'neutral' };
-
+// Probationary roster — a flat hairline table with Employee (avatar · name ·
+// title), Department, probation day, latest-week overall score and stage. Each
+// row opens the record. Scores come from each employee's scorecard (no invented
+// numbers); a missing scorecard shows "No score yet". The stage text is the one
+// shared source (utils/status.js) — sentence case, no pill.
 export default function EmployeeList() {
   const navigate = useNavigate();
 
@@ -31,7 +30,7 @@ export default function EmployeeList() {
   const scoreQueries = useQueries({
     queries: employees.map((e) => ({
       queryKey: ['scorecard', e.id],
-      // 404 = "no evaluations yet" → null so it renders as "—".
+      // 404 = "no evaluations yet" → null so it renders as "No score yet".
       queryFn: async () => {
         try {
           return (await evaluationApi.getScorecard(e.id)) ?? null;
@@ -60,9 +59,9 @@ export default function EmployeeList() {
   return (
     <Card flat padded={false} className="space-y-1">
       <div className="flex items-baseline justify-between gap-3 pb-2 mb-3 border-b border-line">
-        <b className="text-12 font-medium text-ink-2">Employees</b>
+        <b className="text-12 font-medium text-ink-2">Probationary employees</b>
         <span className="text-12 text-ink-3">
-          {employees.length} probationary record{employees.length === 1 ? '' : 's'}
+          {employees.length} probationary employee{employees.length === 1 ? '' : 's'}
         </span>
       </div>
 
@@ -84,14 +83,16 @@ export default function EmployeeList() {
         </EmptyState>
       ) : (
         <table className="w-full border-collapse text-left">
-          <caption className="sr-only">Employees with statutory day count, overall score and status</caption>
+          <caption className="sr-only">
+            Probationary employees with their probation day, latest-week score and stage
+          </caption>
           <thead>
             <tr className="border-b border-line text-12 text-ink-3">
               <th scope="col" className="py-2.5 pr-4 font-normal">Employee</th>
               <th scope="col" className="py-2.5 pr-4 font-normal">Department</th>
               <th scope="col" className="py-2.5 pr-4 font-normal">Day</th>
-              <th scope="col" className="py-2.5 pr-4 text-right font-normal">Overall</th>
-              <th scope="col" className="py-2.5 text-right font-normal">Status</th>
+              <th scope="col" className="py-2.5 pr-4 text-right font-normal">Overall (latest week)</th>
+              <th scope="col" className="py-2.5 text-right font-normal">Stage</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -140,10 +141,10 @@ export default function EmployeeList() {
                       st ? TONE_TEXT[st] : 'text-ink-3'
                     }`}
                   >
-                    {overall != null ? overall.toFixed(2) : scoresLoading ? '…' : '—'}
+                    {overall != null ? overall.toFixed(2) : scoresLoading ? '…' : 'No score yet'}
                   </td>
-                  <td className="py-3 text-right">
-                    <Badge variant={STATUS_VARIANT[emp.status] || 'neutral'}>{emp.status}</Badge>
+                  <td className="py-3 text-right text-14 text-ink-2">
+                    {stageShort(days, emp.status)}
                   </td>
                 </tr>
               );
