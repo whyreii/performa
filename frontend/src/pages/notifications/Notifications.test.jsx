@@ -25,7 +25,9 @@ describe('Notifications', () => {
       route: '/notifications',
       user: testUser('employer'),
     });
-    expect(await screen.findByRole('heading', { name: 'Notifications' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Notifications', level: 2 })
+    ).toBeInTheDocument();
     expect(await screen.findByText('Day 150 review due')).toBeInTheDocument();
     expect(screen.getByText('1 unread')).toBeInTheDocument();
   });

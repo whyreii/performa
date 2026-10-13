@@ -122,7 +122,7 @@ export default function AuditTrail() {
           title="Statutory Legal Standard · Republic of the Philippines"
           subtitle="Article 296 · immutable"
         />
-        <p className="text-12 text-ink-2 leading-relaxed">
+        <p className="text-14 text-ink-2 leading-relaxed">
           Under Philippine Labor Code Article 296 and established Supreme Court doctrine, employers carry the burden of proof in probationary disputes. Every score entry and modification below is logged with exact timestamps (Asia/Manila) and evaluator credentials for permanent due process records.
         </p>
       </Card>

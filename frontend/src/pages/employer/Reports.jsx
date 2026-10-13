@@ -68,11 +68,11 @@ export default function Reports() {
       {/* Generate report */}
       <Card flat padded={false} className="space-y-1">
         <SectionHead title="Generate report" subtitle="DOLE Article 296 · print-ready" />
-        <p className="text-12 text-ink-2 leading-relaxed pb-3">
+        <p className="text-14 text-ink-2 leading-relaxed pb-3">
           Opens a print-ready report in a new tab. Use “Save as PDF” to export.
         </p>
         <div className="flex flex-wrap items-end gap-3">
-          <label htmlFor="report-employee" className="flex flex-col gap-1 text-12 text-ink-3">
+          <label htmlFor="report-employee" className="flex flex-col gap-1 text-14 text-ink-3">
             Employee
             <select
               id="report-employee"
@@ -88,7 +88,7 @@ export default function Reports() {
               ))}
             </select>
           </label>
-          <label htmlFor="report-type" className="flex flex-col gap-1 text-12 text-ink-3">
+          <label htmlFor="report-type" className="flex flex-col gap-1 text-14 text-ink-3">
             Report type
             <select
               id="report-type"

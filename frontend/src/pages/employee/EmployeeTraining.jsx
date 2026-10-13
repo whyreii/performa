@@ -118,7 +118,7 @@ export default function EmployeeTraining() {
                 </div>
 
                 {plan.rationale && (
-                  <div className="p-4 rounded-ctl bg-hover/70 border border-line text-12 text-ink-2 space-y-1">
+                  <div className="p-4 rounded-ctl bg-hover/70 border border-line text-14 text-ink-2 space-y-1">
                     <span className="font-semibold text-accent text-12">
                       Coaching Guidance
                     </span>

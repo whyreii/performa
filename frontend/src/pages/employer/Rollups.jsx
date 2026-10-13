@@ -239,7 +239,7 @@ export default function Rollups() {
 
                 {/* AI Rationale by Gemini */}
                 {plan.rationale && (
-                  <div className="border-t border-line pt-2.5 text-12 text-ink-2 space-y-1">
+                  <div className="border-t border-line pt-2.5 text-14 text-ink-2 space-y-1">
                     <span className="font-semibold text-ink-3 text-12">
                       Gemini Performance Rationale
                     </span>
@@ -357,7 +357,7 @@ export default function Rollups() {
 
             <form onSubmit={handleGenerateSubmit} className="space-y-4">
               <div>
-                <label className="block text-12 font-medium text-ink-2 mb-1" htmlFor="r_emp">
+                <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor="r_emp">
                   Probationary Employee *
                 </label>
                 <GlideSelect
@@ -377,7 +377,7 @@ export default function Rollups() {
               </div>
 
               <div>
-                <label className="block text-12 font-medium text-ink-2 mb-1" htmlFor="r_month">
+                <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor="r_month">
                   Evaluation Month (30-Day Cycle) *
                 </label>
                 <GlideSelect
@@ -410,7 +410,7 @@ export default function Rollups() {
                 </div>
               )}
 
-              <div className="p-3 rounded-ctl bg-hover text-12 text-ink-3 leading-relaxed space-y-1">
+              <div className="p-3 rounded-ctl bg-hover text-14 text-ink-3 leading-relaxed space-y-1">
                 <span className="font-semibold text-ink block">AI Execution Workflow:</span>
                 <p>
                   1. Aggregates weekly evaluation scores.<br />

@@ -194,7 +194,7 @@ export default function Rubrics() {
             Statutory Legal Basis (Aliling v. Feliciano / Tamson Doctrine)
           </span>
         </div>
-        <p className="text-12 text-ink-2 leading-relaxed">
+        <p className="text-14 text-ink-2 leading-relaxed">
           In Philippine labor law, reasonable standards of performance must be made known to the employee at the time of engagement (Day 1). Ratings assigned in weekly evaluations directly enforce these communicated criteria.
         </p>
       </Card>
@@ -206,7 +206,7 @@ export default function Rubrics() {
             title="KPI Configuration"
             note={<Badge variant={weightTotal === 100 ? 'ok' : 'warn'}>Weights {weightTotal}%</Badge>}
           />
-          <p className="text-12 text-ink-2 leading-relaxed pb-2">
+          <p className="text-14 text-ink-2 leading-relaxed pb-2">
             Set the target and weight for each core competency. Targets are floored at the{' '}
             {TARGET.toFixed(1)} regularizing standard; weights are relative.
           </p>
@@ -220,7 +220,7 @@ export default function Rubrics() {
                 <span className="text-14 text-ink">{row.label}</span>
                 <label
                   htmlFor={`target-${row.competency}`}
-                  className="flex items-center gap-2 whitespace-nowrap text-12 text-ink-3"
+                  className="flex items-center gap-2 whitespace-nowrap text-14 text-ink-3"
                 >
                   Target
                   <input
@@ -237,7 +237,7 @@ export default function Rubrics() {
                 </label>
                 <label
                   htmlFor={`weight-${row.competency}`}
-                  className="flex items-center gap-2 whitespace-nowrap text-12 text-ink-3"
+                  className="flex items-center gap-2 whitespace-nowrap text-14 text-ink-3"
                 >
                   Weight %
                   <input
@@ -258,7 +258,7 @@ export default function Rubrics() {
 
           <div className="flex flex-col lg:flex-row lg:items-end gap-3 pt-3 border-t border-line">
             <div className="w-full lg:w-64">
-              <label htmlFor="kpi-template" className="block text-12 font-medium text-ink-2 mb-1">
+              <label htmlFor="kpi-template" className="block text-14 font-medium text-ink-2 mb-1">
                 Industry template
               </label>
               <select
@@ -309,7 +309,7 @@ export default function Rubrics() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-line">
               <div>
                 <h2 className="text-16 font-semibold text-ink">{rubric.name}</h2>
-                <p className="text-12 text-ink-3 mt-0.5">{rubric.desc}</p>
+                <p className="text-14 text-ink-3 mt-0.5">{rubric.desc}</p>
               </div>
               <div className="flex items-center gap-3 self-start sm:self-center font-num text-12 text-ink-3">
                 <span>
@@ -335,7 +335,7 @@ export default function Rubrics() {
                 return (
                   <div key={lvl.score} className={`border-l-2 pl-2.5 ${edge}`}>
                     <span className="block text-12 font-num text-ink-3">{lvl.score}</span>
-                    <span className="block text-12 font-semibold text-ink mt-0.5">{lvl.title}</span>
+                    <span className="block text-14 font-semibold text-ink mt-0.5">{lvl.title}</span>
                     <p className="mt-1.5 text-14 text-ink-2 leading-relaxed">{lvl.text}</p>
                   </div>
                 );

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
-import { Skeleton, EmptyState, Card, Th } from '../../components/ui';
+import { Skeleton, EmptyState, Card, Th, SectionHead } from '../../components/ui';
 import { Users, AlertCircle } from '../../components/icons';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { milestoneFor, formatProbationDay, stageShort, scoreTone, TONE_BG, TONE_TEXT } from '../../utils/status';
@@ -86,12 +86,10 @@ export default function EmployeeList() {
 
   return (
     <Card flat padded={false} className="space-y-1">
-      <div className="flex items-baseline justify-between gap-3 pb-2 mb-3 border-b border-line">
-        <b className="text-12 font-medium text-ink-2">Probationary employees</b>
-        <span className="text-12 text-ink-3">
-          {employees.length} probationary employee{employees.length === 1 ? '' : 's'}
-        </span>
-      </div>
+      <SectionHead
+        title="Probationary employees"
+        subtitle={`${employees.length} probationary employee${employees.length === 1 ? '' : 's'}`}
+      />
 
       {isLoading ? (
         <div className="space-y-3 pt-2">

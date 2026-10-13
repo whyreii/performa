@@ -70,7 +70,7 @@ export default function ActivityLog() {
           </EmptyState>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-12">
+            <table className="w-full text-left border-collapse text-14">
               <caption className="sr-only">System activity log</caption>
               <thead>
                 <tr className="border-b border-line">

@@ -267,7 +267,7 @@ export default function UserManagement() {
                         {getInitials(u.full_name)}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-semibold text-12 text-ink flex items-center gap-1.5 truncate">
+                        <div className="font-semibold text-14 text-ink flex items-center gap-1.5 truncate">
                           <span className="truncate">{u.full_name}</span>
                           {isCurrent && (
                             <span className="font-num text-12 text-accent font-normal shrink-0">
@@ -288,7 +288,7 @@ export default function UserManagement() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-12 pt-1 border-t border-line/60">
+                  <div className="flex items-center justify-between text-14 pt-1 border-t border-line/60">
                     <div className="flex items-center gap-1.5 font-medium">
                       <span className={u.is_active ? 'text-good' : 'text-ink-3'}>
                         {u.is_active ? 'Active' : 'Deactivated'}
@@ -336,7 +336,7 @@ export default function UserManagement() {
 
         {/* Desktop: table (>= lg) */}
         <div className="hidden lg:block overflow-x-auto">
-          <table className="w-full text-left border-collapse text-12">
+          <table className="w-full text-left border-collapse text-14">
             <caption className="sr-only">User accounts</caption>
             <thead>
               <tr className="border-b border-line">
@@ -688,7 +688,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-12">
+                <form onSubmit={handleSubmit} className="space-y-4 text-14">
           <TextField
             id="m_name"
             label="Full Name *"
@@ -742,7 +742,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
                 }`}
               >
                 <div className="font-semibold">Employer</div>
-                <div className="text-12 text-ink-3 mt-0.5">Business Owner</div>
+                        <div className="text-14 text-ink-3 mt-0.5">Business Owner</div>
               </button>
 
               <button
@@ -757,7 +757,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
                 }`}
               >
                 <div className="font-semibold">Supervisor</div>
-                <div className="text-12 text-ink-3 mt-0.5">Rating Evaluator</div>
+                        <div className="text-14 text-ink-3 mt-0.5">Rating Evaluator</div>
               </button>
 
               <button
@@ -772,7 +772,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
                 }`}
               >
                 <div className="font-semibold">Employee</div>
-                <div className="text-12 text-ink-3 mt-0.5">Probationary Staff</div>
+                        <div className="text-14 text-ink-3 mt-0.5">Probationary Staff</div>
               </button>
             </div>
           </div>
@@ -876,9 +876,9 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
         )}
 
         {user.role === 'admin' ? (
-          <p className="text-12 text-ink-2">Administrator accounts are excluded from password resets.</p>
+              <p className="text-14 text-ink-2">Administrator accounts are excluded from password resets.</p>
         ) : (
-        <form onSubmit={handleSubmit} className="space-y-4 text-12">
+                <form onSubmit={handleSubmit} className="space-y-4 text-14">
           <div>
             <TextField
               id="r_pass"

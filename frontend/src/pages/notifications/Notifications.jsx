@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
-import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Card, Page, SectionHead } from '../../components/ui';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { Bell, CheckCheck, AlertCircle } from '../../components/icons';
@@ -85,12 +85,10 @@ export default function Notifications() {
     >
 
       <Card flat padded={false} className="space-y-1">
-        <div className="flex items-baseline justify-between gap-3 pb-2 mb-3 border-b border-line">
-          <b className="text-12 font-medium text-ink-2">Notifications</b>
-          <span className="text-12 text-ink-3">
-            {unreadCount} unread · {notifications.length} total
-          </span>
-        </div>
+        <SectionHead
+          title="Notifications"
+          subtitle={`${unreadCount} unread · ${notifications.length} total`}
+        />
         {isLoading ? (
           <div className="divide-y divide-line" aria-hidden="true">
             {[0, 1, 2, 3, 4].map((i) => (

@@ -195,7 +195,7 @@ export default function RateEmployee() {
           </p>
         </div>
 
-        <Card flat as="div" padded={false} className="text-left space-y-3 font-num text-12">
+        <Card flat as="div" padded={false} className="text-left space-y-3 font-num text-14">
           <div className="flex justify-between border-b border-line pb-2">
             <span className="text-ink-3">Overall Average</span>
             <span className="font-bold text-ink text-14">
@@ -277,7 +277,7 @@ export default function RateEmployee() {
           <Card flat padded={false} className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex-1 max-w-md">
-                <label className="block text-12 font-medium text-ink-2 mb-1.5" htmlFor="empSelect">
+                <label className="block text-14 font-medium text-ink-2 mb-1.5" htmlFor="empSelect">
                   Select Probationary Employee
                 </label>
                 {isEmpListLoading ? (
@@ -338,7 +338,7 @@ export default function RateEmployee() {
                       Competency {idx + 1} of 5
                     </span>
                     <h3 className="text-16 font-semibold text-ink">{comp.label}</h3>
-                    <p className="text-12 text-ink-2 leading-relaxed">{comp.desc}</p>
+                    <p className="text-14 text-ink-2 leading-relaxed">{comp.desc}</p>
                   </div>
 
                   <div className="flex items-baseline gap-2 self-start sm:self-center">
@@ -417,7 +417,7 @@ export default function RateEmployee() {
 
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <label className="text-12 font-semibold text-ink" htmlFor="remarks">
+              <label className="text-14 font-semibold text-ink" htmlFor="remarks">
                 Evidentiary Behavioral Remarks *
               </label>
               <span className="text-12 text-ink-3 font-num">
@@ -471,13 +471,13 @@ export default function RateEmployee() {
               <p className="text-12 text-ink-3">Article 296 Evidentiary Logging</p>
             </div>
 
-            <p className="text-12 text-ink-2 leading-relaxed">
+            <p className="text-14 text-ink-2 leading-relaxed">
               You are submitting a weekly performance rating of{' '}
               <b className="font-num text-ink">{overallAverage.toFixed(1)} / 5.0</b> for{' '}
               <b className="text-ink">{selectedEmployee?.user?.full_name}</b>.
             </p>
 
-            <div className="p-4 rounded-ctl bg-hover border border-line text-12 text-ink-3 space-y-1">
+            <div className="p-4 rounded-ctl bg-hover border border-line text-14 text-ink-3 space-y-1">
               <span className="font-semibold text-ink block">Legal Notice on Audit Trail:</span>
               <p className="leading-relaxed">
                 Under Philippine labor jurisprudence, evaluations once entered into the platform are permanently recorded in the append-only audit trail. They cannot be retracted, edited, or deleted.
