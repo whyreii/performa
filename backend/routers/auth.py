@@ -192,6 +192,7 @@ async def register(
         role=UserRole.EMPLOYER,
         organization_id=slug,
         is_active=True,
+        privacy_consented_at=datetime.now(timezone.utc),
     )
     db.add(user)
     await db.flush()
@@ -204,6 +205,15 @@ async def register(
         entity_type="organization",
         entity_id=organization.id,
         detail=f"{org_name} <{email}>",
+    )
+    record_activity(
+        db,
+        organization_id=slug,
+        actor=user,
+        action="auth.consent",
+        entity_type="user",
+        entity_id=user.id,
+        detail="Data Privacy notice (RA 10173)",
     )
     await db.commit()
     return _issue_session(response, user)

@@ -21,6 +21,7 @@ export default function Register() {
   const [organizationName, setOrganizationName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,10 +35,14 @@ export default function Register() {
       setError('Password must be at least 8 characters.');
       return;
     }
+    if (!consent) {
+      setError('Please accept the Data Privacy Notice to continue.');
+      return;
+    }
 
     setError('');
     setIsSubmitting(true);
-    const result = await register({ fullName, email, organizationName, password });
+    const result = await register({ fullName, email, organizationName, password, consent });
     setIsSubmitting(false);
 
     if (result.success) {
@@ -171,6 +176,23 @@ export default function Register() {
                   At least 8 characters, with an uppercase letter, a lowercase letter and a number.
                 </p>
               </div>
+
+              <label className="flex items-start gap-2 text-14 text-ink-2">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  required
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-line accent-accent focus-visible:outline-2 focus-visible:outline-accent"
+                />
+                <span>
+                  I have read and accept the{' '}
+                  <Link to="/privacy" className="font-semibold text-accent hover:underline">
+                    Data Privacy Notice
+                  </Link>
+                  .
+                </span>
+              </label>
 
               <Button type="submit" isLoading={isSubmitting} className="w-full">
                 {isSubmitting ? 'Creating account…' : 'Create account'}

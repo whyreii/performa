@@ -130,6 +130,8 @@ class RegisterRequest(BaseModel):
     email: str = Field(..., max_length=255)
     organization_name: str = Field(..., min_length=1, max_length=255)
     password: PasswordStr = Field(..., min_length=8, max_length=128)
+    # RA 10173: the registrant must accept the Data Privacy notice.
+    consent: bool
 
     @field_validator("email")
     @classmethod
@@ -142,6 +144,13 @@ class RegisterRequest(BaseModel):
         value = value.strip()
         if not value:
             raise ValueError("This field cannot be blank")
+        return value
+
+    @field_validator("consent")
+    @classmethod
+    def _must_consent(cls, value: bool) -> bool:
+        if not value:
+            raise ValueError("You must accept the Data Privacy notice to register")
         return value
 
 

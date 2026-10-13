@@ -198,6 +198,12 @@ export default function Login() {
               </Link>
             </p>
 
+            <p className="text-12 text-ink-3 mt-2">
+              <Link to="/privacy" className="hover:underline">
+                Data Privacy Notice
+              </Link>
+            </p>
+
             {SHOW_DEMO && (
               <>
                 <div className="h-px bg-line my-6" />

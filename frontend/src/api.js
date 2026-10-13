@@ -87,12 +87,13 @@ export const authApi = {
     });
     return response.data; // { access_token, token_type }
   },
-  register: async ({ fullName, email, organizationName, password }) => {
+  register: async ({ fullName, email, organizationName, password, consent }) => {
     const response = await apiClient.post('/api/auth/register', {
       full_name: fullName.trim(),
       email: email.trim(),
       organization_name: organizationName.trim(),
       password,
+      consent: Boolean(consent),
     });
     return response.data; // { access_token, token_type }
   },

@@ -19,7 +19,7 @@ function renderRegister(user = null) {
   );
 }
 
-function fillForm() {
+function fillForm({ consent = true } = {}) {
   fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Nadia Founder' } });
   fireEvent.change(screen.getByLabelText('Company / organization'), {
     target: { value: 'Bright Co.' },
@@ -28,6 +28,7 @@ function fillForm() {
     target: { value: 'nadia@bright.test' },
   });
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Password123!' } });
+  if (consent) fireEvent.click(screen.getByRole('checkbox'));
 }
 
 beforeEach(() => localStorage.clear());
@@ -73,7 +74,18 @@ describe('Register', () => {
       email: 'nadia@bright.test',
       organizationName: 'Bright Co.',
       password: 'Password123!',
+      consent: true,
     });
+  });
+
+  it('requires accepting the Data Privacy Notice', async () => {
+    const { container } = renderRegister();
+    fillForm({ consent: false });
+    fireEvent.submit(container.querySelector('form'));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Please accept the Data Privacy Notice'
+    );
+    expect(authApi.register).not.toHaveBeenCalled();
   });
 
   it('shows an alert when registration is rejected', async () => {

@@ -185,6 +185,7 @@ Unique constraints: (user_id)
 | id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
 | is_active | BOOLEAN | no | no | no | True |  |
 | organization_id | VARCHAR(100) | no | no | no |  | organizations.slug |
+| privacy_consented_at | DATETIME | yes | no | no |  |  |
 | role | VARCHAR(21) | no | no | no |  |  |
 
 ### `weekly_evaluations`

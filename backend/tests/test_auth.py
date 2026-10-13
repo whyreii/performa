@@ -116,6 +116,7 @@ async def test_register_provisions_new_tenant_and_signs_in(client):
             "email": "founder@brightco.test",
             "organization_name": "Bright Co. Philippines",
             "password": "Password123!",
+            "consent": True,
         },
     )
     assert resp.status_code == 201, resp.text
@@ -138,6 +139,7 @@ async def test_register_rejects_duplicate_email(client):
             "email": EMPLOYER_EMAIL.upper(),
             "organization_name": "Fresh Tenant",
             "password": "Password123!",
+            "consent": True,
         },
     )
     assert resp.status_code == 409, resp.text
@@ -153,6 +155,7 @@ async def test_register_rejects_duplicate_organization_name(client):
             "email": "owner@fresh.test",
             "organization_name": "Acme Philippines Corp.",
             "password": "Password123!",
+            "consent": True,
         },
     )
     assert resp.status_code == 409, resp.text
@@ -168,9 +171,29 @@ async def test_register_rejects_short_password(client):
             "email": "shorty@fresh.test",
             "organization_name": "Shorty LLC",
             "password": "short",
+            "consent": True,
         },
     )
     assert resp.status_code == 422, resp.text
+
+
+@pytest.mark.asyncio
+async def test_register_requires_privacy_consent(client):
+    """Registration without accepting the Data Privacy notice is rejected."""
+    base = {
+        "full_name": "No Consent",
+        "email": "noconsent@fresh.test",
+        "organization_name": "No Consent Co",
+        "password": "Password123!",
+    }
+    missing = await client.post("/api/auth/register", json=base)
+    assert missing.status_code == 422, missing.text
+
+    refused = await client.post("/api/auth/register", json={**base, "consent": False})
+    assert refused.status_code == 422, refused.text
+
+    accepted = await client.post("/api/auth/register", json={**base, "consent": True})
+    assert accepted.status_code == 201, accepted.text
 
 
 def test_verify_password_handles_malformed_hash():

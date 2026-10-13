@@ -128,6 +128,10 @@ class User(Base):
         String(100), ForeignKey("organizations.slug"), index=True, nullable=False
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # When the account holder accepted the Data Privacy (RA 10173) notice.
+    privacy_consented_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

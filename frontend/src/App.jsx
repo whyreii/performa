@@ -14,6 +14,7 @@ const Login = lazy(routeLoaders['/login']);
 const Register = lazy(routeLoaders['/register']);
 const ForgotPassword = lazy(routeLoaders['/forgot-password']);
 const ResetPassword = lazy(routeLoaders['/reset-password']);
+const Privacy = lazy(() => import('./pages/Privacy'));
 const AppShell = lazy(() => import('./components/layout/AppShell'));
 const Settings = lazy(routeLoaders['/settings']);
 const EmployeeSplit = lazy(routeLoaders['/employees']);
@@ -61,6 +62,7 @@ const ROUTE_TITLES = [
   ['/register', 'Create account'],
   ['/forgot-password', 'Reset password'],
   ['/reset-password', 'Set a new password'],
+  ['/privacy', 'Data Privacy Notice'],
 ];
 
 function titleForPath(pathname) {
@@ -156,6 +158,7 @@ export default function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/privacy" element={<Privacy />} />
 
               {/* Protected routes wrapped in AppShell */}
               <Route

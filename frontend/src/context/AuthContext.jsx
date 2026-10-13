@@ -108,10 +108,16 @@ export function AuthProvider({ children }) {
     }
   }, [persistUser]);
 
-  const register = useCallback(async ({ fullName, email, organizationName, password }) => {
+  const register = useCallback(async ({ fullName, email, organizationName, password, consent }) => {
     setIsLoading(true);
     try {
-      const tokenData = await authApi.register({ fullName, email, organizationName, password });
+      const tokenData = await authApi.register({
+        fullName,
+        email,
+        organizationName,
+        password,
+        consent,
+      });
       try {
         if (tokenData?.access_token) {
           localStorage.setItem('performa_token', tokenData.access_token);
