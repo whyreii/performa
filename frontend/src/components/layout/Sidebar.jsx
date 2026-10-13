@@ -8,11 +8,13 @@ import { sidebarNav } from '../../config/nav';
 import { getInitials } from '../../utils/format';
 import { modifierKey } from '../../utils/platform';
 import { prefetchRoute } from '../../routes/loaders';
+import { useUnreadNotifications } from '../../hooks/useUnreadNotifications';
 
 export default function Sidebar({ onOpenCommandPalette }) {
   const { user, logout } = useAuth();
   const { isDark, setMode } = useTheme();
   const [isSignOutOpen, setIsSignOutOpen] = useState(false);
+  const unread = useUnreadNotifications();
 
   // Binary quick toggle: light ⇄ dark. The full Light/Dark/System control
   // lives in Settings; the sidebar only flips between the two palettes.
@@ -115,29 +117,51 @@ export default function Sidebar({ onOpenCommandPalette }) {
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto">
-        <nav className={`flex flex-col ${collapsed ? 'gap-1' : 'gap-0.5'}`}>
+        <nav aria-label="Primary" className={`flex flex-col ${collapsed ? 'gap-1' : 'gap-0.5'}`}>
           {navItems.map((item) => {
             const Icon = item.icon;
+            const isNotifications = item.path === '/notifications';
             return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                title={collapsed ? item.label : undefined}
-                onMouseEnter={() => prefetchRoute(item.path)}
-                onFocus={() => prefetchRoute(item.path)}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 rounded-ctl text-14 transition-colors ${
-                    collapsed ? 'justify-center px-0 h-10' : 'px-2.5 h-10'
-                  } ${
-                    isActive
-                      ? 'bg-hover text-ink font-semibold'
-                      : 'text-ink-2 hover:bg-hover hover:text-ink'
-                  }`
-                }
-              >
-                <Icon className="w-[18px] h-[18px] shrink-0 text-ink-3" />
-                {!collapsed && <span className="truncate">{item.label}</span>}
-              </NavLink>
+              <React.Fragment key={item.path}>
+                {item.dividerBefore && !collapsed ? (
+                  <div className="my-1.5 h-px bg-line" aria-hidden="true" />
+                ) : null}
+                <NavLink
+                  to={item.path}
+                  title={collapsed ? item.label : undefined}
+                  onMouseEnter={() => prefetchRoute(item.path)}
+                  onFocus={() => prefetchRoute(item.path)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 rounded-ctl text-14 transition-colors ${
+                      collapsed ? 'justify-center px-0 h-10' : 'px-2.5 h-10'
+                    } ${
+                      isActive
+                        ? 'bg-accent/10 text-ink font-semibold'
+                        : 'text-ink-2 hover:bg-hover hover:text-ink'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <span className="relative shrink-0">
+                        <Icon
+                          className={`w-[18px] h-[18px] ${isActive ? 'text-ink' : 'text-ink-3'}`}
+                        />
+                        {isNotifications && collapsed && unread > 0 ? (
+                          <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-accent" />
+                        ) : null}
+                      </span>
+                      {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
+                      {!collapsed && isNotifications && unread > 0 ? (
+                        <span className="ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-12 font-num font-semibold text-accent-foreground">
+                          <span aria-hidden="true">{unread > 99 ? '99+' : unread}</span>
+                          <span className="sr-only">{unread} unread</span>
+                        </span>
+                      ) : null}
+                    </>
+                  )}
+                </NavLink>
+              </React.Fragment>
             );
           })}
         </nav>

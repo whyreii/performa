@@ -132,8 +132,23 @@ function resolve(pairs) {
   }));
 }
 
+// Sidebar "utility" items (notifications, settings) render below a hairline
+// divider, separating day-to-day work from account/utility links.
+const SIDEBAR_UTILITY = new Set(['notifications', 'settings']);
+
 export function sidebarNav(role) {
-  return resolve(NAV_BY_ROLE[role]?.sidebar || []);
+  const pairs = NAV_BY_ROLE[role]?.sidebar || [];
+  let dividerPlaced = false;
+  return pairs.map(([key, label]) => {
+    const dividerBefore = SIDEBAR_UTILITY.has(key) && !dividerPlaced;
+    if (dividerBefore) dividerPlaced = true;
+    return {
+      label,
+      path: ROUTES[key].path,
+      icon: ROUTES[key].icon,
+      dividerBefore,
+    };
+  });
 }
 
 export function tabNav(role) {
