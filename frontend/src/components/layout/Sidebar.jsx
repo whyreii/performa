@@ -123,7 +123,9 @@ export default function Sidebar({ onOpenCommandPalette }) {
               index === 0
                 ? ''
                 : section.divider
-                ? 'mt-2 border-t border-glass-line pt-2'
+                ? collapsed
+                  ? 'mt-2'
+                  : 'mt-4'
                 : collapsed
                 ? 'mt-1'
                 : 'mt-3';
@@ -189,7 +191,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
       {/* User Footer */}
       <div
         className={`flex items-center border-t border-line ${
-          collapsed ? 'flex-col gap-3 px-0 pt-2' : 'gap-2.5 px-2 pt-2'
+          collapsed ? 'flex-col gap-3 px-0 pt-2' : 'gap-3 px-2.5 pt-3'
         }`}
       >
         <div
