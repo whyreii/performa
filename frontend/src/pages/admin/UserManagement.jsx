@@ -8,7 +8,7 @@ import { generatePassword } from '../../utils/password';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Skeleton from '../../components/ui/Skeleton';
-import Card from '../../components/ui/Card';
+import StatBand from '../../components/ui/StatBand';
 import Modal from '../../components/ui/Modal';
 import TextField from '../../components/ui/TextField';
 import Tabs from '../../components/ui/Tabs';
@@ -17,7 +17,6 @@ import PageHead from '../../components/ui/PageHead';
 import GlideSelect from '../../components/ui/GlideSelect';
 import Th from '../../components/ui/Th';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import PageGrid, { Row, Col } from '../../components/ui/PageGrid';
 import { inputClass } from '../../components/ui/Field';
 import {
   Users,
@@ -176,36 +175,15 @@ export default function UserManagement() {
         </div>
       )}
 
-      {/* Metric Stat Cards */}
-      {/* Metric stat cards — 2-up on small screens, 4 × span-3 on the shared grid */}
-      <PageGrid>
-        <Row className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-y-0">
-          <Col span={3} className="col-span-1">
-            <Card flat padded={false} className="space-y-1">
-              <span className="text-12 text-ink-3">Total Accounts</span>
-              <div className="text-22 font-bold font-num text-ink">{counts.all}</div>
-            </Card>
-          </Col>
-          <Col span={3} className="col-span-1">
-            <Card flat padded={false} className="space-y-1">
-              <span className="text-12 text-ink-3">Employers</span>
-              <div className="text-22 font-bold font-num text-accent">{counts.employer}</div>
-            </Card>
-          </Col>
-          <Col span={3} className="col-span-1">
-            <Card flat padded={false} className="space-y-1">
-              <span className="text-12 text-ink-3">Supervisors</span>
-              <div className="text-22 font-bold font-num text-good">{counts.supervisor}</div>
-            </Card>
-          </Col>
-          <Col span={3} className="col-span-1">
-            <Card flat padded={false} className="space-y-1">
-              <span className="text-12 text-ink-3">Probationary Staff</span>
-              <div className="text-22 font-bold font-num text-ink">{counts.employee}</div>
-            </Card>
-          </Col>
-        </Row>
-      </PageGrid>
+      {/* Metric strip — flat, hairline-divided */}
+      <StatBand
+        cells={[
+          { label: 'Total accounts', value: counts.all, caption: 'Across the tenant' },
+          { label: 'Employers', value: counts.employer, caption: 'Operational oversight' },
+          { label: 'Supervisors', value: counts.supervisor, caption: 'Weekly ratings' },
+          { label: 'Probationary staff', value: counts.employee, caption: 'In probation' },
+        ]}
+      />
 
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -237,7 +215,7 @@ export default function UserManagement() {
       </div>
 
       {/* Accounts Table */}
-      <Card flat padded={false} className="overflow-hidden">
+      <section aria-label="Accounts">
         {/* Mobile & Tablet stacked cards (< lg) */}
         <div className="lg:hidden divide-y divide-line">
           {isLoading ? (
@@ -475,7 +453,7 @@ export default function UserManagement() {
             </tbody>
           </table>
         </div>
-      </Card>
+      </section>
 
       {/* Modal 1: Create User Account */}
       {isCreateModalOpen && (

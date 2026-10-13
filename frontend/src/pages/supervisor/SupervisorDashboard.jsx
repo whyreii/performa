@@ -3,17 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card, Page, PageHead, SectionHead } from '../../components/ui';
+import { Button, MilestonePill, Skeleton, EmptyState, Page, PageHead, SectionHead, StatBand } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
-import { PROBATION_DAYS, TARGET } from '../../config/domain';
+import { PROBATION_DAYS, TARGET, MILESTONE_REVIEW } from '../../config/domain';
 import { getInitials } from '../../utils/format';
-import {
-  Users,
-  Award,
-  AlertTriangle,
-  ChevronRight,
-  CheckCircle2,
-} from '../../components/icons';
+import { Users, Award, AlertTriangle } from '../../components/icons';
 
 export default function SupervisorDashboard() {
   const { user } = useAuth();
@@ -34,6 +28,11 @@ export default function SupervisorDashboard() {
     return employees.filter((e) => e.status === 'active');
   }, [employees]);
 
+  const atMilestone = useMemo(
+    () => activeProbationers.filter((e) => getDaysElapsed(e.start_date) >= MILESTONE_REVIEW).length,
+    [activeProbationers]
+  );
+
   return (
     <Page
       toolbarTitle="Supervisor Dashboard"
@@ -51,28 +50,32 @@ export default function SupervisorDashboard() {
         />
       }
     >
+      <StatBand
+        cells={[
+          {
+            label: 'Direct reports',
+            value: activeProbationers.length,
+            caption: 'Assigned to you',
+            tone: 'ok',
+          },
+          {
+            label: `At or past Day ${MILESTONE_REVIEW}`,
+            value: atMilestone,
+            caption: `Regularizing standard ${TARGET.toFixed(1)} / 5.0 · Article 296`,
+            tone: atMilestone ? 'warn' : undefined,
+          },
+        ]}
+      />
 
-      <Card flat as="div" padded={false} className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <span className="text-12 text-ink-3">Direct reports</span>
-          <div className="text-22 font-bold font-num text-ink">
-            {activeProbationers.length}
-          </div>
-        </div>
-        <p className="text-12 text-ink-3">
-          Regularizing standard {TARGET.toFixed(1)} / 5.0 · Article 296 · rated weekly
-        </p>
-      </Card>
-
-      {/* Assigned Probationers Table */}
-      <Card padded={false} flat className="space-y-4">
+      {/* Assigned probationers — flat rows, hairline-separated */}
+      <section aria-label="Assigned probationary staff">
         <SectionHead
-          title="Assigned Probationary Staff"
+          title="Assigned probationary staff"
           subtitle="Weekly evaluation schedule & milestone tracking"
         />
 
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-3 pt-2">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
           </div>
@@ -88,7 +91,7 @@ export default function SupervisorDashboard() {
             No active probationary staff assigned to your workspace.
           </EmptyState>
         ) : (
-          <div className="divide-y divide-line">
+          <div>
             {activeProbationers.map((emp) => {
               const days = getDaysElapsed(emp.start_date);
               const progressPct = Math.min(100, Math.round((days / PROBATION_DAYS) * 100));
@@ -96,7 +99,7 @@ export default function SupervisorDashboard() {
               return (
                 <div
                   key={emp.id}
-                  className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-hover/50 px-2 rounded-ctl transition-colors"
+                  className="border-t border-line py-4 first:border-t-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="w-9 h-9 rounded-full bg-accent/15 text-accent font-semibold text-12 flex items-center justify-center shrink-0">
@@ -153,7 +156,7 @@ export default function SupervisorDashboard() {
             })}
           </div>
         )}
-      </Card>
+      </section>
     </Page>
   );
 }

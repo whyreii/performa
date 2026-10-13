@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, MilestonePill, Skeleton, Card, Page, PageHead, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Page, PageHead, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
 import { scoreTone, TONE_FILL, TONE_TEXT } from '../../utils/status';
@@ -247,7 +247,7 @@ export default function EmployeeDashboard() {
       <PageGrid className="space-y-4 lg:space-y-0 lg:gap-y-4 lg:items-start">
         <Col span={8} className="space-y-4 min-w-0">
           {/* Greeting · overall vs standard · plain dates */}
-          <Card padded={false} flat className="">
+          <section>
             {isEmpLoading ? (
               <Skeleton className="h-16 w-full" />
             ) : (
@@ -305,10 +305,10 @@ export default function EmployeeDashboard() {
                 )}
               </>
             )}
-          </Card>
+          </section>
 
           {/* How you're doing — the competency ledger */}
-          <Card padded={false} flat className="">
+          <section>
             <SectionHead
               title="How you’re doing"
               subtitle={
@@ -335,10 +335,10 @@ export default function EmployeeDashboard() {
                 </p>
               </>
             )}
-          </Card>
+          </section>
 
           {/* Recent rating changes (item 5.8) */}
-          <Card padded={false} flat className="">
+          <section>
             <SectionHead
               title="Recent rating changes"
               subtitle="From your weekly ratings"
@@ -404,10 +404,10 @@ export default function EmployeeDashboard() {
                 })}
               </ul>
             )}
-          </Card>
+          </section>
 
           {/* From your supervisor — behavioral remarks */}
-          <Card padded={false} flat className="">
+          <section>
             <SectionHead
               title="Supervisor remarks"
               subtitle="From your weekly ratings"
@@ -431,11 +431,11 @@ export default function EmployeeDashboard() {
                 ))}
               </ul>
             )}
-          </Card>
+          </section>
 
           {/* Monthly summaries */}
           {!isSummariesLoading && mySummaries.length > 0 && (
-            <Card padded={false} flat className="">
+            <section>
               <SectionHead
                 title="Monthly summaries"
                 subtitle="Shared by your employer for acknowledgment"
@@ -481,14 +481,14 @@ export default function EmployeeDashboard() {
                     </li>
                   ))}
               </ul>
-            </Card>
+            </section>
           )}
         </Col>
 
         {/* Side rail — checklist + monthly progress */}
         <Col span={4} start={9} className="space-y-4 min-w-0">
           {/* Your checklist (item 5.5) */}
-          <Card padded={false} flat className="">
+          <section>
             <SectionHead
               title="Your checklist"
               note={`${checklistDone} of ${applicableChecklist.length} done`}
@@ -564,10 +564,10 @@ export default function EmployeeDashboard() {
                 </Link>
               </div>
             )}
-          </Card>
+          </section>
 
           {/* Month by month — compact strip (item 5.6) */}
-          <Card padded={false} flat className="">
+          <section>
             <SectionHead title="Month by month" subtitle="Your monthly average" />
             {isTrendLoading ? (
               <Skeleton className="h-20 w-full" />
@@ -624,7 +624,7 @@ export default function EmployeeDashboard() {
                 )}
               </>
             )}
-          </Card>
+          </section>
         </Col>
       </PageGrid>
     </Page>
