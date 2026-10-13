@@ -53,6 +53,35 @@ shown.
 Administrator (Account Management) or via the seed script, consistent with the
 manuscript's Administrator scope.
 
+## D1–D4 — KPI score-band / weight + dashboard UX invariants
+
+**Decision (owner-approved):** Four invariants from the UX/logic audit, each
+encoded by a new test (`frontend/src/test/ux-invariants.test.jsx`,
+`backend/tests/guardrails/test_kpi_weights.py`).
+
+- **D1 — Score bands are half-open.** The four bands tile 1.00–5.00 with an
+  exclusive upper edge — `1.0 – <3.0` Unsatisfactory, `3.0 – <4.0` Developing,
+  `4.0 – <4.6` Proficient, `4.6 – 5.0` Exemplary — so every 2-decimal overall
+  score falls in exactly one band. The Proficient floor is `TARGET` from
+  `config/domain.js` (not a literal) and the "(target)" suffix is dropped: targets
+  are per competency and each row already prints "Target X / 5.0".
+- **D2 — Weights are relative shares.** `routers/evaluations.py` normalizes by the
+  total weight, so weights need not sum to 1.0. The KPI page keeps the "weights are
+  relative" note and no longer warns that they "should sum to 100%"; the total is
+  shown neutrally. Scoring math is unchanged.
+- **D3 — Total weight must stay > 0.** `PUT /api/kpi-rubrics/{competency}` rejects
+  (422) a write that would leave the organization's total weight at 0, because a
+  zero total silently falls back to the unweighted mean and ignores the employer's
+  configuration. The guard is **per-row**: the UI saves all five rows via five
+  parallel PUTs, so moving all weight from one competency to another can hit a
+  transient total of 0 mid-save and be rejected. A bulk save endpoint is the real
+  fix (tracked, not built).
+- **D4 — Dashboard status/actions.** (a) The "Past cap" figure carries the bad
+  tone only when its value is > 0 (no dot at zero). (b) Each item under
+  "Interventions / Training plans pending sign-off" links to the Rollups & AI Plans
+  route (`config/nav.js`) to act on it, with a "View all N pending" link when the
+  list is truncated to 3.
+
 ## Alembic migrations
 
 Alembic is configured (`alembic.ini`, `backend/migrations/`). The initial
