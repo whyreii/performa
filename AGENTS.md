@@ -112,3 +112,26 @@ Rules:
 - Never edit, skip, weaken, or delete a guardrail test to get a pass.
 - A failing guardrail test means the code is wrong — unless the owner first changed the invariant in the docs. If a test exposes a real violation, mark it `xfail(strict=True)` with a reason and report it; do not silently fix the invariant.
 - Anything depending on an open item in `ARCHITECTURE.md` §6a/§6b must be `skip`ped with `pending decision: <item>`, never asserted as a guess.
+
+---
+
+## 7. Output style
+
+How to present work. The owner reads these responses directly; keep them tight and evidence-first.
+
+- **Lead with the outcome, then the evidence.** No preamble, no restating the task, no "I will now…".
+- Use a **compact table or short bullet list** for anything with more than ~2 items; reserve prose for reasoning.
+- Every implementation report, in order: **what changed → verified live → gates → flagged**.
+  - **Verified live** means an actual measurement (DOM/`getBoundingClientRect`/computed style/API response) — a screenshot alone is not proof.
+  - **Gates** = `cd frontend && npm run build` · `npm run lint` · `npx vitest run` · `python -m pytest backend/tests/ -q`.
+- **State the commit hash** when you ship, and keep each commit scoped to its change.
+- If you edited a test on purpose (an intentional design change), say so explicitly and why.
+- Never claim something passes unless you ran it and can show the output. If you couldn't run it, say so plainly.
+- When the task is ambiguous, or a value appears differently in two places, **ask or flag it** — never guess.
+
+### UI foundation (current, keep it)
+The design grammar the app settled on lives in `docs/LAYOUT_GRAMMAR.md` and `src/tokens.css`:
+- **Flat sections**, not boxes: `SectionHead` + hairline rows. Use `Card` only when a block genuinely needs a surface.
+- **`StatBand`** for top stat strips (dashboard, admin, scorecard, rate). **`PageGrid`/`Row`/`Col`** for columns.
+- The **toolbar carries the single page title**; do not add a second title block in the body.
+- One source per value: `config/domain` (competencies, target, milestones), `utils/status` (tones/labels), `utils/datetime` (Asia/Manila).
