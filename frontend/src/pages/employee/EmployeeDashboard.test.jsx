@@ -30,6 +30,7 @@ afterEach(() => vi.unstubAllEnvs());
 
 describe('EmployeeDashboard', () => {
   it('renders the employee-first account (checklist, months, standing)', async () => {
+    vi.stubEnv('VITE_PERFORMA_TODAY', '2026-05-01'); // Day 120 → month 5
     employeeApi.list.mockResolvedValue([myProfile]);
     evaluationApi.getAuditTrail.mockResolvedValue(auditRows());
     evaluationApi.getScorecard.mockResolvedValue(scorecard());
@@ -54,10 +55,9 @@ describe('EmployeeDashboard', () => {
     expect(await screen.findByRole('heading', { name: 'Your checklist' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Month by month' })).toBeInTheDocument();
     expect(screen.getByText('Month 5')).toBeInTheDocument();
-    expect(screen.getByText('You are here')).toBeInTheDocument();
-    expect(screen.getAllByText('Upcoming').length).toBeGreaterThan(0);
+    expect(screen.getByText(/You are here/)).toBeInTheDocument();
+    expect(screen.getByText(/Month 6 upcoming/)).toBeInTheDocument();
     expect(await screen.findByText('Great progress this week.')).toBeInTheDocument();
-    expect(screen.queryByText('Day 165 · Notice')).not.toBeInTheDocument();
   });
 
   it('hides the live month marker for a regularized employee', async () => {
@@ -122,11 +122,32 @@ describe('EmployeeDashboard', () => {
     expect(await screen.findByText(/past the 180-day cap/i)).toBeInTheDocument();
   });
 
-  it('shows all six probation months (150-179 is month 6)', async () => {
-    employeeApi.list.mockResolvedValue([{ ...myProfile, start_date: '2026-01-01' }]);
+  it('never renders employer-only elements (5.0 self-scope)', async () => {
+    employeeApi.list.mockResolvedValue([myProfile]);
+    evaluationApi.getAuditTrail.mockResolvedValue(auditRows());
+    evaluationApi.getScorecard.mockResolvedValue(scorecard());
+    evaluationApi.getTrend.mockResolvedValue([]);
+    interventionApi.listMySummaries.mockResolvedValue([]);
+    interventionApi.listMine.mockResolvedValue([]);
+    renderDashboard();
+
+    await screen.findByRole('heading', { name: 'My Performance Scorecard' });
+    // Employer-only artifacts must not appear on the employee's own scorecard.
+    expect(screen.queryByText(/ML Risk Explanation/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Feature importance for legal defensibility/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Verify integrity/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Random Forest/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Recommendation/i)).not.toBeInTheDocument();
+  });
+
+  it('renders the compact month strip (current month + upcoming line)', async () => {
+    vi.stubEnv('VITE_PERFORMA_TODAY', '2026-05-01');
+    employeeApi.list.mockResolvedValue([myProfile]);
     primeEmpty();
     renderDashboard();
     expect(await screen.findByText('Month 1')).toBeInTheDocument();
-    expect(await screen.findByText('Month 6')).toBeInTheDocument();
+    expect(screen.getByText('Month 5')).toBeInTheDocument();
+    expect(screen.getByText(/You are here/)).toBeInTheDocument();
+    expect(screen.getByText(/Month 6 upcoming/)).toBeInTheDocument();
   });
 });

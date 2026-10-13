@@ -48,8 +48,8 @@
    ======================================================== */
 
 /* Paper (Light) — palette adopted from "Dashboard – fixed grid.html" (neutral,
-   near-black accent). --ink-3 is kept one step darker than the reference: its
-   #8a8f98 on #fafaf9 measures 3.1:1, below WCAG AA (4.5:1). */
+   near-black accent). --ink-3 is darkened for WCAG AA margin: #5a616d on
+   #fafaf9 measures ~6.0:1 (the reference's #8a8f98 measured 3.1:1). */
 :root, :root[data-theme="paper"] {
   color-scheme: light;
   --bg: #fafaf9;
@@ -57,7 +57,7 @@
   --surface: #ffffff;
   --ink: #0f1115;
   --ink-2: #555b66;
-  --ink-3: #6b7280;
+  --ink-3: #5a616d;
   --line: rgba(15, 17, 21, 0.1);
   --hover: rgba(15, 17, 21, 0.04);
   --seg: #ffffff;
@@ -67,7 +67,7 @@
   --bad: #c2300f;
   --warn: #a15c07;
   --notice: #b0460b;
-  --off: rgba(107, 114, 128, 0.32);
+  --off: rgba(90, 97, 109, 0.32);
   --shadow: 4px 0 24px rgba(15, 17, 21, 0.08);
   --pop: 0 12px 40px rgba(15, 17, 21, 0.16);
   /* iMac shell — translucent chrome surfaces + the floating window shadow. */

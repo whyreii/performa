@@ -1,13 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, MilestonePill, Skeleton, Card, Page, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col } from '../../components/ui';
-import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, milestoneDate } from '../../utils/datetime';
+import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
-import { CheckCircle2, ArrowRight, BookOpen, TrendingUp, UserCheck } from '../../components/icons';
+import { scoreTone, TONE_FILL, TONE_TEXT } from '../../utils/status';
+import { CheckCircle2, ArrowRight, BookOpen, UserCheck } from '../../components/icons';
 
 const LABEL_BY_KEY = Object.fromEntries(COMPETENCIES.map((c) => [c.key, c.label]));
 const competencyLabel = (key) => LABEL_BY_KEY[key] || key.replace(/_/g, ' ');
@@ -34,6 +35,24 @@ function employeeSummaryLine(summary) {
   return summary.status_classification === 'Meets Expectations'
     ? `You're meeting the regularizing standard across all five competencies. Smallest margin: ${lowest.label} (${lowest.value.toFixed(2)}).`
     : `You're below the regularizing standard in at least one competency. Lowest: ${lowest.label} (${lowest.value.toFixed(2)}).`;
+}
+
+// The plain-language standing, generated from the data — never a hardcoded name.
+function standingSentence(overall, competencies) {
+  if (overall === null) return 'Your competency scores will appear once you’ve been rated.';
+  const target = TARGET.toFixed(1);
+  const below = (competencies || [])
+    .filter((c) => Number(c.score) < Number(c.target || TARGET))
+    .map((c) => c.label);
+  const names =
+    below.length <= 1
+      ? below[0]
+      : `${below.slice(0, -1).join(', ')} and ${below[below.length - 1]}`;
+  const verb = below.length === 1 ? 'is' : 'are';
+  if (!below.length) return `Your overall score meets the ${target} standard.`;
+  return overall >= TARGET
+    ? `Your overall score meets the ${target} standard. ${names} ${verb} below it.`
+    : `Your overall score is below the ${target} standard. ${names} ${verb} below it.`;
 }
 
 export default function EmployeeDashboard() {
@@ -104,18 +123,36 @@ export default function EmployeeDashboard() {
     onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to acknowledge summary.')),
   });
 
+  const ackStandardsMutation = useMutation({
+    mutationFn: () => employeeApi.acknowledgeStandards(myProfile.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast.success('Standards acknowledged.');
+    },
+    onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to acknowledge standards.')),
+  });
+
+  // Rating-change feed: append a page, keep focus (item 5.8).
+  const [ratingLimit, setRatingLimit] = useState(4);
+  const [isExpandingRating, setIsExpandingRating] = useState(false);
+  const ratingMoreRef = useRef(null);
+
   const daysElapsed = myProfile ? getDaysElapsed(myProfile.start_date) : 0;
   const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
   const daysToReview = myProfile
     ? daysUntil(milestoneDate(myProfile.start_date, MILESTONE_REVIEW))
     : null;
   const overall = scorecard ? Number(scorecard.overall_score) : null;
-  const meetsStandard = overall !== null && overall >= TARGET;
   const first = (user?.full_name || '').split(' ')[0] || 'there';
   const unacknowledged = useMemo(() => mySummaries.filter((s) => !s.acknowledged_at), [mySummaries]);
   const currentMonth = Math.max(1, Math.min(PROBATION_MONTHS, monthNumberFor(daysElapsed)));
   // A terminal record has no "current" month — the probation clock has stopped.
   const isTerminal = myProfile?.status === 'regularized' || myProfile?.status === 'terminated';
+
+  const orderedTrend = useMemo(
+    () => [...trend].sort((a, b) => a.month_number - b.month_number),
+    [trend]
+  );
 
   if (isEmpError) {
     return (
@@ -126,34 +163,69 @@ export default function EmployeeDashboard() {
   }
 
   const trainingToDo = myTraining.filter((p) => p.status === 'approved');
+  const hasTraining = myTraining.length > 0;
+  const hasSummaries = mySummaries.length > 0;
+
+  // Checklist (item 5.5): each item is applicable or not; only applicable items
+  // count toward "N of M done". "Nothing assigned" is neutral, never "done".
   const checklist = [
     {
+      key: 'standards',
+      applicable: true,
       done: !!myProfile?.standards_acknowledged_at,
       label: 'Acknowledge your performance standards',
-      detail: myProfile?.standards_acknowledged_at ? `Done · ${formatDate(myProfile.standards_acknowledged_at)}` : 'Confirm the standards you’re being rated on',
+      detail: myProfile?.standards_acknowledged_at
+        ? `Done · ${formatDate(myProfile.standards_acknowledged_at)}`
+        : 'Confirm the standards you’re being rated on',
+      action: !myProfile?.standards_acknowledged_at ? { kind: 'ackStandards' } : null,
     },
     {
+      key: 'ratings',
+      applicable: true,
       done: !!scorecard,
       label: 'First weekly ratings recorded',
       detail: scorecard ? 'Done · your supervisor rates you weekly' : 'Waiting for your first evaluation',
     },
     {
-      done: !isSummariesLoading && unacknowledged.length === 0,
+      key: 'summaries',
+      applicable: hasSummaries,
+      done: hasSummaries && unacknowledged.length === 0,
       label: 'Acknowledge shared monthly summaries',
-      detail: unacknowledged.length ? `${unacknowledged.length} awaiting your acknowledgment` : 'All summaries acknowledged',
+      detail: !hasSummaries
+        ? 'Nothing shared yet'
+        : unacknowledged.length
+        ? `${unacknowledged.length} awaiting your acknowledgment`
+        : 'All summaries acknowledged',
       action: unacknowledged.length ? { kind: 'ack', summary: unacknowledged[0] } : null,
     },
     {
-      done: !isTrainingLoading && trainingToDo.length === 0,
+      key: 'training',
+      applicable: hasTraining,
+      done: hasTraining && trainingToDo.length === 0,
       label: 'Complete assigned training',
-      detail: trainingToDo.length
+      detail: !hasTraining
+        ? 'Nothing assigned'
+        : trainingToDo.length
         ? `${trainingToDo.length} module${trainingToDo.length === 1 ? '' : 's'} to complete`
-        : myTraining.length
-        ? 'All training completed'
-        : 'No training assigned',
+        : 'All training completed',
       action: trainingToDo.length ? { kind: 'training' } : null,
     },
   ];
+  const applicableChecklist = checklist.filter((c) => c.applicable);
+  const checklistDone = applicableChecklist.filter((c) => c.done).length;
+
+  const dateItems = myProfile
+    ? [
+        { label: 'Started', date: myProfile.start_date, day: 0 },
+        { label: 'Review', date: milestoneDate(myProfile.start_date, MILESTONE_REVIEW), day: MILESTONE_REVIEW },
+        { label: 'Probation ends', date: myProfile.day_180_date, day: PROBATION_DAYS },
+      ]
+    : [];
+
+  const monthRange = (point) =>
+    point?.period_start && point?.period_end
+      ? `${formatDayMonth(point.period_start)} – ${formatDayMonth(point.period_end)}`
+      : null;
 
   return (
     <Page
@@ -165,94 +237,180 @@ export default function EmployeeDashboard() {
       }
       actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}
     >
-      {/* Dashboard body — main column (1–8) + side rail (9–12) on the shared grid */}
       <PageGrid className="space-y-4 lg:space-y-0 lg:gap-y-4 lg:items-start">
         <Col span={8} className="space-y-4 min-w-0">
-      {/* Greeting + plain dates */}
-      <Card padded={false} flat className="">
-        {isEmpLoading ? (
-          <Skeleton className="h-16 w-full" />
-        ) : (
-          <>
-            <p className="text-22 font-semibold tracking-tight text-ink">
-              {daysToReview === null ? (
-                <>Hi {first}.</>
-              ) : daysToReview > 0 ? (
-                <>Hi {first}, {daysToReview} {daysToReview === 1 ? 'day' : 'days'} to your review.</>
-              ) : daysElapsed <= PROBATION_DAYS ? (
-                <>Hi {first}, {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} until the {PROBATION_DAYS}-day cap.</>
-              ) : (
-                <>Hi {first}, you are past the {PROBATION_DAYS}-day cap.</>
-              )}
-            </p>
-            <p className="text-14 text-ink-2 mt-1.5">
-              {overall === null
-                ? 'Here’s where you stand and what’s next.'
-                : meetsStandard
-                ? 'You’re meeting the regularizing standard. Keep going.'
-                : 'Focus on your competencies below. There’s time to build them up.'}
-            </p>
-            {myProfile && (
-              <p className="text-14 text-ink-3 mt-3">
-                Started <span className="font-num text-ink">{formatDate(myProfile.start_date)}</span> · Review{' '}
-                <span className="font-num text-ink">{formatDate(milestoneDate(myProfile.start_date, MILESTONE_REVIEW))}</span> · Probation ends{' '}
-                <span className="font-num text-ink">{formatDate(myProfile.day_180_date)}</span>
-              </p>
-            )}
-            {myProfile && (
-              <Link
-                to={`/employees/${myProfile.id}`}
-                className="inline-flex items-center gap-1 text-14 font-semibold text-accent hover:underline mt-3"
-              >
-                View your full record
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            )}
-          </>
-        )}
-      </Card>
+          {/* Greeting · overall vs standard · plain dates */}
+          <Card padded={false} flat className="">
+            {isEmpLoading ? (
+              <Skeleton className="h-16 w-full" />
+            ) : (
+              <>
+                <p className="text-22 font-semibold tracking-tight text-ink">
+                  {daysToReview === null ? (
+                    <>Hi {first}.</>
+                  ) : daysToReview > 0 ? (
+                    <>Hi {first}, {daysToReview} {daysToReview === 1 ? 'day' : 'days'} to your review.</>
+                  ) : daysElapsed <= PROBATION_DAYS ? (
+                    <>Hi {first}, {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} until the {PROBATION_DAYS}-day cap.</>
+                  ) : (
+                    <>Hi {first}, you are past the {PROBATION_DAYS}-day cap.</>
+                  )}
+                </p>
 
-      {/* How you're doing — the competency ledger */}
-      <Card padded={false} flat className="">
-        <SectionHead
-          title="How you’re doing"
-          subtitle={
-            scorecard?.latest_evaluation_date
-              ? `Latest week · ${formatDate(scorecard.latest_evaluation_date)}`
-              : undefined
-          }
-          note={
-            overall !== null
-              ? `${meetsStandard ? 'On track' : 'Below'} · target ${TARGET.toFixed(1)}`
-              : `target ${TARGET.toFixed(1)}`
-          }
-        />
-        {isScoreLoading ? (
-          <Skeleton className="h-40 w-full" />
-        ) : !scorecard?.competencies?.length ? (
-          <p className="text-14 text-ink-3">Your competency scores will appear once you’ve been rated.</p>
-        ) : (
-          <ScoreLedger competencies={scorecard.competencies} />
-        )}
-      </Card>
+                {/* Overall score beside the standard (item 5.1). */}
+                <p className="mt-3 flex items-baseline gap-2 flex-wrap">
+                  <span className="text-12 text-ink-3">Overall</span>
+                  <span
+                    className={`text-22 font-semibold font-num ${
+                      overall !== null ? TONE_TEXT[scoreTone(overall, TARGET)] : 'text-ink-3'
+                    }`}
+                  >
+                    {overall !== null ? overall.toFixed(2) : '—'}
+                  </span>
+                  <span className="text-12 text-ink-3">· standard {TARGET.toFixed(1)}</span>
+                </p>
+                <p className="text-14 text-ink-2 mt-1.5 leading-relaxed">
+                  {standingSentence(overall, scorecard?.competencies)}
+                </p>
 
-      {/* G — From your supervisor */}
-      <Card padded={false} flat className="">
-        <SectionHead
-          title="From your supervisor"
-          note={
-            notedRemarks.length + auditLogs.length
-              ? `${notedRemarks.length + auditLogs.length} updates`
-              : undefined
-          }
-        />
-        {isRemarksLoading || isAuditLoading ? (
-          <Skeleton className="h-24 w-full" />
-        ) : notedRemarks.length === 0 && auditLogs.length === 0 ? (
-          <p className="text-14 text-ink-3">No feedback from your supervisor yet.</p>
-        ) : (
-          <>
-            {notedRemarks.length > 0 && (
+                {dateItems.length > 0 && (
+                  <dl className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {dateItems.map((it) => (
+                      <div key={it.label}>
+                        <dt className="text-12 text-ink-3">{it.label}</dt>
+                        <dd className="text-14 text-ink mt-0.5">
+                          <span className="font-num">{formatDate(it.date)}</span>
+                          <span className="text-12 text-ink-3 font-num ml-2">Day {it.day}</span>
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+
+                {myProfile && (
+                  <Link
+                    to={`/employees/${myProfile.id}`}
+                    className="inline-flex items-center gap-1 text-14 font-semibold text-accent hover:underline mt-4"
+                  >
+                    View full history
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                )}
+              </>
+            )}
+          </Card>
+
+          {/* How you're doing — the competency ledger */}
+          <Card padded={false} flat className="">
+            <SectionHead
+              title="How you’re doing"
+              subtitle={
+                scorecard?.latest_evaluation_date
+                  ? `Latest week: ${formatDate(scorecard.latest_evaluation_date)}`
+                  : undefined
+              }
+              note={`Standard: ${TARGET.toFixed(1)}`}
+            />
+            {isScoreLoading ? (
+              <Skeleton className="h-40 w-full" />
+            ) : !scorecard?.competencies?.length ? (
+              <p className="text-14 text-ink-3">Your competency scores will appear once you’ve been rated.</p>
+            ) : (
+              <>
+                <ScoreLedger competencies={scorecard.competencies} />
+                <p className="mt-3 text-12 text-ink-3">
+                  Score key:{' '}
+                  <span className="text-good">≥ {TARGET.toFixed(1)} meets</span>
+                  {' · '}
+                  <span className="text-warn">3.0–{TARGET.toFixed(1)} below</span>
+                  {' · '}
+                  <span className="text-bad">{'< 3.0 critical gap'}</span>
+                </p>
+              </>
+            )}
+          </Card>
+
+          {/* Recent rating changes (item 5.8) */}
+          <Card padded={false} flat className="">
+            <SectionHead
+              title="Recent rating changes"
+              subtitle="From your weekly ratings"
+              note={
+                auditLogs.length > ratingLimit ? (
+                  <button
+                    type="button"
+                    ref={ratingMoreRef}
+                    onClick={() => {
+                      setIsExpandingRating(true);
+                      window.setTimeout(() => {
+                        setRatingLimit((n) => Math.min(n + 25, auditLogs.length));
+                        setIsExpandingRating(false);
+                        ratingMoreRef.current?.focus();
+                      }, 0);
+                    }}
+                    disabled={isExpandingRating}
+                    aria-busy={isExpandingRating || undefined}
+                    className="text-accent font-semibold hover:underline disabled:opacity-60"
+                  >
+                    {isExpandingRating ? 'Loading…' : `Show all ${auditLogs.length}`}
+                  </button>
+                ) : auditLogs.length ? (
+                  `${auditLogs.length} changes`
+                ) : undefined
+              }
+            />
+            {isAuditLoading ? (
+              <Skeleton className="h-24 w-full" />
+            ) : auditLogs.length === 0 ? (
+              <p className="text-14 text-ink-3">No rating changes yet.</p>
+            ) : (
+              <ul className="space-y-3.5">
+                {auditLogs.slice(0, ratingLimit).map((log) => {
+                  const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
+                  const delta = hasPrior ? Number(log.new_score) - Number(log.prior_score) : null;
+                  return (
+                    <li key={log.id} className="flex items-start gap-3">
+                      <UserCheck className="w-5 h-5 shrink-0 mt-0.5 text-ink-3" aria-hidden="true" />
+                      <div className="text-14 text-ink-2">
+                        <span className="font-semibold text-ink">{log.evaluator_name || 'Your supervisor'}</span>{' '}
+                        rated{' '}
+                        <span className="text-ink">
+                          {log.competency ? competencyLabel(log.competency) : 'a competency'}
+                        </span>{' '}
+                        <span className="font-num text-ink">
+                          {hasPrior ? `${Number(log.prior_score).toFixed(1)} → ` : 'Initial → '}
+                          {Number(log.new_score).toFixed(1)}
+                          {hasPrior ? (
+                            <span className="text-ink-3">
+                              {' '}
+                              ({delta >= 0 ? '+' : '−'}
+                              {Math.abs(delta).toFixed(1)})
+                            </span>
+                          ) : null}
+                        </span>
+                        <div className="text-12 text-ink-3 mt-0.5 font-num">
+                          {formatDate(log.created_at, { withTime: true, seconds: false })}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Card>
+
+          {/* From your supervisor — behavioral remarks */}
+          <Card padded={false} flat className="">
+            <SectionHead
+              title="Supervisor remarks"
+              subtitle="From your weekly ratings"
+              note={notedRemarks.length ? `${notedRemarks.length} noted` : undefined}
+            />
+            {isRemarksLoading ? (
+              <Skeleton className="h-16 w-full" />
+            ) : notedRemarks.length === 0 ? (
+              <p className="text-14 text-ink-3">No feedback from your supervisor yet.</p>
+            ) : (
               <ul className="space-y-4">
                 {notedRemarks.slice(0, 3).map((r) => (
                   <li key={r.id}>
@@ -266,190 +424,202 @@ export default function EmployeeDashboard() {
                 ))}
               </ul>
             )}
-            {auditLogs.length > 0 && (
-              <div className={notedRemarks.length ? 'mt-4 pt-4 border-t border-line' : ''}>
-                <p className="text-12 font-semibold text-ink-3 mb-2">Rating changes</p>
-                <ul className="space-y-3.5">
-                  {auditLogs.slice(0, 4).map((log) => {
-                    const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
-                    return (
-                      <li key={log.id} className="flex items-start gap-3">
-                        <UserCheck className="w-5 h-5 shrink-0 mt-0.5 text-ink-3" aria-hidden="true" />
-                        <div className="text-14 text-ink-2">
-                          <span className="font-semibold text-ink">{log.evaluator_name || 'Your supervisor'}</span>{' '}
-                          rated <span className="text-ink">{log.competency ? competencyLabel(log.competency) : 'a competency'}</span>{' '}
-                          <span className="font-num text-ink">
-                            {hasPrior ? `${Number(log.prior_score).toFixed(1)} → ` : ''}
-                            {Number(log.new_score).toFixed(1)}
+          </Card>
+
+          {/* Monthly summaries */}
+          {!isSummariesLoading && mySummaries.length > 0 && (
+            <Card padded={false} flat className="">
+              <SectionHead
+                title="Monthly summaries"
+                subtitle="Shared by your employer for acknowledgment"
+                note={unacknowledged.length === 0 ? <Badge variant="ok">All acknowledged</Badge> : undefined}
+              />
+              <ul className="space-y-4">
+                {[...mySummaries]
+                  .sort((a, b) => a.month_number - b.month_number)
+                  .map((s) => (
+                    <li key={s.id}>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="text-12">
+                          <span className="font-semibold text-ink">Month {s.month_number}</span>
+                          <span className="text-ink-3 font-num ml-2">
+                            Avg {Number(s.overall_average).toFixed(2)}
                           </span>
-                          <div className="text-12 text-ink-3 mt-0.5 font-num">{formatDate(log.created_at)}</div>
+                          <span className="text-ink-3 ml-2 capitalize">
+                            {s.status_classification?.replace(/_/g, ' ')}
+                          </span>
                         </div>
+                        {s.acknowledged_at ? (
+                          <Badge variant="ok">Acknowledged</Badge>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="primary"
+                            isLoading={ackSummaryMutation.isPending}
+                            onClick={() => ackSummaryMutation.mutate(s.id)}
+                          >
+                            Acknowledge Month {s.month_number}
+                          </Button>
+                        )}
+                      </div>
+                      {employeeSummaryLine(s) && (
+                        <p className="text-14 text-ink mt-1.5 leading-relaxed">{employeeSummaryLine(s)}</p>
+                      )}
+                      {s.performance_summary && (
+                        <p className="text-14 text-ink-2 mt-1 leading-relaxed">
+                          <span className="text-ink-3">From your employer: </span>
+                          {s.performance_summary}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+              </ul>
+            </Card>
+          )}
+        </Col>
+
+        {/* Side rail — checklist + monthly progress */}
+        <Col span={4} start={9} className="space-y-4 min-w-0">
+          {/* Your checklist (item 5.5) */}
+          <Card padded={false} flat className="">
+            <SectionHead
+              title="Your checklist"
+              note={`${checklistDone} of ${applicableChecklist.length} done`}
+            />
+            <ul className="divide-y divide-line">
+              {checklist.map((item) => (
+                <li key={item.key} className="py-3.5 first:pt-0 last:pb-0 flex items-start gap-3">
+                  {!item.applicable ? (
+                    <span
+                      className="w-5 h-5 shrink-0 mt-0.5 rounded-full border-2 border-ink-3/30"
+                      aria-hidden="true"
+                    />
+                  ) : item.done ? (
+                    <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-good" aria-hidden="true" />
+                  ) : (
+                    <span
+                      className="w-5 h-5 shrink-0 mt-0.5 rounded-full border-2 border-ink-3/50"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0 flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-14 text-ink">
+                        {item.label}
+                        <span className="sr-only">
+                          {!item.applicable ? ', not applicable' : item.done ? ', done' : ', not done'}
+                        </span>
+                      </div>
+                      <div className="text-12 text-ink-3 mt-0.5">{item.detail}</div>
+                    </div>
+                    {item.action?.kind === 'ackStandards' && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        isLoading={ackStandardsMutation.isPending}
+                        onClick={() => ackStandardsMutation.mutate()}
+                      >
+                        Review and acknowledge
+                      </Button>
+                    )}
+                    {item.action?.kind === 'ack' && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        isLoading={ackSummaryMutation.isPending}
+                        onClick={() => ackSummaryMutation.mutate(item.action.summary.id)}
+                      >
+                        Acknowledge
+                      </Button>
+                    )}
+                    {item.action?.kind === 'training' && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        leftIcon={BookOpen}
+                        onClick={() => navigate('/employee/training')}
+                      >
+                        Open
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {hasTraining && (
+              <div className="mt-3 pt-3 border-t border-line">
+                <Link
+                  to="/employee/training"
+                  className="inline-flex items-center gap-1 text-12 font-semibold text-accent hover:underline"
+                >
+                  View all training
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            )}
+          </Card>
+
+          {/* Month by month — compact strip (item 5.6) */}
+          <Card padded={false} flat className="">
+            <SectionHead title="Month by month" subtitle="Your monthly average" />
+            {isTrendLoading ? (
+              <Skeleton className="h-20 w-full" />
+            ) : (
+              <>
+                <ul className="space-y-1">
+                  {Array.from({ length: currentMonth }, (_, i) => i + 1).map((m) => {
+                    const point = orderedTrend.find((p) => p.month_number === m);
+                    const isNow = !isTerminal && m === currentMonth;
+                    const avg = point ? Number(point.overall_average) : null;
+                    const tone = avg != null ? scoreTone(avg, TARGET) : null;
+                    return (
+                      <li
+                        key={m}
+                        className="flex items-center gap-3 border-t border-line py-2 first:border-t-0"
+                      >
+                        <span className="w-44 shrink-0 truncate text-12 text-ink-2">
+                          Month {m}
+                          {monthRange(point) ? ` · ${monthRange(point)}` : ''}
+                        </span>
+                        {avg != null ? (
+                          <>
+                            <span className="relative h-2 flex-1 rounded-full bg-hover">
+                              <i
+                                className={`absolute inset-y-0 left-0 rounded-full ${TONE_FILL[tone]}`}
+                                style={{ width: `${(avg / 5) * 100}%` }}
+                              />
+                              <i
+                                className="absolute -top-1.5 -bottom-1.5 w-px bg-ink-3/60"
+                                style={{ left: `${(TARGET / 5) * 100}%` }}
+                              />
+                            </span>
+                            <span
+                              className={`w-10 shrink-0 text-right text-12 font-semibold font-num ${TONE_TEXT[tone]}`}
+                            >
+                              {avg.toFixed(2)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="flex-1 text-12 text-ink-3">
+                            {isNow ? 'In progress · You are here' : 'No data yet'}
+                          </span>
+                        )}
                       </li>
                     );
                   })}
                 </ul>
-              </div>
+                {currentMonth < PROBATION_MONTHS && (
+                  <p className="mt-3 text-12 text-ink-3">
+                    {currentMonth + 1 === PROBATION_MONTHS
+                      ? `Month ${PROBATION_MONTHS} upcoming`
+                      : `Months ${currentMonth + 1}–${PROBATION_MONTHS} upcoming`}
+                  </p>
+                )}
+              </>
             )}
-          </>
-        )}
-
-        {/* Monthly summaries */}
-        {!isSummariesLoading && mySummaries.length > 0 && (
-          <div className="mt-5 pt-5 border-t border-line">
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="w-5 h-5 shrink-0 text-ink-3" aria-hidden="true" />
-                <div className="text-14 text-ink">Monthly summaries</div>
-              </div>
-              {unacknowledged.length === 0 && <Badge variant="ok">All acknowledged</Badge>}
-            </div>
-            <ul className="space-y-4">
-              {[...mySummaries]
-                .sort((a, b) => a.month_number - b.month_number)
-                .map((s) => (
-                  <li key={s.id}>
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="text-12">
-                        <span className="font-semibold text-ink">Month {s.month_number}</span>
-                        <span className="text-ink-3 font-num ml-2">
-                          Avg {Number(s.overall_average).toFixed(2)}
-                        </span>
-                        <span className="text-ink-3 ml-2 capitalize">
-                          {s.status_classification?.replace(/_/g, ' ')}
-                        </span>
-                      </div>
-                      {s.acknowledged_at ? (
-                        <Badge variant="ok">Acknowledged</Badge>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          isLoading={ackSummaryMutation.isPending}
-                          onClick={() => ackSummaryMutation.mutate(s.id)}
-                        >
-                          Acknowledge Month {s.month_number}
-                        </Button>
-                      )}
-                    </div>
-                    {employeeSummaryLine(s) && (
-                      <p className="text-14 text-ink mt-1.5 leading-relaxed">{employeeSummaryLine(s)}</p>
-                    )}
-                    {s.performance_summary && (
-                      <p className="text-14 text-ink-2 mt-1 leading-relaxed">
-                        <span className="text-ink-3">From your employer: </span>
-                        {s.performance_summary}
-                      </p>
-                    )}
-                  </li>
-                ))}
-            </ul>
-          </div>
-        )}
-      </Card>
-
-        </Col>
-
-        {/* Side rail — next steps + monthly progress */}
-        <Col span={4} start={9} className="space-y-4 min-w-0">
-      {/* Your checklist */}
-      <Card padded={false} flat className="">
-        <SectionHead
-          title="Your checklist"
-          note={`${checklist.filter((c) => c.done).length} of ${checklist.length} done`}
-        />
-        <ul className="divide-y divide-line">
-          {checklist.map((item) => (
-            <li key={item.label} className="py-3.5 first:pt-0 last:pb-0 flex items-start gap-3">
-              {item.done ? (
-                <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-good" aria-hidden="true" />
-              ) : (
-                <span className="w-5 h-5 shrink-0 mt-0.5 rounded-full border-2 border-ink-3/50" aria-hidden="true" />
-              )}
-              <div className="flex-1 min-w-0 flex items-start justify-between gap-4">
-                <div>
-                  <div className="text-14 text-ink">
-                    {item.label}
-                    <span className="sr-only">{item.done ? ', done' : ', to do'}</span>
-                  </div>
-                  <div className="text-12 text-ink-3 mt-0.5">{item.detail}</div>
-                </div>
-                {item.action?.kind === 'ack' && (
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    isLoading={ackSummaryMutation.isPending}
-                    onClick={() => ackSummaryMutation.mutate(item.action.summary.id)}
-                  >
-                    Acknowledge
-                  </Button>
-                )}
-                {item.action?.kind === 'training' && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    leftIcon={BookOpen}
-                    onClick={() => navigate('/employee/training')}
-                  >
-                    Open
-                  </Button>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </Card>
-
-      {/* Month by month */}
-      <Card padded={false} flat className="">
-        <SectionHead title="Month by month" note="your monthly average" />
-        {isTrendLoading ? (
-          <Skeleton className="h-20 w-full" />
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4, 5, 6].map((month) => {
-              const point = trend.find((p) => p.month_number === month);
-              const hasData = point !== undefined;
-              const isNow = !isTerminal && month === currentMonth;
-              const meets = hasData && Number(point.overall_average) >= TARGET;
-              return (
-                <div
-                  key={month}
-                  className={`rounded-ctl border p-3.5 ${isNow ? 'border-accent/50' : 'border-line'}${
-                    hasData ? '' : ' opacity-60'
-                  }`}
-                >
-                  <div className="text-12 text-ink-3 font-semibold">Month {month}</div>
-                  {hasData ? (
-                    <>
-                      <div className={`text-22 font-semibold mt-1 font-num ${meets ? 'text-good' : 'text-warn'}`}>
-                        {Number(point.overall_average).toFixed(1)}
-                      </div>
-                      <div className="h-1.5 rounded-full bg-hover mt-2.5 overflow-hidden">
-                        <div
-                          className={meets ? 'h-full rounded-full bg-good' : 'h-full rounded-full bg-warn'}
-                          style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-12 text-ink-3 mt-1.5">{isNow ? 'In progress' : 'Upcoming'}</div>
-                  )}
-                  {isNow && <div className="text-12 font-semibold text-accent mt-2">You are here</div>}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Card>
+          </Card>
         </Col>
       </PageGrid>
-
-      <div className="flex justify-end">
-        <Link to="/employee/training" className="inline-flex items-center gap-1 text-12 font-semibold text-accent hover:underline">
-          View all training
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
-      </div>
     </Page>
   );
 }
