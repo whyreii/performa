@@ -9,6 +9,7 @@ import {
   MILESTONE_CRITICAL,
   MILESTONES,
   PROBATION_DAYS,
+  CRITICAL_GAP_FLOOR,
 } from '../config/domain';
 
 // Four semantic tones, mapped to the four status colours. `text`/`bg` are the
@@ -120,6 +121,6 @@ export function nextMilestone(daysElapsed) {
 export function scoreTone(score, target) {
   const s = Number(score) || 0;
   if (s >= Number(target)) return 'ok';
-  if (s >= 3.0) return 'warn';
+  if (s >= CRITICAL_GAP_FLOOR) return 'warn';
   return 'bad';
 }

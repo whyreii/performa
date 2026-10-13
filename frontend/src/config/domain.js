@@ -12,6 +12,10 @@ export const PROBATION_MONTHS = PROBATION_DAYS / PROBATION_MONTH_DAYS;
 // set higher per-competency targets via /api/kpi-rubrics, but never lower.
 export const TARGET = 4.0;
 
+// Score-key floor: a competency below this is a "critical gap" (the single 3.0
+// boundary shared by scoreTone() and every printed score key).
+export const CRITICAL_GAP_FLOOR = 3.0;
+
 // Article 296 statutory milestone thresholds.
 export const MILESTONE_REVIEW = 150;
 export const MILESTONE_NOTICE = 165;

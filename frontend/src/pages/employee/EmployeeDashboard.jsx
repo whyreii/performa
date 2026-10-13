@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, MilestonePill, Skeleton, Page, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col, StatBand } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
-import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
+import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, CRITICAL_GAP_FLOOR, COMPETENCIES } from '../../config/domain';
 import { scoreTone, formatProbationDay, TONE_FILL, TONE_TEXT } from '../../utils/status';
 import { CheckCircle2, ArrowRight, BookOpen, UserCheck } from '../../components/icons';
 
@@ -133,7 +133,7 @@ export default function EmployeeDashboard() {
   });
 
   // Rating-change feed: append a page, keep focus (item 5.8).
-  const [ratingLimit, setRatingLimit] = useState(4);
+  const [ratingLimit, setRatingLimit] = useState(COMPETENCIES.length);
   const [isExpandingRating, setIsExpandingRating] = useState(false);
   const ratingMoreRef = useRef(null);
 
@@ -332,11 +332,11 @@ export default function EmployeeDashboard() {
                 <ScoreLedger competencies={scorecard.competencies} />
                 <p className="mt-3 text-12 text-ink-3">
                   Score key:{' '}
-                  <span className="text-good">≥ {TARGET.toFixed(1)} meets</span>
+                  <span className="text-bad">{`1.0 – <${CRITICAL_GAP_FLOOR.toFixed(1)} critical gap`}</span>
                   {' · '}
-                  <span className="text-warn">3.0–{TARGET.toFixed(1)} below</span>
+                  <span className="text-warn">{`${CRITICAL_GAP_FLOOR.toFixed(1)} – <${TARGET.toFixed(1)} below`}</span>
                   {' · '}
-                  <span className="text-bad">{'< 3.0 critical gap'}</span>
+                  <span className="text-good">{`${TARGET.toFixed(1)} – 5.0 meets`}</span>
                 </p>
               </>
             )}

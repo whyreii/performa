@@ -94,7 +94,8 @@ describe('Score key tiles the whole 1.0–5.0 scale', () => {
 
   it('EmployeeDashboard', async () => {
     employeeApi.list.mockResolvedValue([MY_PROFILE]);
-    evaluationApi.getAuditTrail.mockResolvedValue([]);
+    // The scorecard query is gated on the audit trail being non-empty.
+    evaluationApi.getAuditTrail.mockResolvedValue(auditRows());
     evaluationApi.getScorecard.mockResolvedValue(scorecard());
     evaluationApi.getTrend.mockResolvedValue([]);
     interventionApi.listMySummaries.mockResolvedValue([]);

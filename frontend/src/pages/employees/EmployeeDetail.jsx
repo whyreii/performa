@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, Skeleton, Card, Page, Modal, EmptyState, Label, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
-import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, COMPETENCIES } from '../../config/domain';
+import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, CRITICAL_GAP_FLOOR, COMPETENCIES } from '../../config/domain';
 import { BRAND } from '../../config/brand';
 import { milestoneTone, milestoneStage, formatProbationDay, nextMilestone, scoreTone, TONE_TEXT, TONE_BG, TONE_FILL } from '../../utils/status';
 import { getInitials } from '../../utils/format';
@@ -72,7 +72,7 @@ export default function EmployeeDetail() {
   const [selectedStatus, setSelectedStatus] = useState('regularized');
   const [statusReason, setStatusReason] = useState('');
   const [actionError, setActionError] = useState('');
-  const [historyLimit, setHistoryLimit] = useState(5);
+  const [historyLimit, setHistoryLimit] = useState(COMPETENCIES.length);
   const [isExpandingHistory, setIsExpandingHistory] = useState(false);
   const [remarksLimit, setRemarksLimit] = useState(3);
   const [showModelDetail, setShowModelDetail] = useState(false);
@@ -636,7 +636,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                       <span className="text-12 text-ink-3">
                         overall / 5.00 ·{' '}
                         {Number(scorecard.overall_score) >= overallTarget ? 'meets' : 'below'} the{' '}
-                        {overallTarget.toFixed(2)} standard
+                        {overallTarget.toFixed(1)} standard
                       </span>
                     </div>
                     <div className="pt-2">
@@ -681,11 +681,11 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                     </div>
                     <p className="mt-3 text-12 text-ink-3">
                       Score key:{' '}
-                      <span className="text-good">≥ {overallTarget.toFixed(1)} meets</span>
+                      <span className="text-bad">{`1.0 – <${CRITICAL_GAP_FLOOR.toFixed(1)} critical gap`}</span>
                       {' · '}
-                      <span className="text-warn">3.0–{overallTarget.toFixed(1)} below</span>
+                      <span className="text-warn">{`${CRITICAL_GAP_FLOOR.toFixed(1)} – <${overallTarget.toFixed(1)} below`}</span>
                       {' · '}
-                      <span className="text-bad">{'< 3.0 critical gap'}</span>
+                      <span className="text-good">{`${overallTarget.toFixed(1)} – 5.0 meets`}</span>
                     </p>
                   </>
                 )}
@@ -968,7 +968,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <SectionHead
                 title="Monthly KPI trend"
                 subtitle="Monthly rollup"
-                note={`target ≥ ${overallTarget.toFixed(2)}`}
+                note={`target ≥ ${overallTarget.toFixed(1)}`}
               />
               {isTrendLoading ? (
                 <div className="space-y-3">
@@ -1018,7 +1018,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                           <div
                             className="absolute top-0 bottom-0 w-0.5 bg-ink/60 z-10"
                             style={{ left: `${(overallTarget / 5) * 100}%` }}
-                            title={`Target ${overallTarget.toFixed(2)} / 5.0`}
+                            title={`Target ${overallTarget.toFixed(1)} / 5.0`}
                           />
                         </div>
                       </div>
