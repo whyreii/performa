@@ -12,12 +12,15 @@ const DEFAULT_WEIGHT = 0.2;
 
 // The four score bands — defined ONCE. Every competency is read against the same
 // bands, so the band header renders a single time above the matrix instead of
-// repeating under each competency.
+// repeating under each competency. Ranges are half-open ("4.0 – <4.6", upper
+// bound exclusive) so every 2-decimal overall score lands in exactly one band;
+// only the top band includes 5.0. The Proficient floor comes from TARGET
+// (config/domain), so the regularizing boundary lives in one place.
 const BANDS = [
-  { key: 'unsat', range: '1.0 - 2.9', title: 'Unsatisfactory', tone: 'bad' },
-  { key: 'dev', range: '3.0 - 3.9', title: 'Developing', tone: 'neutral' },
-  { key: 'prof', range: '4.0 - 4.5', title: 'Proficient (target)', tone: 'good' },
-  { key: 'exemp', range: '4.6 - 5.0', title: 'Exemplary', tone: 'good' },
+  { key: 'unsat', range: '1.0 – <3.0', title: 'Unsatisfactory', tone: 'bad' },
+  { key: 'dev', range: `3.0 – <${TARGET.toFixed(1)}`, title: 'Developing', tone: 'neutral' },
+  { key: 'prof', range: `${TARGET.toFixed(1)} – <4.6`, title: 'Proficient', tone: 'good' },
+  { key: 'exemp', range: '4.6 – 5.0', title: 'Exemplary', tone: 'good' },
 ];
 
 // Level descriptors, keyed by competency and ordered to match BANDS. The
@@ -94,7 +97,7 @@ export default function Rubrics() {
         return {
           competency: c.key,
           label: c.label,
-          target: String(Number(r?.target_score ?? TARGET)),
+          target: Number(r?.target_score ?? TARGET).toFixed(1),
           weightPct: String(Math.round(Number(r?.weight ?? DEFAULT_WEIGHT) * 100)),
         };
       })
@@ -160,7 +163,7 @@ export default function Rubrics() {
         if (!t) return row;
         return {
           ...row,
-          target: String(Number(t.target_score)),
+          target: Number(t.target_score).toFixed(1),
           weightPct: String(Math.round(Number(t.weight) * 100)),
         };
       })
@@ -197,7 +200,7 @@ export default function Rubrics() {
           <SectionHead
             title="KPI Configuration"
             subtitle={`Targets floored at the ${TARGET.toFixed(1)} regularizing standard · weights are relative`}
-            note={<Badge variant={weightTotal === 100 ? 'ok' : 'warn'}>Weights {weightTotal}%</Badge>}
+            note={<Badge variant="neutral">Weights {weightTotal}%</Badge>}
           />
 
           <div>
@@ -244,12 +247,6 @@ export default function Rubrics() {
               </div>
             ))}
           </div>
-
-          {weightTotal !== 100 && (
-            <p className="text-12 text-warn pt-2">
-              Weights total {weightTotal}% — the five weights should sum to 100%.
-            </p>
-          )}
 
           <div className="flex flex-col lg:flex-row lg:items-end gap-3 pt-3 mt-2 border-t border-line">
             <div className="w-full lg:w-64">
