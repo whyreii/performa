@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { Routes, Route } from 'react-router-dom';
 import Login from './Login';
 import { authApi } from '../../api';
@@ -67,5 +67,18 @@ describe('Login', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Incorrect email or password');
+  });
+
+  it('explains an expired session after a 401', async () => {
+    authApi.getCurrentUser.mockResolvedValue(testUser('employer'));
+    renderLogin(testUser('employer'));
+
+    // Let the provider hydrate the live session, then drop it.
+    await waitFor(() => expect(authApi.getCurrentUser).toHaveBeenCalled());
+    window.dispatchEvent(new Event('performa:unauthorized'));
+
+    expect(
+      await screen.findByText('Your session expired. Please sign in again.')
+    ).toBeInTheDocument();
   });
 });

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { PerformaMark, Eye, EyeOff, AlertCircle, Sun, Moon } from '../../components/icons';
+import { PerformaMark, Eye, EyeOff, AlertCircle, Sun, Moon, Info } from '../../components/icons';
 import { TextField, Button, Surface, Badge, Label, inputClass, PageGrid, Row, Col } from '../../components/ui';
 import { COMPETENCIES } from '../../config/domain';
 
@@ -24,7 +24,7 @@ const DEMO_ACCOUNTS = [
 ];
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, sessionExpired } = useAuth();
   const { mode, setMode } = useTheme();
   const navigate = useNavigate();
 
@@ -118,6 +118,16 @@ export default function Login() {
           <Col as="section" span={5}>
             <h1 className="text-30 font-semibold tracking-tight text-ink">Sign in</h1>
             <p className="text-14 text-ink-2 mt-2">Use your work account to continue to Performa.</p>
+
+            {sessionExpired && (
+              <div
+                role="status"
+                className="mt-6 p-3 rounded-ctl bg-hover border border-line text-ink-2 text-14 flex items-start gap-2"
+              >
+                <Info className="w-4 h-4 mt-0.5 flex-none text-ink-3" />
+                <span>Your session expired. Please sign in again.</span>
+              </div>
+            )}
 
             {error && (
               <div

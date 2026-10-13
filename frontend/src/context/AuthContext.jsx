@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { authApi, getApiErrorMessage } from '../api';
 
@@ -17,6 +17,14 @@ export function AuthProvider({ children }) {
   });
 
   const [isLoading, setIsLoading] = useState(true);
+
+  // True only when a 401 ended a *live* session (not a cold-start 401 with no
+  // session). The login page uses it to explain why the user is back here.
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const wasAuthenticated = useRef(false);
+  useEffect(() => {
+    wasAuthenticated.current = !!user;
+  }, [user]);
 
   const persistUser = useCallback((userData) => {
     setUser(userData);
@@ -51,6 +59,7 @@ export function AuthProvider({ children }) {
     const handleUnauthorized = () => {
       queryClient.clear();
       persistUser(null);
+      setSessionExpired(wasAuthenticated.current);
     };
     window.addEventListener('performa:unauthorized', handleUnauthorized);
     return () => window.removeEventListener('performa:unauthorized', handleUnauthorized);
@@ -88,6 +97,7 @@ export function AuthProvider({ children }) {
       } catch {}
       const userData = await authApi.getCurrentUser();
       persistUser(userData);
+      setSessionExpired(false);
       return { success: true, user: userData };
     } catch (err) {
       persistUser(null);
@@ -144,13 +154,14 @@ export function AuthProvider({ children }) {
       user,
       isAuthenticated: !!user,
       isLoading,
+      sessionExpired,
       login,
       register,
       resetPassword,
       logout,
       refreshUser,
     }),
-    [user, isLoading, login, register, resetPassword, logout, refreshUser]
+    [user, isLoading, sessionExpired, login, register, resetPassword, logout, refreshUser]
   );
 
   return (

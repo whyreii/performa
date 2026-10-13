@@ -9,12 +9,13 @@ import { testUser } from '../test/apiMock';
 vi.mock('../api', async () => (await import('../test/apiMock')).createApiMock());
 
 function Probe() {
-  const { user, isAuthenticated, login, logout } = useAuth();
+  const { user, isAuthenticated, sessionExpired, login, logout } = useAuth();
   const [result, setResult] = useState('');
   return (
     <div>
       <span data-testid="auth">{isAuthenticated ? 'in' : 'out'}</span>
       <span data-testid="role">{user?.role || 'none'}</span>
+      <span data-testid="expired">{sessionExpired ? 'yes' : 'no'}</span>
       <span data-testid="result">{result}</span>
       <button
         type="button"
@@ -94,5 +95,26 @@ describe('AuthContext', () => {
 
     await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('out'));
     expect(authApi.logout).toHaveBeenCalled();
+  });
+
+  it('flags an expired session when a live session is dropped by a 401', async () => {
+    authApi.getCurrentUser.mockResolvedValue(testUser('employer'));
+    renderAuth();
+    await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('in'));
+
+    window.dispatchEvent(new Event('performa:unauthorized'));
+
+    await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('out'));
+    expect(screen.getByTestId('expired')).toHaveTextContent('yes');
+  });
+
+  it('does not flag an expired session on a cold-start 401', async () => {
+    authApi.getCurrentUser.mockRejectedValue(new Error('no session'));
+    renderAuth();
+    await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('out'));
+
+    window.dispatchEvent(new Event('performa:unauthorized'));
+
+    await waitFor(() => expect(screen.getByTestId('expired')).toHaveTextContent('no'));
   });
 });
