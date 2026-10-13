@@ -560,6 +560,9 @@ class TrainingPlanResponse(TrainingPlanBase):
 
     id: uuid.UUID
     created_at: datetime
+    # Tenant-facing display name of the employee the plan targets (populated for
+    # employer/supervisor lists; None when the caller IS that employee).
+    employee_name: Optional[str] = None
 
 
 class TrainingPlanSignOff(BaseModel):

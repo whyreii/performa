@@ -134,6 +134,7 @@ export const auditRows = () => [
 export const plan = (overrides = {}) => ({
   id: 'p-1',
   employee_id: 'e-1',
+  employee_name: 'Maria Midterm',
   competency: 'task_completion',
   catalog_id: 'TC-101',
   intervention_title: 'SOP Workflow & Throughput Optimization',

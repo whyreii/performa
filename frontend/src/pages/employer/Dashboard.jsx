@@ -22,18 +22,18 @@ import {
 } from '../../config/domain';
 import { ROUTES } from '../../config/nav';
 import {
+  formatProbationDay,
   milestoneFor,
-  milestoneStage,
   nextMilestone,
   scoreTone,
   TONE_TEXT,
   TONE_BG,
   TONE_FILL,
 } from '../../utils/status';
-// Employer dashboard — the overview: a two-cell KPI strip, then the overall
-// score chart + interventions (left) and milestone alerts (right). Every value
-// comes from the API/DB (scores via each employee's scorecard; no invented
-// numbers).
+// Employer dashboard — the overview: a KPI strip, then one "Probation status"
+// table (day + score + next milestone per active probationer) and the pending
+// training plans. Every value comes from the API/DB (scores via each employee's
+// scorecard; no invented numbers).
 const MILE_LABEL = {
   [MILESTONE_REVIEW]: `Day ${MILESTONE_REVIEW} · Performance appraisal`,
   [MILESTONE_NOTICE]: `Day ${MILESTONE_NOTICE} · Milestone review`,
@@ -74,12 +74,10 @@ export default function Dashboard() {
     [employees]
   );
 
-  // Overall score chart — one scorecard per active probationer (404 = not rated
-  // yet, so it simply drops out rather than showing a made-up number).
+  // One scorecard per active probationer (404 = not rated yet → null).
   const scoreQueries = useQueries({
     queries: activeProbationers.map((e) => ({
       queryKey: ['scorecard', e.id],
-      // A 404 means "no evaluations yet" — return null so it drops out quietly.
       queryFn: async () => {
         try {
           return (await evaluationApi.getScorecard(e.id)) ?? null;
@@ -91,32 +89,29 @@ export default function Dashboard() {
       staleTime: 60_000,
     })),
   });
-
-  // Overall score chart — one row per active probationer. A 404 scorecard means
-  // "not rated yet", so the employee is kept and shown as "No score yet" rather
-  // than dropped (the row must not silently disappear from the count).
-  const scores = useMemo(
-    () =>
-      activeProbationers
-        .map((e, i) => ({ emp: e, sc: scoreQueries[i].data }))
-        .sort((a, b) => {
-          const av = a.sc ? Number(a.sc.overall_score) : -1;
-          const bv = b.sc ? Number(b.sc.overall_score) : -1;
-          return bv - av;
-        }),
-    [activeProbationers, scoreQueries]
-  );
   const scoresLoading = scoreQueries.some((q) => q.isLoading);
 
-  // Scorecard by employee id (null = not rated yet), so an alert row can show
-  // its score without re-fetching.
-  const scById = useMemo(() => {
-    const map = {};
-    activeProbationers.forEach((e, i) => {
-      map[e.id] = scoreQueries[i]?.data || null;
-    });
-    return map;
-  }, [activeProbationers, scoreQueries]);
+  // One row per active probationer: day/stage, score vs target, next milestone.
+  // A missing scorecard renders as "No score yet" rather than dropping the row.
+  const rows = useMemo(
+    () =>
+      activeProbationers
+        .map((emp, i) => {
+          const days = getDaysElapsed(emp.start_date);
+          const next = nextMilestone(days);
+          return {
+            emp,
+            days,
+            next,
+            nextDate: next ? milestoneDate(emp.start_date, next) : null,
+            capDate: emp.day_180_date,
+            tone: milestoneFor(days, emp.status).tone,
+            sc: scoreQueries[i]?.data || null,
+          };
+        })
+        .sort((a, b) => b.days - a.days),
+    [activeProbationers, scoreQueries]
+  );
 
   const stats = useMemo(() => {
     let pastCap = 0;
@@ -129,32 +124,7 @@ export default function Dashboard() {
     return { pastCap, decisionsDue };
   }, [activeProbationers]);
 
-  const targetScore = Number(scores[0]?.sc?.target_score) || 4.0;
-
-  // Alerts — one live row per active probationer who has reached the Day 150
-  // review. Carries day/stage, the score when it changes the story, and the next
-  // milestone date (the "Next deadlines" table's only unique content).
-  const alerts = useMemo(
-    () =>
-      activeProbationers
-        .map((emp) => {
-          const days = getDaysElapsed(emp.start_date);
-          const next = nextMilestone(days);
-          return {
-            emp,
-            days,
-            next,
-            nextDate: next ? milestoneDate(emp.start_date, next) : null,
-            capDate: emp.day_180_date,
-            tone: milestoneFor(days, emp.status).tone,
-            label: milestoneStage(days, emp.status).label,
-            sc: scById[emp.id] || null,
-          };
-        })
-        .filter((a) => a.days >= MILESTONE_REVIEW)
-        .sort((a, b) => b.days - a.days),
-    [activeProbationers, scById]
-  );
+  const targetScore = Number(rows[0]?.sc?.target_score) || 4.0;
 
   const kpis = [
     {
@@ -189,13 +159,13 @@ export default function Dashboard() {
           </Col>
         </Row>
 
-        {/* Overall score + Interventions (left) · Alerts (right) */}
+        {/* Probation status (day · score · next milestone) · pending interventions */}
         <Row className="lg:items-start">
-          <Col span={7} className="space-y-8">
-            <section aria-label="Overall score vs standard">
+          <Col span={7}>
+            <section aria-label="Probation status">
               <SectionHead
-                title="Overall score"
-                subtitle={`latest week · target ${targetScore.toFixed(1)}`}
+                title="Probation status"
+                subtitle={`day · score vs target ${targetScore.toFixed(1)} · next milestone`}
               />
               {isEmpLoading || scoresLoading ? (
                 <div className="space-y-3 pt-2">
@@ -203,67 +173,108 @@ export default function Dashboard() {
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-full" />
                 </div>
-              ) : scores.length === 0 ? (
+              ) : rows.length === 0 ? (
                 <p className="py-6 text-14 text-ink-3">No active probationary employees.</p>
               ) : (
-                <div>
-                  {scores.map(({ emp, sc }) => {
-                    if (!sc) {
-                      return (
-                        <div
-                          key={emp.id}
-                          className="flex items-center gap-3 border-t border-line py-2.5 first:border-t-0"
-                        >
-                          <Link
-                            to={`/employees/${emp.id}`}
-                            className="w-28 shrink-0 truncate text-14 text-ink hover:underline"
-                          >
-                            {emp.user?.full_name}
-                          </Link>
-                          <span className="flex-1 text-14 text-ink-3">No score yet</span>
-                          <span className="w-11 shrink-0" />
-                        </div>
-                      );
-                    }
-                    const score = Number(sc.overall_score);
-                    const target = Number(sc.target_score) || targetScore;
-                    const tone = scoreTone(score, target);
-                    return (
-                      <div
-                        key={emp.id}
-                        className="flex items-center gap-3 border-t border-line py-2.5 first:border-t-0"
-                      >
-                        <Link
-                          to={`/employees/${emp.id}`}
-                          className="w-28 shrink-0 truncate text-14 text-ink hover:underline"
-                        >
-                          {emp.user?.full_name}
-                        </Link>
-                        <span className="relative h-2 flex-1 rounded-full bg-hover">
-                          <i
-                            className={`absolute inset-y-0 left-0 rounded-full ${TONE_FILL[tone]}`}
-                            style={{ width: `${(score / 5) * 100}%` }}
-                          />
-                          <i
-                            className="absolute -top-1.5 -bottom-1.5 w-px bg-ink-3/60"
-                            style={{ left: `${(target / 5) * 100}%` }}
-                            title={`Target ${target.toFixed(1)}`}
-                          />
-                        </span>
-                        <span
-                          className={`w-11 shrink-0 text-right text-14 font-semibold font-num ${TONE_TEXT[tone]}`}
-                        >
-                          {score.toFixed(2)}
-                        </span>
-                      </div>
-                    );
-                  })}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-left">
+                    <caption className="sr-only">
+                      Active probationary employees with their probation day, latest score and
+                      next milestone
+                    </caption>
+                    <thead>
+                      <tr className="border-b border-line text-12 text-ink-3">
+                        <th scope="col" className="py-2.5 pr-3 font-normal">
+                          Employee
+                        </th>
+                        <th scope="col" className="py-2.5 pr-3 font-normal">
+                          Probation
+                        </th>
+                        <th scope="col" className="py-2.5 pr-3 text-right font-normal">
+                          Score
+                        </th>
+                        <th scope="col" className="py-2.5 font-normal">
+                          Next
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line">
+                      {rows.map(({ emp, days, tone, sc, next, nextDate, capDate }) => {
+                        const score = sc ? Number(sc.overall_score) : null;
+                        const target = sc ? Number(sc.target_score) || targetScore : targetScore;
+                        const scoreVal = score != null ? scoreTone(score, target) : null;
+                        return (
+                          <tr key={emp.id}>
+                            <td className="py-3 pr-3">
+                              <Link
+                                to={`/employees/${emp.id}`}
+                                className="text-14 text-ink hover:underline"
+                              >
+                                {emp.user?.full_name}
+                              </Link>
+                            </td>
+                            <td className="py-3 pr-3">
+                              <span className="flex items-center gap-2 whitespace-nowrap text-14 text-ink-2 font-num">
+                                <span
+                                  className={`h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
+                                  aria-hidden="true"
+                                />
+                                {formatProbationDay(days)}
+                              </span>
+                            </td>
+                            <td className="py-3 pr-3 text-right">
+                              {sc ? (
+                                <span className="inline-flex items-center gap-2">
+                                  <span className="relative inline-block h-2 w-16 rounded-full bg-hover align-middle">
+                                    <i
+                                      className={`absolute inset-y-0 left-0 rounded-full ${TONE_FILL[scoreVal]}`}
+                                      style={{ width: `${(score / 5) * 100}%` }}
+                                    />
+                                    <i
+                                      className="absolute -top-1.5 -bottom-1.5 w-px bg-ink-3/60"
+                                      style={{ left: `${(target / 5) * 100}%` }}
+                                      title={`Target ${target.toFixed(1)}`}
+                                    />
+                                  </span>
+                                  <span
+                                    className={`font-num font-semibold text-14 ${TONE_TEXT[scoreVal]}`}
+                                  >
+                                    {score.toFixed(2)}
+                                  </span>
+                                </span>
+                              ) : (
+                                <span className="text-14 text-ink-3">No score yet</span>
+                              )}
+                            </td>
+                            <td className="py-3 text-12 text-ink-3">
+                              {next
+                                ? `${MILE_LABEL[next]}, ${formatDayMonth(nextDate)}`
+                                : `Passed ${formatDayMonth(capDate)}`}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </section>
+          </Col>
 
+          <Col span={5}>
             <section aria-label="Interventions">
-              <SectionHead title="Interventions" subtitle="Training plans pending sign-off" />
+              <SectionHead
+                title="Interventions"
+                subtitle="Training plans pending sign-off"
+                note={
+                  <Link
+                    to={ROUTES.rollups.path}
+                    className="text-14 font-semibold text-accent hover:underline"
+                  >
+                    Review and sign off
+                  </Link>
+                }
+              />
               {isPlansLoading ? (
                 <div className="space-y-3 pt-2">
                   <Skeleton className="h-12 w-full" />
@@ -281,90 +292,25 @@ export default function Dashboard() {
                 <ul>
                   {plans.slice(0, 3).map((plan) => (
                     <li key={plan.id} className="border-t border-line py-3 first:border-t-0">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="text-14 font-semibold text-ink">
-                            {plan.intervention_title}
-                          </div>
-                          <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
-                            {plan.rationale || plan.competency?.replace(/_/g, ' ')}
-                          </p>
-                        </div>
-                        <Link
-                          to={ROUTES.rollups.path}
-                          className="shrink-0 text-14 font-semibold text-accent hover:underline"
-                        >
-                          Review and sign off
-                        </Link>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-14 font-semibold text-ink">
+                          {plan.intervention_title}
+                        </span>
+                        {plan.employee_name ? (
+                          <span className="shrink-0 text-12 text-ink-3">{plan.employee_name}</span>
+                        ) : null}
                       </div>
+                      <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
+                        {plan.rationale || plan.competency?.replace(/_/g, ' ')}
+                      </p>
                     </li>
                   ))}
-                  {plans.length > 3 && (
-                    <li className="border-t border-line py-3">
-                      <Link
-                        to={ROUTES.rollups.path}
-                        className="text-14 font-semibold text-accent hover:underline"
-                      >
-                        View all {plans.length} pending
-                      </Link>
+                  {plans.length > 3 ? (
+                    <li className="border-t border-line py-3 text-12 text-ink-3 font-num">
+                      Showing 3 of {plans.length} pending
                     </li>
-                  )}
+                  ) : null}
                 </ul>
-              )}
-            </section>
-          </Col>
-
-          <Col span={5}>
-            <section aria-label="Alerts">
-              <SectionHead title="Alerts" subtitle="employees at or past the review milestone" />
-              {alerts.length === 0 ? (
-                <p className="py-6 text-14 text-ink-3">No employees in a milestone window.</p>
-              ) : (
-                <div>
-                  {alerts.map(({ emp, days, next, nextDate, capDate, tone, label, sc }) => {
-                    const score = sc ? Number(sc.overall_score) : null;
-                    const target = sc ? Number(sc.target_score) || targetScore : targetScore;
-                    // Show the score only when it changes the story: below target
-                    // (a gap) or not rated yet — never when it meets the standard.
-                    const showScore = !sc || score < target;
-                    return (
-                      <div key={emp.id} className="flex items-start gap-2.5 border-t border-line py-3 first:border-t-0">
-                        <span
-                          className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
-                          aria-hidden="true"
-                        />
-                        <div className="min-w-0">
-                          <div className="text-14 text-ink">
-                            <Link to={`/employees/${emp.id}`} className="hover:underline">
-                              {emp.user?.full_name}
-                            </Link>
-                            {' · '}
-                            <span className="font-num">
-                              Day {days} of {PROBATION_DAYS}
-                            </span>
-                          </div>
-                          <div className="mt-0.5 text-14 leading-relaxed text-ink-2">
-                            {label}
-                          </div>
-                          {showScore ? (
-                            <div
-                              className={`mt-0.5 text-14 font-num ${
-                                sc ? TONE_TEXT[scoreTone(score, target)] : 'text-ink-3'
-                              }`}
-                            >
-                              {sc ? `${score.toFixed(2)} / ${target.toFixed(1)}` : 'No score yet'}
-                            </div>
-                          ) : null}
-                          <div className="mt-0.5 text-12 text-ink-3">
-                            {next
-                              ? `Next: ${MILE_LABEL[next]}, ${formatDayMonth(nextDate)}.`
-                              : `Passed ${formatDayMonth(capDate)}.`}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
               )}
             </section>
           </Col>

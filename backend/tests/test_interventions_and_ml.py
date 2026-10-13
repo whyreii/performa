@@ -74,6 +74,7 @@ async def test_rollup_month_filter_and_idempotency(client):
 
     pending_first = (await client.get("/api/interventions/pending", headers=employer)).json()
     assert len(pending_first) == 6  # 3 flagged competencies x 2 courses
+    assert all(p["employee_name"] == "Carlos Early" for p in pending_first)
 
     # Re-running must update in place, not duplicate.
     second = await client.post(

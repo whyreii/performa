@@ -53,6 +53,20 @@ router = APIRouter(prefix="/api/interventions", tags=["Interventions"])
 logger = logging.getLogger(__name__)
 
 
+def _plan_response(plan: TrainingPlan) -> TrainingPlanResponse:
+    """Serialize a plan, adding the employee's name when the relationship is loaded.
+
+    Only call after eager-loading ``TrainingPlan.employee.user`` — touching an
+    unloaded relationship in an async session raises.
+    """
+    name = None
+    if plan.employee is not None and plan.employee.user is not None:
+        name = plan.employee.user.full_name
+    return TrainingPlanResponse.model_validate(plan).model_copy(
+        update={"employee_name": name}
+    )
+
+
 def _course_id(course: dict[str, Any]) -> str:
     return str(course.get("catalog_id") or course.get("course_id") or "")
 
@@ -582,10 +596,13 @@ async def list_pending_interventions(
     current_user: User = Depends(
         require_role(UserRole.EMPLOYER, UserRole.SUPERVISOR)
     ),
-) -> list[TrainingPlan]:
+) -> list[TrainingPlanResponse]:
     """Return pending interventions, scoped to the tenant (and to a supervisor's team)."""
     stmt = (
         select(TrainingPlan)
+        .options(
+            selectinload(TrainingPlan.employee).selectinload(ProbationaryEmployee.user)
+        )
         .join(ProbationaryEmployee, TrainingPlan.employee_id == ProbationaryEmployee.id)
         .where(
             TrainingPlan.status == TrainingStatusEnum.PENDING_APPROVAL,
@@ -596,7 +613,7 @@ async def list_pending_interventions(
     if current_user.role == UserRole.SUPERVISOR:
         stmt = stmt.where(ProbationaryEmployee.supervisor_id == current_user.id)
     result = await db.execute(stmt)
-    return list(result.scalars().all())
+    return [_plan_response(plan) for plan in result.scalars().all()]
 
 
 @router.post(
@@ -609,10 +626,13 @@ async def sign_off_intervention(
     payload: TrainingPlanSignOff,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.EMPLOYER)),
-) -> TrainingPlan:
+) -> TrainingPlanResponse:
     """Approve or reject a pending intervention within the caller's tenant."""
     stmt = (
         select(TrainingPlan)
+        .options(
+            selectinload(TrainingPlan.employee).selectinload(ProbationaryEmployee.user)
+        )
         .join(ProbationaryEmployee, TrainingPlan.employee_id == ProbationaryEmployee.id)
         .where(
             TrainingPlan.id == plan_id,
@@ -665,7 +685,7 @@ async def sign_off_intervention(
     )
     await db.commit()
     await db.refresh(plan)
-    return plan
+    return _plan_response(plan)
 
 
 __all__ = ["router"]
