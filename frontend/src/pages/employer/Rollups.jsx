@@ -349,6 +349,7 @@ export default function Rollups() {
                 onClick={() => setIsGenerateModalOpen(false)}
                 className="text-ink-3 hover:text-ink"
                 aria-label="Close"
+                title="Close"
               >
                 <X className="w-4 h-4" />
               </button>

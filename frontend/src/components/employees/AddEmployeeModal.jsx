@@ -100,12 +100,13 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
         <div className="flex items-center justify-between pb-4 mb-5 border-b border-line">
           <div>
             <h2 className="text-16 font-semibold text-ink">Onboard Probationary Employee</h2>
-            <p className="text-12 text-ink-3">Article 296 Statutory 180-Day Timeline</p>
+            <p className="text-12 text-ink-3">Article 296 · 180-day probation timeline</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
+            title="Close"
             className="p-1 rounded-ctl text-ink-3 hover:text-ink hover:bg-hover transition-colors"
           >
             <X className="w-4 h-4" />

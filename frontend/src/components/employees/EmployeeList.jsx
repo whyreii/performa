@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
-import { Skeleton, EmptyState, Card } from '../../components/ui';
+import { Skeleton, EmptyState, Card, Th } from '../../components/ui';
 import { Users, AlertCircle } from '../../components/icons';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { milestoneFor, formatProbationDay, stageShort, scoreTone, TONE_BG, TONE_TEXT } from '../../utils/status';
@@ -11,9 +11,10 @@ import { getInitials } from '../../utils/format';
 
 // Probationary roster — a flat hairline table with Employee (avatar · name ·
 // title), Department, probation day, latest-week overall score and stage. Each
-// row opens the record. Scores come from each employee's scorecard (no invented
-// numbers); a missing scorecard shows "No score yet". The stage text is the one
-// shared source (utils/status.js) — sentence case, no pill.
+// row opens the record (click, hover, focus-visible, Enter/Space). Scores come
+// from each employee's scorecard (no invented numbers); a missing scorecard shows
+// "No score yet". Default order is by urgency (past cap first, then fewest days
+// left); the Day and Overall columns are sortable (aria-sort via <Th>).
 export default function EmployeeList() {
   const navigate = useNavigate();
 
@@ -51,10 +52,37 @@ export default function EmployeeList() {
     return map;
   }, [employees, scoreQueries]);
 
-  const rows = useMemo(
-    () => [...employees].sort((a, b) => (a.user?.full_name || '').localeCompare(b.user?.full_name || '')),
-    [employees]
-  );
+  // Default: urgency — the largest day count (past cap) first, then nearest cap.
+  const [sort, setSort] = useState({ key: 'day', dir: 'desc' });
+  const onSort = (key) =>
+    setSort((s) =>
+      s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }
+    );
+
+  const rows = useMemo(() => {
+    const list = [...employees];
+    const scoreOf = (e) => {
+      const sc = scoreById[e.id];
+      return sc ? Number(sc.overall_score) : null;
+    };
+    list.sort((a, b) => {
+      if (sort.key === 'overall') {
+        const av = scoreOf(a);
+        const bv = scoreOf(b);
+        // Unrated rows stay last regardless of direction.
+        if (av === null && bv === null) return 0;
+        if (av === null) return 1;
+        if (bv === null) return -1;
+        const r = av - bv;
+        return sort.dir === 'asc' ? r : -r;
+      }
+      const r = getDaysElapsed(a.start_date) - getDaysElapsed(b.start_date);
+      return sort.dir === 'asc' ? r : -r;
+    });
+    return list;
+  }, [employees, scoreById, sort]);
+
+  const openRow = (id) => navigate(`/employees/${id}`);
 
   return (
     <Card flat padded={false} className="space-y-1">
@@ -90,8 +118,19 @@ export default function EmployeeList() {
             <tr className="border-b border-line text-12 text-ink-3">
               <th scope="col" className="py-2.5 pr-4 font-normal">Employee</th>
               <th scope="col" className="py-2.5 pr-4 font-normal">Department</th>
-              <th scope="col" className="py-2.5 pr-4 font-normal">Day</th>
-              <th scope="col" className="py-2.5 pr-4 text-right font-normal">Overall (latest week)</th>
+              <Th sortKey="day" activeKey={sort.key} dir={sort.dir} onSort={onSort} className="py-2.5 pr-4">
+                Day
+              </Th>
+              <Th
+                sortKey="overall"
+                activeKey={sort.key}
+                dir={sort.dir}
+                onSort={onSort}
+                align="right"
+                className="py-2.5 pr-4"
+              >
+                Overall (latest week)
+              </Th>
               <th scope="col" className="py-2.5 text-right font-normal">Stage</th>
             </tr>
           </thead>
@@ -106,8 +145,15 @@ export default function EmployeeList() {
               return (
                 <tr
                   key={emp.id}
-                  onClick={() => navigate(`/employees/${emp.id}`)}
-                  className="cursor-pointer transition-colors hover:bg-hover"
+                  tabIndex={0}
+                  onClick={() => openRow(emp.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      openRow(emp.id);
+                    }
+                  }}
+                  className="cursor-pointer transition-colors hover:bg-hover focus-visible:bg-hover"
                 >
                   <td className="py-3 pr-4">
                     <span className="flex items-center gap-2.5">

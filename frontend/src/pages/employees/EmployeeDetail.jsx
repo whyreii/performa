@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
@@ -72,11 +72,14 @@ export default function EmployeeDetail() {
   const [selectedStatus, setSelectedStatus] = useState('regularized');
   const [statusReason, setStatusReason] = useState('');
   const [actionError, setActionError] = useState('');
-  const [showAllHistory, setShowAllHistory] = useState(false);
+  const [historyLimit, setHistoryLimit] = useState(5);
+  const [isExpandingHistory, setIsExpandingHistory] = useState(false);
+  const [remarksLimit, setRemarksLimit] = useState(3);
   const [showModelDetail, setShowModelDetail] = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
   const [verifiedAt, setVerifiedAt] = useState(null);
   const [verifyError, setVerifyError] = useState('');
+  const historyMoreRef = useRef(null);
 
   // Fetch employee profile
   const {
@@ -697,6 +700,9 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                         <span className={`h-2 w-2 rounded-full ${dotClass}`} aria-hidden="true" />
                         <span className={`text-14 ${done || isNext ? 'text-ink' : 'text-ink-3'}`}>
                           {label}
+                          <span className="sr-only">
+                            {done ? ' · passed' : isNext ? ' · current' : ' · upcoming'}
+                          </span>
                         </span>
                         <span className="text-12 font-num text-ink-3">
                           {formatDayMonth(milestoneDate(employee.start_date, day))}
@@ -728,6 +734,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                           size="sm"
                           isLoading={regularizationMutation.isPending}
                           disabled={!hasEvaluations}
+                          aria-busy={regularizationMutation.isPending || undefined}
                           title={!hasEvaluations ? 'Submit weekly ratings first' : undefined}
                           onClick={() => regularizationMutation.mutate()}
                         >
@@ -740,6 +747,23 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                       ) : null
                     }
                   />
+                  {regularizationMutation.isError && (
+                    <div className="mb-3 flex flex-wrap items-center gap-3 text-12 text-bad">
+                      <span>
+                        {getApiErrorMessage(
+                          regularizationMutation.error,
+                          'Failed to generate the recommendation.'
+                        )}
+                      </span>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => regularizationMutation.mutate()}
+                      >
+                        Retry
+                      </Button>
+                    </div>
+                  )}
                   {!hasEvaluations ? (
                     <div className="text-14 text-ink-3 space-y-3">
                       <p>
@@ -925,7 +949,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
           {/* Monthly KPI trend */}
           {(isTrendLoading || trend.length > 0) && (
-            <Card padded={false} flat className="">
+            <Card padded={false} flat className="py-5">
               <SectionHead
                 title="Monthly KPI trend"
                 subtitle="Monthly rollup"
@@ -991,11 +1015,23 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           )}
 
           {/* Supervisor remarks (behavioral notes from weekly ratings) */}
-          <Card padded={false} flat className="">
+          <Card padded={false} flat className="py-5">
             <SectionHead
               title="Supervisor remarks"
               subtitle="From weekly ratings"
-              note={notedRemarks.length ? `${notedRemarks.length} noted` : undefined}
+              note={
+                notedRemarks.length > remarksLimit ? (
+                  <button
+                    type="button"
+                    onClick={() => setRemarksLimit(notedRemarks.length)}
+                    className="text-accent font-semibold hover:underline"
+                  >
+                    Show all {notedRemarks.length}
+                  </button>
+                ) : notedRemarks.length ? (
+                  `${notedRemarks.length} noted`
+                ) : undefined
+              }
             />
             {isRemarksLoading ? (
               <Skeleton className="h-16 w-full" />
@@ -1003,7 +1039,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <p className="text-14 text-ink-3">No behavioral remarks recorded yet.</p>
             ) : (
               <ul className="space-y-4">
-                {notedRemarks.slice(0, 3).map((r) => (
+                {notedRemarks.slice(0, remarksLimit).map((r) => (
                   <li key={r.id}>
                     <div className="text-12 text-ink-3">
                       <span className="font-semibold text-ink-2">{r.evaluator_name}</span>
@@ -1018,7 +1054,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </Card>
 
           {/* Evaluation history (immutable audit trail) */}
-          <Card padded={false} flat className="">
+          <Card padded={false} flat className="py-5">
             <SectionHead
               title="Evaluation history"
               subtitle="Immutable · append-only"
@@ -1075,7 +1111,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             ) : (
               <>
                 <div className="divide-y divide-line">
-                  {(showAllHistory ? auditLogs : auditLogs.slice(0, 5)).map((log) => {
+                  {auditLogs.slice(0, historyLimit).map((log) => {
                     const hasPrior = log.prior_score !== null && log.prior_score !== undefined;
                     const delta = hasPrior
                       ? Number(log.new_score) - Number(log.prior_score)
@@ -1109,19 +1145,27 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                     );
                   })}
                 </div>
-                {auditLogs.length > 5 && (
+                {historyLimit < auditLogs.length && (
                   <button
                     type="button"
-                    onClick={() => setShowAllHistory((v) => !v)}
-                    aria-expanded={showAllHistory}
-                    className="mt-4 inline-flex items-center gap-1.5 text-12 font-semibold text-accent hover:underline"
+                    ref={historyMoreRef}
+                    onClick={() => {
+                      setIsExpandingHistory(true);
+                      // Append a page, then keep focus on the control (item 3.3).
+                      window.setTimeout(() => {
+                        setHistoryLimit((n) => Math.min(n + 25, auditLogs.length));
+                        setIsExpandingHistory(false);
+                        historyMoreRef.current?.focus();
+                      }, 0);
+                    }}
+                    disabled={isExpandingHistory}
+                    aria-busy={isExpandingHistory || undefined}
+                    className="mt-4 inline-flex items-center gap-1.5 text-12 font-semibold text-accent hover:underline disabled:opacity-60"
                   >
-                    {showAllHistory ? 'Show less' : `Show more · ${auditLogs.length - 5} more`}
-                    {showAllHistory ? (
-                      <ChevronUp className="w-3.5 h-3.5" />
-                    ) : (
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    )}
+                    {isExpandingHistory
+                      ? 'Loading…'
+                      : `Show more · ${auditLogs.length - historyLimit} more`}
+                    <ChevronDown className="w-3.5 h-3.5" />
                   </button>
                 )}
               </>
@@ -1172,6 +1216,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             onClick={() => setIsDeactivateModalOpen(false)}
             className="text-ink-3 hover:text-ink"
             aria-label="Close"
+            title="Close"
           >
             ✕
           </button>
