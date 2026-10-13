@@ -29,8 +29,8 @@ except ImportError:  # pragma: no cover - exercised only when the SDK is absent
 logger = logging.getLogger(__name__)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-PRIMARY_MODEL = "gemini-3.5-flash-lite"
-FALLBACK_MODEL = "gemini-flash-latest"
+PRIMARY_MODEL = "gemini-3.5-flash"
+FALLBACK_MODEL = "gemini-3.1-flash-lite"
 TEMPERATURE = 0.0
 # Per-attempt budget. Gemini's own server deadline can exceed 10s (a 504
 # DEADLINE_EXCEEDED lands around ~13s), so a single short budget cancelled the

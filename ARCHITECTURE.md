@@ -13,7 +13,7 @@ What the system is, and the single source of truth for its values (model IDs, co
 | Database | SQLite (`aiosqlite`) for local dev; PostgreSQL (`asyncpg`) for production/staging via `DATABASE_URL` |
 | Schema creation | `Base.metadata.create_all` on startup. Creates missing tables only; never alters existing ones |
 | ML | scikit-learn Random Forest, loaded in memory |
-| GenAI | Google Gemini API, async, temperature 0.0. Primary `gemini-3.5-flash-lite`, fallback `gemini-flash-latest`, configured in `backend/gemini.py` |
+| GenAI | Google Gemini API, async, temperature 0.0. Primary `gemini-3.5-flash`, fallback `gemini-3.1-flash-lite`, configured in `backend/gemini.py` |
 | Auth | JWT Bearer tokens, 4 roles: `admin`, `employer`, `supervisor`, `probationary_employee` |
 
 ---
