@@ -71,6 +71,7 @@ MATRIX = {
     ("GET", "/api/evaluations/{employee_id}/report"): PERFORMANCE_READERS,
     ("GET", "/api/evaluations/{employee_id}/report.pdf"): PERFORMANCE_READERS,
     ("GET", "/api/evaluations/audit-trail"): {"employer"},
+    ("GET", "/api/evaluations/audit-trail.csv"): {"employer"},
     ("GET", "/api/evaluations/{employee_id}/audit-trail"): PERFORMANCE_READERS,
     ("GET", "/api/evaluations/{employee_id}/audit-trail/verify"): PERFORMANCE_READERS,
     ("POST", "/api/interventions/{employee_id}/monthly-rollup"): {"employer"},

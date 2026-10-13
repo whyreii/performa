@@ -9,7 +9,9 @@ written per competency whose score changed or was set for the first time.
 """
 from __future__ import annotations
 
+import csv
 import html
+import io
 import logging
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -62,7 +64,7 @@ from ..schemas import (
     WeeklyEvaluationResponse,
     WeeklyRatingSubmit,
 )
-from ..timeutils import manila_today
+from ..timeutils import manila_today, to_manila
 
 logger = logging.getLogger(__name__)
 
@@ -889,6 +891,58 @@ async def get_tenant_audit_trail(
         )
         for log in logs
     ]
+
+
+@router.get(
+    "/audit-trail.csv",
+    summary="Download the tenant audit trail as CSV (Employer)",
+    response_class=Response,
+)
+async def export_tenant_audit_trail_csv(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
+) -> Response:
+    """Download every immutable audit entry for the tenant as CSV (newest first)."""
+    stmt = (
+        select(EvaluationAuditLog)
+        .options(
+            selectinload(EvaluationAuditLog.evaluator),
+            selectinload(EvaluationAuditLog.employee).selectinload(ProbationaryEmployee.user),
+        )
+        .where(EvaluationAuditLog.organization_id == current_user.organization_id)
+        .order_by(EvaluationAuditLog.created_at.desc())
+    )
+    logs = (await db.execute(stmt)).scalars().all()
+
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(
+        [
+            "Recorded (Asia/Manila)",
+            "Employee",
+            "Competency",
+            "Evaluator",
+            "Prior score",
+            "New score",
+        ]
+    )
+    for log in logs:
+        writer.writerow(
+            [
+                to_manila(log.created_at).strftime("%Y-%m-%d %H:%M"),
+                (log.employee.user.full_name if log.employee and log.employee.user else "Unknown"),
+                log.competency,
+                (log.evaluator.full_name if log.evaluator else "Unknown"),
+                "" if log.prior_score is None else f"{float(log.prior_score):.2f}",
+                f"{float(log.new_score):.2f}",
+            ]
+        )
+
+    return Response(
+        content=buffer.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="audit-trail.csv"'},
+    )
 
 
 @router.get(

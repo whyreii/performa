@@ -41,4 +41,11 @@ def manila_today() -> date:
     return datetime.now(MANILA_TZ).date()
 
 
-__all__ = ["MANILA_TZ", "manila_tz", "manila_today"]
+def to_manila(value: datetime) -> datetime:
+    """Attach UTC when naive (SQLite drops tzinfo) and convert to Asia/Manila."""
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(MANILA_TZ)
+
+
+__all__ = ["MANILA_TZ", "manila_tz", "manila_today", "to_manila"]

@@ -2,10 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { formatDate } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
 import { Button, Badge, Skeleton, EmptyState, Page, inputClass, GlideSelect, Th, SectionHead } from '../../components/ui';
-import { History, Printer, Search, AlertCircle } from '../../components/icons';
+import { History, Printer, Search, AlertCircle, Download } from '../../components/icons';
 
 const COMPETENCY_LABELS = new Map(COMPETENCIES.map((c) => [c.key, c.label]));
 
@@ -15,12 +16,14 @@ function competencyLabel(key) {
 
 export default function AuditTrail() {
   const { user } = useAuth();
+  const toast = useToast();
   const orgLabel = user?.organization_name || user?.organization_id || 'Organization';
   const [competencyFilter, setCompetencyFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('ts');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
+  const [isExporting, setIsExporting] = useState(false);
   const PAGE_SIZE = 25;
 
   const {
@@ -89,6 +92,26 @@ export default function AuditTrail() {
     currentPage * PAGE_SIZE
   );
 
+  // Full-tenure export: the API returns every row (not just the current page).
+  const handleExportCsv = async () => {
+    try {
+      setIsExporting(true);
+      const blob = await evaluationApi.getAuditTrailCsv();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'audit-trail.csv';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to export the audit trail.'));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <Page
         aboveHeader={
@@ -109,9 +132,19 @@ export default function AuditTrail() {
         title="Audit Trail & Compliance"
         subtitle="Article 296 Evidentiary Due Process Logs · Immutable & Append-Only"
         actions={
-          <Button variant="secondary" leftIcon={Printer} onClick={() => window.print()}>
-            Print Compliance Log
-          </Button>
+          <>
+            <Button
+              variant="secondary"
+              leftIcon={Download}
+              isLoading={isExporting}
+              onClick={handleExportCsv}
+            >
+              Export CSV
+            </Button>
+            <Button variant="secondary" leftIcon={Printer} onClick={() => window.print()}>
+              Print Compliance Log
+            </Button>
+          </>
         }
     >
 

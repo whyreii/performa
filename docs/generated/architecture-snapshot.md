@@ -238,6 +238,7 @@ Auth column is read from the FastAPI dependency graph.
 | POST | `/api/employees/{employee_id}/acknowledge-standards` | authenticated (any role) | acknowledge_standards |
 | PATCH | `/api/employees/{employee_id}/status` | roles: employer | update_status |
 | GET | `/api/evaluations/audit-trail` | roles: employer | get_tenant_audit_trail |
+| GET | `/api/evaluations/audit-trail.csv` | roles: employer | export_tenant_audit_trail_csv |
 | GET | `/api/evaluations/{employee_id}/audit-trail` | authenticated (any role) | get_audit_trail |
 | GET | `/api/evaluations/{employee_id}/audit-trail/verify` | authenticated (any role) | verify_audit_chain |
 | GET | `/api/evaluations/{employee_id}/regularization-recommendation` | authenticated (any role) | get_regularization_recommendation |

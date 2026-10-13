@@ -204,6 +204,12 @@ export const evaluationApi = {
     const response = await apiClient.get('/api/evaluations/audit-trail');
     return response.data;
   },
+  getAuditTrailCsv: async () => {
+    const response = await apiClient.get('/api/evaluations/audit-trail.csv', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
   getScorecard: async (employeeId) => {
     const response = await apiClient.get(`/api/evaluations/${employeeId}/scorecard`);
     return response.data;

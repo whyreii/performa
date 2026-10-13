@@ -324,3 +324,29 @@ async def test_kpi_config_changes_are_audited_and_listed(client):
     assert rows, "a KPI change must be recorded in the configuration history"
     assert rows[0]["action"] in ("kpi.update", "kpi.reset")
     assert rows[0]["actor_name"], "the actor should be named"
+
+
+@pytest.mark.asyncio
+async def test_audit_trail_csv_export(client):
+    """The tenant audit trail downloads as CSV (header + every row)."""
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, supervisor, "Carlos Early")
+    created = await client.post(
+        f"/api/evaluations/{emp_id}/weekly",
+        headers=supervisor,
+        json={c: 4.0 for c in COMPETENCIES},
+    )
+    assert created.status_code == 201, created.text
+
+    resp = await client.get("/api/evaluations/audit-trail.csv", headers=employer)
+    assert resp.status_code == 200, resp.text
+    assert resp.headers["content-type"].startswith("text/csv")
+    assert "attachment" in resp.headers["content-disposition"]
+
+    lines = [ln for ln in resp.text.splitlines() if ln]
+    assert lines[0] == (
+        "Recorded (Asia/Manila),Employee,Competency,Evaluator,Prior score,New score"
+    )
+    assert len(lines) >= 2, "a submitted rating must appear in the export"
+    assert "Carlos Early" in resp.text

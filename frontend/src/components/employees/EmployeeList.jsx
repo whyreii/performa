@@ -2,8 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
-import { Skeleton, EmptyState, Card, Th, SectionHead } from '../../components/ui';
-import { Users, AlertCircle } from '../../components/icons';
+import { Skeleton, EmptyState, Card, Th, SectionHead, Button } from '../../components/ui';
+import { Users, AlertCircle, Download } from '../../components/icons';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { milestoneFor, milestoneStage, formatProbationDay, stageShort, scoreTone, TONE_BG, TONE_TEXT } from '../../utils/status';
 import { TARGET } from '../../config/domain';
@@ -102,11 +102,71 @@ export default function EmployeeList() {
 
   const openRow = (id) => navigate(`/employees/${id}`);
 
+  // Roster export — the full list is already loaded, so this is a client-side CSV.
+  const handleExportCsv = () => {
+    const cell = (value) => {
+      const text = value == null ? '' : String(value);
+      return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
+    const header = [
+      'Name',
+      'Email',
+      'Department',
+      'Job title',
+      'Probation day',
+      'Start date',
+      'Day 180 date',
+      'Overall score',
+      'Stage',
+    ];
+    const lines = [header.join(',')];
+    rows.forEach((e) => {
+      const sc = scoreById[e.id];
+      const days = getDaysElapsed(e.start_date);
+      lines.push(
+        [
+          e.user?.full_name || '',
+          e.user?.email || '',
+          e.department || '',
+          e.job_title || '',
+          days,
+          e.start_date || '',
+          e.day_180_date || '',
+          sc ? Number(sc.overall_score).toFixed(2) : '',
+          stageShort(days, e.status),
+        ]
+          .map(cell)
+          .join(',')
+      );
+    });
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'employees.csv';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
+
   return (
     <Card flat padded={false} className="space-y-1">
       <SectionHead
         title="Probationary employees"
         subtitle={`${employees.length} probationary employee${employees.length === 1 ? '' : 's'}`}
+        note={
+          <Button
+            variant="secondary"
+            size="sm"
+            leftIcon={Download}
+            disabled={rows.length === 0}
+            onClick={handleExportCsv}
+          >
+            Export CSV
+          </Button>
+        }
       />
 
       {isLoading ? (

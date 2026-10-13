@@ -26,6 +26,7 @@ export function createApiMock() {
     },
     evaluationApi: {
       getTenantAuditTrail: vi.fn(),
+      getAuditTrailCsv: vi.fn(),
       getScorecard: vi.fn(),
       getAuditTrail: vi.fn(),
       verifyAuditChain: vi.fn(),
