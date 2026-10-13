@@ -32,7 +32,10 @@ describe('Rubrics', () => {
     expect(
       await screen.findByRole('heading', { name: 'KPI Performance Rubrics' })
     ).toBeInTheDocument();
-    expect(await screen.findByText('1. Task Completion & Work Output')).toBeInTheDocument();
+    // Competency names come from config/domain (one source), not a local copy.
+    expect((await screen.findAllByText('Task Completion')).length).toBeGreaterThan(0);
+    // A rubric level descriptor renders in the matrix.
+    expect(screen.getByText(/Exceeds output goals/)).toBeInTheDocument();
     // Target reflects the configured API value, not the 4.0 fallback literal.
     expect(await screen.findAllByText(/4\.4 \/ 5\.0/)).not.toHaveLength(0);
   });
