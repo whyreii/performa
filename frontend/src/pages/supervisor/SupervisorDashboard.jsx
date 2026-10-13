@@ -1,13 +1,16 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { employeeApi, getApiErrorMessage } from '../../api';
+import { employeeApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Button, MilestonePill, Skeleton, EmptyState, Page, SectionHead, StatBand } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
-import { PROBATION_DAYS, TARGET, MILESTONE_REVIEW } from '../../config/domain';
+import { PROBATION_DAYS, TARGET, MILESTONE_REVIEW, COMPETENCIES } from '../../config/domain';
 import { getInitials } from '../../utils/format';
-import { Users, Award, AlertTriangle } from '../../components/icons';
+import { Users, Award, AlertTriangle, BookOpen } from '../../components/icons';
+
+const LABEL_BY_KEY = Object.fromEntries(COMPETENCIES.map((c) => [c.key, c.label]));
+const competencyLabel = (key) => LABEL_BY_KEY[key] || key?.replace(/_/g, ' ') || '';
 
 export default function SupervisorDashboard() {
   const { user } = useAuth();
@@ -32,6 +35,13 @@ export default function SupervisorDashboard() {
     () => activeProbationers.filter((e) => getDaysElapsed(e.start_date) >= MILESTONE_REVIEW).length,
     [activeProbationers]
   );
+
+  // AI training recommendations for this supervisor's team (view-only; the
+  // endpoint is already scoped to the supervisor's direct reports).
+  const { data: pendingPlans = [], isLoading: isPlansLoading } = useQuery({
+    queryKey: ['pending-interventions'],
+    queryFn: async () => (await interventionApi.listPending()) || [],
+  });
 
   return (
     <Page
@@ -156,6 +166,41 @@ export default function SupervisorDashboard() {
                 </div>
               );
             })}
+          </div>
+        )}
+      </section>
+
+      {/* Training recommendations — AI-generated for the team, view-only */}
+      <section aria-label="Training recommendations">
+        <SectionHead
+          title="Training recommendations"
+          subtitle="AI-generated for your team · view-only"
+        />
+        {isPlansLoading ? (
+          <div className="space-y-3 pt-2">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        ) : pendingPlans.length === 0 ? (
+          <EmptyState icon={BookOpen} title="No training recommendations">
+            AI training recommendations for your team will appear here once the employer runs a monthly rollup.
+          </EmptyState>
+        ) : (
+          <div>
+            {pendingPlans.map((plan) => (
+              <div key={plan.id} className="border-t border-line py-4 first:border-t-0 space-y-1">
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <span className="text-14 font-semibold text-ink">{plan.intervention_title}</span>
+                  <span className="text-12 text-ink-3">
+                    {competencyLabel(plan.competency)}
+                    {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
+                  </span>
+                </div>
+                {plan.rationale && (
+                  <p className="text-14 text-ink-2 leading-relaxed">{plan.rationale}</p>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </section>
