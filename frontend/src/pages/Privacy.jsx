@@ -78,7 +78,7 @@ export default function Privacy() {
           </Col>
         </Row>
 
-        <Row as="main" className="reveal flex-1 pb-12">
+              <Row as="main" className="page-enter flex-1 pb-12">
           <Col as="section" span={8}>
             <h1 className="text-30 font-semibold tracking-tight text-ink">Data Privacy Notice</h1>
             <p className="text-14 text-ink-2 mt-2">

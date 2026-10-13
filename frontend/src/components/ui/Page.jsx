@@ -12,8 +12,9 @@ import { useChrome } from '../../context/ChromeContext';
 // title/subtitle/actions here unchanged. `header={false}` leaves the toolbar
 // empty (pages that render their own hero, e.g. the employee record).
 //
-// `reveal` (default) staggers the page's direct children in on mount. The app's
-// Reduce-motion setting and prefers-reduced-motion collapse it to instant.
+// `reveal` (default) fades the whole page in on mount as a single composited
+// layer (never one layer per section — see index.css). The app's Reduce-motion
+// setting and prefers-reduced-motion collapse it to instant.
 export default function Page({
   kicker,
   title,
@@ -47,7 +48,7 @@ export default function Page({
 
   const classes = [
     'space-y-6',
-    reveal ? 'reveal' : '',
+    reveal ? 'page-enter' : '',
     printSheet ? 'print-sheet' : '',
     className,
   ]
