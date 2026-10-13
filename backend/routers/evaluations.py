@@ -9,7 +9,6 @@ written per competency whose score changed or was set for the first time.
 """
 from __future__ import annotations
 
-import hashlib
 import html
 import logging
 import uuid
@@ -27,6 +26,7 @@ from xhtml2pdf import pisa
 
 from ..auth import get_current_user, require_role
 from ..audit import record_activity
+from ..audit_chain import audit_record_hash
 from ..database import get_db
 from ..domain import (
     REGULARIZATION_HORIZON_DAYS,
@@ -158,39 +158,6 @@ async def _latest_evaluation(
     return result.scalar_one_or_none()
 
 
-def _hash_timestamp(value: datetime) -> str:
-    """tz-stable ISO form: SQLite drops tzinfo, so normalize everything to UTC."""
-    if value.tzinfo is None:
-        value = value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc).isoformat()
-
-
-def _audit_record_hash(
-    prev_hash: Optional[str],
-    organization_id: str,
-    employee_id: uuid.UUID,
-    evaluator_id: uuid.UUID,
-    competency: str,
-    prior_score: Optional[float],
-    new_score: float,
-    created_at: datetime,
-) -> str:
-    """Deterministic hash of an audit row, chained to its predecessor."""
-    payload = "|".join(
-        [
-            prev_hash or "",
-            organization_id,
-            str(employee_id),
-            str(evaluator_id),
-            competency,
-            "" if prior_score is None else f"{float(prior_score):.4f}",
-            f"{float(new_score):.4f}",
-            _hash_timestamp(created_at),
-        ]
-    )
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
-
-
 async def _latest_audit_hash(
     db: AsyncSession,
     employee_id: uuid.UUID,
@@ -285,7 +252,7 @@ async def submit_weekly_rating(
         if prior_score is None or prior_score != new_score:
             created_at = base_time + timedelta(microseconds=chain_index)
             chain_index += 1
-            record_hash = _audit_record_hash(
+            record_hash = audit_record_hash(
                 previous_hash,
                 current_user.organization_id,
                 employee.id,
@@ -972,7 +939,7 @@ def _verify_audit_chain(
     for row in rows:
         if row.record_hash is None:
             continue
-        expected = _audit_record_hash(
+        expected = audit_record_hash(
             running,
             row.organization_id,
             row.employee_id,

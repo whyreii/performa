@@ -1,12 +1,14 @@
 """Weekly KPI evaluations, scorecard gap calculations, and immutable audit trail tests."""
 from __future__ import annotations
 
-from datetime import date, timedelta
+import uuid
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
 from backend.ml.catalog import COMPETENCIES
 from backend.tests.helpers import (
+    EMP1_EMAIL,
     EMPLOYER_EMAIL,
     SUPERVISOR_EMAIL,
     find_employee_id,
@@ -218,3 +220,87 @@ async def test_weekly_remarks_are_returned(client):
     assert rows, "expected at least one weekly evaluation"
     assert rows[0]["remarks"] == "Strong week; delivered the Q3 reconciliation ahead of schedule."
     assert rows[0]["evaluator_name"] and rows[0]["evaluator_name"] != "Unknown"
+
+
+@pytest.mark.asyncio
+async def test_seed_hashes_the_audit_chain(client):
+    """The seed hashes its audit rows, so verification actually checks them."""
+    from sqlalchemy import select
+
+    from backend.database import async_session_maker
+    from backend.models import EvaluationAuditLog, ProbationaryEmployee, User
+    from backend.routers.evaluations import _verify_audit_chain
+    from backend.seed import seed
+
+    # The shared fixture seeds without evaluations; re-seed with them so history exists.
+    async with async_session_maker() as session:
+        await seed(session, with_evaluations=True)
+        carlos = (
+            await session.execute(
+                select(ProbationaryEmployee)
+                .join(User, ProbationaryEmployee.user_id == User.id)
+                .where(User.email == EMP1_EMAIL)
+            )
+        ).scalar_one()
+        rows = list(
+            (
+                await session.execute(
+                    select(EvaluationAuditLog)
+                    .where(EvaluationAuditLog.employee_id == carlos.id)
+                    .order_by(EvaluationAuditLog.created_at.asc(), EvaluationAuditLog.id.asc())
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+    assert rows, "the seed should create audit rows for a rated employee"
+    valid, broken_id, checked = _verify_audit_chain(rows)
+    assert valid is True, f"seeded chain is broken at {broken_id}"
+    assert checked == len(rows) > 0, "every seeded row must carry a record_hash"
+
+
+def test_verify_audit_chain_detects_a_tampered_row():
+    """A changed score breaks the recomputed chain (unit-level, no DB)."""
+    from types import SimpleNamespace
+
+    from backend.audit_chain import audit_record_hash
+    from backend.routers.evaluations import _verify_audit_chain
+
+    emp = uuid.uuid4()
+    ev = uuid.uuid4()
+    t0 = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    first_hash = audit_record_hash(None, "acme-ph", emp, ev, "task_completion", None, 4.0, t0)
+    second_hash = audit_record_hash(
+        first_hash, "acme-ph", emp, ev, "quality_of_work", None, 4.0, t0
+    )
+    rows = [
+        SimpleNamespace(
+            id=uuid.uuid4(),
+            organization_id="acme-ph",
+            employee_id=emp,
+            evaluator_id=ev,
+            competency="task_completion",
+            prior_score=None,
+            new_score=4.0,
+            created_at=t0,
+            prev_hash=None,
+            record_hash=first_hash,
+        ),
+        SimpleNamespace(
+            id=uuid.uuid4(),
+            organization_id="acme-ph",
+            employee_id=emp,
+            evaluator_id=ev,
+            competency="quality_of_work",
+            prior_score=None,
+            new_score=2.0,  # tampered: the hash was computed with 4.0
+            created_at=t0,
+            prev_hash=first_hash,
+            record_hash=second_hash,
+        ),
+    ]
+    valid, broken_id, checked = _verify_audit_chain(rows)
+    assert valid is False
+    assert broken_id == rows[1].id
+    assert checked == 1

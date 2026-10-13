@@ -21,6 +21,7 @@ from datetime import date, datetime, timedelta, timezone
 from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .audit_chain import audit_record_hash
 from .audit_immutability import drop_statements_for, statements_for
 from .auth import get_password_hash
 from .database import Base, async_session_maker, engine
@@ -247,6 +248,7 @@ async def _seed_evaluations(
         if employee is None:
             continue
         previous: dict[str, float] = {}
+        prev_hash = None
         week = 1
         while True:
             evaluation_date = employee.start_date + timedelta(days=(week - 1) * 7)
@@ -279,7 +281,20 @@ async def _seed_evaluations(
                     **scores,
                 )
             )
-            for key in _COMPETENCY_KEYS:
+            for index, key in enumerate(_COMPETENCY_KEYS):
+                # Strictly-increasing timestamps per row, mirroring the live write
+                # path, so the per-employee hash chain verifies in created_at order.
+                row_time = recorded_at + timedelta(microseconds=index)
+                record_hash = audit_record_hash(
+                    prev_hash,
+                    organization_id,
+                    employee.id,
+                    evaluator_id,
+                    key,
+                    previous.get(key),
+                    scores[key],
+                    row_time,
+                )
                 session.add(
                     EvaluationAuditLog(
                         employee_id=employee.id,
@@ -288,9 +303,12 @@ async def _seed_evaluations(
                         competency=key,
                         prior_score=previous.get(key),
                         new_score=scores[key],
-                        created_at=recorded_at,
+                        created_at=row_time,
+                        prev_hash=prev_hash,
+                        record_hash=record_hash,
                     )
                 )
+                prev_hash = record_hash
             previous = scores
             created += 1
             week += 1
