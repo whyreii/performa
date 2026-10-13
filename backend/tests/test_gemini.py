@@ -105,6 +105,27 @@ async def test_request_text_raises_only_when_both_fail(monkeypatch):
         await gemini._request_text(object(), "prompt")
 
 
+def test_build_prompt_requests_gender_neutral_language():
+    """The prompt must forbid inferring gender and must not ask for numeric figures."""
+    prompt = gemini._build_prompt(
+        employee_name="Ana",
+        month_number=2,
+        status_classification="Needs Improvement",
+        competency_scores={"task_completion": 2.5},
+        recommended_courses=[
+            {
+                "catalog_id": "TC-101",
+                "competency": "task_completion",
+                "intervention_title": "X",
+                "description": "y",
+            }
+        ],
+    )
+    assert "gender" in prompt.lower()
+    assert "they/their" in prompt
+    assert "Do not restate numeric scores" in prompt
+
+
 @pytest.mark.asyncio
 async def test_generate_without_client_returns_empty_rationales(monkeypatch):
     monkeypatch.setattr(gemini, "_get_client", lambda: None)

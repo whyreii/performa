@@ -106,6 +106,10 @@ def _build_prompt(
         f"{scores_text}\n\n"
         "Recommended catalog interventions:\n"
         f"{courses_text}\n\n"
+        "Write in plain, professional English. Refer to the employee by name or with "
+        "gender-neutral language (they/their); never infer or state the employee's gender. "
+        "Do not restate numeric scores or invent figures — the structured evidence is shown "
+        "next to your text.\n\n"
         "Respond with ONLY compact JSON in exactly this shape:\n"
         '{"summary": "<exactly two sentences>", '
         '"rationales": {"<catalog_id>": "<exactly one sentence>"}}\n'
