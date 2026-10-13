@@ -25,10 +25,10 @@ beforeEach(() => {
 describe('AddEmployeeModal', () => {
   it('requires all mandatory fields', async () => {
     employeeApi.listSupervisors.mockResolvedValue([SUPERVISOR]);
-    const { container } = renderModal();
+    renderModal();
     await screen.findByText('Onboard Probationary Employee');
 
-    fireEvent.submit(container.querySelector('form'));
+    fireEvent.submit(screen.getByRole('dialog').querySelector('form'));
     expect(await screen.findByText('Please fill in all required fields.')).toBeInTheDocument();
     expect(employeeApi.create).not.toHaveBeenCalled();
   });
@@ -37,13 +37,13 @@ describe('AddEmployeeModal', () => {
     employeeApi.listSupervisors.mockResolvedValue([SUPERVISOR]);
     employeeApi.create.mockResolvedValue({ id: 'e-9' });
     const onClose = vi.fn();
-    const { container } = renderModal(onClose);
+    renderModal(onClose);
     await screen.findByText('Onboard Probationary Employee');
 
     fireEvent.change(screen.getByLabelText(/Full Name/), { target: { value: 'Nina New' } });
     fireEvent.change(screen.getByLabelText(/Work Email/), { target: { value: 'nina@acme.com' } });
     fireEvent.change(screen.getByLabelText(/Job Title/), { target: { value: 'Analyst' } });
-    fireEvent.submit(container.querySelector('form'));
+    fireEvent.submit(screen.getByRole('dialog').querySelector('form'));
 
     await waitFor(() => expect(employeeApi.create).toHaveBeenCalledTimes(1));
     expect(employeeApi.create.mock.calls[0][0]).toMatchObject({

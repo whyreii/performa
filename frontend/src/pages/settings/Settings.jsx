@@ -68,7 +68,7 @@ const STATUTORY_ALERTS = [
 // One label/value line in the profile block (label column, value column).
 function ProfileRow({ label, children }) {
   return (
-    <div className="grid grid-cols-1 gap-x-4 gap-y-1 border-t border-line py-2.5 first:border-t-0 sm:grid-cols-[180px_minmax(0,1fr)] sm:items-center">
+    <div className="grid grid-cols-1 gap-x-4 gap-y-1 py-2.5 sm:grid-cols-[180px_minmax(0,1fr)] sm:items-center">
       <span className="text-14 text-ink-3">{label}</span>
       <span className="min-w-0 text-14 text-ink">{children}</span>
     </div>
@@ -230,33 +230,35 @@ export default function Settings() {
                 }
               />
 
-              <ProfileRow label="Full Name">{user?.full_name || 'User'}</ProfileRow>
-              <ProfileRow label="Work Email">
-                <span className="font-num">{user?.email}</span>
-              </ProfileRow>
-              <ProfileRow label="Platform Role">
-                <span className="capitalize">{user?.role?.replace(/_/g, ' ')}</span>
-              </ProfileRow>
-              <ProfileRow label="Organization">
-                <span className="inline-flex items-center gap-3 min-w-0">
-                  <span className="truncate">
-                    {user?.organization_name || user?.organization_id || '—'}
+              <div className="divide-y divide-line">
+                <ProfileRow label="Full Name">{user?.full_name || 'User'}</ProfileRow>
+                <ProfileRow label="Work Email">
+                  <span className="font-num">{user?.email}</span>
+                </ProfileRow>
+                <ProfileRow label="Platform Role">
+                  <span className="capitalize">{user?.role?.replace(/_/g, ' ')}</span>
+                </ProfileRow>
+                <ProfileRow label="Organization">
+                  <span className="inline-flex items-center gap-3 min-w-0">
+                    <span className="truncate">
+                      {user?.organization_name || user?.organization_id || '—'}
+                    </span>
+                    {canManageOrg && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOrgName(user?.organization_name || '');
+                          setOrgStatus({ type: '', message: '' });
+                          setIsEditingOrg((prev) => !prev);
+                        }}
+                        className="shrink-0 text-12 text-accent hover:underline"
+                      >
+                        {isEditingOrg ? 'Cancel' : 'Rename'}
+                      </button>
+                    )}
                   </span>
-                  {canManageOrg && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOrgName(user?.organization_name || '');
-                        setOrgStatus({ type: '', message: '' });
-                        setIsEditingOrg((prev) => !prev);
-                      }}
-                      className="shrink-0 text-12 text-accent hover:underline"
-                    >
-                      {isEditingOrg ? 'Cancel' : 'Rename'}
-                    </button>
-                  )}
-                </span>
-              </ProfileRow>
+                </ProfileRow>
+              </div>
 
               {isEditingProfile && (
                 <form

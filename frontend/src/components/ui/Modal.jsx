@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 
 /* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions --
@@ -64,7 +65,7 @@ export default function Modal({
     }
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
       onClick={onClose}
@@ -82,6 +83,7 @@ export default function Modal({
       >
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
