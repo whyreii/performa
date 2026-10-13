@@ -334,8 +334,7 @@ html[data-reduce-motion='true'] *::after {
     overflow: visible !important;
   }
 
-  .app-toolbar,
-  .app-statusbar {
+  .app-toolbar {
     display: none !important;
   }
 

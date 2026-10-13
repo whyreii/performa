@@ -28,23 +28,13 @@ function Toolbar() {
         {title ? (
           <span className="truncate text-16 font-semibold tracking-tight text-ink">{title}</span>
         ) : null}
-        {/* The org lives in the sidebar; the toolbar note is just the date. */}
+        {/* The org lives in the sidebar; the toolbar note is the date + zone. */}
         <span className="ml-auto hidden truncate text-12 text-ink-3 sm:block">
-          {manilaTodayLabel()}
+          {manilaTodayLabel()} · Asia/Manila
         </span>
         <div ref={setActionsEl} className="ml-auto flex flex-none items-center gap-2 sm:ml-0" />
       </div>
     </header>
-  );
-}
-
-function StatusBar() {
-  return (
-    <footer className="app-statusbar hidden lg:flex flex-none h-[28px] border-t border-line bg-glass text-12 text-ink-3 backdrop-blur-md">
-      <div className={`${WALL} flex h-full items-center justify-end gap-3`}>
-        <span className="truncate">Asia/Manila</span>
-      </div>
-    </footer>
   );
 }
 
@@ -108,7 +98,7 @@ export default function AppShell({ children }) {
         {/* Mobile & Tablet Top App Bar (< lg) */}
         <MobileBar onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
 
-        {/* Main column: toolbar · scrolling content · status bar */}
+        {/* Main column: toolbar · scrolling content */}
         <div className="lg:flex lg:min-h-0 lg:min-w-0 lg:flex-1 lg:flex-col">
           <Toolbar />
 
@@ -121,8 +111,6 @@ export default function AppShell({ children }) {
               <Suspense fallback={<PageSkeleton />}>{children || <Outlet />}</Suspense>
             </div>
           </main>
-
-          <StatusBar />
         </div>
 
         {/* Mobile Bottom Tab Bar */}
