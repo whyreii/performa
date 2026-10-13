@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { PerformaMark, Eye, EyeOff, AlertCircle, Sun, Moon } from '../../components/icons';
-import { TextField, Button, Surface, Badge, inputClass, PageGrid, Row, Col } from '../../components/ui';
+import { TextField, Button, Surface, Badge, Label, inputClass, PageGrid, Row, Col } from '../../components/ui';
 import { COMPETENCIES } from '../../config/domain';
 
 const MODES = [
@@ -143,9 +143,9 @@ export default function Login() {
 
               <div>
                 <div className="flex items-baseline justify-between gap-3 mb-1">
-                  <label className="text-12 font-medium text-ink-2" htmlFor="password">
+                  <Label htmlFor="password" block={false}>
                     Password
-                  </label>
+                  </Label>
                   <Link
                     to="/forgot-password"
                     className="text-12 font-semibold text-accent hover:underline"

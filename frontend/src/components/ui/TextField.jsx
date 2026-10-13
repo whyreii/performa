@@ -1,5 +1,6 @@
 import React from 'react';
 import { inputClass } from './Field';
+import Label from './Label';
 
 // Accessible text input: label wired via htmlFor, error via aria-describedby +
 // aria-invalid + role=alert. Replaces the repeated input class literal AND the
@@ -8,11 +9,7 @@ export default function TextField({ id, label, error, hint, className = '', ...p
   const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
   return (
     <div className={className}>
-      {label && (
-        <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor={id}>
-          {label}
-        </label>
-      )}
+      {label && <Label htmlFor={id}>{label}</Label>}
       <input
         id={id}
         aria-invalid={error ? true : undefined}

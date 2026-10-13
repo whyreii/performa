@@ -6,7 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import { TARGET, COMPETENCIES, COMPETENCY_DESCRIPTIONS } from '../../config/domain';
 import { formatDate } from '../../utils/datetime';
 import { AlertCircle } from '../../components/icons';
-import { Page, Button, Badge, inputClass, SectionHead } from '../../components/ui';
+import { Page, Button, Badge, Label, inputClass, SectionHead } from '../../components/ui';
 
 // Fallback weight used only when the API has not provisioned a tenant default yet.
 const DEFAULT_WEIGHT = 0.2;
@@ -261,9 +261,7 @@ export default function Rubrics() {
 
           <div className="flex flex-col lg:flex-row lg:items-end gap-3 pt-3 mt-2 border-t border-line">
             <div className="w-full lg:w-64">
-              <label htmlFor="kpi-template" className="block text-14 font-medium text-ink-2 mb-1">
-                Industry template
-              </label>
+              <Label htmlFor="kpi-template">Industry template</Label>
               <select
                 id="kpi-template"
                 className={inputClass}

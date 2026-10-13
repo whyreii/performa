@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, reportApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
 import { formatDate } from '../../utils/datetime';
-import { Button, Skeleton, EmptyState, Page, SectionHead, Modal, GlideSelect } from '../../components/ui';
+import { Button, Skeleton, EmptyState, Page, SectionHead, Modal, Label, GlideSelect } from '../../components/ui';
 import { Download, FileText, Users } from '../../components/icons';
 
 // Article 296 report catalogue. The performance report is the only evidentiary
@@ -162,9 +162,7 @@ export default function Reports() {
         </p>
 
         <div className="mt-4">
-          <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor="r_emp">
-            Probationary employee
-          </label>
+          <Label htmlFor="r_emp">Probationary employee</Label>
           <GlideSelect
             id="r_emp"
             className="glide-select--field"

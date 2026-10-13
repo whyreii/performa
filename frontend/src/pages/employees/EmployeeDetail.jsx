@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Card, Page, Modal, EmptyState, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
+import { Button, Badge, Skeleton, Card, Page, Modal, EmptyState, Label, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, COMPETENCIES } from '../../config/domain';
 import { BRAND } from '../../config/brand';
@@ -1296,9 +1296,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
         {selectedStatus === 'terminated' && (
           <div>
-            <label className="block text-12 font-medium text-ink-2 mb-1.5" htmlFor="status_reason">
-              Reason for Termination *
-            </label>
+            <Label htmlFor="status_reason">Reason for Termination *</Label>
             <textarea
               id="status_reason"
               rows={3}

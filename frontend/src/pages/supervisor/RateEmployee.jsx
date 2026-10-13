@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, kpiApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Modal, Page, EmptyState, GlideSelect, SectionHead, StatBand, textareaClass } from '../../components/ui';
+import { Button, Badge, Skeleton, Modal, Page, EmptyState, Label, GlideSelect, SectionHead, StatBand, textareaClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
 import { TARGET, PROBATION_DAYS, COMPETENCIES, COMPETENCY_DESCRIPTIONS } from '../../config/domain';
 import { Award, AlertTriangle, CheckCircle2, Info, Users } from '../../components/icons';
@@ -354,9 +354,7 @@ export default function RateEmployee() {
                 </p>
 
                 <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-14 font-semibold text-ink" htmlFor="remarks">
-                    Evidentiary Behavioral Remarks *
-                  </label>
+                  <Label htmlFor="remarks">Evidentiary Behavioral Remarks *</Label>
                   <span className="text-12 text-ink-3 font-num">
                     {remarks.length} / 500 characters
                   </span>

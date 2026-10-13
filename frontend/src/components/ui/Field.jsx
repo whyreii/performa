@@ -1,4 +1,5 @@
 import React from 'react';
+import Label from './Label';
 
 // Shared control class strings — the single source for input/select/textarea
 // styling. Replaces the class literal duplicated across ~9 files (SLOP_AUDIT §3).
@@ -11,11 +12,7 @@ export const textareaClass =
 export function Field({ id, label, hint, children }) {
   return (
     <div>
-      {label && (
-        <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor={id}>
-          {label}
-        </label>
-      )}
+      {label && <Label htmlFor={id}>{label}</Label>}
       {children}
       {hint && <p className="text-12 text-ink-3 mt-1">{hint}</p>}
     </div>

@@ -14,6 +14,7 @@ import {
   Col,
   SectionHead,
   RubberSegment,
+  Label,
   inputClass,
 } from '../../components/ui';
 import { CheckCircle2, AlertCircle, Sun, Moon, Monitor, Lock } from '../../components/icons';
@@ -327,9 +328,7 @@ export default function Settings() {
                     className="[&_input]:font-num"
                   />
                   <div className="sm:col-span-2">
-                    <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor="p_role">
-                      Role
-                    </label>
+                    <Label htmlFor="p_role">Role</Label>
                     <div className="relative">
                       <input
                         id="p_role"

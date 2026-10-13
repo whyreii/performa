@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { manilaTodayISO, addDays, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS } from '../../config/domain';
-import { Button, Modal, TextField, GlideSelect } from '../ui';
+import { Button, Modal, TextField, Label, GlideSelect } from '../ui';
 import { X, AlertCircle, Lock } from '../icons';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
@@ -186,9 +186,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           </div>
 
           <div>
-            <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor="m_supervisor">
-              Assigned Supervisor *
-            </label>
+            <Label htmlFor="m_supervisor">Assigned Supervisor *</Label>
             <GlideSelect
               id="m_supervisor"
               className="glide-select--field"

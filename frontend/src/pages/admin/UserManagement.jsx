@@ -14,6 +14,7 @@ import TextField from '../../components/ui/TextField';
 import Tabs from '../../components/ui/Tabs';
 import Page from '../../components/ui/Page';
 import GlideSelect from '../../components/ui/GlideSelect';
+import Label from '../../components/ui/Label';
 import Th from '../../components/ui/Th';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { inputClass } from '../../components/ui/Field';
@@ -756,9 +757,7 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
           </div>
 
           <div>
-            <label htmlFor="m_org" className="block text-ink-2 font-medium mb-1.5">
-              Organization / Tenant *
-            </label>
+            <Label htmlFor="m_org">Organization / Tenant *</Label>
             <GlideSelect
               id="m_org"
               className="glide-select--field"

@@ -22,5 +22,6 @@ export { default as RubberSegment } from './RubberSegment';
 export { default as GlideSelect } from './GlideSelect';
 export { default as Tabs } from './Tabs';
 export { default as Field, inputClass, textareaClass } from './Field';
+export { default as Label } from './Label';
 export { default as TextField } from './TextField';
 export { default as Th } from './Th';

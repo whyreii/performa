@@ -5,7 +5,7 @@ import { daysElapsed as getDaysElapsed, monthNumberFor } from '../../utils/datet
 import { PROBATION_MONTHS, PROBATION_MONTH_DAYS, COMPETENCIES } from '../../config/domain';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Modal, EmptyState, Page, GlideSelect, ConfirmDialog, SectionHead, Th } from '../../components/ui';
+import { Button, Badge, Skeleton, Modal, EmptyState, Page, Label, GlideSelect, ConfirmDialog, SectionHead, Th } from '../../components/ui';
 import { FileCheck2, Sparkles, CheckCircle2, XCircle, AlertCircle, X, ArrowRight } from '../../components/icons';
 
 const LABEL_BY_KEY = Object.fromEntries(COMPETENCIES.map((c) => [c.key, c.label]));
@@ -370,9 +370,7 @@ export default function Rollups() {
 
         <form onSubmit={handleGenerateSubmit} className="space-y-4">
           <div>
-            <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor="r_emp">
-              Probationary Employee *
-            </label>
+            <Label htmlFor="r_emp">Probationary Employee *</Label>
             <GlideSelect
               id="r_emp"
               className="glide-select--field"
@@ -390,9 +388,7 @@ export default function Rollups() {
           </div>
 
           <div>
-            <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor="r_month">
-              Evaluation Month (30-Day Cycle) *
-            </label>
+            <Label htmlFor="r_month">Evaluation Month (30-Day Cycle) *</Label>
             <GlideSelect
               id="r_month"
               className="glide-select--field"

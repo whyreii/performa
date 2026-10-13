@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { PerformaMark, Eye, EyeOff, AlertCircle, Sun, Moon } from '../../components/icons';
-import { TextField, Button, Surface, inputClass, PageGrid, Row, Col } from '../../components/ui';
+import { TextField, Button, Surface, Label, inputClass, PageGrid, Row, Col } from '../../components/ui';
 import { COMPETENCIES } from '../../config/domain';
 
 const MODES = [
@@ -144,9 +144,7 @@ export default function Register() {
               />
 
               <div>
-                <label className="text-12 font-medium text-ink-2 mb-1" htmlFor="password">
-                  Password
-                </label>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <input
                     id="password"
