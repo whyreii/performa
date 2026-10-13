@@ -148,8 +148,8 @@ export default function RateEmployee() {
   if (submittedEvaluation) {
     return (
       <Page title="Rate Probationary Employee">
-        <section aria-label="Confirmation" className="max-w-xl">
-          <div className="w-16 h-16 rounded-full bg-good/10 text-good border border-good/20 flex items-center justify-center">
+        <section aria-label="Confirmation" className="max-w-xl mx-auto text-center">
+          <div className="w-16 h-16 rounded-full bg-good/10 text-good border border-good/20 flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8" />
           </div>
 
@@ -161,7 +161,7 @@ export default function RateEmployee() {
             been recorded in the immutable audit trail.
           </p>
 
-          <dl className="mt-5 border-t border-line font-num text-14">
+          <dl className="mt-5 border-t border-line font-num text-14 text-left">
             <div className="flex justify-between border-b border-line py-2.5">
               <dt className="text-ink-3">Overall average</dt>
               <dd className="font-semibold text-ink">
@@ -180,7 +180,7 @@ export default function RateEmployee() {
             </div>
           </dl>
 
-          <div className="flex flex-wrap gap-3 mt-6">
+          <div className="flex flex-wrap gap-3 mt-6 justify-center">
             <Button
               variant="secondary"
               onClick={() => {

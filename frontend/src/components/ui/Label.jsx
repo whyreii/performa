@@ -10,7 +10,7 @@ import React from 'react';
 // pass `block={false}` when the label sits inline in a flex row (e.g. next to a
 // "Forgot password?" link) so it does not add a second bottom margin.
 export default function Label({ htmlFor, children, block = true, className = '' }) {
-  const base = `text-14 font-medium text-ink-2${block ? ' block mb-1' : ''}`;
+  const base = `text-12 font-medium text-ink-2${block ? ' block mb-1' : ''}`;
   return (
     <label htmlFor={htmlFor} className={`${base}${className ? ` ${className}` : ''}`}>
       {children}

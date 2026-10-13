@@ -26,6 +26,9 @@ export default function CountUp({
       return undefined;
     }
     const start = performance.now();
+    // rAF can be starved under heavy load; this timer guarantees the value
+    // settles to the final text even if frames are sparse (de-flakes tests).
+    const settle = setTimeout(() => setText(finalText), duration + 150);
     const tick = (now) => {
       const p = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - p, 3);
@@ -37,7 +40,10 @@ export default function CountUp({
       }
     };
     rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      clearTimeout(settle);
+    };
   }, [target, finite, decimals, duration, finalText]);
 
   return (

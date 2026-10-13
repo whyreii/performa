@@ -8,7 +8,7 @@ describe('Label', () => {
     const label = screen.getByText('Work email');
     expect(label.tagName).toBe('LABEL');
     expect(label).toHaveAttribute('for', 'email');
-    expect(label.className).toContain('text-14');
+    expect(label.className).toContain('text-12');
     expect(label.className).toContain('font-medium');
     expect(label.className).toContain('mb-1');
   });
