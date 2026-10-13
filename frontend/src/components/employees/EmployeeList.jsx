@@ -187,7 +187,22 @@ export default function EmployeeList() {
                       st ? TONE_TEXT[st] : 'text-ink-3'
                     }`}
                   >
-                    {overall != null ? overall.toFixed(2) : scoresLoading ? '…' : 'No score yet'}
+                    {overall != null ? (
+                      <>
+                        {overall.toFixed(2)}
+                        <span className="sr-only">
+                          {st === 'ok'
+                            ? ' meets the standard'
+                            : st === 'warn'
+                            ? ' below the standard'
+                            : ' critical gap'}
+                        </span>
+                      </>
+                    ) : scoresLoading ? (
+                      '…'
+                    ) : (
+                      'No score yet'
+                    )}
                   </td>
                   <td className="py-3 text-right text-14 text-ink-2">
                     {stageShort(days, emp.status)}

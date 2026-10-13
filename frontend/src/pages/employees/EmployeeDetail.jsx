@@ -667,11 +667,26 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                               className={`w-11 shrink-0 text-right text-14 font-semibold font-num ${TONE_TEXT[tone]}`}
                             >
                               {score.toFixed(1)}
+                              <span className="sr-only">
+                                {tone === 'ok'
+                                  ? ' meets the standard'
+                                  : tone === 'warn'
+                                  ? ' below the standard'
+                                  : ' critical gap'}
+                              </span>
                             </span>
                           </div>
                         );
                       })}
                     </div>
+                    <p className="mt-3 text-12 text-ink-3">
+                      Score key:{' '}
+                      <span className="text-good">≥ {overallTarget.toFixed(1)} meets</span>
+                      {' · '}
+                      <span className="text-warn">3.0–{overallTarget.toFixed(1)} below</span>
+                      {' · '}
+                      <span className="text-bad">{'< 3.0 critical gap'}</span>
+                    </p>
                   </>
                 )}
               </section>
