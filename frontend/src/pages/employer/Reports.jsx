@@ -127,7 +127,7 @@ export default function Reports() {
                   <th scope="col" className="py-2.5 pr-4 font-normal">Employee</th>
                   <th scope="col" className="py-2.5 pr-4 font-normal">Generated</th>
                   <th scope="col" className="py-2.5 pr-4 font-normal text-right">Size</th>
-                  <th scope="col" className="py-2.5 font-normal text-right">Actions</th>
+                  <th scope="col" className="py-2.5 pr-2.5 font-normal text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
