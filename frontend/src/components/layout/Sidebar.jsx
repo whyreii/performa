@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -6,7 +6,6 @@ import { PerformaMark, LogOut, Search, Sun, Moon, ChevronLeft, ChevronRight } fr
 import { ConfirmDialog } from '../ui';
 import { sidebarNav } from '../../config/nav';
 import { getInitials } from '../../utils/format';
-import { formatManilaClock } from '../../utils/datetime';
 import { modifierKey } from '../../utils/platform';
 import { prefetchRoute } from '../../routes/loaders';
 
@@ -45,14 +44,6 @@ export default function Sidebar({ onOpenCommandPalette }) {
       : role === 'supervisor'
       ? '/supervisor/dashboard'
       : '/dashboard';
-
-  // Live Philippine Standard Time (Asia/Manila). Initialised synchronously so
-  // the block is present on first paint (avoids a post-paint layout shift).
-  const [manilaTime, setManilaTime] = useState(() => formatManilaClock());
-  useEffect(() => {
-    const interval = setInterval(() => setManilaTime(formatManilaClock()), 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <aside
@@ -96,15 +87,6 @@ export default function Sidebar({ onOpenCommandPalette }) {
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-3.5 h-3.5" />}
         </button>
       </div>
-
-      {/* Manila Time Clock (Article 296 Timezone Anchor) */}
-      {!collapsed && (
-        <div className="flex items-center gap-2 px-1 pb-2 text-14 font-num text-ink-3">
-          <span className="w-1.5 h-1.5 rounded-full bg-good animate-pulse" />
-          <span>Manila (UTC+8)</span>
-          <span className="ml-auto text-ink font-semibold">{manilaTime}</span>
-        </div>
-      )}
 
       {/* Quick Search trigger */}
       {collapsed ? (

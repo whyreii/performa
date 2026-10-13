@@ -5,7 +5,6 @@ import { daysElapsed as getDaysElapsed, monthNumberFor } from '../../utils/datet
 import { PROBATION_MONTHS, PROBATION_MONTH_DAYS } from '../../config/domain';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
-import { useStatusBar } from '../../context/ChromeContext';
 import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect, ConfirmDialog, SectionHead } from '../../components/ui';
 import {
   FileCheck2,
@@ -98,11 +97,6 @@ export default function Rollups() {
     queryKey: ['summaries'],
     queryFn: () => interventionApi.listSummaries(),
   });
-
-  useStatusBar(
-    `${pendingPlans.length} interventions pending · ${summaries.length} monthly summaries`,
-    'Gemini summaries · Random Forest recommendations'
-  );
 
   const dispatchMutation = useMutation({
     mutationFn: (id) => interventionApi.dispatchSummary(id),

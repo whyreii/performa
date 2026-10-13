@@ -9,19 +9,31 @@ import { TONE_BG } from '../../utils/status';
 // figures, 'base' (16px) for supporting cells beside them.
 //
 // cells: [{ label, value, caption?, tone?, size? }]
-export default function StatBand({ cells = [], className = '' }) {
+// spans: optional column spans (of the 12-track page grid) so the dividers line
+// up with the columns below. When set, the band uses the page's 12 tracks +
+// gutter; otherwise cells split evenly.
+export default function StatBand({ cells = [], spans, className = '' }) {
   if (!cells.length) return null;
+  const useSpans = Array.isArray(spans) && spans.length === cells.length;
   return (
     <div
-      className={`grid divide-x divide-line border-b border-line pb-5${
+      className={`grid ${useSpans ? 'gap-x-6' : ''} divide-x divide-line border-b border-line pb-5${
         className ? ` ${className}` : ''
       }`}
-      style={{ gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))` }}
+      style={{
+        gridTemplateColumns: useSpans
+          ? 'repeat(12, minmax(0, 1fr))'
+          : `repeat(${cells.length}, minmax(0, 1fr))`,
+      }}
     >
-      {cells.map((cell) => {
+      {cells.map((cell, i) => {
         const size = cell.size === 'base' ? 'text-16' : 'text-22';
         return (
-          <div key={cell.label} className="min-w-0 px-5 first:pl-0 last:pr-0">
+          <div
+            key={cell.label}
+            className="min-w-0 px-5 first:pl-0 last:pr-0"
+            style={useSpans ? { gridColumn: `span ${spans[i]}` } : undefined}
+          >
             <div className="flex items-center gap-2 text-12 text-ink-3">
               {cell.tone ? (
                 <span

@@ -17,7 +17,8 @@ describe('AppShell', () => {
     });
 
     expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveAttribute('href', '#main');
-    expect(await screen.findByText('Manila (UTC+8)')).toBeInTheDocument();
+    // The footer carries the single timezone reference.
+    expect(await screen.findByText('Asia/Manila')).toBeInTheDocument();
     // Sidebar nav for the employer role.
     expect(screen.getByRole('link', { name: 'Rollups & AI Plans' })).toBeInTheDocument();
     // Mobile navigation tab bar.

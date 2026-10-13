@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
-import { useStatusBar } from '../../context/ChromeContext';
 import { Button, Badge, Card, Skeleton, EmptyState, Page, inputClass, SectionHead } from '../../components/ui';
 import { FileText, Download, Users } from '../../components/icons';
 
@@ -34,11 +33,6 @@ export default function Reports() {
   const sorted = useMemo(
     () => [...employees].sort((a, b) => (a.user?.full_name || '').localeCompare(b.user?.full_name || '')),
     [employees]
-  );
-
-  useStatusBar(
-    `${employees.length} employees · ${REPORT_TYPES.length} report type`,
-    'DOLE Article 296 · Asia/Manila'
   );
 
   const openReport = async (id) => {

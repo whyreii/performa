@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { useStatusBar } from '../../context/ChromeContext';
 import { authApi, adminApi, organizationApi, getApiErrorMessage } from '../../api';
 import { COMPETENCIES } from '../../config/domain';
 import {
@@ -79,11 +78,6 @@ function ProfileRow({ label, children }) {
 export default function Settings() {
   const { user, refreshUser } = useAuth();
   const { mode, setMode, reduceMotion, setReduceMotion } = useTheme();
-
-  useStatusBar(
-    `${user?.full_name || 'User'} · ${(user?.role || '').replace(/_/g, ' ')}`,
-    `${user?.organization_name || user?.organization_id || 'Organization'} · Asia/Manila`
-  );
 
   // Administrators get an extra read-only "System settings" section (Manuscript
   // Scope: global deadline thresholds + industry KPI template library). The rest

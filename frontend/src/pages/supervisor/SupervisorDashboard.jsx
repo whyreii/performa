@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { useStatusBar } from '../../context/ChromeContext';
 import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card, Page, SectionHead } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, TARGET } from '../../config/domain';
@@ -34,11 +33,6 @@ export default function SupervisorDashboard() {
   const activeProbationers = useMemo(() => {
     return employees.filter((e) => e.status === 'active');
   }, [employees]);
-
-  useStatusBar(
-    `${activeProbationers.length} direct reports · rated weekly`,
-    `Target ${TARGET.toFixed(2)} · Asia/Manila`
-  );
 
   return (
     <Page

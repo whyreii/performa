@@ -22,17 +22,15 @@ const WALL = 'app-wall mx-auto w-full max-w-[1104px] px-4 sm:px-6 lg:px-8';
 
 function Toolbar() {
   const { title, setActionsEl } = useChrome();
-  const { user } = useAuth();
-  const org = user?.organization_name || user?.organization_id || 'Performa';
   return (
     <header className="app-toolbar flex-none h-[46px] border-b border-line bg-glass backdrop-blur-md">
       <div className={`${WALL} flex h-full items-center gap-3`}>
         {title ? (
           <span className="truncate text-16 font-semibold tracking-tight text-ink">{title}</span>
         ) : null}
-        {/* Concept grammar: the toolbar note is "<org> · <date>", right-aligned. */}
+        {/* The org lives in the sidebar; the toolbar note is just the date. */}
         <span className="ml-auto hidden truncate text-12 text-ink-3 sm:block">
-          {org} · {manilaTodayLabel()}
+          {manilaTodayLabel()}
         </span>
         <div ref={setActionsEl} className="ml-auto flex flex-none items-center gap-2 sm:ml-0" />
       </div>
@@ -41,14 +39,10 @@ function Toolbar() {
 }
 
 function StatusBar() {
-  const { statusLeft, statusRight } = useChrome();
-  const { user } = useAuth();
-  const org = user?.organization_name || user?.organization_id || 'Performa';
   return (
     <footer className="app-statusbar hidden lg:flex flex-none h-[28px] border-t border-line bg-glass text-12 text-ink-3 backdrop-blur-md">
-      <div className={`${WALL} flex h-full items-center justify-between gap-3`}>
-        <span className="truncate">{statusLeft || org}</span>
-        <span className="truncate">{statusRight || 'Asia/Manila'}</span>
+      <div className={`${WALL} flex h-full items-center justify-end gap-3`}>
+        <span className="truncate">Asia/Manila</span>
       </div>
     </footer>
   );

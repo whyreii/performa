@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { useStatusBar } from '../../context/ChromeContext';
 import { Button, Badge, MilestonePill, Skeleton, Card, Page, Modal, EmptyState, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, COMPETENCIES } from '../../config/domain';
@@ -309,13 +308,6 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         toast.error('Failed to copy notice to clipboard.');
       });
   };
-
-  useStatusBar(
-    employee
-      ? `Day ${getDaysElapsed(employee.start_date)} of ${PROBATION_DAYS} · ${employee.status}`
-      : 'Employee record',
-    'Article 296 · Asia/Manila'
-  );
 
   if (isEmpLoading) {
     return (

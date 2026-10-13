@@ -28,12 +28,10 @@ import {
   TONE_BG,
   TONE_FILL,
 } from '../../utils/status';
-import { Users, Award } from '../../components/icons';
-import { useStatusBar } from '../../context/ChromeContext';
-
-// Employer dashboard — the overview: KPI strip · score-vs-target chart + milestone
-// alerts · next statutory deadlines + AI recommendations. Every value comes from
-// the API/DB (scores via each employee's scorecard; no invented numbers).
+// Employer dashboard — the overview: a two-cell KPI strip, then the overall
+// score chart + interventions (left) and milestone alerts (right). Every value
+// comes from the API/DB (scores via each employee's scorecard; no invented
+// numbers).
 const MILE_LABEL = {
   [MILESTONE_REVIEW]: `Day ${MILESTONE_REVIEW} review`,
   [MILESTONE_NOTICE]: `Day ${MILESTONE_NOTICE} notice`,
@@ -136,12 +134,8 @@ export default function Dashboard() {
       if (d > PROBATION_DAYS) pastCap += 1;
       else if (d >= MILESTONE_REVIEW) decisionsDue += 1;
     });
-    return {
-      pastCap,
-      decisionsDue,
-      pendingPlans: plans.filter((p) => p.status === 'pending_approval').length,
-    };
-  }, [activeProbationers, plans]);
+    return { pastCap, decisionsDue };
+  }, [activeProbationers]);
 
   const targetScore = Number(scores[0]?.sc?.target_score) || 4.0;
 
@@ -169,11 +163,6 @@ export default function Dashboard() {
     [activeProbationers, scById]
   );
 
-  useStatusBar(
-    `Day 0–${PROBATION_DAYS} pipeline · ${activeProbationers.length} active · ${stats.decisionsDue} decisions due`,
-    `${stats.pendingPlans} interventions pending · Asia/Manila`
-  );
-
   const kpis = [
     {
       label: 'Past cap · auto-regular',
@@ -193,27 +182,22 @@ export default function Dashboard() {
     <Page
       title="Dashboard"
       actions={
-        <>
-          <Button variant="secondary" leftIcon={Users} onClick={() => navigate('/employees')}>
-            Directory
-          </Button>
-          <Button variant="primary" leftIcon={Award} onClick={() => navigate('/supervisor/rate')}>
-            Rate staff
-          </Button>
-        </>
+        <Button variant="primary" onClick={() => navigate('/supervisor/rate')}>
+          Rate employee
+        </Button>
       }
     >
       <PageGrid className="space-y-10 lg:space-y-0 lg:gap-y-10">
         {/* KPI strip */}
         <Row>
           <Col span={12}>
-            <StatBand cells={kpis} />
+            <StatBand cells={kpis} spans={[7, 5]} />
           </Col>
         </Row>
 
-        {/* Overall score + Alerts, then Next deadlines + AI — the concept's two rows */}
+        {/* Overall score + Interventions (left) · Alerts (right) */}
         <Row className="lg:items-start">
-          <Col span={7}>
+          <Col span={7} className="space-y-8">
             <section aria-label="Overall score vs standard">
               <SectionHead
                 title="Overall score"
@@ -283,6 +267,35 @@ export default function Dashboard() {
                 </div>
               )}
             </section>
+
+            <section aria-label="Interventions">
+              <SectionHead title="Interventions" subtitle="Training plans pending sign-off" />
+              {isPlansLoading ? (
+                <div className="space-y-3 pt-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : isPlansError ? (
+                <p className="py-6 text-14 text-bad">
+                  Unable to load interventions right now. Please retry.
+                </p>
+              ) : plans.length === 0 ? (
+                <p className="py-3 text-14 leading-relaxed text-ink-2">
+                  No interventions awaiting sign-off.
+                </p>
+              ) : (
+                <ul>
+                  {plans.slice(0, 3).map((plan) => (
+                    <li key={plan.id} className="border-t border-line py-3 first:border-t-0">
+                      <div className="text-14 font-semibold text-ink">{plan.intervention_title}</div>
+                      <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
+                        {plan.rationale || plan.competency?.replace(/_/g, ' ')}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
           </Col>
 
           <Col span={5}>
@@ -329,44 +342,13 @@ export default function Dashboard() {
                           <div className="mt-0.5 text-12 text-ink-3">
                             {next
                               ? `Next: ${MILE_LABEL[next]}, ${formatDayMonth(nextDate)}.`
-                              : `Passed: Day ${PROBATION_DAYS} cap, ${formatDayMonth(capDate)}.`}
+                              : `Passed ${formatDayMonth(capDate)}.`}
                           </div>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              )}
-            </section>
-          </Col>
-
-          <Col span={12}>
-            <section aria-label="Interventions">
-              <SectionHead title="Interventions" subtitle="Training plans pending sign-off" />
-              {isPlansLoading ? (
-                <div className="space-y-3 pt-2">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              ) : isPlansError ? (
-                <p className="py-6 text-14 text-bad">
-                  Unable to load interventions right now. Please retry.
-                </p>
-              ) : plans.length === 0 ? (
-                <p className="py-3 text-14 leading-relaxed text-ink-2">
-                  No interventions awaiting sign-off.
-                </p>
-              ) : (
-                <ul>
-                  {plans.slice(0, 3).map((plan) => (
-                    <li key={plan.id} className="border-t border-line py-3 first:border-t-0">
-                      <div className="text-14 font-semibold text-ink">{plan.intervention_title}</div>
-                      <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
-                        {plan.rationale || plan.competency?.replace(/_/g, ' ')}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
               )}
             </section>
           </Col>

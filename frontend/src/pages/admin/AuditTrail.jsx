@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { useStatusBar } from '../../context/ChromeContext';
 import { formatDate } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
 import { Button, Badge, Skeleton, EmptyState, Card, Page, inputClass, GlideSelect, Th, SectionHead } from '../../components/ui';
@@ -89,11 +88,6 @@ export default function AuditTrail() {
   const pageLogs = sortedLogs.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
-  );
-
-  useStatusBar(
-    `${sortedLogs.length} audit records · immutable · append-only`,
-    'Article 296 · Asia/Manila'
   );
 
   return (

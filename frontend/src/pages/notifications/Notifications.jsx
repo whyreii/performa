@@ -5,7 +5,6 @@ import { formatDate } from '../../utils/datetime';
 import { Button, Badge, Skeleton, EmptyState, Card, Page } from '../../components/ui';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
-import { useStatusBar } from '../../context/ChromeContext';
 import { Bell, CheckCheck, AlertCircle } from '../../components/icons';
 
 // Copy reflects what each role actually receives (backend notification
@@ -64,11 +63,6 @@ export default function Notifications() {
   });
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
-
-  useStatusBar(
-    `${unreadCount} unread · ${notifications.length} total`,
-    'Milestone alerts · Asia/Manila'
-  );
 
   return (
     <Page

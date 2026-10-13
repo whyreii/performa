@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { kpiApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { useStatusBar } from '../../context/ChromeContext';
 import { TARGET, COMPETENCIES } from '../../config/domain';
 import { AlertCircle } from '../../components/icons';
 import { Card, Page, Button, Badge, inputClass, SectionHead } from '../../components/ui';
@@ -61,11 +60,6 @@ export default function Rubrics() {
   );
 
   const weightTotal = form.reduce((sum, row) => sum + (Number(row.weightPct) || 0), 0);
-
-  useStatusBar(
-    `${COMPETENCIES.length} competencies · weights ${weightTotal}%`,
-    `Target floored at ${TARGET.toFixed(2)} · Asia/Manila`
-  );
 
   const saveMutation = useMutation({
     mutationFn: () =>

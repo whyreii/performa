@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { useStatusBar } from '../../context/ChromeContext';
 import { formatDate } from '../../utils/datetime';
 import { getInitials } from '../../utils/format';
 import { generatePassword } from '../../utils/password';
@@ -63,11 +62,6 @@ export default function UserManagement() {
     queryKey: ['admin-organizations'],
     queryFn: adminApi.listOrganizations,
   });
-
-  useStatusBar(
-    `${users.length} accounts · ${organizations.length} organizations`,
-    'System oversight · Asia/Manila'
-  );
 
   // Toggle user status mutation
   const statusMutation = useMutation({
