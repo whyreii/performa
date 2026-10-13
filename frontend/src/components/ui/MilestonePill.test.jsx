@@ -13,17 +13,19 @@ describe('MilestonePill', () => {
     expect(text(<MilestonePill status="terminated" />)).toContain('Terminated');
   });
 
-  it('renders the auto-regularization warning past the cap', () => {
-    expect(text(<MilestonePill daysElapsed={181} />)).toContain('Passed 180-Day Cap');
+  it('renders constructive regularization past the cap', () => {
+    expect(text(<MilestonePill daysElapsed={181} />)).toContain(
+      'Past Day 180 · constructive regularization'
+    );
   });
 
-  it('renders each statutory milestone window', () => {
-    expect(text(<MilestonePill daysElapsed={150} />)).toContain('Review Due');
-    expect(text(<MilestonePill daysElapsed={165} />)).toContain('Notice Window');
-    expect(text(<MilestonePill daysElapsed={178} />)).toContain('Critical Action');
+  it('renders each review milestone stage', () => {
+    expect(text(<MilestonePill daysElapsed={150} />)).toContain('Day 150 · Performance appraisal');
+    expect(text(<MilestonePill daysElapsed={165} />)).toContain('Day 165 · Milestone review');
+    expect(text(<MilestonePill daysElapsed={178} />)).toContain('Day 178 · Final milestone');
   });
 
-  it('renders a plain day counter before any milestone', () => {
-    expect(text(<MilestonePill daysElapsed={10} />)).toContain('Day 10');
+  it('renders the probation day before any milestone', () => {
+    expect(text(<MilestonePill daysElapsed={10} />)).toContain('Day 10 of 180');
   });
 });

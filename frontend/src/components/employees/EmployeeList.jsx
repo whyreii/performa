@@ -5,8 +5,8 @@ import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { Skeleton, EmptyState, Card, Badge } from '../../components/ui';
 import { Users, AlertCircle } from '../../components/icons';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
-import { milestoneFor, scoreTone, TONE_BG, TONE_TEXT } from '../../utils/status';
-import { PROBATION_DAYS, TARGET } from '../../config/domain';
+import { milestoneFor, formatProbationDay, scoreTone, TONE_BG, TONE_TEXT } from '../../utils/status';
+import { TARGET } from '../../config/domain';
 import { getInitials } from '../../utils/format';
 
 // Employees directory — the iMac concept's roster: a flat hairline table with
@@ -132,7 +132,7 @@ export default function EmployeeList() {
                   <td className="py-3 pr-4">
                     <span className="inline-flex items-center gap-2 whitespace-nowrap text-14 font-num text-ink">
                       <span className={`w-2 h-2 shrink-0 rounded-full ${TONE_BG[tone]}`} aria-hidden="true" />
-                      {days} / {PROBATION_DAYS}
+                      {formatProbationDay(days)}
                     </span>
                   </td>
                   <td

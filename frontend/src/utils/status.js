@@ -1,6 +1,8 @@
-// Status tones — the single source of truth for "colour = status" (AGENTS.md
-// §1.9). Every milestone/score/trend tone is decided here once and rendered
-// consistently, so no component re-derives a threshold or hard-codes a colour.
+// Status tones + probation stage — the single source of truth for "colour =
+// status" (AGENTS.md §1.9) and for day/stage formatting (one shared module, per
+// AGENTS.md §1.2). Every milestone/score/trend tone and every stage label is
+// decided here once and rendered consistently, so no component re-derives a
+// threshold, re-implements day math, or hard-codes a colour.
 import {
   MILESTONE_REVIEW,
   MILESTONE_NOTICE,
@@ -40,6 +42,19 @@ export const TONE_VARIANT = {
   bad: 'bad',
 };
 
+// Canonical stage labels, grounded in the capstone manuscript: Article 296 sets a
+// six-month (180-day) cap and requires the standards to be communicated on Day 1;
+// the app's own review milestones fall at Day 150 / 165 / 178; past Day 180 the
+// employee is regularized by constructive regularization. These are the ONLY
+// stage strings — never re-word them at a call site.
+export const STAGE_LABEL = {
+  ok: 'In evaluation',
+  warn: `Day ${MILESTONE_REVIEW} · Performance appraisal`,
+  notice: `Day ${MILESTONE_NOTICE} · Milestone review`,
+  bad: `Day ${MILESTONE_CRITICAL} · Final milestone`,
+  past: `Past Day ${PROBATION_DAYS} · constructive regularization`,
+};
+
 // Statutory milestone tone for a day count (Article 296 thresholds).
 export function milestoneTone(day) {
   if (day >= MILESTONE_CRITICAL) return 'bad';
@@ -48,13 +63,29 @@ export function milestoneTone(day) {
   return 'ok';
 }
 
-// Record-level milestone { tone, label } for the directory list.
-export function milestoneFor(daysElapsed, status) {
-  if (status !== 'active') return { tone: 'ok', label: 'Regular' };
+// The record-level stage for a day count + status: { tone, key, label }. `key` is
+// one of ok/warn/notice/bad/past/regularized/terminated. Terminal status wins;
+// past-cap is its own key (the tone is bad but the label is not "Final milestone").
+export function milestoneStage(daysElapsed, status = 'active') {
+  const s = (status || 'active').toLowerCase();
+  if (s === 'regularized') return { tone: 'ok', key: 'regularized', label: 'Regularized' };
+  if (s === 'terminated') return { tone: 'ok', key: 'terminated', label: 'Terminated' };
+  if (daysElapsed > PROBATION_DAYS) return { tone: 'bad', key: 'past', label: STAGE_LABEL.past };
   const tone = milestoneTone(daysElapsed);
-  const label =
-    tone === 'bad' ? 'Critical' : tone === 'notice' ? 'Notice' : tone === 'warn' ? 'Review' : 'On track';
+  return { tone, key: tone, label: STAGE_LABEL[tone] };
+}
+
+// Record-level { tone, label } for the directory list (tone-only consumers).
+export function milestoneFor(daysElapsed, status) {
+  const { tone, label } = milestoneStage(daysElapsed, status);
   return { tone, label };
+}
+
+// One shared probation-day formatter (AGENTS.md §1.2): "Day 150 of 180" up to the
+// cap, "Day 181 · past cap" once past it. Never render "181 / 180".
+export function formatProbationDay(daysElapsed) {
+  const d = Number(daysElapsed) || 0;
+  return d > PROBATION_DAYS ? `Day ${d} · past cap` : `Day ${d} of ${PROBATION_DAYS}`;
 }
 
 // The next statutory milestone day for a day count (the current day counts as

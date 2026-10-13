@@ -1,75 +1,39 @@
 import React from 'react';
 import Badge from './Badge';
-import {
-  PROBATION_DAYS,
-  MILESTONE_CRITICAL,
-  MILESTONE_NOTICE,
-  MILESTONE_REVIEW,
-} from '../../config/domain';
-import { milestoneTone } from '../../utils/status';
+import { milestoneStage, formatProbationDay, TONE_VARIANT } from '../../utils/status';
 
-export default function MilestonePill({
-  daysElapsed = 0,
-  totalDays = PROBATION_DAYS,
-  status = 'active',
-  className = '',
-}) {
-  const normStatus = (status || 'active').toLowerCase();
+// The employee's current probation stage as a compact chip. Labels come from the
+// single shared stage source (utils/status.js, manuscript-grounded) — never
+// re-worded here. A terminal decision supersedes the live day clock.
+export default function MilestonePill({ daysElapsed = 0, status = 'active', className = '' }) {
+  const stage = milestoneStage(daysElapsed, status);
 
-  if (normStatus === 'regularized') {
+  if (stage.key === 'regularized') {
     return (
       <Badge variant="ok" className={className}>
         Regularized
       </Badge>
     );
   }
-
-  if (normStatus === 'terminated') {
+  if (stage.key === 'terminated') {
     return (
       <Badge variant="neutral" className={className}>
         Terminated
       </Badge>
     );
   }
-
-  // Article 296 statutory milestone thresholds (decided once in utils/status).
-  if (daysElapsed > PROBATION_DAYS) {
+  if (stage.key === 'ok') {
     return (
-      <Badge variant="bad" className={`animate-pulse ${className}`}>
-        Passed 180-Day Cap (Auto-Reg)
+      <Badge variant="neutral" className={className}>
+        <span className="font-num">{formatProbationDay(daysElapsed)}</span>
       </Badge>
     );
   }
 
-  const tone = milestoneTone(daysElapsed);
-
-  if (tone === 'bad') {
-    return (
-      <Badge variant="bad" className={`animate-pulse ${className}`}>
-        Day {daysElapsed} · Day {MILESTONE_CRITICAL} Critical Action
-      </Badge>
-    );
-  }
-
-  if (tone === 'notice') {
-    return (
-      <Badge variant="notice" className={className}>
-        Day {daysElapsed} · Day {MILESTONE_NOTICE} Notice Window
-      </Badge>
-    );
-  }
-
-  if (tone === 'warn') {
-    return (
-      <Badge variant="warn" className={className}>
-        Day {daysElapsed} · Day {MILESTONE_REVIEW} Review Due
-      </Badge>
-    );
-  }
-
+  // warn / notice / bad / past — the chip carries the stage; tone = status.
   return (
-    <Badge variant="neutral" className={className}>
-      <span className="font-num">Day {daysElapsed}</span> / {totalDays}
+    <Badge variant={TONE_VARIANT[stage.tone]} className={className}>
+      {stage.label}
     </Badge>
   );
 }

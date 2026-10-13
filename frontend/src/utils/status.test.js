@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { milestoneTone, milestoneFor, nextMilestone, scoreTone, TONE_TEXT } from './status';
+import {
+  milestoneTone,
+  milestoneStage,
+  milestoneFor,
+  formatProbationDay,
+  nextMilestone,
+  scoreTone,
+  TONE_TEXT,
+} from './status';
 
 describe('status tones', () => {
   it('maps day counts to statutory milestone tones', () => {
@@ -9,13 +17,64 @@ describe('status tones', () => {
     expect(milestoneTone(178)).toBe('bad');
   });
 
-  it('labels a non-active employee as Regular', () => {
-    expect(milestoneFor(100, 'regularized')).toEqual({ tone: 'ok', label: 'Regular' });
+  it('maps day counts to the canonical stage (manuscript-grounded labels)', () => {
+    expect(milestoneStage(149, 'active')).toEqual({
+      tone: 'ok',
+      key: 'ok',
+      label: 'In evaluation',
+    });
+    expect(milestoneStage(150, 'active')).toEqual({
+      tone: 'warn',
+      key: 'warn',
+      label: 'Day 150 · Performance appraisal',
+    });
+    expect(milestoneStage(165, 'active')).toEqual({
+      tone: 'notice',
+      key: 'notice',
+      label: 'Day 165 · Milestone review',
+    });
+    expect(milestoneStage(178, 'active')).toEqual({
+      tone: 'bad',
+      key: 'bad',
+      label: 'Day 178 · Final milestone',
+    });
   });
 
-  it('labels active employees by milestone', () => {
-    expect(milestoneFor(150, 'active')).toEqual({ tone: 'warn', label: 'Review' });
-    expect(milestoneFor(30, 'active')).toEqual({ tone: 'ok', label: 'On track' });
+  it('gives past-cap its own stage (not "Final milestone")', () => {
+    expect(milestoneStage(181, 'active')).toEqual({
+      tone: 'bad',
+      key: 'past',
+      label: 'Past Day 180 · constructive regularization',
+    });
+  });
+
+  it('reflects a terminal decision over the day clock', () => {
+    expect(milestoneStage(100, 'regularized')).toEqual({
+      tone: 'ok',
+      key: 'regularized',
+      label: 'Regularized',
+    });
+    expect(milestoneStage(100, 'terminated')).toEqual({
+      tone: 'ok',
+      key: 'terminated',
+      label: 'Terminated',
+    });
+  });
+
+  it('formats a probation day without ever rendering "181 / 180"', () => {
+    expect(formatProbationDay(149)).toBe('Day 149 of 180');
+    expect(formatProbationDay(150)).toBe('Day 150 of 180');
+    expect(formatProbationDay(180)).toBe('Day 180 of 180');
+    expect(formatProbationDay(181)).toBe('Day 181 · past cap');
+  });
+
+  it('milestoneFor delegates to the shared stage', () => {
+    expect(milestoneFor(100, 'regularized')).toEqual({ tone: 'ok', label: 'Regularized' });
+    expect(milestoneFor(150, 'active')).toEqual({
+      tone: 'warn',
+      label: 'Day 150 · Performance appraisal',
+    });
+    expect(milestoneFor(30, 'active')).toEqual({ tone: 'ok', label: 'In evaluation' });
   });
 
   it('finds the next statutory milestone day for a day count', () => {

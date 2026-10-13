@@ -4,11 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, MilestonePill, Skeleton, Card, Page, Modal, EmptyState, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
+import { Button, Badge, Skeleton, Card, Page, Modal, EmptyState, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, COMPETENCIES } from '../../config/domain';
 import { BRAND } from '../../config/brand';
-import { milestoneTone, nextMilestone, scoreTone, TONE_TEXT, TONE_BG, TONE_FILL } from '../../utils/status';
+import { milestoneTone, milestoneStage, formatProbationDay, nextMilestone, scoreTone, TONE_TEXT, TONE_BG, TONE_FILL } from '../../utils/status';
 import { getInitials } from '../../utils/format';
 import {
   ArrowLeft,
@@ -48,19 +48,12 @@ function ContributionBar({ label, contribution, maxAbs, isRisk }) {
   );
 }
 
-const MILESTONE_WINDOW_LABEL = {
-  bad: 'Critical 48h window',
-  notice: 'Written-notice window',
-  warn: 'Performance review due',
-  ok: 'On track',
-};
-
-// The four probation milestones, in order (the record's timeline rows).
+// The four probation review milestones, in order (the record's timeline rows).
 const MILE_ROWS = [
-  { day: MILESTONE_REVIEW, label: `Day ${MILESTONE_REVIEW} review` },
-  { day: MILESTONE_NOTICE, label: `Day ${MILESTONE_NOTICE} notice` },
-  { day: MILESTONE_CRITICAL, label: `Day ${MILESTONE_CRITICAL} critical` },
-  { day: PROBATION_DAYS, label: `Day ${PROBATION_DAYS} cap` },
+  { day: MILESTONE_REVIEW, label: `Day ${MILESTONE_REVIEW} · Performance appraisal` },
+  { day: MILESTONE_NOTICE, label: `Day ${MILESTONE_NOTICE} · Milestone review` },
+  { day: MILESTONE_CRITICAL, label: `Day ${MILESTONE_CRITICAL} · Final milestone` },
+  { day: PROBATION_DAYS, label: `Day ${PROBATION_DAYS} · Probation cap` },
 ];
 
 // Competency key → human label, so the ML panel uses the same Title Case names
@@ -173,6 +166,13 @@ export default function EmployeeDetail() {
     enabled: !!id && hasEvaluations,
     retry: false,
   });
+
+  // Trend buckets, oldest → newest, so each month shows its real period and the
+  // change vs the previous month (item 1.6).
+  const orderedTrend = useMemo(
+    () => [...trend].sort((a, b) => a.month_number - b.month_number),
+    [trend]
+  );
 
   const { data: regularization } = useQuery({
     queryKey: ['regularization', id],
@@ -354,12 +354,21 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
   const daysElapsed = getDaysElapsed(employee.start_date);
   const daysRemaining = Math.max(0, PROBATION_DAYS - daysElapsed);
   const tone = milestoneTone(daysElapsed);
+  const stage = milestoneStage(daysElapsed, employee.status);
 
   const canManageStatus = user?.role === 'employer';
   const canRate = user?.role === 'supervisor' || user?.role === 'employer';
   // A terminal decision (regularized/terminated) supersedes the live milestone
   // clock and the pre-decision AI artifact — both must reflect the decision.
   const isTerminal = employee.status === 'regularized' || employee.status === 'terminated';
+
+  // One stage line (item 1.1): past cap shows only the past-cap state; the final
+  // window shows days left (days, not hours). The chip is not repeated here.
+  const headerStage = isTerminal
+    ? 'Final record'
+    : stage.key === 'bad'
+    ? `${stage.label} · ${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} left`
+    : stage.label;
 
   const backTo = user?.role === 'probationary_employee' ? '/employee/dashboard' : '/employees';
   const backLabel = user?.role === 'probationary_employee' ? 'My Scorecard' : 'Employees';
@@ -398,7 +407,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <b>Job Title / Department:</b> {employee.job_title} · {employee.department}
             </p>
             <p>
-              <b>Start Date:</b> {formatDate(employee.start_date)} · <b>Day:</b> {daysElapsed} of {PROBATION_DAYS}
+              <b>Start Date:</b> {formatDate(employee.start_date)} · {formatProbationDay(daysElapsed)}
             </p>
             <p>
               <b>Generated:</b> {formatDate(new Date())} (Asia/Manila Standard Time)
@@ -432,10 +441,10 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             </div>
             <div className="text-right shrink-0">
               <div className="text-22 font-semibold font-num text-ink leading-tight">
-                {daysElapsed} <span className="text-12 text-ink-3 font-normal">/ {PROBATION_DAYS}</span>
+                {formatProbationDay(daysElapsed)}
               </div>
               <div className={`text-12 font-semibold mt-1 ${isTerminal ? 'text-ink-3' : TONE_TEXT[tone]}`}>
-                {isTerminal ? 'Final record' : MILESTONE_WINDOW_LABEL[tone]}
+                {headerStage}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2.5 basis-full">
@@ -466,7 +475,6 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   Update Status
                 </Button>
               )}
-              <MilestonePill daysElapsed={daysElapsed} status={employee.status} className="self-center" />
               {user?.role !== 'probationary_employee' && (
                 <div className="ml-auto flex items-center gap-2">
                   <Button
@@ -496,9 +504,11 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
 
         {/* Standards acknowledgment */}
         <div className="mt-3 mb-1 flex items-center gap-2.5 text-12 text-ink-2">
-          <CheckCircle2
-            className={`w-4 h-4 shrink-0 ${employee.standards_acknowledged_at ? 'text-good' : 'text-warn'}`}
-          />
+          {employee.standards_acknowledged_at ? (
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-good" />
+          ) : (
+            <AlertTriangle className="w-4 h-4 shrink-0 text-warn" />
+          )}
           <span>
             {employee.standards_acknowledged_at ? (
               <>
@@ -664,17 +674,20 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   {MILE_ROWS.map(({ day, label }) => {
                     const done = daysElapsed >= day;
                     const isNext = !done && day === nextMilestone(daysElapsed) && !isTerminal;
-                    const dot = done
-                      ? TONE_BG.ok
+                    // Item 1.3: passed = neutral mark, the current window = tone,
+                    // upcoming = hollow. Green elsewhere means "on track", so a
+                    // passed milestone must not read green.
+                    const dotClass = done
+                      ? 'bg-ink-3'
                       : isNext
                       ? TONE_BG[milestoneTone(daysElapsed)]
-                      : 'bg-hover';
+                      : 'border border-ink-3/50';
                     return (
                       <div
                         key={day}
                         className="grid grid-cols-[14px_minmax(0,1fr)_auto] items-center gap-2.5 border-t border-line py-2.5 first:border-t-0"
                       >
-                        <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden="true" />
+                        <span className={`h-2 w-2 rounded-full ${dotClass}`} aria-hidden="true" />
                         <span className={`text-14 ${done || isNext ? 'text-ink' : 'text-ink-3'}`}>
                           {label}
                         </span>
@@ -823,7 +836,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                     subtitle="Feature importance for legal defensibility"
                     note={
                       riskExplanation
-                        ? `Random Forest · ${(Number(riskExplanation.confidence) * 100).toFixed(0)}% confidence`
+                        ? `Random Forest · ${(Number(riskExplanation.confidence) * 100).toFixed(0)}% tier confidence`
                         : 'Random Forest'
                     }
                   />
@@ -919,33 +932,52 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {trend.map((point) => (
-                    <div key={point.month_number} className="space-y-1.5">
-                      <div className="flex justify-between text-12 font-num text-ink-2">
-                        <span>Month {point.month_number}</span>
-                        <span
-                          className={`font-semibold ${
-                            Number(point.overall_average) >= overallTarget ? 'text-good' : 'text-warn'
-                          }`}
-                        >
-                          {Number(point.overall_average).toFixed(2)} / 5.0
-                        </span>
+                  {orderedTrend.map((point, i) => {
+                    const cur = Number(point.overall_average);
+                    const prev = i > 0 ? Number(orderedTrend[i - 1].overall_average) : null;
+                    const delta = prev === null ? null : cur - prev;
+                    const period =
+                      point.period_start && point.period_end
+                        ? `${formatDayMonth(point.period_start)} – ${formatDayMonth(point.period_end)}`
+                        : null;
+                    return (
+                      <div key={point.month_number} className="space-y-1.5">
+                        <div className="flex justify-between text-12 font-num text-ink-2">
+                          <span>
+                            Month {point.month_number}
+                            {period ? <span className="text-ink-3"> · {period}</span> : null}
+                          </span>
+                          <span
+                            className={`font-semibold ${
+                              cur >= overallTarget ? 'text-good' : 'text-warn'
+                            }`}
+                          >
+                            {cur.toFixed(2)} / 5.0
+                            {delta !== null ? (
+                              <span className="font-normal text-ink-3">
+                                {' '}
+                                ({delta >= 0 ? '+' : '−'}
+                                {Math.abs(delta).toFixed(2)})
+                              </span>
+                            ) : null}
+                          </span>
+                        </div>
+                        <div className="relative h-2.5 w-full bg-hover border border-line rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-[width] ${
+                              cur >= overallTarget ? 'bg-good' : 'bg-warn'
+                            }`}
+                            style={{ width: `${(cur / 5) * 100}%` }}
+                          />
+                          <div
+                            className="absolute top-0 bottom-0 w-0.5 bg-ink/60 z-10"
+                            style={{ left: `${(overallTarget / 5) * 100}%` }}
+                            title={`Target ${overallTarget.toFixed(2)} / 5.0`}
+                          />
+                        </div>
                       </div>
-                      <div className="relative h-2.5 w-full bg-hover border border-line rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-[width] ${
-                            Number(point.overall_average) >= overallTarget ? 'bg-good' : 'bg-warn'
-                          }`}
-                          style={{ width: `${(Number(point.overall_average) / 5) * 100}%` }}
-                        />
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-ink/60 z-10"
-                          style={{ left: `${(overallTarget / 5) * 100}%` }}
-                          title={`Target ${overallTarget.toFixed(2)} / 5.0`}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </Card>
