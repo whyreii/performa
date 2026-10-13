@@ -123,7 +123,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
               index === 0
                 ? ''
                 : section.divider
-                ? 'mt-2 border-t border-line pt-2'
+                ? 'mt-2 border-t border-glass-line pt-2'
                 : collapsed
                 ? 'mt-1'
                 : 'mt-3';
