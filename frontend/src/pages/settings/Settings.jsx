@@ -119,6 +119,15 @@ export default function Settings() {
   const [profileStatus, setProfileStatus] = useState({ type: '', message: '' });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
+  // "Save changes" stays disabled until the profile actually differs from the
+  // saved account (compared the same way handleProfileSubmit normalizes it).
+  const isProfileDirty = useMemo(
+    () =>
+      profileName.trim() !== (user?.full_name || '') ||
+      profileEmail.trim().toLowerCase() !== (user?.email || ''),
+    [profileName, profileEmail, user]
+  );
+
   // Organization rename state (Admin/Employer only)
   const [orgName, setOrgName] = useState(user?.organization_name || '');
   const [orgStatus, setOrgStatus] = useState({ type: '', message: '' });
@@ -321,8 +330,14 @@ export default function Settings() {
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-end pt-5">
-                  <Button type="submit" variant="primary" isLoading={isSavingProfile}>
+                <div className="flex items-center justify-end gap-3 pt-5">
+                  {isProfileDirty && <span className="text-12 text-ink-3">Unsaved changes</span>}
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={!isProfileDirty}
+                    isLoading={isSavingProfile}
+                  >
                     Save changes
                   </Button>
                 </div>
