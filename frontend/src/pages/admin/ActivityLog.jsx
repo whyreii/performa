@@ -190,14 +190,14 @@ export default function ActivityLog() {
                     </td>
                     <td className="py-3 px-3 text-ink-2">
                       <span
-                        className="block truncate max-w-[180px]"
+                        className="block truncate max-w-[160px]"
                         title={entry.organization_name || entry.organization_id || ''}
                       >
                         {entry.organization_name || entry.organization_id || '—'}
                       </span>
                     </td>
                     <td className="py-3 px-3 font-medium text-ink">
-                      <span className="block truncate max-w-[200px]" title={entry.actor_name || ''}>
+                      <span className="block truncate max-w-[150px]" title={entry.actor_name || ''}>
                         {entry.actor_name || '—'}
                       </span>
                     </td>
@@ -208,7 +208,7 @@ export default function ActivityLog() {
                       {entry.entity_type || '—'}
                     </td>
                     <td className="py-3 px-3 text-ink-3 font-num">
-                      <span className="block truncate max-w-[240px]" title={entry.detail || ''}>
+                      <span className="block truncate max-w-[190px]" title={entry.detail || ''}>
                         {entry.detail || '—'}
                       </span>
                     </td>

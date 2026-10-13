@@ -165,7 +165,7 @@ export default function Dashboard() {
             <section aria-label="Probation status">
               <SectionHead
                 title="Probation status"
-                subtitle={`day · score vs target ${targetScore.toFixed(1)} · next milestone`}
+                subtitle={`Target ${targetScore.toFixed(1)}`}
               />
               {isEmpLoading || scoresLoading ? (
                 <div className="space-y-3 pt-2">
@@ -263,18 +263,7 @@ export default function Dashboard() {
 
           <Col span={5}>
             <section aria-label="Interventions">
-              <SectionHead
-                title="Interventions"
-                subtitle="Training plans pending sign-off"
-                note={
-                  <Link
-                    to={ROUTES.rollups.path}
-                    className="text-14 font-semibold text-accent hover:underline"
-                  >
-                    Review and sign off
-                  </Link>
-                }
-              />
+              <SectionHead title="Interventions" />
               {isPlansLoading ? (
                 <div className="space-y-3 pt-2">
                   <Skeleton className="h-12 w-full" />
@@ -289,28 +278,28 @@ export default function Dashboard() {
                   No interventions awaiting sign-off.
                 </p>
               ) : (
-                <ul>
-                  {plans.slice(0, 3).map((plan) => (
-                    <li key={plan.id} className="border-t border-line py-3 first:border-t-0">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-14 font-semibold text-ink">
-                          {plan.intervention_title}
-                        </span>
+                <>
+                  <ul>
+                    {plans.slice(0, 3).map((plan) => (
+                      <li key={plan.id} className="border-t border-line py-3 first:border-t-0">
                         {plan.employee_name ? (
-                          <span className="shrink-0 text-12 text-ink-3">{plan.employee_name}</span>
+                          <div className="text-12 text-ink-3">{plan.employee_name}</div>
                         ) : null}
-                      </div>
-                      <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
-                        {plan.rationale || plan.competency?.replace(/_/g, ' ')}
-                      </p>
-                    </li>
-                  ))}
-                  {plans.length > 3 ? (
-                    <li className="border-t border-line py-3 text-12 text-ink-3 font-num">
-                      Showing 3 of {plans.length} pending
-                    </li>
-                  ) : null}
-                </ul>
+                        <div className="mt-0.5 text-14 font-semibold text-ink">
+                          {plan.intervention_title}
+                        </div>
+                        <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
+                          {plan.rationale || plan.competency?.replace(/_/g, ' ')}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="border-t border-line pt-3 mt-1">
+                    <Link to={ROUTES.rollups.path} className="text-12 text-accent hover:underline">
+                      View all {plans.length} pending
+                    </Link>
+                  </div>
+                </>
               )}
             </section>
           </Col>

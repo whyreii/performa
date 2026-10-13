@@ -6,6 +6,11 @@ const ToastContext = createContext(null);
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const timersRef = useRef(new Map());
+  // Mirror of the current list so addToast can collapse an identical message.
+  const toastsRef = useRef([]);
+  useEffect(() => {
+    toastsRef.current = toasts;
+  }, [toasts]);
 
   // Clear any pending auto-dismiss timers on unmount.
   useEffect(
@@ -26,13 +31,31 @@ export function ToastProvider({ children }) {
   }, []);
 
   const addToast = useCallback((message, options = {}) => {
+    const type = options.type || 'info'; // 'success' | 'warning' | 'error' | 'info'
+    const duration = options.duration !== undefined ? options.duration : 3500;
+
+    // An identical toast already on screen: refresh its timer instead of
+    // stacking a visual duplicate.
+    const existing = toastsRef.current.find((t) => t.message === message && t.type === type);
+    if (existing) {
+      const prevTimer = timersRef.current.get(existing.id);
+      if (prevTimer) clearTimeout(prevTimer);
+      if (duration > 0) {
+        timersRef.current.set(
+          existing.id,
+          setTimeout(() => removeToast(existing.id), duration)
+        );
+      }
+      return existing.id;
+    }
+
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const toast = {
       id,
       message,
-      type: options.type || 'info', // 'success' | 'warning' | 'error' | 'info'
+      type,
       title: options.title || null,
-      duration: options.duration !== undefined ? options.duration : 3500,
+      duration,
     };
 
     setToasts((prev) => [...prev.slice(-4), toast]); // Keep at most 5 toasts stacked
