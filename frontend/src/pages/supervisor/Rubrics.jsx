@@ -188,12 +188,8 @@ export default function Rubrics() {
       )}
 
       {/* Legal Banner */}
-        <Card flat padded={false} className="space-y-2">
-        <div className="text-accent font-semibold text-12">
-          <span className="font-num text-12">
-            Statutory Legal Basis (Aliling v. Feliciano / Tamson Doctrine)
-          </span>
-        </div>
+      <Card flat padded={false} className="space-y-2">
+        <SectionHead title="Statutory Legal Basis (Aliling v. Feliciano / Tamson Doctrine)" />
         <p className="text-14 text-ink-2 leading-relaxed">
           In Philippine labor law, reasonable standards of performance must be made known to the employee at the time of engagement (Day 1). Ratings assigned in weekly evaluations directly enforce these communicated criteria.
         </p>

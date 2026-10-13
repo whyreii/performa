@@ -186,7 +186,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           </div>
 
           <div>
-            <label className="block text-12 font-medium text-ink-2 mb-1" htmlFor="m_supervisor">
+            <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor="m_supervisor">
               Assigned Supervisor *
             </label>
             <GlideSelect
