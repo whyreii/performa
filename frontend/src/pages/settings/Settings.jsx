@@ -33,6 +33,18 @@ const prettyKey = (key) =>
     .map((w) => (w.length <= 3 ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)))
     .join(' ');
 
+// One rule for every save button on this page: a save is enabled only when there
+// is something to submit. Profile/Account compare against the saved account
+// value; the password form (which has no stored value to compare) is dirty once
+// any field has input. `caseInsensitive` is for the email, normalized on save.
+const differs = (value, saved, caseInsensitive = false) => {
+  const current = String(value ?? '').trim();
+  const original = String(saved ?? '').trim();
+  return caseInsensitive
+    ? current.toLowerCase() !== original.toLowerCase()
+    : current !== original;
+};
+
 const MODES = [
   { id: 'light', label: 'Light', icon: Sun },
   { id: 'dark', label: 'Dark', icon: Moon },
@@ -119,12 +131,9 @@ export default function Settings() {
   const [profileStatus, setProfileStatus] = useState({ type: '', message: '' });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
-  // "Save changes" stays disabled until the profile actually differs from the
-  // saved account (compared the same way handleProfileSubmit normalizes it).
+  // Unsaved-changes gates: one rule for every save button on this page.
   const isProfileDirty = useMemo(
-    () =>
-      profileName.trim() !== (user?.full_name || '') ||
-      profileEmail.trim().toLowerCase() !== (user?.email || ''),
+    () => differs(profileName, user?.full_name) || differs(profileEmail, user?.email, true),
     [profileName, profileEmail, user]
   );
 
@@ -132,6 +141,7 @@ export default function Settings() {
   const [orgName, setOrgName] = useState(user?.organization_name || '');
   const [orgStatus, setOrgStatus] = useState({ type: '', message: '' });
   const [isSavingOrg, setIsSavingOrg] = useState(false);
+  const isOrgDirty = useMemo(() => differs(orgName, user?.organization_name), [orgName, user]);
 
   const handleOrgSubmit = async (e) => {
     e.preventDefault();
@@ -186,6 +196,8 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordStatus, setPasswordStatus] = useState({ type: '', message: '' });
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  // No stored password to compare against — dirty once anything is typed.
+  const isPasswordDirty = Boolean(currentPassword || newPassword || confirmPassword);
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -432,7 +444,12 @@ export default function Settings() {
                   />
                 </div>
                 <div className="flex justify-end pt-5">
-                  <Button type="submit" variant="primary" isLoading={isUpdatingPassword}>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={!isPasswordDirty}
+                    isLoading={isUpdatingPassword}
+                  >
                     Update password
                   </Button>
                 </div>
@@ -473,8 +490,14 @@ export default function Settings() {
                       onChange={(e) => setOrgName(e.target.value)}
                     />
                   </div>
-                  <div className="flex justify-end pt-5">
-                    <Button type="submit" variant="primary" isLoading={isSavingOrg}>
+                  <div className="flex items-center justify-end gap-3 pt-5">
+                    {isOrgDirty && <span className="text-12 text-ink-3">Unsaved changes</span>}
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      disabled={!isOrgDirty}
+                      isLoading={isSavingOrg}
+                    >
                       Save organization
                     </Button>
                   </div>
