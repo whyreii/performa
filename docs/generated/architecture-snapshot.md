@@ -216,6 +216,7 @@ Auth column is read from the FastAPI dependency graph.
 | GET | `/api/evaluations/{employee_id}/regularization-recommendation` | authenticated (any role) | get_regularization_recommendation |
 | POST | `/api/evaluations/{employee_id}/regularization-recommendation` | roles: employer | create_regularization_recommendation |
 | GET | `/api/evaluations/{employee_id}/report` | authenticated (any role) | get_employee_report |
+| GET | `/api/evaluations/{employee_id}/report.pdf` | authenticated (any role) | get_employee_report_pdf |
 | GET | `/api/evaluations/{employee_id}/risk-explanation` | authenticated (any role) | get_risk_explanation |
 | GET | `/api/evaluations/{employee_id}/scorecard` | authenticated (any role) | get_scorecard |
 | GET | `/api/evaluations/{employee_id}/trend` | authenticated (any role) | get_kpi_trend |

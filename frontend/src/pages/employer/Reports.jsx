@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, Skeleton, EmptyState, Page, SectionHead, Th } from '../../components/ui';
-import { Download, Users } from '../../components/icons';
+import { Download, FileText, Users } from '../../components/icons';
 
 // Article 296 report catalogue. The performance report is the only evidentiary
 // export today; the catalogue is shown as the section's report type.
@@ -20,6 +20,7 @@ const STATUS_LABEL = {
 export default function Reports() {
   const toast = useToast();
   const [generatingId, setGeneratingId] = useState(null);
+  const [pdfId, setPdfId] = useState(null);
 
   const {
     data: employees = [],
@@ -78,6 +79,27 @@ export default function Reports() {
       toast.error(getApiErrorMessage(err, 'Failed to generate the report.'));
     } finally {
       setGeneratingId(null);
+    }
+  };
+
+  const downloadPdf = async (id) => {
+    if (!id) return;
+    try {
+      setPdfId(id);
+      const blob = await evaluationApi.getReportPdf(id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'performa-performance-report.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      toast.success('PDF report downloaded.');
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to generate the PDF report.'));
+    } finally {
+      setPdfId(null);
     }
   };
 
@@ -157,15 +179,26 @@ export default function Reports() {
                       </Badge>
                     </td>
                     <td className="py-3 text-right">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        leftIcon={Download}
-                        isLoading={generatingId === e.id}
-                        onClick={() => openReport(e.id)}
-                      >
-                        Open report
-                      </Button>
+                      <div className="inline-flex items-center gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          leftIcon={FileText}
+                          isLoading={generatingId === e.id}
+                          onClick={() => openReport(e.id)}
+                        >
+                          Open report
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={Download}
+                          isLoading={pdfId === e.id}
+                          onClick={() => downloadPdf(e.id)}
+                        >
+                          PDF
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

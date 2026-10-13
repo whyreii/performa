@@ -14,14 +14,16 @@ import html
 import logging
 import uuid
 from datetime import datetime, timedelta, timezone
+from io import BytesIO
 from statistics import fmean
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from xhtml2pdf import pisa
 
 from ..auth import get_current_user, require_role
 from ..audit import record_activity
@@ -38,10 +40,12 @@ from ..ml.predictor import predict_employee_risk
 from ..models import (
     EvaluationAuditLog,
     KpiRubric,
+    MonthlySummary,
     PerformanceRatingEnum,
     ProbationaryEmployee,
     ProbationStatus,
     RegularizationRecommendation,
+    TrainingPlan,
     User,
     UserRole,
     WeeklyEvaluation,
@@ -617,31 +621,38 @@ async def get_regularization_recommendation(
     return record
 
 
-@router.get(
-    "/{employee_id}/report",
-    response_class=HTMLResponse,
-    summary="Printable performance report (HTML)",
-)
-async def get_employee_report(
-    employee_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-) -> HTMLResponse:
-    """Render a print-ready HTML performance report for an employee."""
-    employee = await _get_scoped_employee(db, employee_id, current_user)
-    latest = await _latest_evaluation(db, employee.id, current_user.organization_id)
+def _html_to_pdf(document: str) -> bytes:
+    """Render the report HTML to PDF bytes (xhtml2pdf / ReportLab)."""
+    buffer = BytesIO()
+    result = pisa.CreatePDF(src=document, dest=buffer, encoding="utf-8")
+    if getattr(result, "err", 0):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to render the PDF report.",
+        )
+    return buffer.getvalue()
 
+
+async def _render_report_html(
+    db: AsyncSession, employee: ProbationaryEmployee, organization_id: str
+) -> str:
+    """Build the full print-ready performance report (HTML) for one employee.
+
+    Contains the manuscript's report set: latest competency scores, complete
+    monthly rollups, AI training recommendations, and the regularization
+    decision record, plus recent behavioral remarks.
+    """
+    latest = await _latest_evaluation(db, employee.id, organization_id)
     name = html.escape(employee.user.full_name if employee.user else "Employee")
 
     if latest is not None:
         rows = "".join(
-            f"<tr><td>{label}</td>"
-            f"<td style='text-align:right'>{float(getattr(latest, attribute)):.1f}</td></tr>"
+            f"<tr><td>{label}</td><td class='r'>{float(getattr(latest, attribute)):.1f}</td></tr>"
             for attribute, label in COMPETENCIES
         )
         overall_row = (
             "<tr class='total'><td>Overall Average</td>"
-            f"<td style='text-align:right'>{float(latest.overall_score):.2f}</td></tr>"
+            f"<td class='r'>{float(latest.overall_score):.2f}</td></tr>"
         )
         latest_date = latest.evaluation_date.isoformat()
     else:
@@ -649,11 +660,91 @@ async def get_employee_report(
         overall_row = ""
         latest_date = "—"
 
+    # Complete monthly rollups.
+    summaries = list(
+        (
+            await db.execute(
+                select(MonthlySummary)
+                .where(MonthlySummary.employee_id == employee.id)
+                .order_by(MonthlySummary.month_number)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    monthly_html = (
+        "<table><thead><tr><th>Cycle</th><th class='r'>Overall average</th>"
+        "<th>Classification</th></tr></thead><tbody>"
+        + "".join(
+            f"<tr><td>Month {s.month_number}</td>"
+            f"<td class='r'>{float(s.overall_average):.2f}</td>"
+            f"<td>{html.escape(s.status_classification.value if s.status_classification else '—')}</td></tr>"
+            for s in summaries
+        )
+        + "</tbody></table>"
+        if summaries
+        else "<p class='meta'>No monthly rollups recorded.</p>"
+    )
+
+    # AI-generated training recommendations.
+    plans = list(
+        (
+            await db.execute(
+                select(TrainingPlan)
+                .where(TrainingPlan.employee_id == employee.id)
+                .order_by(TrainingPlan.created_at)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    plans_html = (
+        "<table><thead><tr><th>Recommendation</th><th>Competency</th>"
+        "<th>Status</th></tr></thead><tbody>"
+        + "".join(
+            f"<tr><td>{html.escape(p.intervention_title)}</td>"
+            f"<td>{html.escape(p.competency)}</td>"
+            f"<td>{html.escape(p.status.value)}</td></tr>"
+            for p in plans
+        )
+        + "</tbody></table>"
+        if plans
+        else "<p class='meta'>No training recommendations recorded.</p>"
+    )
+
+    # Regularization decision record (most recent, if any).
+    reg = (
+        await db.execute(
+            select(RegularizationRecommendation)
+            .where(
+                RegularizationRecommendation.employee_id == employee.id,
+                RegularizationRecommendation.organization_id == organization_id,
+            )
+            .order_by(RegularizationRecommendation.created_at.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    reg_html = (
+        "<table><tbody>"
+        f"<tr><td>Recommendation</td><td>{html.escape(reg.recommendation)}</td></tr>"
+        f"<tr><td>Classification</td><td>{html.escape(reg.status_classification.value)}</td></tr>"
+        f"<tr><td>Overall average</td><td>{float(reg.overall_average):.2f} / 5.0</td></tr>"
+        + (
+            f"<tr><td>Rationale</td><td>{html.escape(reg.rationale)}</td></tr>"
+            if reg.rationale
+            else ""
+        )
+        + "</tbody></table>"
+        if reg
+        else "<p class='meta'>No regularization recommendation recorded.</p>"
+    )
+
+    # Recent behavioral remarks.
     remarks_stmt = (
         select(WeeklyEvaluation)
         .where(
             WeeklyEvaluation.employee_id == employee.id,
-            WeeklyEvaluation.organization_id == current_user.organization_id,
+            WeeklyEvaluation.organization_id == organization_id,
             WeeklyEvaluation.remarks.isnot(None),
         )
         .order_by(WeeklyEvaluation.evaluation_date.desc())
@@ -672,20 +763,22 @@ async def get_employee_report(
         else "<p class='meta'>No behavioral remarks recorded.</p>"
     )
 
-    document = f"""<!doctype html>
+    return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Performa Report — {name}</title>
 <style>
-  body {{ font-family: system-ui, -apple-system, sans-serif; margin: 40px; color: #1a1714; }}
-  h1 {{ font-size: 22px; margin-bottom: 4px; }}
-  .meta {{ color: #57524d; font-size: 13px; margin: 12px 0 20px; line-height: 1.6; }}
-  table {{ border-collapse: collapse; width: 100%; max-width: 640px; }}
-  th, td {{ border: 1px solid #ddd; padding: 8px 10px; font-size: 14px; }}
-  th {{ background: #f6f3ed; text-align: left; }}
-  .total td {{ font-weight: 700; }}
-  .rem {{ border-top: 1px solid #eee; padding: 8px 0; font-size: 13px; }}
-  .rd {{ color: #57524d; font-size: 12px; margin-bottom: 2px; }}
-  @media print {{ .no-print {{ display: none; }} }}
+  @page {{ margin: 2cm; }}
+  body {{ font-family: Helvetica, Arial, sans-serif; color: #1a1714; font-size: 12px; }}
+  h1 {{ font-size: 20px; margin-bottom: 4px; }}
+  h2 {{ font-size: 14px; margin: 22px 0 6px; }}
+  .meta {{ color: #57524d; font-size: 11px; margin: 10px 0 16px; line-height: 1.6; }}
+  table {{ border-collapse: collapse; width: 100%; }}
+  th, td {{ border: 1px solid #cccccc; padding: 6px 8px; font-size: 11px; }}
+  th {{ background: #f0ece6; text-align: left; }}
+  .r {{ text-align: right; }}
+  .total td {{ font-weight: bold; }}
+  .rem {{ border-top: 1px solid #eeeeee; padding: 6px 0; }}
+  .rd {{ color: #57524d; font-size: 10px; }}
 </style></head>
 <body>
   <h1>Performa — Probationary Performance Report</h1>
@@ -695,17 +788,56 @@ async def get_employee_report(
     <div>Start: {employee.start_date.isoformat()} · Day 180: {employee.day_180_date.isoformat()} · Status: {employee.status.value}</div>
     <div>Latest evaluation: {latest_date}</div>
   </div>
-  <table>
-    <thead><tr><th>Competency</th><th style="text-align:right">Score (1–5)</th></tr></thead>
-    <tbody>{rows}{overall_row}</tbody>
-  </table>
-  <h2 style="font-size:16px;margin-top:28px">Supervisor remarks</h2>
+  <h2>Latest competency scores</h2>
+  <table><thead><tr><th>Competency</th><th class="r">Score (1–5)</th></tr></thead>
+  <tbody>{rows}{overall_row}</tbody></table>
+  <h2>Monthly rollups</h2>
+  {monthly_html}
+  <h2>AI training recommendations</h2>
+  {plans_html}
+  <h2>Regularization decision record</h2>
+  {reg_html}
+  <h2>Supervisor remarks</h2>
   {remarks_html}
-  <p class="no-print" style="margin-top:24px">
-    <button onclick="window.print()">Print / Save as PDF</button>
-  </p>
 </body></html>"""
+
+
+@router.get(
+    "/{employee_id}/report",
+    response_class=HTMLResponse,
+    summary="Printable performance report (HTML)",
+)
+async def get_employee_report(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Render a print-ready HTML performance report for an employee."""
+    employee = await _get_scoped_employee(db, employee_id, current_user)
+    document = await _render_report_html(db, employee, current_user.organization_id)
     return HTMLResponse(content=document)
+
+
+@router.get(
+    "/{employee_id}/report.pdf",
+    summary="Performance report (PDF download)",
+)
+async def get_employee_report_pdf(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    """Render the performance report as a downloadable PDF file."""
+    employee = await _get_scoped_employee(db, employee_id, current_user)
+    document = await _render_report_html(db, employee, current_user.organization_id)
+    pdf_bytes = _html_to_pdf(document)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="performa-report-{employee.id}.pdf"'
+        },
+    )
 
 
 @router.get(

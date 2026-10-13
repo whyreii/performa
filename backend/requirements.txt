@@ -35,6 +35,9 @@ numpy==2.4.6
 # GenAI (Google Gemini)
 google-genai==2.24.0
 
+# PDF (performance report export)
+xhtml2pdf==0.2.23
+
 # Development & Testing
 pytest==9.0.3
 pytest-asyncio==1.4.0

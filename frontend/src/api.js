@@ -223,6 +223,12 @@ export const evaluationApi = {
     });
     return response.data;
   },
+  getReportPdf: async (employeeId) => {
+    const response = await apiClient.get(`/api/evaluations/${employeeId}/report.pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
 
 // Interventions & Rollups API methods

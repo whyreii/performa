@@ -33,6 +33,7 @@ export function createApiMock() {
       getRegularization: vi.fn(),
       generateRegularization: vi.fn(),
       getReportHtml: vi.fn(),
+      getReportPdf: vi.fn(),
     },
     interventionApi: {
       listPending: vi.fn(),

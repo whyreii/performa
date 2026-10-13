@@ -312,6 +312,20 @@ async def test_printable_report(client):
 
 
 @pytest.mark.asyncio
+async def test_report_pdf_download(client):
+    """The same report is downloadable as a real PDF file."""
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    carlos_id = await find_employee_id(client, supervisor, "Carlos Early")
+
+    response = await client.get(f"/api/evaluations/{carlos_id}/report.pdf", headers=supervisor)
+    assert response.status_code == 200, response.text
+    assert response.headers["content-type"] == "application/pdf"
+    assert "attachment" in response.headers["content-disposition"]
+    assert response.content[:5] == b"%PDF-"
+    assert len(response.content) > 500
+
+
+@pytest.mark.asyncio
 async def test_employee_can_complete_approved_training(client):
     """An employee marks an approved intervention completed; not-approved and wrong-role are rejected."""
     employer = await login_user(client, EMPLOYER_EMAIL)
