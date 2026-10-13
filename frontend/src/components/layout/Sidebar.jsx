@@ -150,7 +150,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         }`}
       >
         <div
-          className={`${collapsed ? 'w-8 h-8' : 'w-7 h-7'} rounded-nav bg-accent text-accent-foreground font-semibold text-12 flex items-center justify-center shrink-0`}
+          className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 text-accent font-semibold text-12 flex items-center justify-center shrink-0"
           title={`${user?.full_name} (${user?.email})`}
         >
           {getInitials(user?.full_name)}
@@ -170,9 +170,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={() => setMode(nextMode)}
-          className={`inline-flex items-center justify-center text-ink-3 hover:text-ink rounded-ctl hover:bg-hover transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-            collapsed ? 'w-8 h-8' : 'p-1.5'
-          }`}
+          className="inline-flex w-8 h-8 items-center justify-center text-ink-3 hover:text-ink rounded-ctl hover:bg-hover transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           title={`Switch to ${nextMode} theme`}
           aria-label={`Switch to ${nextMode} theme`}
         >
@@ -182,9 +180,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
         <button
           type="button"
           onClick={() => setIsSignOutOpen(true)}
-          className={`inline-flex items-center justify-center text-ink-3 hover:text-bad rounded-ctl hover:bg-bad/10 transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-            collapsed ? 'w-8 h-8' : 'p-1.5'
-          }`}
+          className="inline-flex w-8 h-8 items-center justify-center text-ink-3 hover:text-bad rounded-ctl hover:bg-bad/10 transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           title="Sign out"
           aria-label="Sign out"
         >
