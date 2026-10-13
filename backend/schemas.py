@@ -472,6 +472,7 @@ class AuditLogItemResponse(BaseModel):
     id: uuid.UUID
     competency: str
     evaluator_name: str
+    employee_name: Optional[str] = None
     prior_score: Optional[float] = None
     new_score: float
     created_at: datetime

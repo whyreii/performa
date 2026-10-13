@@ -4,17 +4,8 @@ import { evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/datetime';
 import { COMPETENCIES } from '../../config/domain';
-import { Button, Badge, Skeleton, EmptyState, Card, Page, inputClass, GlideSelect, Th, SectionHead } from '../../components/ui';
-import {
-  History,
-  Printer,
-  Search,
-  Filter,
-  AlertCircle,
-  FileText,
-  Clock,
-  ArrowRight,
-} from '../../components/icons';
+import { Button, Badge, Skeleton, EmptyState, Page, inputClass, GlideSelect, Th, SectionHead } from '../../components/ui';
+import { History, Printer, Search, AlertCircle } from '../../components/icons';
 
 const COMPETENCY_LABELS = new Map(COMPETENCIES.map((c) => [c.key, c.label]));
 
@@ -57,14 +48,22 @@ export default function AuditTrail() {
       if (competencyFilter !== 'all' && log.competency !== competencyFilter) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
+        const employee = (log.employee_name || '').toLowerCase();
         const evaluator = (log.evaluator_name || '').toLowerCase();
         const comp = (log.competency || '').toLowerCase();
         const id = (log.id || '').toLowerCase();
-        if (!evaluator.includes(q) && !comp.includes(q) && !id.includes(q)) return false;
+        if (
+          !employee.includes(q) &&
+          !evaluator.includes(q) &&
+          !comp.includes(q) &&
+          !id.includes(q)
+        )
+          return false;
       }
       return true;
     });
     const valueOf = (log) => {
+      if (sortKey === 'employee') return (log.employee_name || '').toLowerCase();
       if (sortKey === 'evaluator') return (log.evaluator_name || '').toLowerCase();
       if (sortKey === 'competency') return (log.competency || '').toLowerCase();
       if (sortKey === 'change') return Number(log.new_score) || 0;
@@ -117,7 +116,7 @@ export default function AuditTrail() {
     >
 
       {/* DOLE Evidentiary Standards Banner */}
-      <Card flat padded={false} className="space-y-2 no-print">
+      <section aria-label="Statutory legal standard" className="no-print">
         <SectionHead
           title="Statutory Legal Standard · Republic of the Philippines"
           subtitle="Article 296 · immutable"
@@ -125,7 +124,7 @@ export default function AuditTrail() {
         <p className="text-14 text-ink-2 leading-relaxed">
           Under Philippine Labor Code Article 296 and established Supreme Court doctrine, employers carry the burden of proof in probationary disputes. Every score entry and modification below is logged with exact timestamps (Asia/Manila) and evaluator credentials for permanent due process records.
         </p>
-      </Card>
+      </section>
 
       {/* Audit log */}
       <SectionHead
@@ -170,7 +169,7 @@ export default function AuditTrail() {
       </div>
 
       {/* Audit Log Table */}
-      <Card flat padded={false} className="overflow-hidden">
+      <section aria-label="Audit log table">
         {isLoading ? (
           <div className="p-6 space-y-3">
             <Skeleton className="h-12 w-full" />
@@ -203,6 +202,9 @@ export default function AuditTrail() {
                   <Th sortKey="ts" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 px-4">
                     When (Asia/Manila)
                   </Th>
+                  <Th sortKey="employee" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 px-4">
+                    Employee
+                  </Th>
                   <Th sortKey="evaluator" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5 px-4">
                     Evaluator
                   </Th>
@@ -223,6 +225,9 @@ export default function AuditTrail() {
                         {formatDate(log.created_at, { withTime: true })}
                       </td>
                       <td className="py-3 px-4 text-14 font-medium text-ink">
+                        {log.employee_name || '—'}
+                      </td>
+                      <td className="py-3 px-4 text-14 text-ink-2">
                         {log.evaluator_name}
                       </td>
                       <td className="py-3 px-4 text-14 text-ink-2">
@@ -274,7 +279,7 @@ export default function AuditTrail() {
           )}
             <span className="hidden sm:inline">{orgLabel} · Legal Archive</span>
         </footer>
-      </Card>
+      </section>
 
       {/* Print-Only Official Certification & Signatures */}
       <div className="print-only mt-8 pt-6 border-t-2 border-black text-black space-y-6">

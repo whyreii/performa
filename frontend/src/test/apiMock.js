@@ -116,6 +116,7 @@ export const auditRows = () => [
     id: 'a-1',
     competency: 'task_completion',
     evaluator_name: 'Test Supervisor',
+    employee_name: 'Maria Midterm',
     prior_score: null,
     new_score: 4.0,
     created_at: '2026-03-01T00:00:00+00:00',

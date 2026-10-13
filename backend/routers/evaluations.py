@@ -762,7 +762,10 @@ async def get_tenant_audit_trail(
     """Return immutable competency audit entries in the tenant, newest first."""
     stmt = (
         select(EvaluationAuditLog)
-        .options(selectinload(EvaluationAuditLog.evaluator))
+        .options(
+            selectinload(EvaluationAuditLog.evaluator),
+            selectinload(EvaluationAuditLog.employee).selectinload(ProbationaryEmployee.user),
+        )
         .where(EvaluationAuditLog.organization_id == current_user.organization_id)
         .order_by(EvaluationAuditLog.created_at.desc())
         .offset(skip)
@@ -776,6 +779,11 @@ async def get_tenant_audit_trail(
             id=log.id,
             competency=log.competency,
             evaluator_name=log.evaluator.full_name if log.evaluator else "Unknown",
+            employee_name=(
+                log.employee.user.full_name
+                if log.employee and log.employee.user
+                else "Unknown"
+            ),
             prior_score=log.prior_score,
             new_score=log.new_score,
             created_at=log.created_at,
@@ -814,6 +822,7 @@ async def get_audit_trail(
             id=log.id,
             competency=log.competency,
             evaluator_name=log.evaluator.full_name if log.evaluator else "Unknown",
+            employee_name=employee.user.full_name if employee.user else None,
             prior_score=log.prior_score,
             new_score=log.new_score,
             created_at=log.created_at,

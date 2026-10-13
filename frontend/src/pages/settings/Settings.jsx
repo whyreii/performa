@@ -210,10 +210,10 @@ export default function Settings() {
       <PageGrid className="space-y-10 lg:space-y-0 lg:gap-y-10">
         {/* Profile & tenant — full width */}
         <Row>
-          <Col span={12}>
+          <Col span={7}>
             <section aria-label="User profile and tenant">
               <SectionHead
-                title="User Profile &amp; Tenant"
+                title="User Profile & Tenant"
                 note={
                   <Button
                     variant="secondary"
@@ -378,7 +378,7 @@ export default function Settings() {
 
           <Col span={5}>
             <section aria-label="Security">
-              <SectionHead title="Security &amp; Password" subtitle="Update your password" />
+              <SectionHead title="Security & Password" subtitle="Update your password" />
 
               {passwordStatus.message && (
                 <div
@@ -434,8 +434,8 @@ export default function Settings() {
           <Col span={12}>
               <section aria-label="Review milestone alerts">
               <SectionHead
-                title="Article 296 Alert Protocols"
-                subtitle="Mandatory · always enforced · Asia/Manila"
+                title="Review milestone alerts"
+                subtitle="Article 296 · mandatory · always enforced · Asia/Manila"
               />
               <div>
                 {STATUTORY_ALERTS.map((a) => (
