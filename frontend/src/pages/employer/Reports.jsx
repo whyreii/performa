@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Card, Skeleton, EmptyState, Page, inputClass, SectionHead } from '../../components/ui';
+import { Button, Badge, Card, Skeleton, EmptyState, Page, inputClass, SectionHead, Th } from '../../components/ui';
 import { FileText, Download, Users } from '../../components/icons';
 
 // Article 296 report catalogue. The performance report is the only evidentiary
@@ -30,10 +30,32 @@ export default function Reports() {
     refetch,
   } = useQuery({ queryKey: ['employees'], queryFn: () => employeeApi.list() });
 
-  const sorted = useMemo(
-    () => [...employees].sort((a, b) => (a.user?.full_name || '').localeCompare(b.user?.full_name || '')),
-    [employees]
-  );
+  const [sort, setSort] = useState({ key: 'name', dir: 'asc' });
+  const onSort = (key) =>
+    setSort((s) =>
+      s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }
+    );
+
+  const sorted = useMemo(() => {
+    const list = [...employees];
+    const keyOf = (e) => {
+      switch (sort.key) {
+        case 'department':
+          return (e.department || '').toLowerCase();
+        case 'status':
+          return (e.status || '').toLowerCase();
+        default:
+          return (e.user?.full_name || '').toLowerCase();
+      }
+    };
+    list.sort((a, b) => {
+      const ka = keyOf(a);
+      const kb = keyOf(b);
+      const r = ka < kb ? -1 : ka > kb ? 1 : 0;
+      return sort.dir === 'asc' ? r : -r;
+    });
+    return list;
+  }, [employees, sort]);
 
   const openReport = async (id) => {
     if (!id) return;
@@ -144,9 +166,15 @@ export default function Reports() {
             <caption className="sr-only">Employees and their Article 296 reports</caption>
             <thead>
               <tr className="border-b border-line text-12 text-ink-3">
-                <th scope="col" className="py-2.5 pr-4 font-normal">Employee</th>
-                <th scope="col" className="py-2.5 pr-4 font-normal">Department</th>
-                <th scope="col" className="py-2.5 pr-4 font-normal">Status</th>
+                <Th sortKey="name" activeKey={sort.key} dir={sort.dir} onSort={onSort} className="py-2.5 pr-4">
+                  Employee
+                </Th>
+                <Th sortKey="department" activeKey={sort.key} dir={sort.dir} onSort={onSort} className="py-2.5 pr-4">
+                  Department
+                </Th>
+                <Th sortKey="status" activeKey={sort.key} dir={sort.dir} onSort={onSort} className="py-2.5 pr-4">
+                  Status
+                </Th>
                 <th scope="col" className="py-2.5 text-right font-normal">Report</th>
               </tr>
             </thead>

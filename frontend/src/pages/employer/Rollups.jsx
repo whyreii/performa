@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionApi, employeeApi, getApiErrorMessage } from '../../api';
 import { daysElapsed as getDaysElapsed, monthNumberFor } from '../../utils/datetime';
 import { PROBATION_MONTHS, PROBATION_MONTH_DAYS } from '../../config/domain';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect, ConfirmDialog, SectionHead } from '../../components/ui';
+import { Button, Badge, Skeleton, Modal, EmptyState, Card, Page, GlideSelect, ConfirmDialog, SectionHead, Th } from '../../components/ui';
 import {
   FileCheck2,
   Sparkles,
@@ -31,6 +31,13 @@ export default function Rollups() {
   const [actionMessage, setActionMessage] = useState({ type: '', text: '' });
   const [confirmPlan, setConfirmPlan] = useState(null);
   const [confirmDispatch, setConfirmDispatch] = useState(null);
+
+  // Monthly-summaries table sort (every data column).
+  const [summarySort, setSummarySort] = useState({ key: 'employee', dir: 'asc' });
+  const onSummarySort = (key) =>
+    setSummarySort((s) =>
+      s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }
+    );
 
   // Fetch pending interventions
   const {
@@ -112,6 +119,39 @@ export default function Rollups() {
       });
     },
   });
+
+  // Summaries rows sorted by the selected column (derived columns use a rank,
+  // not the chip label).
+  const summaryRows = useMemo(() => {
+    const RISK_RANK = { 'Meets Expectations': 0, 'Needs Improvement': 1, 'Critical Gap': 2 };
+    const STATUS_RANK = { acknowledged: 0, dispatched: 1, pending: 2 };
+    const nameOf = (s) =>
+      (employees.find((e) => e.id === s.employee_id)?.user?.full_name || '').toLowerCase();
+    const keyOf = (s) => {
+      switch (summarySort.key) {
+        case 'cycle':
+          return Number(s.month_number) || 0;
+        case 'overall':
+          return Number(s.overall_average) || 0;
+        case 'risk':
+          return RISK_RANK[s.status_classification] ?? 9;
+        case 'status':
+          return STATUS_RANK[
+            s.acknowledged_at ? 'acknowledged' : s.dispatched_at ? 'dispatched' : 'pending'
+          ];
+        default:
+          return nameOf(s);
+      }
+    };
+    const list = [...summaries];
+    list.sort((a, b) => {
+      const ka = keyOf(a);
+      const kb = keyOf(b);
+      const r = ka < kb ? -1 : ka > kb ? 1 : 0;
+      return summarySort.dir === 'asc' ? r : -r;
+    });
+    return list;
+  }, [summaries, employees, summarySort]);
 
   // Default the evaluation month to the employee's current 30-day cycle
   // (clamped to the 5-month operating window) instead of always month 1.
@@ -276,15 +316,25 @@ export default function Rollups() {
             <caption className="sr-only">Monthly summaries dispatched for acknowledgement</caption>
             <thead>
               <tr className="border-b border-line text-12 text-ink-3">
-                <th scope="col" className="py-2.5 pr-4 font-normal">Employee</th>
-                <th scope="col" className="py-2.5 pr-4 font-normal">Cycle</th>
-                <th scope="col" className="py-2.5 pr-4 text-right font-normal">Overall</th>
-                <th scope="col" className="py-2.5 pr-4 font-normal">Risk tier</th>
-                <th scope="col" className="py-2.5 text-right font-normal">Status</th>
+                <Th sortKey="employee" activeKey={summarySort.key} dir={summarySort.dir} onSort={onSummarySort} className="py-2.5 pr-4">
+                  Employee
+                </Th>
+                <Th sortKey="cycle" activeKey={summarySort.key} dir={summarySort.dir} onSort={onSummarySort} className="py-2.5 pr-4">
+                  Cycle
+                </Th>
+                <Th sortKey="overall" activeKey={summarySort.key} dir={summarySort.dir} onSort={onSummarySort} align="right" className="py-2.5 pr-4">
+                  Overall
+                </Th>
+                <Th sortKey="risk" activeKey={summarySort.key} dir={summarySort.dir} onSort={onSummarySort} className="py-2.5 pr-4">
+                  Risk tier
+                </Th>
+                <Th sortKey="status" activeKey={summarySort.key} dir={summarySort.dir} onSort={onSummarySort} align="right" className="py-2.5">
+                  Status
+                </Th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {summaries.map((summary) => {
+              {summaryRows.map((summary) => {
                 const emp = employees.find((e) => e.id === summary.employee_id);
                 const cls = summary.status_classification?.replace(/_/g, ' ');
                 const variant = /Meets/i.test(cls || '')

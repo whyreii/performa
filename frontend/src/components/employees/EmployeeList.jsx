@@ -5,7 +5,7 @@ import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { Skeleton, EmptyState, Card, Th, SectionHead } from '../../components/ui';
 import { Users, AlertCircle } from '../../components/icons';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
-import { milestoneFor, formatProbationDay, stageShort, scoreTone, TONE_BG, TONE_TEXT } from '../../utils/status';
+import { milestoneFor, milestoneStage, formatProbationDay, stageShort, scoreTone, TONE_BG, TONE_TEXT } from '../../utils/status';
 import { TARGET } from '../../config/domain';
 import { getInitials } from '../../utils/format';
 
@@ -65,18 +65,36 @@ export default function EmployeeList() {
       const sc = scoreById[e.id];
       return sc ? Number(sc.overall_score) : null;
     };
+    // Stage sorts by severity (most urgent first), not the label string.
+    const STAGE_RANK = { past: 0, bad: 1, notice: 2, warn: 3, ok: 4, regularized: 5, terminated: 5 };
+    const keyOf = (e) => {
+      switch (sort.key) {
+        case 'name':
+          return (e.user?.full_name || '').toLowerCase();
+        case 'department':
+          return (e.department || '').toLowerCase();
+        case 'stage':
+          return STAGE_RANK[milestoneStage(getDaysElapsed(e.start_date), e.status).key] ?? 9;
+        case 'overall':
+          return scoreOf(e);
+        default:
+          return getDaysElapsed(e.start_date);
+      }
+    };
     list.sort((a, b) => {
+      // Unrated rows stay last for the Overall column, regardless of direction.
       if (sort.key === 'overall') {
         const av = scoreOf(a);
         const bv = scoreOf(b);
-        // Unrated rows stay last regardless of direction.
         if (av === null && bv === null) return 0;
         if (av === null) return 1;
         if (bv === null) return -1;
         const r = av - bv;
         return sort.dir === 'asc' ? r : -r;
       }
-      const r = getDaysElapsed(a.start_date) - getDaysElapsed(b.start_date);
+      const ka = keyOf(a);
+      const kb = keyOf(b);
+      const r = ka < kb ? -1 : ka > kb ? 1 : 0;
       return sort.dir === 'asc' ? r : -r;
     });
     return list;
@@ -114,8 +132,12 @@ export default function EmployeeList() {
           </caption>
           <thead>
             <tr className="border-b border-line text-12 text-ink-3">
-              <th scope="col" className="py-2.5 pr-4 font-normal">Employee</th>
-              <th scope="col" className="py-2.5 pr-4 font-normal">Department</th>
+              <Th sortKey="name" activeKey={sort.key} dir={sort.dir} onSort={onSort} className="py-2.5 pr-4">
+                Employee
+              </Th>
+              <Th sortKey="department" activeKey={sort.key} dir={sort.dir} onSort={onSort} className="py-2.5 pr-4">
+                Department
+              </Th>
               <Th sortKey="day" activeKey={sort.key} dir={sort.dir} onSort={onSort} className="py-2.5 pr-4">
                 Day
               </Th>
@@ -129,7 +151,9 @@ export default function EmployeeList() {
               >
                 Overall (latest week)
               </Th>
-              <th scope="col" className="py-2.5 text-right font-normal">Stage</th>
+              <Th sortKey="stage" activeKey={sort.key} dir={sort.dir} onSort={onSort} align="right" className="py-2.5">
+                Stage
+              </Th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
