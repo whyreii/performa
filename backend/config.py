@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     app_base_url: Optional[str] = None
     # Self-service password reset: how long a reset link stays valid.
     password_reset_ttl_minutes: int = 30
+    # Email verification: how long a verification link stays valid (24h).
+    email_verification_ttl_minutes: int = 1440
     sendgrid_api_key: Optional[str] = None
     resend_api_key: Optional[str] = None
 

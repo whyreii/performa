@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { PerformaMark, Eye, EyeOff, AlertCircle, Sun, Moon } from '../../components/icons';
+import { PerformaMark, Eye, EyeOff, AlertCircle, CheckCircle2, Sun, Moon } from '../../components/icons';
 import { TextField, Button, Surface, Label, inputClass, PageGrid, Row, Col } from '../../components/ui';
 import { COMPETENCIES } from '../../config/domain';
 
@@ -22,6 +22,7 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [consent, setConsent] = useState(false);
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -45,7 +46,9 @@ export default function Register() {
     const result = await register({ fullName, email, organizationName, password, consent });
     setIsSubmitting(false);
 
-    if (result.success) {
+    if (result.success && result.needsVerification) {
+      setSent(true);
+    } else if (result.success) {
       navigate('/dashboard');
     } else {
       setError(result.error);
@@ -104,7 +107,20 @@ export default function Register() {
               probationary employees once you're in.
             </p>
 
-            {error && (
+            {sent && (
+              <div
+                role="status"
+                className="mt-7 p-4 rounded-ctl bg-ok/8 border border-line flex items-start gap-2 text-ok text-14"
+              >
+                <CheckCircle2 className="w-4 h-4 mt-0.5 flex-none" />
+                <span>
+                  Account created. We emailed <span className="font-num">{email.trim()}</span> a
+                  verification link — follow it to activate your account and sign in.
+                </span>
+              </div>
+            )}
+
+            {!sent && error && (
               <div
                 role="alert"
                 className="mt-6 p-3 rounded-ctl bg-bad/8 border border-line flex items-start gap-2 text-bad text-14"
@@ -114,7 +130,8 @@ export default function Register() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4 mt-7">
+            {!sent && (
+              <form onSubmit={handleSubmit} className="space-y-4 mt-7">
               <TextField
                 id="fullName"
                 label="Full name"
@@ -198,6 +215,7 @@ export default function Register() {
                 {isSubmitting ? 'Creating account…' : 'Create account'}
               </Button>
             </form>
+            )}
 
             <p className="text-14 text-ink-2 mt-6">
               Already have an account?{' '}

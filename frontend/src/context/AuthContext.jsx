@@ -111,13 +111,32 @@ export function AuthProvider({ children }) {
   const register = useCallback(async ({ fullName, email, organizationName, password, consent }) => {
     setIsLoading(true);
     try {
-      const tokenData = await authApi.register({
+      const data = await authApi.register({
         fullName,
         email,
         organizationName,
         password,
         consent,
       });
+      // Registration no longer signs in: the account must verify its email.
+      return {
+        success: true,
+        needsVerification: data?.status === 'verification_sent',
+        email,
+      };
+    } catch (err) {
+      persistUser(null);
+      const message = getApiErrorMessage(err, 'Failed to create your account.');
+      return { success: false, error: message };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [persistUser]);
+
+  const verifyEmail = useCallback(async (token) => {
+    setIsLoading(true);
+    try {
+      const tokenData = await authApi.verifyEmail(token);
       try {
         if (tokenData?.access_token) {
           localStorage.setItem('performa_token', tokenData.access_token);
@@ -125,10 +144,10 @@ export function AuthProvider({ children }) {
       } catch {}
       const userData = await authApi.getCurrentUser();
       persistUser(userData);
+      setSessionExpired(false);
       return { success: true, user: userData };
     } catch (err) {
-      persistUser(null);
-      const message = getApiErrorMessage(err, 'Failed to create your account.');
+      const message = getApiErrorMessage(err, 'This verification link is invalid or has expired.');
       return { success: false, error: message };
     } finally {
       setIsLoading(false);
@@ -164,10 +183,11 @@ export function AuthProvider({ children }) {
       login,
       register,
       resetPassword,
+      verifyEmail,
       logout,
       refreshUser,
     }),
-    [user, isLoading, sessionExpired, login, register, resetPassword, logout, refreshUser]
+    [user, isLoading, sessionExpired, login, register, resetPassword, verifyEmail, logout, refreshUser]
   );
 
   return (

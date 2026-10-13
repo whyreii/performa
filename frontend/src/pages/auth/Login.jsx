@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { authApi } from '../../api';
 import { PerformaMark, Eye, EyeOff, AlertCircle, Sun, Moon, Info } from '../../components/icons';
 import { TextField, Button, Surface, Badge, Label, inputClass, PageGrid, Row, Col } from '../../components/ui';
 import { COMPETENCIES } from '../../config/domain';
@@ -33,6 +34,18 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resendStatus, setResendStatus] = useState('');
+  const needsVerification = /verify your email/i.test(error);
+
+  const handleResend = async () => {
+    setResendStatus('');
+    try {
+      await authApi.resendVerification(email);
+      setResendStatus('Verification link sent — check your inbox.');
+    } catch {
+      setResendStatus('Could not resend right now. Please try again.');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -132,10 +145,24 @@ export default function Login() {
             {error && (
               <div
                 role="alert"
-                className="mt-6 p-3 rounded-ctl bg-bad/8 border border-line flex items-start gap-2 text-bad text-14"
+                className="mt-6 p-3 rounded-ctl bg-bad/8 border border-line text-bad text-14"
               >
-                <AlertCircle className="w-4 h-4 mt-0.5 flex-none" />
-                <span>{error}</span>
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 mt-0.5 flex-none" />
+                  <span>{error}</span>
+                </div>
+                {needsVerification && (
+                  <div className="mt-2 pl-6">
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      className="text-12 font-semibold text-accent hover:underline"
+                    >
+                      Resend verification email
+                    </button>
+                    {resendStatus && <p className="text-12 text-ink-3 mt-1">{resendStatus}</p>}
+                  </div>
+                )}
               </div>
             )}
 
@@ -191,16 +218,10 @@ export default function Login() {
               </Button>
             </form>
 
-            <p className="text-14 text-ink-2 mt-6">
+            <p className="text-12 text-ink-2 mt-6">
               New to Performa?{' '}
               <Link to="/register" className="font-semibold text-accent hover:underline">
                 Create an account
-              </Link>
-            </p>
-
-            <p className="text-12 text-ink-3 mt-2">
-              <Link to="/privacy" className="hover:underline">
-                Data Privacy Notice
               </Link>
             </p>
 
@@ -257,6 +278,11 @@ export default function Login() {
       {/* Footer — the third row, on the same column lines */}
       <Row as="footer" className="py-6 text-12 text-ink-3">
         <Col span={5}>Asia/Manila (UTC+8) · Article 296, Philippine Labor Code</Col>
+        <Col span={6} start={7} className="lg:justify-self-end">
+          <Link to="/privacy" className="hover:underline">
+            Data Privacy Notice
+          </Link>
+        </Col>
       </Row>
       </PageGrid>
     </div>

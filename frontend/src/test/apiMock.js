@@ -10,6 +10,8 @@ export function createApiMock() {
       register: vi.fn(),
       forgotPassword: vi.fn(),
       resetPassword: vi.fn(),
+      verifyEmail: vi.fn(),
+      resendVerification: vi.fn(),
       getCurrentUser: vi.fn(),
       logout: vi.fn(),
       changePassword: vi.fn(),

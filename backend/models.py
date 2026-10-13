@@ -27,6 +27,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    true,
     UniqueConstraint,
     Uuid,
     func,
@@ -131,6 +132,10 @@ class User(Base):
     # When the account holder accepted the Data Privacy (RA 10173) notice.
     privacy_consented_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
+    )
+    # Self-registered accounts start unverified; seeded/provisioned ones are True.
+    email_verified: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default=true(), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -563,6 +568,23 @@ class PasswordResetToken(Base):
     )
 
 
+class EmailVerificationToken(Base):
+    """Single-use, expiring email-verification token (stored hashed)."""
+
+    __tablename__ = "email_verification_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("users.id"), index=True, nullable=False
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, server_default=func.now(), nullable=False
+    )
+
+
 __all__ = [
     "UserRole",
     "ProbationStatus",
@@ -582,4 +604,5 @@ __all__ = [
     "Notification",
     "Report",
     "PasswordResetToken",
+    "EmailVerificationToken",
 ]

@@ -172,6 +172,23 @@ class ResetPasswordRequest(BaseModel):
     new_password: PasswordStr = Field(..., min_length=8, max_length=128)
 
 
+class VerifyEmailRequest(BaseModel):
+    """Complete email verification with the token from the emailed link."""
+
+    token: str = Field(..., min_length=1, max_length=512)
+
+
+class ResendVerificationRequest(BaseModel):
+    """Request a fresh verification link for the given email."""
+
+    email: str = Field(..., max_length=255)
+
+    @field_validator("email")
+    @classmethod
+    def _check_email(cls, value: str) -> str:
+        return validate_email(value)
+
+
 # ---------------------------------------------------------------------------
 # Organization (tenant)
 # ---------------------------------------------------------------------------
@@ -634,6 +651,8 @@ __all__ = [
     "ProfileUpdate",
     "ForgotPasswordRequest",
     "ResetPasswordRequest",
+    "VerifyEmailRequest",
+    "ResendVerificationRequest",
     "ProbationaryEmployeeBase",
     "ProbationaryEmployeeUpdate",
     "ProbationaryEmployeeResponse",

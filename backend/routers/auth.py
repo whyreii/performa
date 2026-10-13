@@ -24,16 +24,18 @@ from ..auth import (
 from ..audit import record_activity
 from ..config import get_settings
 from ..database import get_db
-from ..emailer import send_password_reset_email
-from ..models import Organization, PasswordResetToken, User, UserRole
+from ..emailer import send_password_reset_email, send_verification_email
+from ..models import EmailVerificationToken, Organization, PasswordResetToken, User, UserRole
 from ..schemas import (
     ForgotPasswordRequest,
     PasswordChange,
     ProfileUpdate,
     RegisterRequest,
+    ResendVerificationRequest,
     ResetPasswordRequest,
     Token,
     UserResponse,
+    VerifyEmailRequest,
 )
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -125,6 +127,13 @@ async def login(
         )
 
     _clear_failures(attempt_key)
+
+    if not user.email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Please verify your email address before signing in.",
+        )
+
     record_activity(
         db,
         organization_id=user.organization_id,
@@ -140,21 +149,20 @@ async def login(
 
 @router.post(
     "/register",
-    response_model=Token,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_202_ACCEPTED,
     summary="Self-register an Employer and provision a new tenant",
 )
 async def register(
-    response: Response,
     payload: RegisterRequest,
     db: AsyncSession = Depends(get_db),
-) -> Token:
-    """Create a new tenant and its first Employer, then sign them in.
+) -> dict[str, str]:
+    """Create a new tenant and its first Employer, then email a verification link.
 
     Public endpoint (no authentication): the registrant becomes the Employer
-    owner of a brand-new organization. A duplicate email, or a tenant name
-    already in use, is rejected rather than silently attaching the account to
-    an existing workspace.
+    owner of a brand-new organization. The account starts **unverified** and
+    cannot sign in until the emailed link is followed. A duplicate email, or a
+    tenant name already in use, is rejected rather than silently attaching the
+    account to an existing workspace.
     """
     # Function-local import breaks the auth <-> admin import cycle (admin
     # imports auth's role helpers at module load time).
@@ -192,6 +200,7 @@ async def register(
         role=UserRole.EMPLOYER,
         organization_id=slug,
         is_active=True,
+        email_verified=False,
         privacy_consented_at=datetime.now(timezone.utc),
     )
     db.add(user)
@@ -216,11 +225,13 @@ async def register(
         detail="Data Privacy notice (RA 10173)",
     )
     await db.commit()
-    return _issue_session(response, user)
+
+    await _send_verification_link(db, user)
+    return {"status": "verification_sent"}
 
 
-def _hash_reset_token(token: str) -> str:
-    """SHA-256 of a reset token — only the hash is stored."""
+def _hash_token(token: str) -> str:
+    """SHA-256 of a single-use token — only the hash is stored."""
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
@@ -229,6 +240,27 @@ def _expired(expires_at: datetime, now: datetime) -> bool:
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
     return expires_at <= now
+
+
+async def _send_verification_link(db: AsyncSession, user: User) -> None:
+    """Issue and email a single-use verification link for ``user``."""
+    settings = get_settings()
+    ttl_minutes = max(1, settings.email_verification_ttl_minutes)
+    raw_token = secrets.token_urlsafe(32)
+    db.add(
+        EmailVerificationToken(
+            user_id=user.id,
+            token_hash=_hash_token(raw_token),
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=ttl_minutes),
+        )
+    )
+    await db.commit()
+
+    base = (settings.app_base_url or "").rstrip("/")
+    link = f"{base}/verify-email?token={raw_token}"
+    await send_verification_email(
+        user.email, user.full_name, link, max(1, ttl_minutes // 60)
+    )
 
 
 @router.post(
@@ -255,7 +287,7 @@ async def forgot_password(
         db.add(
             PasswordResetToken(
                 user_id=user.id,
-                token_hash=_hash_reset_token(raw_token),
+                token_hash=_hash_token(raw_token),
                 expires_at=datetime.now(timezone.utc) + timedelta(minutes=ttl),
             )
         )
@@ -291,7 +323,7 @@ async def reset_password(
     row = (
         await db.execute(
             select(PasswordResetToken).where(
-                PasswordResetToken.token_hash == _hash_reset_token(payload.token)
+                PasswordResetToken.token_hash == _hash_token(payload.token)
             )
         )
     ).scalar_one_or_none()
@@ -321,6 +353,69 @@ async def reset_password(
     )
     await db.commit()
     return _issue_session(response, user)
+
+
+@router.post(
+    "/verify-email",
+    response_model=Token,
+    summary="Verify an email address with a token",
+)
+async def verify_email(
+    response: Response,
+    payload: VerifyEmailRequest,
+    db: AsyncSession = Depends(get_db),
+) -> Token:
+    """Consume a single-use token, mark the account verified, and sign in."""
+    row = (
+        await db.execute(
+            select(EmailVerificationToken).where(
+                EmailVerificationToken.token_hash == _hash_token(payload.token)
+            )
+        )
+    ).scalar_one_or_none()
+
+    now = datetime.now(timezone.utc)
+    invalid = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="This verification link is invalid or has expired.",
+    )
+    if row is None or row.used_at is not None or _expired(row.expires_at, now):
+        raise invalid
+
+    user = (await db.execute(select(User).where(User.id == row.user_id))).scalar_one_or_none()
+    if user is None or not user.is_active:
+        raise invalid
+
+    user.email_verified = True
+    row.used_at = now
+    record_activity(
+        db,
+        organization_id=user.organization_id,
+        actor=user,
+        action="auth.email_verified",
+        entity_type="user",
+        entity_id=user.id,
+        detail=user.email,
+    )
+    await db.commit()
+    return _issue_session(response, user)
+
+
+@router.post(
+    "/resend-verification",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Resend the email-verification link",
+)
+async def resend_verification(
+    payload: ResendVerificationRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Re-send a verification link for an unverified account (always 202)."""
+    email = payload.email.strip().lower()
+    user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
+    if user is not None and user.is_active and not user.email_verified:
+        await _send_verification_link(db, user)
+    return {"status": "accepted"}
 
 
 async def _with_organization_name(user: User, db: AsyncSession) -> UserResponse:

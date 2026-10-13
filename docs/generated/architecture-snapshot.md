@@ -23,6 +23,17 @@ Source: `Base.metadata` (no DB connection).
 | id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
 | organization_id | VARCHAR(100) | no | no | no |  |  |
 
+### `email_verification_tokens`
+
+| Column | Type | Nullable | PK | Unique | Default | Foreign key |
+|---|---|---|---|---|---|---|
+| created_at | DATETIME | no | no | no | now() |  |
+| expires_at | DATETIME | no | no | no |  |  |
+| id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
+| token_hash | VARCHAR(64) | no | no | yes |  |  |
+| used_at | DATETIME | yes | no | no |  |  |
+| user_id | CHAR(32) | no | no | no |  | users.id |
+
 ### `evaluation_audit_logs`
 
 | Column | Type | Nullable | PK | Unique | Default | Foreign key |
@@ -180,6 +191,7 @@ Unique constraints: (user_id)
 |---|---|---|---|---|---|---|
 | created_at | DATETIME | no | no | no | now() |  |
 | email | VARCHAR(255) | no | no | yes |  |  |
+| email_verified | BOOLEAN | no | no | no | true |  |
 | full_name | VARCHAR(255) | no | no | no |  |  |
 | hashed_password | VARCHAR(255) | no | no | no |  |  |
 | id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
@@ -229,7 +241,9 @@ Auth column is read from the FastAPI dependency graph.
 | GET | `/api/auth/me` | authenticated (any role) | read_current_user |
 | PATCH | `/api/auth/me` | authenticated (any role) | update_current_user |
 | POST | `/api/auth/register` | not detected | register |
+| POST | `/api/auth/resend-verification` | not detected | resend_verification |
 | POST | `/api/auth/reset-password` | not detected | reset_password |
+| POST | `/api/auth/verify-email` | not detected | verify_email |
 | GET | `/api/employees/` | authenticated (any role) | list_employees |
 | POST | `/api/employees/` | roles: employer | create_employee |
 | GET | `/api/employees/milestones` | roles: employer, supervisor | list_milestones |
@@ -287,6 +301,7 @@ Auth column is read from the FastAPI dependency graph.
 | `DATABASE_URL` | `sqlite+aiosqlite:///./performa.db` |
 | `EMAIL_FROM` | `—` |
 | `EMAIL_PROVIDER` | `—` |
+| `EMAIL_VERIFICATION_TTL_MINUTES` | `1440` |
 | `GEMINI_API_KEY` | `—` |
 | `LOG_LEVEL` | `INFO` |
 | `PASSWORD_RESET_TTL_MINUTES` | `30` |

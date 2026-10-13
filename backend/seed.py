@@ -29,6 +29,7 @@ from .domain import PROBATION_TERM_DAYS
 from .timeutils import MANILA_TZ, manila_today
 from .models import (
     ActivityLog,
+    EmailVerificationToken,
     EvaluationAuditLog,
     KpiRubric,
     MonthlySummary,
@@ -197,6 +198,9 @@ async def _reset(session: AsyncSession) -> None:
     )
     await session.execute(
         delete(PasswordResetToken).where(PasswordResetToken.user_id.in_(user_ids))
+    )
+    await session.execute(
+        delete(EmailVerificationToken).where(EmailVerificationToken.user_id.in_(user_ids))
     )
     await session.execute(delete(User).where(User.organization_id == ORG_SLUG))
     await session.execute(delete(Organization).where(Organization.slug == ORG_SLUG))

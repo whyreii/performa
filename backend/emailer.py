@@ -89,6 +89,22 @@ def _render_milestone(
     return subject, "\n".join(lines) + "\n"
 
 
+def _render_verify(full_name: str, verify_link: str, ttl_hours: int) -> tuple[str, str]:
+    """Return ``(subject, body)`` for the email-verification email."""
+    subject = "Verify your Performa email address"
+    lines = [
+        f"Hello {full_name},",
+        "",
+        "Confirm your email address to activate your Performa account.",
+        "",
+        f"Verify now (this link is valid for {ttl_hours} hours):",
+        verify_link,
+        "",
+        "If you did not create this account, you can ignore this email.",
+    ]
+    return subject, "\n".join(lines) + "\n"
+
+
 def _sender() -> tuple[str, str]:
     """Return ``(email, name)`` parsed from ``EMAIL_FROM`` (``Name <addr>`` ok)."""
     settings = get_settings()
@@ -287,8 +303,20 @@ async def send_milestone_alert_email(
     return await _deliver(to_email, subject, body)
 
 
+async def send_verification_email(
+    to_email: str,
+    full_name: str,
+    verify_link: str,
+    ttl_hours: int,
+) -> bool:
+    """Send an email-verification link, or log it when no provider is set."""
+    subject, body = _render_verify(full_name, verify_link, ttl_hours)
+    return await _deliver(to_email, subject, body)
+
+
 __all__ = [
     "send_credentials_email",
     "send_password_reset_email",
     "send_milestone_alert_email",
+    "send_verification_email",
 ]

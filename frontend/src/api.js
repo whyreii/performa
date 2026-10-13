@@ -101,6 +101,14 @@ export const authApi = {
     const response = await apiClient.post('/api/auth/forgot-password', { email: email.trim() });
     return response.data;
   },
+  verifyEmail: async (token) => {
+    const response = await apiClient.post('/api/auth/verify-email', { token });
+    return response.data; // { access_token, token_type }
+  },
+  resendVerification: async (email) => {
+    const response = await apiClient.post('/api/auth/resend-verification', { email: email.trim() });
+    return response.data;
+  },
   resetPassword: async (token, newPassword) => {
     const response = await apiClient.post('/api/auth/reset-password', {
       token,

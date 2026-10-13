@@ -106,9 +106,21 @@ async def test_profile_self_update(client):
     assert me.json()["full_name"] == "Supervisor Juan Updated"
 
 
+def _capture_verify(monkeypatch, sent):
+    async def _fake(to_email, full_name, verify_link, ttl_hours):
+        sent["to"] = to_email
+        sent["link"] = verify_link
+        return True
+
+    monkeypatch.setattr("backend.routers.auth.send_verification_email", _fake)
+
+
 @pytest.mark.asyncio
-async def test_register_provisions_new_tenant_and_signs_in(client):
-    """Self-registration creates a new tenant + Employer and returns a session."""
+async def test_register_provisions_tenant_and_requires_verification(client, monkeypatch):
+    """Self-registration creates the tenant; the account signs in only after verification."""
+    sent: dict = {}
+    _capture_verify(monkeypatch, sent)
+
     resp = await client.post(
         "/api/auth/register",
         json={
@@ -119,14 +131,37 @@ async def test_register_provisions_new_tenant_and_signs_in(client):
             "consent": True,
         },
     )
-    assert resp.status_code == 201, resp.text
-    assert "access_token" in resp.cookies
+    assert resp.status_code == 202, resp.text
+    assert resp.json()["status"] == "verification_sent"
+    assert "access_token" not in resp.cookies
+    assert sent["to"] == "founder@brightco.test"
+    token = sent["link"].split("token=")[-1]
+
+    blocked = await client.post(
+        "/api/auth/login",
+        data={"username": "founder@brightco.test", "password": "Password123!"},
+    )
+    assert blocked.status_code == 403, blocked.text
+
+    verified = await client.post("/api/auth/verify-email", json={"token": token})
+    assert verified.status_code == 200, verified.text
 
     me = await client.get("/api/auth/me")
     assert me.status_code == 200, me.text
     assert me.json()["email"] == "founder@brightco.test"
     assert me.json()["role"] == "employer"
     assert me.json()["organization_name"] == "Bright Co. Philippines"
+
+    reuse = await client.post("/api/auth/verify-email", json={"token": token})
+    assert reuse.status_code == 400, reuse.text
+
+
+@pytest.mark.asyncio
+async def test_resend_verification_is_enumeration_safe(client):
+    """Unknown and already-verified emails both return 202."""
+    for email in ("nobody@nowhere.test", EMPLOYER_EMAIL):
+        r = await client.post("/api/auth/resend-verification", json={"email": email})
+        assert r.status_code == 202, r.text
 
 
 @pytest.mark.asyncio
@@ -193,7 +228,7 @@ async def test_register_requires_privacy_consent(client):
     assert refused.status_code == 422, refused.text
 
     accepted = await client.post("/api/auth/register", json={**base, "consent": True})
-    assert accepted.status_code == 201, accepted.text
+    assert accepted.status_code == 202, accepted.text
 
 
 def test_verify_password_handles_malformed_hash():
