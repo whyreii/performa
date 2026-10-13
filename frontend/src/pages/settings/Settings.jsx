@@ -429,10 +429,10 @@ export default function Settings() {
           </Col>
         </Row>
 
-        {/* Article 296 statutory alert protocols — full width */}
+        {/* Article 296 review-milestone protocols — full width */}
         <Row>
           <Col span={12}>
-            <section aria-label="Statutory alerts">
+              <section aria-label="Review milestone alerts">
               <SectionHead
                 title="Article 296 Alert Protocols"
                 subtitle="Mandatory · always enforced · Asia/Manila"
@@ -465,7 +465,7 @@ export default function Settings() {
               <section aria-label="System settings">
                 <SectionHead
                   title="System settings"
-                  subtitle="Global statutory configuration · Administrator oversight (read-only)"
+                  subtitle="Global review-milestone configuration · Administrator oversight (read-only)"
                   note={<Badge variant="neutral">System</Badge>}
                 />
                 {isSystemError ? (
@@ -477,7 +477,7 @@ export default function Settings() {
                     <div className="space-y-2">
                       <div className="text-14 font-semibold text-ink">Article 296 deadline thresholds</div>
                       <p className="text-12 text-ink-3">
-                        Fixed statutory milestones. Informational only, not configurable.
+                        Fixed review milestones. Informational only, not configurable.
                       </p>
                       <ul className="space-y-1">
                         {Object.entries(systemSettings.deadline_thresholds || {}).map(([key, day]) => (

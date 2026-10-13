@@ -62,7 +62,7 @@ export default function SupervisorDashboard() {
           </div>
         </div>
         <p className="text-12 text-ink-3">
-          Statutory {TARGET.toFixed(1)} / 5.0 regularizing standard · Article 296 · rated weekly
+          Regularizing standard {TARGET.toFixed(1)} / 5.0 · Article 296 · rated weekly
         </p>
       </Card>
 

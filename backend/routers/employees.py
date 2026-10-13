@@ -56,9 +56,9 @@ MILESTONE_LEAD_DAYS = 7
 # dates under Article 296.
 # (day, employee flag attribute, notification title, category)
 MILESTONE_ALERT_STEPS: tuple[tuple[int, str, str, str], ...] = (
-    (MILESTONE_REVIEW_DAY, "milestone_150_alerted", "Day 150 · Performance appraisal due", "milestone_150"),
-    (MILESTONE_NOTICE_DAY, "milestone_165_alerted", "Day 165 · Written-notice window", "milestone_165"),
-    (MILESTONE_CRITICAL_DAY, "milestone_178_alerted", "Day 178 · Critical 48h to regularization", "milestone_178"),
+    (MILESTONE_REVIEW_DAY, "milestone_150_alerted", "Day 150 · Performance appraisal", "milestone_150"),
+    (MILESTONE_NOTICE_DAY, "milestone_165_alerted", "Day 165 · Milestone review", "milestone_165"),
+    (MILESTONE_CRITICAL_DAY, "milestone_178_alerted", "Day 178 · Final milestone", "milestone_178"),
 )
 
 

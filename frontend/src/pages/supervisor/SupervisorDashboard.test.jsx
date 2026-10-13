@@ -21,6 +21,6 @@ describe('SupervisorDashboard', () => {
     ).toBeInTheDocument();
     expect(await screen.findByText('Maria Midterm')).toBeInTheDocument();
     // Policy value comes from the shared TARGET constant, not a literal.
-    expect(screen.getByText(/Statutory 4\.0 \/ 5\.0/)).toBeInTheDocument();
+    expect(screen.getByText(/Regularizing standard 4\.0 \/ 5\.0/)).toBeInTheDocument();
   });
 });

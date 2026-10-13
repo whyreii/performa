@@ -274,38 +274,38 @@ export default function EmployeeDetail() {
 
     const noticeText = `========================================================================
 REPUBLIC OF THE PHILIPPINES | LABOR CODE ARTICLE 296
-STATUTORY PROBATIONARY EVALUATION NOTICE
+PROBATIONARY EVALUATION NOTICE
 ========================================================================
 Date Generated: ${formatDate(new Date())} (Asia/Manila Standard Time)
 Organization: ${user?.organization_name || user?.organization_id || '—'}
 Employee: ${employee.user?.full_name || '—'}
 Job Title / Department: ${employee.job_title} · ${employee.department}
 Start Date: ${formatDate(employee.start_date)} | Days Elapsed: Day ${elapsed} of ${PROBATION_DAYS}
-Statutory Status: ${
+Probation status: ${
       statusTone === 'bad'
-        ? `CRITICAL (Day ${MILESTONE_CRITICAL}+ Auto-Regularization Risk)`
+        ? `DAY ${MILESTONE_CRITICAL} FINAL MILESTONE (constructive regularization risk)`
         : statusTone === 'notice'
-        ? `DAY ${MILESTONE_NOTICE} NOTICE WINDOW (15-Day Buffer)`
+        ? `DAY ${MILESTONE_NOTICE} MILESTONE REVIEW`
         : statusTone === 'warn'
-        ? `DAY ${MILESTONE_REVIEW} PERFORMANCE REVIEW DUE`
+        ? `DAY ${MILESTONE_REVIEW} PERFORMANCE APPRAISAL`
         : `ON TRACK (< Day ${MILESTONE_REVIEW})`
     }
 
-1. STATUTORY BENCHMARK (Article 296 Standard)
+1. REGULARIZING BENCHMARK (Article 296)
    Mandatory Regularizing Benchmark: ${TARGET.toFixed(2)} / 5.00 across all 5 core competencies
    Current Overall Rating: ${typeof overall === 'number' ? overall.toFixed(2) : overall} / 5.00 ${
       typeof overall === 'number' && overall >= TARGET
-        ? '[MET STATUTORY BENCHMARK]'
-        : '[BELOW STATUTORY BENCHMARK]'
+        ? '[MET REGULARIZING BENCHMARK]'
+        : '[BELOW REGULARIZING BENCHMARK]'
     }
 
 2. COMPETENCY SCORE BREAKDOWN
 ${competenciesText || '   • No weekly ratings submitted yet.'}
 
-3. STATUTORY NOTICE TIMELINE
-   Day ${MILESTONE_REVIEW} Review Date: ${formatDate(milestoneDate(employee.start_date, MILESTONE_REVIEW))}
-   Day ${MILESTONE_NOTICE} Written Notice Deadline: ${formatDate(milestoneDate(employee.start_date, MILESTONE_NOTICE))}
-   Day ${PROBATION_DAYS} Legal Ceiling: ${formatDate(employee.day_180_date)}
+3. PROBATION MILESTONE TIMELINE
+   Day ${MILESTONE_REVIEW} Performance appraisal: ${formatDate(milestoneDate(employee.start_date, MILESTONE_REVIEW))}
+   Day ${MILESTONE_NOTICE} Milestone review: ${formatDate(milestoneDate(employee.start_date, MILESTONE_NOTICE))}
+   Day ${PROBATION_DAYS} Probation cap: ${formatDate(employee.day_180_date)}
 ========================================================================`;
 
     navigator.clipboard
@@ -1245,7 +1245,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         )}
 
         <p className="text-12 text-ink-2">
-          Select the statutory status decision for <b>{employee.user?.full_name}</b>:
+          Select the probation status decision for <b>{employee.user?.full_name}</b>:
         </p>
 
         <div className="space-y-2">
