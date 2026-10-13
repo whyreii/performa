@@ -308,3 +308,28 @@ async def test_reset_password_rejects_unknown_and_expired_tokens(client, monkeyp
         json={"token": token, "new_password": "Password123!"},
     )
     assert expired.status_code == 400, expired.text
+
+
+def test_validate_password_policy():
+    """The policy needs 8+ chars, an uppercase, a lowercase, and a digit."""
+    from backend.schemas import validate_password
+
+    for bad in ("short", "alllowercase1", "ALLUPPERCASE1", "NoDigitsHereHere"):
+        with pytest.raises(ValueError):
+            validate_password(bad)
+    assert validate_password("Password123!") == "Password123!"
+
+
+@pytest.mark.asyncio
+async def test_weak_password_is_rejected(client):
+    """A password that fails the policy is a 422 at registration."""
+    resp = await client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Weak Pass",
+            "email": "weak@fresh.test",
+            "organization_name": "Weak Co",
+            "password": "alllowercase1",
+        },
+    )
+    assert resp.status_code == 422, resp.text

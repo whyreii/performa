@@ -859,7 +859,7 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
           <div>
             <TextField
               id="r_pass"
-              label="New Password * (min 8 characters)"
+                    label="New Password * (8+ chars, upper + lower + digit)"
               type="password"
               required
               minLength={8}

@@ -431,6 +431,7 @@ export default function Settings() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="At least 8 characters"
+                    hint="At least 8 characters, with an uppercase letter, a lowercase letter and a number."
                   />
                   <TextField
                     id="confPass"

@@ -35,6 +35,7 @@ from ..passwords import generate_password
 from ..schemas import (
     ActivityLogResponse,
     OrganizationResponse,
+    PasswordStr,
     UserResponse,
     validate_email,
 )
@@ -55,7 +56,7 @@ class AdminCreateUserRequest(BaseModel):
     full_name: str = Field(..., max_length=255)
     # Optional: when omitted, a strong password is generated and emailed to the
     # account. Supplying one is kept for API/back-compat and tests.
-    password: Optional[str] = Field(default=None, min_length=8, max_length=128)
+    password: Optional[PasswordStr] = Field(default=None, min_length=8, max_length=128)
     role: UserRole
     # Optional tenant to place the account in. A new name provisions a new
     # Organization (empty workspace); an existing name reuses that tenant.
@@ -113,7 +114,7 @@ class AdminUpdateStatusRequest(BaseModel):
 
 
 class AdminResetPasswordRequest(BaseModel):
-    password: str = Field(..., min_length=8, max_length=128)
+    password: PasswordStr = Field(..., min_length=8, max_length=128)
 
 
 @router.get(

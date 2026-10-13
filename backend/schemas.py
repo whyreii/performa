@@ -14,9 +14,9 @@ from __future__ import annotations
 import re
 import uuid
 from datetime import date, datetime
-from typing import Optional
+from typing import Annotated, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_validator
 
 from .models import (
     CompetencyEnum,
@@ -42,6 +42,23 @@ def validate_email(value: str) -> str:
     return value
 
 
+def validate_password(value: str) -> str:
+    """Strength policy: >= 8 characters with an uppercase, a lowercase, and a digit."""
+    if len(value) < 8:
+        raise ValueError("Password must be at least 8 characters")
+    if not any(c.isupper() for c in value):
+        raise ValueError("Password must contain an uppercase letter")
+    if not any(c.islower() for c in value):
+        raise ValueError("Password must contain a lowercase letter")
+    if not any(c.isdigit() for c in value):
+        raise ValueError("Password must contain a number")
+    return value
+
+
+# Reusable password field type — the single source for the strength policy.
+PasswordStr = Annotated[str, AfterValidator(validate_password)]
+
+
 # ---------------------------------------------------------------------------
 # User / Auth
 # ---------------------------------------------------------------------------
@@ -59,7 +76,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=8, max_length=128)
+    password: PasswordStr = Field(..., min_length=8, max_length=128)
 
 
 class UserUpdate(BaseModel):
@@ -68,7 +85,7 @@ class UserUpdate(BaseModel):
     role: Optional[UserRole] = None
     organization_id: Optional[str] = Field(default=None, max_length=100)
     is_active: Optional[bool] = None
-    password: Optional[str] = Field(default=None, min_length=8, max_length=128)
+    password: Optional[PasswordStr] = Field(default=None, min_length=8, max_length=128)
 
 
 class UserResponse(UserBase):
@@ -96,7 +113,7 @@ class PasswordChange(BaseModel):
     """Self-service password change payload."""
 
     current_password: str = Field(..., min_length=1, max_length=128)
-    new_password: str = Field(..., min_length=8, max_length=128)
+    new_password: PasswordStr = Field(..., min_length=8, max_length=128)
 
 
 class ProfileUpdate(BaseModel):
@@ -112,7 +129,7 @@ class RegisterRequest(BaseModel):
     full_name: str = Field(..., min_length=1, max_length=255)
     email: str = Field(..., max_length=255)
     organization_name: str = Field(..., min_length=1, max_length=255)
-    password: str = Field(..., min_length=8, max_length=128)
+    password: PasswordStr = Field(..., min_length=8, max_length=128)
 
     @field_validator("email")
     @classmethod
@@ -143,7 +160,7 @@ class ResetPasswordRequest(BaseModel):
     """Complete a password reset with the token from the emailed link."""
 
     token: str = Field(..., min_length=1, max_length=512)
-    new_password: str = Field(..., min_length=8, max_length=128)
+    new_password: PasswordStr = Field(..., min_length=8, max_length=128)
 
 
 # ---------------------------------------------------------------------------
@@ -219,7 +236,7 @@ class ProbationaryEmployeeCreateRequest(BaseModel):
     user_id: Optional[uuid.UUID] = None
     email: Optional[str] = Field(default=None, max_length=255)
     full_name: Optional[str] = Field(default=None, max_length=255)
-    password: Optional[str] = Field(default=None, min_length=8, max_length=128)
+    password: Optional[PasswordStr] = Field(default=None, min_length=8, max_length=128)
 
     employer_id: Optional[uuid.UUID] = None
     supervisor_id: uuid.UUID

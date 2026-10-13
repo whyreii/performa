@@ -167,7 +167,9 @@ export default function Register() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-12 text-ink-3 mt-1">At least 8 characters.</p>
+                <p className="text-12 text-ink-3 mt-1">
+                  At least 8 characters, with an uppercase letter, a lowercase letter and a number.
+                </p>
               </div>
 
               <Button type="submit" isLoading={isSubmitting} className="w-full">

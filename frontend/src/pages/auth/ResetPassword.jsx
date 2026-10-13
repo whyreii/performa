@@ -121,6 +121,7 @@ export default function ResetPassword() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="At least 8 characters"
+                    hint="At least 8 characters, with an uppercase letter, a lowercase letter and a number."
                     required
                   />
                   <TextField
