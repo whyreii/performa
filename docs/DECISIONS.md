@@ -72,13 +72,15 @@ encoded by a new test (`frontend/src/test/ux-invariants.test.jsx`,
   total weight, so weights need not sum to 1.0. The KPI page keeps the "weights are
   relative" note and no longer warns that they "should sum to 100%"; the total is
   shown neutrally. Scoring math is unchanged.
-- **D3 — Total weight must stay > 0.** `PUT /api/kpi-rubrics/{competency}` rejects
-  (422) a write that would leave the organization's total weight at 0, because a
-  zero total silently falls back to the unweighted mean and ignores the employer's
-  configuration. The guard is **per-row**: the UI saves all five rows via five
-  parallel PUTs, so moving all weight from one competency to another can hit a
-  transient total of 0 mid-save and be rejected. A bulk save endpoint is the real
-  fix (tracked, not built).
+- **D3 — Total weight must stay > 0.** A write that would leave the organization's
+  total weight at 0 is rejected (422), because a zero total silently falls back to
+  the unweighted mean and ignores the employer's configuration. The per-row route
+  `PUT /api/kpi-rubrics/{competency}` enforces this per row; the UI instead saves
+  the whole set through `PUT /api/kpi-rubrics` (**bulk**), which applies all rows in
+  a single transaction and validates the final total — so a save is all-or-nothing
+  and shifting weight between competencies no longer hits a transient 0. Direct
+  per-row API callers can still hit that transient-0 rejection; new callers should
+  prefer the bulk route.
 - **D4 — Dashboard status/actions.** (a) The "Past cap" figure carries the bad
   tone only when its value is > 0 (no dot at zero). (b) Each item under
   "Interventions / Training plans pending sign-off" links to the Rollups & AI Plans

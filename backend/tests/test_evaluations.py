@@ -136,6 +136,32 @@ async def test_kpi_rubrics_defaults_and_update(client):
 
 
 @pytest.mark.asyncio
+async def test_kpi_rubrics_bulk_save_is_atomic(client):
+    """Bulk save applies every row in one transaction; a zero total is rejected."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    await client.get("/api/kpi-rubrics", headers=employer)  # provision defaults
+
+    # Moving all weight onto one competency is a legal final state and must be
+    # accepted as a single write (the per-row path could transiently hit 0).
+    moved = [
+        {"competency": c, "target_score": 4.0, "weight": 1.0 if c == "quality_of_work" else 0.0}
+        for c in COMPETENCIES
+    ]
+    ok = await client.put("/api/kpi-rubrics", headers=employer, json={"items": moved})
+    assert ok.status_code == 200, ok.text
+    weights = {r["competency"]: float(r["weight"]) for r in ok.json()}
+    assert weights["quality_of_work"] == 1.0
+    assert sum(weights.values()) == 1.0
+
+    # A payload that would zero the org is rejected and nothing changes.
+    zeroed = [{"competency": c, "target_score": 4.0, "weight": 0.0} for c in COMPETENCIES]
+    bad = await client.put("/api/kpi-rubrics", headers=employer, json={"items": zeroed})
+    assert bad.status_code == 422, bad.text
+    after = await client.get("/api/kpi-rubrics", headers=employer)
+    assert {r["competency"]: float(r["weight"]) for r in after.json()} == weights
+
+
+@pytest.mark.asyncio
 async def test_kpi_trend(client):
     """The trend endpoint returns chronological monthly competency averages."""
     supervisor = await login_user(client, SUPERVISOR_EMAIL)

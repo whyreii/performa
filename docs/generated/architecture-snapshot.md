@@ -246,6 +246,7 @@ Auth column is read from the FastAPI dependency graph.
 | POST | `/api/interventions/{plan_id}/complete` | roles: probationary_employee | complete_my_intervention |
 | POST | `/api/interventions/{plan_id}/sign-off` | roles: employer | sign_off_intervention |
 | GET | `/api/kpi-rubrics` | roles: employer, supervisor | list_rubrics |
+| PUT | `/api/kpi-rubrics` | roles: employer | bulk_upsert_rubrics |
 | POST | `/api/kpi-rubrics/reset` | roles: employer | reset_rubrics |
 | GET | `/api/kpi-rubrics/templates` | authenticated (any role) | list_templates |
 | PUT | `/api/kpi-rubrics/{competency}` | roles: employer | upsert_rubric |

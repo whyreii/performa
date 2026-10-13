@@ -135,6 +135,10 @@ export const kpiApi = {
     const response = await apiClient.put(`/api/kpi-rubrics/${competency}`, data);
     return response.data;
   },
+  saveAll: async (items) => {
+    const response = await apiClient.put('/api/kpi-rubrics', { items });
+    return response.data;
+  },
   templates: async () => {
     const response = await apiClient.get('/api/kpi-rubrics/templates');
     return response.data;

@@ -40,10 +40,10 @@ describe('Rubrics', () => {
     expect(await screen.findAllByText(/4\.4 \/ 5\.0/)).not.toHaveLength(0);
   });
 
-  it('lets an employer apply an industry template and save the configuration', async () => {
+  it('lets an employer apply an industry template and save the configuration atomically', async () => {
     kpiApi.list.mockResolvedValue(RUBRICS);
     kpiApi.templates.mockResolvedValue({ retail: RETAIL_TEMPLATE });
-    kpiApi.update.mockResolvedValue({});
+    kpiApi.saveAll.mockResolvedValue([]);
     renderWithProviders(<Rubrics />, { route: '/rubrics', user: testUser('employer') });
 
     expect(
@@ -54,11 +54,16 @@ describe('Rubrics', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Apply template' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
 
-    await waitFor(() => expect(kpiApi.update).toHaveBeenCalledTimes(5));
-    expect(kpiApi.update).toHaveBeenCalledWith('task_completion', {
-      target_score: 4.5,
-      weight: 0.3,
-    });
+    // One atomic save carrying all five competencies (was five parallel PUTs).
+    await waitFor(() => expect(kpiApi.saveAll).toHaveBeenCalledTimes(1));
+    expect(kpiApi.update).not.toHaveBeenCalled();
+    expect(kpiApi.saveAll).toHaveBeenCalledWith([
+      { competency: 'task_completion', target_score: 4.5, weight: 0.3 },
+      { competency: 'quality_of_work', target_score: 4.0, weight: 0.2 },
+      { competency: 'attendance_and_punctuality', target_score: 4.0, weight: 0.2 },
+      { competency: 'communication_and_teamwork', target_score: 4.0, weight: 0.15 },
+      { competency: 'initiative_and_adaptability', target_score: 4.0, weight: 0.15 },
+    ]);
   });
 
   it('shows the rubrics read-only for a supervisor (no configuration controls)', async () => {

@@ -14,7 +14,7 @@ from ..auth import get_current_user, require_role
 from ..database import get_db
 from ..ml.catalog import COMPETENCIES
 from ..models import CompetencyEnum, KpiRubric, User, UserRole
-from ..schemas import KpiRubricResponse, KpiRubricUpsert
+from ..schemas import KpiRubricBulkUpsert, KpiRubricResponse, KpiRubricUpsert
 
 router = APIRouter(prefix="/api/kpi-rubrics", tags=["KPI Rubrics"])
 
@@ -171,6 +171,51 @@ async def upsert_rubric(
     await db.commit()
     await db.refresh(rubric)
     return rubric
+
+
+@router.put(
+    "",
+    response_model=list[KpiRubricResponse],
+    summary="Set several competency targets/weights atomically",
+)
+async def bulk_upsert_rubrics(
+    payload: KpiRubricBulkUpsert,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
+) -> list[KpiRubric]:
+    """Apply a set of rubric changes in one transaction.
+
+    The full set is validated before anything is written: if the resulting total
+    weight would be 0 the request is rejected (422) and no row changes. This
+    removes the half-applied saves and transient-zero rejections the
+    five-parallel-PUT UI path could produce.
+    """
+    rows = {
+        row.competency: row
+        for row in await _ensure_defaults(db, current_user.organization_id)
+    }
+
+    proposed = {competency: float(row.weight) for competency, row in rows.items()}
+    for item in payload.items:
+        proposed[item.competency] = float(item.weight)
+    if sum(proposed.values()) <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Total weight must be greater than 0 — at least one competency "
+                "must keep a non-zero weight."
+            ),
+        )
+
+    for item in payload.items:
+        row = rows[item.competency]
+        row.target_score = item.target_score
+        row.weight = item.weight
+    await db.commit()
+    for row in rows.values():
+        await db.refresh(row)
+
+    return [rows[CompetencyEnum(competency)] for competency in COMPETENCIES]
 
 
 @router.post(

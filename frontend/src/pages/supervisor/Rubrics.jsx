@@ -123,14 +123,15 @@ export default function Rubrics() {
   }, [form, rubricMap]);
 
   const saveMutation = useMutation({
+    // One atomic request: the server applies the whole set in a single
+    // transaction, so a failure never leaves a half-applied configuration.
     mutationFn: () =>
-      Promise.all(
-        form.map((row) =>
-          kpiApi.update(row.competency, {
-            target_score: Number(row.target),
-            weight: (Number(row.weightPct) || 0) / 100,
-          })
-        )
+      kpiApi.saveAll(
+        form.map((row) => ({
+          competency: row.competency,
+          target_score: Number(row.target),
+          weight: (Number(row.weightPct) || 0) / 100,
+        }))
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kpi-rubrics'] });

@@ -83,6 +83,7 @@ MATRIX = {
     ("GET", "/api/kpi-rubrics"): {"employer", "supervisor"},
     ("GET", "/api/kpi-rubrics/templates"): ALL,
     ("PUT", "/api/kpi-rubrics/{competency}"): {"employer"},
+    ("PUT", "/api/kpi-rubrics"): {"employer"},
     ("POST", "/api/kpi-rubrics/reset"): {"employer"},
     ("GET", "/api/notifications"): ALL,
     ("POST", "/api/notifications/{notification_id}/read"): ALL,

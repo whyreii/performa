@@ -273,6 +273,28 @@ class KpiRubricUpsert(BaseModel):
     weight: float = Field(default=0.20, ge=0.0, le=1.0)
 
 
+class KpiRubricBulkItem(BaseModel):
+    """One competency's target and weight within a bulk save."""
+
+    competency: CompetencyEnum
+    target_score: float = Field(..., ge=4.0, le=5.0)
+    weight: float = Field(..., ge=0.0, le=1.0)
+
+
+class KpiRubricBulkUpsert(BaseModel):
+    """Atomic save of several competencies at once (one transaction)."""
+
+    items: list[KpiRubricBulkItem] = Field(..., min_length=1)
+
+    @field_validator("items")
+    @classmethod
+    def _unique_competencies(cls, value: list[KpiRubricBulkItem]) -> list[KpiRubricBulkItem]:
+        seen = [item.competency for item in value]
+        if len(set(seen)) != len(seen):
+            raise ValueError("Duplicate competency in a bulk save")
+        return value
+
+
 class KpiRubricResponse(KpiRubricBase):
     model_config = ConfigDict(from_attributes=True)
 
@@ -579,6 +601,8 @@ __all__ = [
     "KpiRubricUpdate",
     "KpiRubricResponse",
     "KpiRubricUpsert",
+    "KpiRubricBulkItem",
+    "KpiRubricBulkUpsert",
     "WeeklyRatingSubmit",
     "WeeklyEvaluationResponse",
     "WeeklyEvaluationListItem",
