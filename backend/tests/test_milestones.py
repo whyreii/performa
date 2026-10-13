@@ -287,3 +287,52 @@ async def test_milestone_boundaries_shift_with_clock_override(
     assert entry["day_150_reached"] == expect_150
     assert entry["day_165_reached"] == expect_165
     assert entry["day_178_reached"] == expect_178
+
+
+@pytest.mark.asyncio
+async def test_milestone_alert_emails_the_employer(client, monkeypatch):
+    """Firing a statutory milestone emails the employer, once, and never twice."""
+    sent: list[dict] = []
+
+    async def _capture(to_email, full_name, employee_name, day, title):
+        sent.append({"to": to_email, "employee": employee_name, "day": day})
+        return True
+
+    monkeypatch.setattr("backend.routers.employees.send_milestone_alert_email", _capture)
+
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    supervisors = (await client.get("/api/employees/supervisors", headers=employer)).json()
+    supervisor_id = supervisors[0]["id"]
+
+    create = await client.post(
+        "/api/employees/",
+        headers=employer,
+        json={
+            "email": "milestone.email@acme.com",
+            "full_name": "Email Alert Person",
+            "department": "Quality",
+            "job_title": "Analyst",
+            "start_date": BOUNDARY_START.isoformat(),
+            "supervisor_id": supervisor_id,
+            "password": "Password123!",
+        },
+    )
+    assert create.status_code == 201, create.text
+
+    # Day 165 → the Day 150 and Day 165 alerts both fire for this employee.
+    monkeypatch.setenv("PERFORMA_TODAY", (BOUNDARY_START + timedelta(days=165)).isoformat())
+
+    scan = await client.post("/api/employees/milestones/scan", headers=employer)
+    assert scan.status_code == 200, scan.text
+    assert scan.json()["fired"] >= 2
+
+    assert any(
+        a["employee"] == "Email Alert Person" and a["day"] == 165 for a in sent
+    ), f"expected a Day 165 email, got {sent}"
+    assert all(a["to"] == EMPLOYER_EMAIL for a in sent)
+
+    # Idempotent: a second scan fires nothing and sends no further email.
+    sent.clear()
+    again = await client.post("/api/employees/milestones/scan", headers=employer)
+    assert again.json()["fired"] == 0
+    assert sent == []

@@ -31,7 +31,7 @@ from ..domain import (
     days_elapsed,
     milestone_dates,
 )
-from ..emailer import send_credentials_email
+from ..emailer import send_credentials_email, send_milestone_alert_email
 from ..models import Organization, ProbationaryEmployee, ProbationStatus, User, UserRole
 from ..notifications import create_notification
 from ..passwords import generate_password
@@ -136,6 +136,7 @@ async def _fire_milestone_alerts(
 
     as_of = manila_today()
     fired = 0
+    email_queue: list[tuple[uuid.UUID, str, int, str]] = []
     for employee in employees:
         for day, flag_attr, title, category in MILESTONE_ALERT_STEPS:
             if getattr(employee, flag_attr):
@@ -158,6 +159,7 @@ async def _fire_milestone_alerts(
                 body=body,
                 category=category,
             )
+            email_queue.append((employee.employer_id, name, day, title))
             if day == MILESTONE_REVIEW_DAY and employee.supervisor_id is not None:
                 create_notification(
                     db,
@@ -170,6 +172,23 @@ async def _fire_milestone_alerts(
 
     if fired:
         await db.commit()
+        # Best-effort outbound email after the in-app alerts are committed, so an
+        # unread in-app alert can't be missed. send_milestone_alert_email never
+        # raises, so a mail failure cannot break the scan.
+        employer_ids = {employer_id for employer_id, *_ in email_queue}
+        employers = {
+            user.id: user
+            for user in (await db.execute(select(User).where(User.id.in_(employer_ids))))
+            .scalars()
+            .all()
+        }
+        for employer_id, employee_name, day, title in email_queue:
+            employer = employers.get(employer_id)
+            if employer is None or not employer.email:
+                continue
+            await send_milestone_alert_email(
+                employer.email, employer.full_name, employee_name, day, title
+            )
     return fired
 
 

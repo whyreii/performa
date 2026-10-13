@@ -69,3 +69,19 @@ def test_sendgrid_payload(monkeypatch):
 def test_sender_defaults(monkeypatch):
     _patch(monkeypatch)
     assert emailer._sender() == ("no-reply@performa.local", "Performa")
+
+
+def test_render_milestone_includes_dashboard_link(monkeypatch):
+    _patch(monkeypatch, app_base_url="https://app.performa.ph/")
+    subject, body = emailer._render_milestone("Cecile", "Ana Urgent", 178, "Final milestone")
+    assert "Ana Urgent" in subject and "Day 178" in subject
+    assert "Ana Urgent has reached the Day 178 milestone" in body
+    assert "Open the dashboard: https://app.performa.ph/dashboard" in body
+
+
+def test_render_reset_includes_link_and_ttl(monkeypatch):
+    _patch(monkeypatch)
+    subject, body = emailer._render_reset("Ana", "https://app.performa.ph/reset-password?token=x", 30)
+    assert subject == "Reset your Performa password"
+    assert "https://app.performa.ph/reset-password?token=x" in body
+    assert "valid for 30 minutes" in body

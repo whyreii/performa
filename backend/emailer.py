@@ -70,6 +70,25 @@ def _render_reset(full_name: str, reset_link: str, ttl_minutes: int) -> tuple[st
     return subject, "\n".join(lines) + "\n"
 
 
+def _render_milestone(
+    full_name: str, employee_name: str, day: int, title: str
+) -> tuple[str, str]:
+    """Return ``(subject, body)`` for a statutory milestone alert."""
+    subject = f"Article 296: {employee_name} reached Day {day}"
+    lines = [
+        f"Hello {full_name},",
+        "",
+        f"{employee_name} has reached the Day {day} milestone ({title}) of the "
+        "180-day probation timeline.",
+        "",
+        "Review the record and take the required action before the Day 180 cap.",
+    ]
+    app_url = get_settings().app_base_url
+    if app_url:
+        lines += ["", f"Open the dashboard: {app_url.rstrip('/')}/dashboard"]
+    return subject, "\n".join(lines) + "\n"
+
+
 def _sender() -> tuple[str, str]:
     """Return ``(email, name)`` parsed from ``EMAIL_FROM`` (``Name <addr>`` ok)."""
     settings = get_settings()
@@ -256,4 +275,20 @@ async def send_password_reset_email(
     return await _deliver(to_email, subject, body)
 
 
-__all__ = ["send_credentials_email", "send_password_reset_email"]
+async def send_milestone_alert_email(
+    to_email: str,
+    full_name: str,
+    employee_name: str,
+    day: int,
+    title: str,
+) -> bool:
+    """Send a Day 150/165/178 milestone alert, or log it when no provider is set."""
+    subject, body = _render_milestone(full_name, employee_name, day, title)
+    return await _deliver(to_email, subject, body)
+
+
+__all__ = [
+    "send_credentials_email",
+    "send_password_reset_email",
+    "send_milestone_alert_email",
+]
