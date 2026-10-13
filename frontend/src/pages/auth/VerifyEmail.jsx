@@ -81,8 +81,8 @@ export default function VerifyEmail() {
           </Col>
         </Row>
 
-        <Row as="main" className="reveal flex-1 flex flex-col justify-center pb-12 lg:justify-start">
-          <Col as="section" span={5}>
+        <Row as="main" className="reveal flex-1 flex flex-col justify-center pb-12">
+          <Col as="section" span={6} start={4}>
             <h1 className="text-30 font-semibold tracking-tight text-ink">Verifying your email</h1>
 
             {error ? (
@@ -99,7 +99,7 @@ export default function VerifyEmail() {
               </p>
             )}
 
-            <p className="text-14 text-ink-2 mt-6">
+            <p className="text-12 text-ink-2 mt-6">
               <Link to="/login" className="font-semibold text-accent hover:underline">
                 Back to sign in
               </Link>

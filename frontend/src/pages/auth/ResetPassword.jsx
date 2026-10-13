@@ -85,8 +85,8 @@ export default function ResetPassword() {
           </Col>
         </Row>
 
-        <Row as="main" className="reveal flex-1 flex flex-col justify-center pb-12 lg:justify-start">
-          <Col as="section" span={5}>
+        <Row as="main" className="reveal flex-1 flex flex-col justify-center pb-12">
+          <Col as="section" span={6} start={4}>
             <h1 className="text-30 font-semibold tracking-tight text-ink">Set a new password</h1>
             <p className="text-14 text-ink-2 mt-2">
               Choose a new password for your Performa account.
@@ -141,7 +141,7 @@ export default function ResetPassword() {
               </>
             )}
 
-            <p className="text-14 text-ink-2 mt-6">
+            <p className="text-12 text-ink-2 mt-6">
               <Link to="/login" className="font-semibold text-accent hover:underline">
                 Back to sign in
               </Link>

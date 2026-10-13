@@ -194,7 +194,7 @@ export default function Register() {
                 </p>
               </div>
 
-              <label className="flex items-start gap-2 text-14 text-ink-2">
+              <label className="flex items-start gap-2 text-12 text-ink-2">
                 <input
                   type="checkbox"
                   checked={consent}
@@ -217,7 +217,7 @@ export default function Register() {
             </form>
             )}
 
-            <p className="text-14 text-ink-2 mt-6">
+            <p className="text-12 text-ink-2 mt-6">
               Already have an account?{' '}
               <Link to="/login" className="font-semibold text-accent hover:underline">
                 Sign in
@@ -252,6 +252,11 @@ export default function Register() {
 
         <Row as="footer" className="py-6 text-12 text-ink-3">
           <Col span={5}>Asia/Manila (UTC+8) · Article 296, Philippine Labor Code</Col>
+          <Col span={6} start={7} className="lg:justify-self-end">
+            <Link to="/privacy" className="hover:underline">
+              Data Privacy Notice
+            </Link>
+          </Col>
         </Row>
       </PageGrid>
     </div>
