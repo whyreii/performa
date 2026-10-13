@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { employeeApi, interventionApi } from '../../api';
 import { PerformaMark, LogOut, Search, Sun, Moon, ChevronLeft, ChevronRight } from '../icons';
 import { ConfirmDialog } from '../ui';
-import { sidebarNav } from '../../config/nav';
+import { sidebarSections } from '../../config/nav';
 import { getInitials } from '../../utils/format';
 import { modifierKey } from '../../utils/platform';
 import { prefetchRoute } from '../../routes/loaders';
@@ -15,6 +17,42 @@ export default function Sidebar({ onOpenCommandPalette }) {
   const { isDark, setMode } = useTheme();
   const [isSignOutOpen, setIsSignOutOpen] = useState(false);
   const unread = useUnreadNotifications();
+  const role = user?.role;
+
+  // Count badges read the same caches the pages use, so they add no extra
+  // requests where those pages are open. Role-gated so a role never fetches data
+  // it may not read; a failed query just shows no badge.
+  const canSeeRoster = role === 'employer' || role === 'supervisor';
+  const { data: roster } = useQuery({
+    queryKey: ['employees', { limit: 200 }],
+    queryFn: () => employeeApi.list({ limit: 200 }),
+    enabled: canSeeRoster,
+    staleTime: 60_000,
+    retry: false,
+  });
+  const { data: pendingPlans } = useQuery({
+    queryKey: ['intervention-plans'],
+    queryFn: () => interventionApi.listPending(),
+    enabled: role === 'employer',
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  // { count, srLabel } for a nav path, or null when there is nothing to show.
+  const badgeFor = (path) => {
+    if (path === '/notifications') {
+      return unread > 0 ? { count: unread, srLabel: 'unread' } : null;
+    }
+    if (path === '/employees' && canSeeRoster) {
+      const n = Array.isArray(roster) ? roster.length : 0;
+      return n > 0 ? { count: n, srLabel: 'employees' } : null;
+    }
+    if (path === '/rollups' && role === 'employer') {
+      const n = Array.isArray(pendingPlans) ? pendingPlans.length : 0;
+      return n > 0 ? { count: n, srLabel: 'pending sign-off' } : null;
+    }
+    return null;
+  };
 
   // Binary quick toggle: light ⇄ dark. The full Light/Dark/System control
   // lives in Settings; the sidebar only flips between the two palettes.
@@ -36,8 +74,7 @@ export default function Sidebar({ onOpenCommandPalette }) {
     } catch {}
   };
 
-  const role = user?.role;
-  const navItems = sidebarNav(role);
+  const sections = sidebarSections(role);
   const homePath =
     role === 'admin'
       ? '/admin/users'
@@ -115,51 +152,73 @@ export default function Sidebar({ onOpenCommandPalette }) {
         </button>
       )}
 
-      {/* Navigation */}
+      {/* Navigation — grouped sections; labels collapse to hairline dividers */}
       <div className="flex-1 overflow-y-auto">
-        <nav aria-label="Primary" className={`flex flex-col ${collapsed ? 'gap-1' : 'gap-0.5'}`}>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isNotifications = item.path === '/notifications';
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                title={collapsed ? item.label : undefined}
-                onMouseEnter={() => prefetchRoute(item.path)}
-                onFocus={() => prefetchRoute(item.path)}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 rounded-ctl text-14 transition-colors ${
-                    collapsed ? 'justify-center px-0 h-10' : 'px-2.5 h-10'
-                  } ${
-                    isActive
-                      ? 'bg-accent/10 text-ink font-semibold'
-                      : 'text-ink-2 hover:bg-hover hover:text-ink'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <span className="relative shrink-0">
-                      <Icon
-                        className={`w-[18px] h-[18px] ${isActive ? 'text-ink' : 'text-ink-3'}`}
-                      />
-                      {isNotifications && collapsed && unread > 0 ? (
-                        <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-accent" />
-                      ) : null}
-                    </span>
-                    {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
-                    {!collapsed && isNotifications && unread > 0 ? (
-                      <span className="ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-12 font-num font-semibold text-accent-foreground">
-                        <span aria-hidden="true">{unread > 99 ? '99+' : unread}</span>
-                        <span className="sr-only">{unread} unread</span>
-                      </span>
-                    ) : null}
-                  </>
-                )}
-              </NavLink>
-            );
-          })}
+        <nav aria-label="Primary" className="flex flex-col">
+          {sections.map((section, i) => (
+            <div
+              key={section.label}
+              className={
+                collapsed
+                  ? i > 0
+                    ? 'mt-1 border-t border-line pt-1'
+                    : ''
+                  : i > 0
+                  ? 'mt-3'
+                  : ''
+              }
+            >
+              {!collapsed && (
+                <div className="px-2.5 pb-1 text-12 text-ink-3">{section.label}</div>
+              )}
+              <div className={`flex flex-col ${collapsed ? 'gap-1' : 'gap-0.5'}`}>
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const badge = badgeFor(item.path);
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      title={collapsed ? item.label : undefined}
+                      onMouseEnter={() => prefetchRoute(item.path)}
+                      onFocus={() => prefetchRoute(item.path)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-2.5 rounded-ctl text-14 transition-colors ${
+                          collapsed ? 'justify-center px-0 h-10' : 'px-2.5 h-10'
+                        } ${
+                          isActive
+                            ? 'bg-accent/10 text-ink font-semibold'
+                            : 'text-ink-2 hover:bg-hover hover:text-ink'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <span className="relative shrink-0">
+                            <Icon
+                              className={`w-[18px] h-[18px] ${isActive ? 'text-ink' : 'text-ink-3'}`}
+                            />
+                            {collapsed && badge ? (
+                              <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-accent" />
+                            ) : null}
+                          </span>
+                          {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
+                          {!collapsed && badge ? (
+                            <span className="ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-12 font-num font-semibold text-accent-foreground">
+                              <span aria-hidden="true">{badge.count > 99 ? '99+' : badge.count}</span>
+                              <span className="sr-only">
+                                {badge.count} {badge.srLabel}
+                              </span>
+                            </span>
+                          ) : null}
+                        </>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
       </div>
 

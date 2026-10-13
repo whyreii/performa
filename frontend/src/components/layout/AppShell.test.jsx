@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor, within } from '@testing-library/react';
 import AppShell from './AppShell';
+import { employeeApi, interventionApi } from '../../api';
 import { renderWithProviders } from '../../test/renderWithProviders';
 import { testUser } from '../../test/apiMock';
 
@@ -24,6 +25,22 @@ describe('AppShell', () => {
     // Mobile navigation tab bar.
     expect(screen.getByRole('navigation', { name: 'Mobile Navigation' })).toBeInTheDocument();
     expect(screen.getByText('PAGE CONTENT')).toBeInTheDocument();
+  });
+
+  it('shows live count badges in the grouped sidebar', async () => {
+    employeeApi.list.mockResolvedValue([{ id: 'e1' }, { id: 'e2' }, { id: 'e3' }]);
+    interventionApi.listPending.mockResolvedValue([{ id: 'p1' }]);
+
+    renderWithProviders(<AppShell><div>content</div></AppShell>, {
+      route: '/dashboard',
+      user: testUser('employer'),
+    });
+
+    const employeesLink = await screen.findByRole('link', { name: /Employees/ });
+    expect(within(employeesLink).getByText('3')).toBeInTheDocument();
+
+    const plansLink = screen.getByRole('link', { name: /Rollups & AI Plans/ });
+    expect(within(plansLink).getByText('1')).toBeInTheDocument();
   });
 
   it('opens the command palette with Ctrl+K and executes a command', async () => {

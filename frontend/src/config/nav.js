@@ -36,14 +36,15 @@ export const ROUTES = {
   training: { path: '/employee/training', icon: BookOpen },
 };
 
-// Each entry is [routeKey, label]; order is preserved per surface.
+// Each role's sidebar is declared as labelled sections (Manage / Compliance /
+// Account) so the sidebar can group a long nav. `sidebarNav` flattens the
+// sections back into a plain list, so every existing consumer (AppShell chunk
+// prefetch, tests) keeps working unchanged; only the Sidebar reads the groups.
 export const NAV_BY_ROLE = {
   admin: {
     sidebar: [
-      ['adminUsers', 'User Accounts'],
-      ['adminActivity', 'Activity Log'],
-      ['notifications', 'Notifications'],
-      ['settings', 'Settings'],
+      { label: 'Manage', items: [['adminUsers', 'User Accounts'], ['adminActivity', 'Activity Log']] },
+      { label: 'Account', items: [['notifications', 'Notifications'], ['settings', 'Settings']] },
     ],
     tabs: [
       ['adminUsers', 'Accounts'],
@@ -57,14 +58,18 @@ export const NAV_BY_ROLE = {
   },
   employer: {
     sidebar: [
-      ['dashboard', 'Dashboard'],
-      ['employees', 'Employees'],
-      ['rubrics', 'KPI Configuration'],
-      ['rollups', 'Rollups & AI Plans'],
-      ['reports', 'Reports'],
-      ['audits', 'Audit Trail'],
-      ['notifications', 'Notifications'],
-      ['settings', 'Settings'],
+      {
+        label: 'Manage',
+        items: [
+          ['dashboard', 'Dashboard'],
+          ['employees', 'Employees'],
+          ['rubrics', 'KPI Configuration'],
+          ['rollups', 'Rollups & AI Plans'],
+          ['reports', 'Reports'],
+        ],
+      },
+      { label: 'Compliance', items: [['audits', 'Audit Trail'], ['notifications', 'Notifications']] },
+      { label: 'Account', items: [['settings', 'Settings']] },
     ],
     tabs: [
       ['dashboard', 'Overview'],
@@ -84,12 +89,16 @@ export const NAV_BY_ROLE = {
   },
   supervisor: {
     sidebar: [
-      ['supervisorDashboard', 'Supervisor Dashboard'],
-      ['employees', 'Employees'],
-      ['rate', 'Rate Employee'],
-      ['rubrics', 'KPI Rubrics'],
-      ['notifications', 'Notifications'],
-      ['settings', 'Settings'],
+      {
+        label: 'Manage',
+        items: [
+          ['supervisorDashboard', 'Supervisor Dashboard'],
+          ['employees', 'Employees'],
+          ['rate', 'Rate Employee'],
+          ['rubrics', 'KPI Rubrics'],
+        ],
+      },
+      { label: 'Account', items: [['notifications', 'Notifications'], ['settings', 'Settings']] },
     ],
     tabs: [
       ['supervisorDashboard', 'Overview'],
@@ -107,10 +116,8 @@ export const NAV_BY_ROLE = {
   },
   probationary_employee: {
     sidebar: [
-      ['employeeDashboard', 'My Scorecard'],
-      ['training', 'Training Plans'],
-      ['notifications', 'Notifications'],
-      ['settings', 'Settings'],
+      { label: 'Manage', items: [['employeeDashboard', 'My Scorecard'], ['training', 'Training Plans']] },
+      { label: 'Account', items: [['notifications', 'Notifications'], ['settings', 'Settings']] },
     ],
     tabs: [
       ['employeeDashboard', 'Scorecard'],
@@ -132,8 +139,17 @@ function resolve(pairs) {
   }));
 }
 
+// Grouped sidebar entries for the Sidebar component: [{ label, items: [...] }].
+export function sidebarSections(role) {
+  return (NAV_BY_ROLE[role]?.sidebar || []).map((section) => ({
+    label: section.label,
+    items: resolve(section.items),
+  }));
+}
+
+// Flattened sidebar entries (unchanged contract for prefetch + tests).
 export function sidebarNav(role) {
-  return resolve(NAV_BY_ROLE[role]?.sidebar || []);
+  return sidebarSections(role).flatMap((section) => section.items);
 }
 
 export function tabNav(role) {
