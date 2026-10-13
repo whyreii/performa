@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi, getApiErrorMessage } from '../../api';
 import { formatDate } from '../../utils/datetime';
-import { Button, Badge, Skeleton, EmptyState, Card, Page, SectionHead } from '../../components/ui';
+import { Button, Badge, Skeleton, EmptyState, Page } from '../../components/ui';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { Bell, CheckCheck, AlertCircle } from '../../components/icons';
@@ -28,6 +28,13 @@ const COPY_BY_ROLE = {
     subtitle: 'Monthly performance summaries and training updates',
     empty: 'You will be alerted here when a performance summary or training plan is shared with you.',
   },
+};
+
+// "milestone_150" -> "Milestone", "summary" -> "Summary", "training" -> "Training".
+const categoryLabel = (c) => {
+  if (!c) return '';
+  const base = String(c).replace(/_\d+$/, '');
+  return base.charAt(0).toUpperCase() + base.slice(1).replace(/_/g, ' ');
 };
 
 export default function Notifications() {
@@ -84,12 +91,8 @@ export default function Notifications() {
         }
     >
 
-      <Card flat padded={false} className="space-y-1">
-        <SectionHead
-          title="Notifications"
-          subtitle={`${unreadCount} unread · ${notifications.length} total`}
-        />
-        {isLoading ? (
+      {/* The toolbar carries the page title; the body is just the list. */}
+      {isLoading ? (
           <div className="divide-y divide-line" aria-hidden="true">
             {[0, 1, 2, 3, 4].map((i) => (
               <div key={i} className="p-4 flex items-start gap-3">
@@ -131,7 +134,7 @@ export default function Notifications() {
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      {n.category && <Badge variant="neutral">{n.category}</Badge>}
+                      {n.category && <Badge variant="neutral">{categoryLabel(n.category)}</Badge>}
                       <span className="font-semibold text-14 text-ink">{n.title}</span>
                       <span className="sr-only">{n.is_read ? 'Read' : 'Unread'}</span>
                     </div>
@@ -154,8 +157,7 @@ export default function Notifications() {
               </div>
             ))}
           </div>
-        )}
-      </Card>
+      )}
     </Page>
   );
 }

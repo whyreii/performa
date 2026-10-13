@@ -3,8 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interventionApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
 import { formatDate } from '../../utils/datetime';
-import { Button, Badge, EmptyState, Card, CardSkeleton, Page } from '../../components/ui';
+import { COMPETENCIES } from '../../config/domain';
+import { Button, Badge, EmptyState, CardSkeleton, Page } from '../../components/ui';
 import { CheckCircle2, AlertCircle } from '../../components/icons';
+
+const LABEL_BY_KEY = Object.fromEntries(COMPETENCIES.map((c) => [c.key, c.label]));
+const competencyLabel = (key) => LABEL_BY_KEY[key] || key?.replace(/_/g, ' ') || '';
 
 const STATUS = {
   approved: { variant: 'accent', label: 'Active Assignment' },
@@ -40,67 +44,56 @@ export default function EmployeeTraining() {
 
   return (
     <Page
-        title="Assigned Training Interventions"
-        subtitle="Targeted Learning Modules to Close Competency Gaps Before Day 150 Appraisal"
+      title="Assigned Training Interventions"
+      subtitle="Targeted learning modules to close competency gaps before the Day 150 appraisal"
     >
-
-      {/* Recommended Modules List */}
-      <section className="space-y-4">
-        {isLoading ? (
-          <div className="space-y-4">
-            <CardSkeleton />
-            <CardSkeleton />
-          </div>
-        ) : isError ? (
-          <Card flat padded={false} className="p-10 text-center space-y-3">
-            <AlertCircle className="w-8 h-8 text-bad mx-auto" />
-            <h3 className="text-16 font-semibold text-ink">Failed to load your training plans</h3>
-            <p className="text-12 text-ink-3 max-w-sm mx-auto">
-              {getApiErrorMessage(error, 'An error occurred while fetching your interventions.')}
-            </p>
-            <Button variant="secondary" size="sm" onClick={() => refetch()}>
-              Retry
-            </Button>
-          </Card>
-        ) : plans.length === 0 ? (
-          <EmptyState icon={CheckCircle2} title="No required training interventions">
-            Your weekly competency evaluations currently meet or exceed required performance standards.
-          </EmptyState>
-        ) : (
-          <div className="space-y-4">
-            {plans.map((plan) => (
-              <Card padded={false}
-                flat
-                key={plan.id}
-                className="space-y-3 transition-colors hover:bg-hover"
-              >
+      {isLoading ? (
+        <div className="space-y-4">
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+      ) : isError ? (
+        <div className="py-10 text-center space-y-3">
+          <AlertCircle className="w-8 h-8 text-bad mx-auto" />
+          <h3 className="text-16 font-semibold text-ink">Failed to load your training plans</h3>
+          <p className="text-12 text-ink-3 max-w-sm mx-auto">
+            {getApiErrorMessage(error, 'An error occurred while fetching your interventions.')}
+          </p>
+          <Button variant="secondary" size="sm" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </div>
+      ) : plans.length === 0 ? (
+        <EmptyState icon={CheckCircle2} title="No required training interventions">
+          Your weekly competency evaluations currently meet or exceed required performance standards.
+        </EmptyState>
+      ) : (
+        <div>
+          {plans.map((plan) => {
+            const status = STATUS[plan.status] || STATUS.pending_approval;
+            return (
+              <div key={plan.id} className="border-t border-line py-4 first:border-t-0 space-y-2">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                  <div className="space-y-1">
+                  <div className="min-w-0">
                     <div className="flex flex-wrap items-baseline gap-2">
-                      <h3 className="text-16 font-semibold text-ink">
+                      <span className="text-16 font-semibold text-ink">
                         {plan.intervention_title}
-                      </h3>
+                      </span>
                       <span className="text-12 text-ink-3">
-                        {plan.competency?.replace(/_/g, ' ')}
+                        {competencyLabel(plan.competency)}
                         {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-12 text-ink-3 font-num">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-12 text-ink-3 font-num mt-1">
                       <span>Duration: {plan.default_timeline || '—'}</span>
-                      <span>·</span>
-                      <span>Catalog ID: {plan.catalog_id}</span>
+                      {plan.status === 'completed' && plan.completed_at ? (
+                        <span>· Completed {formatDate(plan.completed_at)}</span>
+                      ) : null}
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-start sm:items-end gap-2">
-                    <Badge variant={(STATUS[plan.status] || STATUS.pending_approval).variant}>
-                      {(STATUS[plan.status] || STATUS.pending_approval).label}
-                    </Badge>
-                    {plan.status === 'completed' && plan.completed_at && (
-                      <span className="text-12 text-ink-3 font-num">
-                        Completed {formatDate(plan.completed_at)}
-                      </span>
-                    )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge variant={status.variant}>{status.label}</Badge>
                     {plan.status === 'approved' && (
                       <Button
                         size="sm"
@@ -118,18 +111,16 @@ export default function EmployeeTraining() {
                 </div>
 
                 {plan.rationale && (
-                  <div className="p-4 rounded-ctl bg-hover/70 border border-line text-14 text-ink-2 space-y-1">
-                    <span className="font-semibold text-accent text-12">
-                      Coaching Guidance
-                    </span>
+                  <div className="border-t border-line pt-2.5 text-14 text-ink-2 space-y-1">
+                    <span className="font-semibold text-ink-3 text-12">Coaching guidance</span>
                     <p className="leading-relaxed">{plan.rationale}</p>
                   </div>
                 )}
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </Page>
   );
 }

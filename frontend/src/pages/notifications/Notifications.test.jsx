@@ -25,8 +25,9 @@ describe('Notifications', () => {
       route: '/notifications',
       user: testUser('employer'),
     });
+    // The page heading comes from <Page>; there is no duplicate body title.
     expect(
-      await screen.findByRole('heading', { name: 'Notifications', level: 2 })
+      await screen.findByRole('heading', { name: 'Notifications' })
     ).toBeInTheDocument();
     expect(await screen.findByText('Day 150 review due')).toBeInTheDocument();
     expect(screen.getByText('1 unread')).toBeInTheDocument();
