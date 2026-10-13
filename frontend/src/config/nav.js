@@ -40,21 +40,10 @@ export const ROUTES = {
 export const NAV_BY_ROLE = {
   admin: {
     sidebar: [
-      {
-        label: 'System',
-        items: [
-          ['adminUsers', 'User Accounts'],
-          ['adminActivity', 'Activity Log'],
-        ],
-      },
-      {
-        label: 'Account',
-        divider: true,
-        items: [
-          ['notifications', 'Notifications'],
-          ['settings', 'Settings'],
-        ],
-      },
+      ['adminUsers', 'User Accounts'],
+      ['adminActivity', 'Activity Log'],
+      ['notifications', 'Notifications'],
+      ['settings', 'Settings'],
     ],
     tabs: [
       ['adminUsers', 'Accounts'],
@@ -68,30 +57,14 @@ export const NAV_BY_ROLE = {
   },
   employer: {
     sidebar: [
-      {
-        label: 'Performance',
-        items: [
-          ['dashboard', 'Dashboard'],
-          ['employees', 'Employees'],
-          ['rubrics', 'KPI Configuration'],
-          ['rollups', 'Rollups & AI Plans'],
-        ],
-      },
-      {
-        label: 'Compliance',
-        items: [
-          ['reports', 'Reports'],
-          ['audits', 'Audit Trail'],
-        ],
-      },
-      {
-        label: 'Account',
-        divider: true,
-        items: [
-          ['notifications', 'Notifications'],
-          ['settings', 'Settings'],
-        ],
-      },
+      ['dashboard', 'Dashboard'],
+      ['employees', 'Employees'],
+      ['rubrics', 'KPI Configuration'],
+      ['rollups', 'Rollups & AI Plans'],
+      ['reports', 'Reports'],
+      ['audits', 'Audit Trail'],
+      ['notifications', 'Notifications'],
+      ['settings', 'Settings'],
     ],
     tabs: [
       ['dashboard', 'Overview'],
@@ -111,23 +84,12 @@ export const NAV_BY_ROLE = {
   },
   supervisor: {
     sidebar: [
-      {
-        label: 'Team',
-        items: [
-          ['supervisorDashboard', 'Supervisor Dashboard'],
-          ['employees', 'Employees'],
-          ['rate', 'Rate Employee'],
-          ['rubrics', 'KPI Rubrics'],
-        ],
-      },
-      {
-        label: 'Account',
-        divider: true,
-        items: [
-          ['notifications', 'Notifications'],
-          ['settings', 'Settings'],
-        ],
-      },
+      ['supervisorDashboard', 'Supervisor Dashboard'],
+      ['employees', 'Employees'],
+      ['rate', 'Rate Employee'],
+      ['rubrics', 'KPI Rubrics'],
+      ['notifications', 'Notifications'],
+      ['settings', 'Settings'],
     ],
     tabs: [
       ['supervisorDashboard', 'Overview'],
@@ -145,21 +107,10 @@ export const NAV_BY_ROLE = {
   },
   probationary_employee: {
     sidebar: [
-      {
-        label: 'My Performance',
-        items: [
-          ['employeeDashboard', 'My Scorecard'],
-          ['training', 'Training Plans'],
-        ],
-      },
-      {
-        label: 'Account',
-        divider: true,
-        items: [
-          ['notifications', 'Notifications'],
-          ['settings', 'Settings'],
-        ],
-      },
+      ['employeeDashboard', 'My Scorecard'],
+      ['training', 'Training Plans'],
+      ['notifications', 'Notifications'],
+      ['settings', 'Settings'],
     ],
     tabs: [
       ['employeeDashboard', 'Scorecard'],
@@ -173,28 +124,16 @@ export const NAV_BY_ROLE = {
   },
 };
 
-function resolveItem([key, label]) {
-  return { label, path: ROUTES[key].path, icon: ROUTES[key].icon };
-}
-
 function resolve(pairs) {
-  return pairs.map(resolveItem);
-}
-
-// Sidebar nav is grouped into labelled sections (Performance / Compliance /
-// Account). `divider` marks a section set apart by a hairline (the utility
-// group). Sections drive the rendered sidebar; the flat list drives prefetch.
-export function sidebarSections(role) {
-  const sections = NAV_BY_ROLE[role]?.sidebar || [];
-  return sections.map((section) => ({
-    label: section.label ?? null,
-    divider: Boolean(section.divider),
-    items: section.items.map(resolveItem),
+  return pairs.map(([key, label]) => ({
+    label,
+    path: ROUTES[key].path,
+    icon: ROUTES[key].icon,
   }));
 }
 
 export function sidebarNav(role) {
-  return sidebarSections(role).flatMap((section) => section.items);
+  return resolve(NAV_BY_ROLE[role]?.sidebar || []);
 }
 
 export function tabNav(role) {
