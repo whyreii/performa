@@ -87,6 +87,15 @@ export const authApi = {
     });
     return response.data; // { access_token, token_type }
   },
+  register: async ({ fullName, email, organizationName, password }) => {
+    const response = await apiClient.post('/api/auth/register', {
+      full_name: fullName.trim(),
+      email: email.trim(),
+      organization_name: organizationName.trim(),
+      password,
+    });
+    return response.data; // { access_token, token_type }
+  },
   getCurrentUser: async () => {
     const response = await apiClient.get('/api/auth/me');
     return response.data; // UserResponse: { id, email, full_name, role, organization_id, is_active }

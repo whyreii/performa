@@ -31,6 +31,7 @@ PERFORMANCE_READERS = {"employer", "supervisor", "probationary_employee"}
 
 PUBLIC = {
     ("POST", "/api/auth/login"),
+    ("POST", "/api/auth/register"),
     ("POST", "/api/auth/logout"),
     ("GET", "/"),
     ("GET", "/health"),

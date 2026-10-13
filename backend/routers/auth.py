@@ -21,8 +21,8 @@ from ..auth import (
 from ..audit import record_activity
 from ..config import get_settings
 from ..database import get_db
-from ..models import Organization, User
-from ..schemas import PasswordChange, ProfileUpdate, Token, UserResponse
+from ..models import Organization, User, UserRole
+from ..schemas import PasswordChange, ProfileUpdate, RegisterRequest, Token, UserResponse
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -65,6 +65,28 @@ def _clear_failures(key: str) -> None:
     _FAILED_ATTEMPTS.pop(key, None)
 
 
+def _issue_session(response: Response, user: User) -> Token:
+    """Issue a bearer token, set the httpOnly cookie, and return the Token."""
+    access_token = create_access_token(
+        data={
+            "sub": str(user.id),
+            "email": user.email,
+            "role": user.role.value,
+            "organization_id": user.organization_id,
+        }
+    )
+    response.set_cookie(
+        key=ACCESS_TOKEN_COOKIE,
+        value=access_token,
+        httponly=True,
+        samesite="lax",
+        secure=get_settings().cookie_secure,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+    )
+    return Token(access_token=access_token, token_type="bearer")
+
+
 @router.post("/login", response_model=Token, summary="Authenticate and issue a JWT")
 async def login(
     response: Response,
@@ -101,24 +123,78 @@ async def login(
         detail=user.email,
     )
     await db.commit()
-    access_token = create_access_token(
-        data={
-            "sub": str(user.id),
-            "email": user.email,
-            "role": user.role.value,
-            "organization_id": user.organization_id,
-        }
+    return _issue_session(response, user)
+
+
+@router.post(
+    "/register",
+    response_model=Token,
+    status_code=status.HTTP_201_CREATED,
+    summary="Self-register an Employer and provision a new tenant",
+)
+async def register(
+    response: Response,
+    payload: RegisterRequest,
+    db: AsyncSession = Depends(get_db),
+) -> Token:
+    """Create a new tenant and its first Employer, then sign them in.
+
+    Public endpoint (no authentication): the registrant becomes the Employer
+    owner of a brand-new organization. A duplicate email, or a tenant name
+    already in use, is rejected rather than silently attaching the account to
+    an existing workspace.
+    """
+    # Function-local import breaks the auth <-> admin import cycle (admin
+    # imports auth's role helpers at module load time).
+    from .admin import _slugify, _unique_slug
+
+    email = payload.email.strip().lower()
+    existing_user = (
+        await db.execute(select(User.id).where(User.email == email))
+    ).scalar_one_or_none()
+    if existing_user is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with that email already exists.",
+        )
+
+    org_name = payload.organization_name.strip()
+    existing_org = (
+        await db.execute(select(Organization.id).where(Organization.name == org_name))
+    ).scalar_one_or_none()
+    if existing_org is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That organization name is already in use.",
+        )
+
+    slug = await _unique_slug(db, _slugify(org_name))
+    organization = Organization(name=org_name, slug=slug)
+    db.add(organization)
+    await db.flush()
+
+    user = User(
+        email=email,
+        full_name=payload.full_name.strip(),
+        hashed_password=get_password_hash(payload.password),
+        role=UserRole.EMPLOYER,
+        organization_id=slug,
+        is_active=True,
     )
-    response.set_cookie(
-        key=ACCESS_TOKEN_COOKIE,
-        value=access_token,
-        httponly=True,
-        samesite="lax",
-        secure=get_settings().cookie_secure,
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
+    db.add(user)
+    await db.flush()
+
+    record_activity(
+        db,
+        organization_id=slug,
+        actor=user,
+        action="auth.register",
+        entity_type="organization",
+        entity_id=organization.id,
+        detail=f"{org_name} <{email}>",
     )
-    return Token(access_token=access_token, token_type="bearer")
+    await db.commit()
+    return _issue_session(response, user)
 
 
 async def _with_organization_name(user: User, db: AsyncSession) -> UserResponse:

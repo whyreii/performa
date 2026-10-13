@@ -11,6 +11,7 @@ import { routeLoaders } from './routes/loaders';
 // Route-level code splitting: each page is loaded on demand. The loaders live in
 // routes/loaders.js so navigation links can prefetch a chunk on hover/focus.
 const Login = lazy(routeLoaders['/login']);
+const Register = lazy(routeLoaders['/register']);
 const AppShell = lazy(() => import('./components/layout/AppShell'));
 const Settings = lazy(routeLoaders['/settings']);
 const EmployeeSplit = lazy(routeLoaders['/employees']);
@@ -55,6 +56,7 @@ const ROUTE_TITLES = [
   ['/notifications', 'Notifications'],
   ['/settings', 'Settings'],
   ['/login', 'Sign in'],
+  ['/register', 'Create account'],
 ];
 
 function titleForPath(pathname) {
@@ -145,8 +147,9 @@ export default function App() {
               <RouteTitle />
               <Suspense fallback={<RouteFallback />}>
               <Routes>
-              {/* Public route */}
+              {/* Public routes */}
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
               {/* Protected routes wrapped in AppShell */}
               <Route

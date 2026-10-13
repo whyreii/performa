@@ -98,16 +98,38 @@ export function AuthProvider({ children }) {
     }
   }, [persistUser]);
 
+  const register = useCallback(async ({ fullName, email, organizationName, password }) => {
+    setIsLoading(true);
+    try {
+      const tokenData = await authApi.register({ fullName, email, organizationName, password });
+      try {
+        if (tokenData?.access_token) {
+          localStorage.setItem('performa_token', tokenData.access_token);
+        }
+      } catch {}
+      const userData = await authApi.getCurrentUser();
+      persistUser(userData);
+      return { success: true, user: userData };
+    } catch (err) {
+      persistUser(null);
+      const message = getApiErrorMessage(err, 'Failed to create your account.');
+      return { success: false, error: message };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [persistUser]);
+
   const value = useMemo(
     () => ({
       user,
       isAuthenticated: !!user,
       isLoading,
       login,
+      register,
       logout,
       refreshUser,
     }),
-    [user, isLoading, login, logout, refreshUser]
+    [user, isLoading, login, register, logout, refreshUser]
   );
 
   return (

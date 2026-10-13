@@ -215,6 +215,7 @@ Auth column is read from the FastAPI dependency graph.
 | POST | `/api/auth/logout` | not detected | logout |
 | GET | `/api/auth/me` | authenticated (any role) | read_current_user |
 | PATCH | `/api/auth/me` | authenticated (any role) | update_current_user |
+| POST | `/api/auth/register` | not detected | register |
 | GET | `/api/employees/` | authenticated (any role) | list_employees |
 | POST | `/api/employees/` | roles: employer | create_employee |
 | GET | `/api/employees/milestones` | roles: employer, supervisor | list_milestones |

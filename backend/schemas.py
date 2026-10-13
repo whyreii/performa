@@ -106,6 +106,28 @@ class ProfileUpdate(BaseModel):
     email: Optional[str] = Field(default=None, max_length=255)
 
 
+class RegisterRequest(BaseModel):
+    """Public self-registration payload: an Employer plus a brand-new tenant."""
+
+    full_name: str = Field(..., min_length=1, max_length=255)
+    email: str = Field(..., max_length=255)
+    organization_name: str = Field(..., min_length=1, max_length=255)
+    password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def _check_email(cls, value: str) -> str:
+        return validate_email(value)
+
+    @field_validator("full_name", "organization_name")
+    @classmethod
+    def _not_blank(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("This field cannot be blank")
+        return value
+
+
 # ---------------------------------------------------------------------------
 # Organization (tenant)
 # ---------------------------------------------------------------------------

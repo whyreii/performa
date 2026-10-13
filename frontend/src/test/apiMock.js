@@ -7,6 +7,7 @@ export function createApiMock() {
   return {
     authApi: {
       login: vi.fn(),
+      register: vi.fn(),
       getCurrentUser: vi.fn(),
       logout: vi.fn(),
       changePassword: vi.fn(),

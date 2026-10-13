@@ -105,6 +105,73 @@ async def test_profile_self_update(client):
     assert me.json()["full_name"] == "Supervisor Juan Updated"
 
 
+@pytest.mark.asyncio
+async def test_register_provisions_new_tenant_and_signs_in(client):
+    """Self-registration creates a new tenant + Employer and returns a session."""
+    resp = await client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Nadia Founder",
+            "email": "founder@brightco.test",
+            "organization_name": "Bright Co. Philippines",
+            "password": "Password123!",
+        },
+    )
+    assert resp.status_code == 201, resp.text
+    assert "access_token" in resp.cookies
+
+    me = await client.get("/api/auth/me")
+    assert me.status_code == 200, me.text
+    assert me.json()["email"] == "founder@brightco.test"
+    assert me.json()["role"] == "employer"
+    assert me.json()["organization_name"] == "Bright Co. Philippines"
+
+
+@pytest.mark.asyncio
+async def test_register_rejects_duplicate_email(client):
+    """A duplicate email (case-insensitive) is a 409, not a silent merge."""
+    resp = await client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Impostor",
+            "email": EMPLOYER_EMAIL.upper(),
+            "organization_name": "Fresh Tenant",
+            "password": "Password123!",
+        },
+    )
+    assert resp.status_code == 409, resp.text
+
+
+@pytest.mark.asyncio
+async def test_register_rejects_duplicate_organization_name(client):
+    """A tenant name already in use is rejected; the registrant is not attached."""
+    resp = await client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Someone Else",
+            "email": "owner@fresh.test",
+            "organization_name": "Acme Philippines Corp.",
+            "password": "Password123!",
+        },
+    )
+    assert resp.status_code == 409, resp.text
+
+
+@pytest.mark.asyncio
+async def test_register_rejects_short_password(client):
+    """Registration enforces the same 8-character password floor as the rest of auth."""
+    resp = await client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Shorty",
+            "email": "shorty@fresh.test",
+            "organization_name": "Shorty LLC",
+            "password": "short",
+        },
+    )
+    assert resp.status_code == 422, resp.text
+
+
 def test_verify_password_handles_malformed_hash():
     """verify_password returns False gracefully on malformed or empty hash inputs."""
     assert verify_password("anything", "not-a-valid-hash") is False

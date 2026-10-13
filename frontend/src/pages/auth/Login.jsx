@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { PerformaMark, Eye, EyeOff, AlertCircle, Sun, Moon } from '../../components/icons';
@@ -181,6 +181,13 @@ export default function Login() {
                 {isSubmitting ? 'Signing in…' : 'Sign in'}
               </Button>
             </form>
+
+            <p className="text-14 text-ink-2 mt-6">
+              New to Performa?{' '}
+              <Link to="/register" className="font-semibold text-accent hover:underline">
+                Create an account
+              </Link>
+            </p>
 
             {SHOW_DEMO && (
               <>
