@@ -36,14 +36,23 @@ def test_parse_response_empty_text_uses_fallback_summary():
     assert rationales == {"TC-101": ""}
 
 
+def test_is_transient_classifies_statuses():
+    assert gemini._is_transient(asyncio.TimeoutError())
+    assert gemini._is_transient(RuntimeError("503 UNAVAILABLE"))
+    assert gemini._is_transient(RuntimeError("429 rate limited"))
+    assert not gemini._is_transient(RuntimeError("404 NOT_FOUND"))
+    assert not gemini._is_transient(RuntimeError("401 unauthorized"))
+    assert not gemini._is_transient(RuntimeError("boom"))
+
+
 @pytest.mark.asyncio
-async def test_request_text_falls_back_on_primary_exception(monkeypatch):
+async def test_request_text_falls_back_on_permanent_primary_error(monkeypatch):
     calls = []
 
-    async def fake(client, model, prompt):
+    async def fake(client, model, prompt, timeout):
         calls.append(model)
         if model == gemini.PRIMARY_MODEL:
-            raise RuntimeError("boom")
+            raise RuntimeError("404 NOT_FOUND")  # permanent -> no retry
         return "ok"
 
     monkeypatch.setattr(gemini, "_call_model", fake)
@@ -52,24 +61,44 @@ async def test_request_text_falls_back_on_primary_exception(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_request_text_falls_back_on_primary_timeout(monkeypatch):
+async def test_request_text_retries_transient_then_falls_back(monkeypatch):
+    monkeypatch.setattr(gemini, "RETRY_BACKOFF_SECONDS", 0.0)
     calls = []
 
-    async def fake(client, model, prompt):
+    async def fake(client, model, prompt, timeout):
         calls.append(model)
         if model == gemini.PRIMARY_MODEL:
-            raise asyncio.TimeoutError
+            raise RuntimeError("503 UNAVAILABLE")  # transient -> retried
         return "recovered"
 
     monkeypatch.setattr(gemini, "_call_model", fake)
     assert await gemini._request_text(object(), "prompt") == "recovered"
-    assert calls == [gemini.PRIMARY_MODEL, gemini.FALLBACK_MODEL]
+    # Primary tried twice (retry), then the fallback once.
+    assert calls == [gemini.PRIMARY_MODEL, gemini.PRIMARY_MODEL, gemini.FALLBACK_MODEL]
+
+
+@pytest.mark.asyncio
+async def test_request_text_retries_a_transient_error_within_one_model(monkeypatch):
+    monkeypatch.setattr(gemini, "RETRY_BACKOFF_SECONDS", 0.0)
+    calls = []
+
+    async def fake(client, model, prompt, timeout):
+        calls.append(model)
+        if len(calls) == 1:
+            raise RuntimeError("504 DEADLINE_EXCEEDED")
+        return "ok"
+
+    monkeypatch.setattr(gemini, "_call_model", fake)
+    assert await gemini._request_text(object(), "prompt") == "ok"
+    assert calls == [gemini.PRIMARY_MODEL, gemini.PRIMARY_MODEL]
 
 
 @pytest.mark.asyncio
 async def test_request_text_raises_only_when_both_fail(monkeypatch):
-    async def fake(client, model, prompt):
-        raise RuntimeError("nope")
+    monkeypatch.setattr(gemini, "RETRY_BACKOFF_SECONDS", 0.0)
+
+    async def fake(client, model, prompt, timeout):
+        raise RuntimeError("503 UNAVAILABLE")
 
     monkeypatch.setattr(gemini, "_call_model", fake)
     with pytest.raises(RuntimeError):

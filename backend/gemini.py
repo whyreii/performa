@@ -15,6 +15,8 @@ import asyncio
 import json
 import logging
 import os
+import re
+import time
 from typing import Any, Optional
 
 from .config import get_settings
@@ -32,11 +34,13 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PRIMARY_MODEL = "gemini-3.5-flash"
 FALLBACK_MODEL = "gemini-3.1-flash-lite"
 TEMPERATURE = 0.0
-# Per-attempt budget. Gemini's own server deadline can exceed 10s (a 504
-# DEADLINE_EXCEEDED lands around ~13s), so a single short budget cancelled the
-# primary before it could answer and never let the fallback run. Each model now
-# gets its own budget.
-PER_ATTEMPT_TIMEOUT_SECONDS = 25.0
+# Timeouts and retries. Each model call gets its own budget; a bounded total caps
+# the worst case (previously 2 x 25s), and transient errors (429/5xx/timeout) are
+# retried once — the API's own message says demand spikes "are usually temporary".
+PER_ATTEMPT_TIMEOUT_SECONDS = 12.0
+TOTAL_TIMEOUT_SECONDS = 30.0
+MAX_ATTEMPTS_PER_MODEL = 2
+RETRY_BACKOFF_SECONDS = 0.5
 
 FALLBACK_SUMMARY = "Performance summary unavailable."
 
@@ -118,33 +122,65 @@ def _config() -> Any:
     )
 
 
-async def _call_model(client: Any, model: str, prompt: str) -> str:
-    """Call one model under its own timeout and return the trimmed text."""
+async def _call_model(client: Any, model: str, prompt: str, timeout: float) -> str:
+    """Call one model under the given timeout and return the trimmed text."""
     response = await asyncio.wait_for(
         client.aio.models.generate_content(model=model, contents=prompt, config=_config()),
-        timeout=PER_ATTEMPT_TIMEOUT_SECONDS,
+        timeout=timeout,
     )
     return (response.text or "").strip()
 
 
-async def _request_text(client: Any, prompt: str) -> str:
-    """Try the primary model, then the fallback once on any failure or timeout.
+_TRANSIENT_STATUS = (408, 429, 500, 502, 503, 504)
 
-    Each attempt gets its own budget, so a slow/hung primary cannot starve the
-    fallback (the old single 10s budget did exactly that). Raises only when both
-    models fail, so the caller degrades to empty rationales.
+
+def _is_transient(exc: BaseException) -> bool:
+    """A timeout or a 429/5xx status is worth one retry; 4xx (e.g. 404) is not."""
+    if isinstance(exc, (asyncio.TimeoutError, TimeoutError)):
+        return True
+    code = getattr(exc, "code", None)
+    if not isinstance(code, int):
+        match = re.search(r"\b(\d{3})\b", str(exc))
+        code = int(match.group(1)) if match else None
+    return code in _TRANSIENT_STATUS
+
+
+async def _request_text(client: Any, prompt: str) -> str:
+    """Try the primary model, then the fallback, retrying transient errors once.
+
+    Bounded by a single total budget so a bad-API moment cannot hang the caller
+    (worst case: TOTAL_TIMEOUT_SECONDS, not 2 x per-attempt). Raises only when
+    every model has failed, so the caller degrades to empty rationales.
     """
+    deadline = time.monotonic() + TOTAL_TIMEOUT_SECONDS
     for model in (PRIMARY_MODEL, FALLBACK_MODEL):
-        try:
-            return await _call_model(client, model, prompt)
-        except asyncio.TimeoutError:
-            logger.warning(
-                "Model %s timed out after %.1fs; trying the next model.",
-                model,
-                PER_ATTEMPT_TIMEOUT_SECONDS,
-            )
-        except Exception:
-            logger.warning("Model %s failed; trying the next model.", model, exc_info=True)
+        for attempt in range(1, MAX_ATTEMPTS_PER_MODEL + 1):
+            remaining = deadline - time.monotonic()
+            if remaining <= 1.0:
+                logger.warning("Gemini time budget exhausted; giving up.")
+                raise RuntimeError("Gemini time budget exhausted")
+
+            try:
+                return await _call_model(
+                    client, model, prompt, min(PER_ATTEMPT_TIMEOUT_SECONDS, remaining)
+                )
+            except Exception as exc:
+                timed_out = isinstance(exc, (asyncio.TimeoutError, TimeoutError))
+                last_attempt = attempt >= MAX_ATTEMPTS_PER_MODEL
+                retrying = not last_attempt and _is_transient(exc)
+                logger.warning(
+                    "Model %s %s (attempt %d/%d); %s.",
+                    model,
+                    "timed out" if timed_out else "failed",
+                    attempt,
+                    MAX_ATTEMPTS_PER_MODEL,
+                    "retrying" if retrying else "moving on",
+                    exc_info=not timed_out,
+                )
+                if not retrying:
+                    break
+                backoff = min(RETRY_BACKOFF_SECONDS, max(0.0, deadline - time.monotonic()))
+                await asyncio.sleep(backoff)
     raise RuntimeError("Both Gemini models failed")
 
 
@@ -229,6 +265,7 @@ __all__ = [
     "FALLBACK_MODEL",
     "TEMPERATURE",
     "PER_ATTEMPT_TIMEOUT_SECONDS",
+    "TOTAL_TIMEOUT_SECONDS",
     "FALLBACK_SUMMARY",
     "generate_performance_rationales",
 ]
