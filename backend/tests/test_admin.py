@@ -78,6 +78,7 @@ async def test_activity_log_records_and_is_admin_only(client):
     logs = allowed.json()
     assert isinstance(logs, list)
     assert any(entry["action"] == "auth.login" for entry in logs)
+    assert any(entry.get("organization_name") == "Acme Philippines Corp." for entry in logs)
 
 
 @pytest.mark.asyncio

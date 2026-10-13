@@ -335,7 +335,7 @@ async def list_activity(
     limit: int = Query(default=100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.ADMIN)),
-) -> list[ActivityLog]:
+) -> list[ActivityLogResponse]:
     """Return general system activity entries across the platform."""
     stmt = (
         select(ActivityLog)
@@ -343,7 +343,17 @@ async def list_activity(
         .offset(skip)
         .limit(limit)
     )
-    return list((await db.execute(stmt)).scalars().all())
+    logs = list((await db.execute(stmt)).scalars().all())
+    org_names = {
+        org.slug: org.name
+        for org in (await db.execute(select(Organization))).scalars().all()
+    }
+    return [
+        ActivityLogResponse.model_validate(log).model_copy(
+            update={"organization_name": org_names.get(log.organization_id)}
+        )
+        for log in logs
+    ]
 
 
 @router.get("/settings", summary="System settings (Admin only)")

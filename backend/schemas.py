@@ -618,6 +618,8 @@ class ActivityLogResponse(BaseModel):
 
     id: uuid.UUID
     organization_id: str
+    # Tenant display name (resolved from Organization.name); None when unknown.
+    organization_name: Optional[str] = None
     actor_id: Optional[uuid.UUID] = None
     actor_name: Optional[str] = None
     action: str
