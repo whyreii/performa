@@ -87,6 +87,38 @@ encoded by a new test (`frontend/src/test/ux-invariants.test.jsx`,
   route (`config/nav.js`) to act on it, with a "View all N pending" link when the
   list is truncated to 3.
 
+## D5–D8 — Score key, decimals, rating history, approval context
+
+**Decision (owner-approved):** Four rules from a screen-by-screen review, each
+covered by `frontend/src/test/ux-invariants-2.test.jsx`.
+
+- **D5 — one score key, half-open.** Every place a score key is shown
+  (`pages/employees/EmployeeDetail.jsx`, `pages/employee/EmployeeDashboard.jsx`,
+  and the gap logic in `components/employees/EmployeeList.jsx`) prints the same
+  **half-open ranges that tile 1.0–5.0**: `1.0 – <3.0` critical gap ·
+  `3.0 – <4.0` below · `4.0 – 5.0` meets. The 4.0 edge is `TARGET`; the 3.0 edge
+  is the new `CRITICAL_GAP_FLOOR = 3.0` in `config/domain.js`, also consumed by
+  `scoreTone()` in `utils/status.js` so every site shares one constant and one
+  boundary rule. Vocabularies are unchanged — the backend risk-tier labels
+  (Meets Expectations / Needs Improvement / Critical Gap) are not touched.
+- **D6 — decimals.** Standards and targets print one decimal (`4.0`); computed
+  overall averages print two (`4.34`); per-competency ratings print one. Applied
+  on `EmployeeDetail.jsx` and `EmployeeDashboard.jsx`. The generated/exported
+  report text (the "Mandatory Regularizing Benchmark … / 5.00" strings) is
+  deliberately left 2-decimal. No shared formatter (out of scope).
+- **D7 — rating history.** A submission writes one audit row per competency (5),
+  but the scorecard's "Recent rating changes" started at 4, cutting a submission
+  in half. The initial count now derives from `COMPETENCIES.length` (no new magic
+  number), and `EmployeeDetail`'s evaluation history uses the same constant.
+- **D8 — approvals show the employee and the evidence, and decide after the
+  rationale.** Each pending plan card shows the employee's full name (from the
+  existing `TrainingPlanResponse.employee_name`; "Unknown employee" when null),
+  and the card order is title + "employee · competency · type" + timeline → the
+  Gemini rationale → the Reject/Approve row. The person is named in the confirm
+  dialog too. Structured evidence (the competency's current average and its gap
+  vs the standard) is shown where the page already holds the data; the same
+  employee name appears on the employer dashboard's Interventions list.
+
 ## Alembic migrations
 
 Alembic is configured (`alembic.ini`, `backend/migrations/`). The initial
