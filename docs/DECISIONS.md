@@ -47,11 +47,14 @@ may rename their own tenant via `PATCH /api/organization`. The UI reads
 `user.organization_name` (falling back to `organization_id`) where the tenant is
 shown.
 
-## E16 — Account self-registration (descoped)
+## E16 — Account self-registration (Employer only; new tenant)
 
-**Decision:** Self-registration is **descoped**. Accounts are provisioned by the
-Administrator (Account Management) or via the seed script, consistent with the
-manuscript's Administrator scope.
+**Decision:** Employers may self-register at `/register`
+(`POST /api/auth/register`, public): the registrant becomes the Employer owner of
+a **brand-new tenant** and is signed in immediately. A duplicate email, or a
+tenant name already in use, is rejected (409) — the account is never silently
+attached to an existing workspace. Administrator provisioning
+(`POST /api/admin/users`) is unchanged; self-registration is additive.
 
 ## D1–D4 — KPI score-band / weight + dashboard UX invariants
 
@@ -94,8 +97,9 @@ See `docs/DEPLOYMENT.md`.
 
 Tokens are delivered as an **httpOnly `access_token` cookie** (`SameSite=Lax`;
 `Secure` via `COOKIE_SECURE`). API clients may still use the
-`Authorization: Bearer` header. The frontend no longer stores the token in
-`localStorage`; only the non-sensitive user profile is cached there.
+`Authorization: Bearer` header. The frontend also mirrors the token in
+`localStorage` (`performa_token`) as a dual-mode fallback and sends it as a Bearer
+header; only the non-sensitive user profile is cached in `performa_user`.
 
 ## Dataset
 
