@@ -7,7 +7,7 @@ weight 0.20) are provisioned lazily per organization and can be reset.
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth import get_current_user, require_role
@@ -122,6 +122,31 @@ async def upsert_rubric(
     current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> KpiRubric:
     """Create or update the rubric for a single competency."""
+    # Provision the tenant's defaults first so the total-weight guard always sees
+    # the full five-row set; otherwise a first write on a fresh org would look
+    # like an isolated row and a legitimate zero-weight write could be rejected.
+    await _ensure_defaults(db, current_user.organization_id)
+
+    # Scoring normalizes by the TOTAL weight (routers/evaluations.py), so a total
+    # of 0 silently falls back to the unweighted mean and ignores the employer's
+    # configuration. Reject any write that would leave the organization at 0.
+    other_total = (
+        await db.execute(
+            select(func.sum(KpiRubric.weight)).where(
+                KpiRubric.organization_id == current_user.organization_id,
+                KpiRubric.competency != competency,
+            )
+        )
+    ).scalar_one_or_none() or 0.0
+    if float(other_total) + float(payload.weight) <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Total weight must be greater than 0 — at least one competency "
+                "must keep a non-zero weight."
+            ),
+        )
+
     rubric = (
         await db.execute(
             select(KpiRubric).where(
