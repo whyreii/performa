@@ -18,6 +18,8 @@ export default function Page({
   kicker,
   title,
   subtitle,
+  toolbarTitle,
+  bodyHead,
   actions,
   header = true,
   headerClassName = '',
@@ -36,14 +38,19 @@ export default function Page({
   const subtitleRef = useRef(subtitle);
   subtitleRef.current = subtitle;
 
+  // A body head carries the page's own title + meta; keep the toolbar to the
+  // nav label and drop the toolbar subtitle so nothing is duplicated.
+  const hasBodyHeadRef = useRef(!!bodyHead);
+  hasBodyHeadRef.current = !!bodyHead;
+
   useEffect(() => {
-    setTitle(header ? title || '' : '');
-    setSubtitle(header ? subtitleRef.current || '' : '');
+    setTitle(header ? toolbarTitle || title || '' : '');
+    setSubtitle(header && !hasBodyHeadRef.current ? subtitleRef.current || '' : '');
     return () => {
       setTitle('');
       setSubtitle('');
     };
-  }, [header, title, setTitle, setSubtitle]);
+  }, [header, title, toolbarTitle, setTitle, setSubtitle]);
 
   const classes = [
     'space-y-6',
@@ -59,12 +66,14 @@ export default function Page({
       {aboveHeader}
       {/* The visible title lives in the shell toolbar; keep the semantic page
           heading here (visually hidden) so the page still has exactly one h1 —
-          for assistive tech and for pages rendered without the shell. */}
-      {header && title ? <h1 className="sr-only">{title}</h1> : null}
+          for assistive tech and for pages rendered without the shell. When a
+          body head is supplied it provides the h1 instead. */}
+      {header && !bodyHead && title ? <h1 className="sr-only">{title}</h1> : null}
       {/* Actions render into the toolbar's slot when the shell is present; fall
           back to inline (e.g. pages rendered without the shell) so they're never
           dropped. */}
       {header && actions ? (actionsEl ? createPortal(actions, actionsEl) : actions) : null}
+      {bodyHead}
       {children}
     </div>
   );

@@ -12,6 +12,7 @@ export { default as StatBand } from './StatBand';
 export { default as CardSkeleton } from './CardSkeleton';
 export { default as Surface } from './Surface';
 export { default as Page } from './Page';
+export { default as PageHead } from './PageHead';
 export { default as PageGrid, Row, Col } from './PageGrid';
 export { default as Modal } from './Modal';
 export { default as AsyncBoundary } from './AsyncBoundary';

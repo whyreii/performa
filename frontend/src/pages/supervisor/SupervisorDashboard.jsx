@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card, Page, SectionHead } from '../../components/ui';
+import { Button, Badge, MilestonePill, StatusDot, Skeleton, EmptyState, Card, Page, PageHead, SectionHead } from '../../components/ui';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
 import { PROBATION_DAYS, TARGET } from '../../config/domain';
 import { getInitials } from '../../utils/format';
@@ -36,22 +36,20 @@ export default function SupervisorDashboard() {
 
   return (
     <Page
-        title="Supervisor Workspace"
-        subtitle={
-          <>
-            Weekly Evaluator Dashboard · <span className="font-num text-ink">{user?.organization_name || user?.organization_id}</span>
-          </>
-        }
-        actions={
-          <>
-            <Button variant="secondary" onClick={() => navigate('/rubrics')}>
-              KPI Rubrics
-            </Button>
+      toolbarTitle="Supervisor Dashboard"
+      title="My Direct Reports"
+      bodyHead={
+        <PageHead
+          kick="Supervisor"
+          title="My Direct Reports"
+          meta={`Weekly evaluation · ${user?.organization_name || user?.organization_id}`}
+          actions={
             <Button variant="primary" leftIcon={Award} onClick={() => navigate('/supervisor/rate')}>
-              Rate Staff
+              Rate staff
             </Button>
-          </>
-        }
+          }
+        />
+      }
     >
 
       <Card flat as="div" padded={false} className="flex flex-wrap items-end justify-between gap-4">

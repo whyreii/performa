@@ -13,6 +13,7 @@ import Modal from '../../components/ui/Modal';
 import TextField from '../../components/ui/TextField';
 import Tabs from '../../components/ui/Tabs';
 import Page from '../../components/ui/Page';
+import PageHead from '../../components/ui/PageHead';
 import GlideSelect from '../../components/ui/GlideSelect';
 import Th from '../../components/ui/Th';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
@@ -142,19 +143,20 @@ export default function UserManagement() {
 
   return (
     <Page
-        kicker="IT & System Administration"
-        title="Account Management"
-        subtitle={
-          <>
-            User provisioning, role assignments, and credential management ·{' '}
-            <span className="font-num text-ink">{currentUser?.organization_name || currentUser?.organization_id}</span>
-          </>
-        }
-        actions={
-          <Button variant="primary" leftIcon={UserPlus} onClick={() => setIsCreateModalOpen(true)}>
-            Create User Account
-          </Button>
-        }
+      toolbarTitle="User Accounts"
+      title="Account Management"
+      bodyHead={
+        <PageHead
+          kick="System"
+          title="Account Management"
+          meta={`Accounts, roles and access · ${currentUser?.organization_name || currentUser?.organization_id}`}
+          actions={
+            <Button variant="primary" leftIcon={UserPlus} onClick={() => setIsCreateModalOpen(true)}>
+              Create user account
+            </Button>
+          }
+        />
+      }
     >
 
       {/* Action feedback toast */}
