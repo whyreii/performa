@@ -82,6 +82,7 @@ MATRIX = {
     ("POST", "/api/interventions/{plan_id}/complete"): {"probationary_employee"},
     ("GET", "/api/kpi-rubrics"): {"employer", "supervisor"},
     ("GET", "/api/kpi-rubrics/templates"): ALL,
+    ("GET", "/api/kpi-rubrics/history"): {"employer"},
     ("PUT", "/api/kpi-rubrics/{competency}"): {"employer"},
     ("PUT", "/api/kpi-rubrics"): {"employer"},
     ("POST", "/api/kpi-rubrics/reset"): {"employer"},

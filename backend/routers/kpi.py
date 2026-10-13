@@ -10,11 +10,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..audit import record_activity
 from ..auth import get_current_user, require_role
 from ..database import get_db
 from ..ml.catalog import COMPETENCIES
-from ..models import CompetencyEnum, KpiRubric, User, UserRole
-from ..schemas import KpiRubricBulkUpsert, KpiRubricResponse, KpiRubricUpsert
+from ..models import ActivityLog, CompetencyEnum, KpiRubric, User, UserRole
+from ..schemas import (
+    ActivityLogResponse,
+    KpiRubricBulkUpsert,
+    KpiRubricResponse,
+    KpiRubricUpsert,
+)
 
 router = APIRouter(prefix="/api/kpi-rubrics", tags=["KPI Rubrics"])
 
@@ -102,6 +108,30 @@ async def list_rubrics(
     return await _ensure_defaults(db, current_user.organization_id)
 
 
+@router.get(
+    "/history",
+    response_model=list[ActivityLogResponse],
+    summary="Recent KPI configuration changes (Employer)",
+)
+async def rubric_history(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
+) -> list[ActivityLog]:
+    """The tenant's recent KPI configuration changes, newest first."""
+    rows = (
+        await db.execute(
+            select(ActivityLog)
+            .where(
+                ActivityLog.organization_id == current_user.organization_id,
+                ActivityLog.action.like("kpi.%"),
+            )
+            .order_by(ActivityLog.created_at.desc())
+            .limit(50)
+        )
+    ).scalars().all()
+    return list(rows)
+
+
 @router.get("/templates", summary="Industry KPI template library")
 async def list_templates(
     current_user: User = Depends(get_current_user),
@@ -168,6 +198,15 @@ async def upsert_rubric(
         rubric.target_score = payload.target_score
         rubric.weight = payload.weight
 
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="kpi.update",
+        entity_type="kpi_rubric",
+        entity_id=rubric.id,
+        detail=f"{competency.value}: target={payload.target_score} weight={payload.weight}",
+    )
     await db.commit()
     await db.refresh(rubric)
     return rubric
@@ -211,6 +250,14 @@ async def bulk_upsert_rubrics(
         row = rows[item.competency]
         row.target_score = item.target_score
         row.weight = item.weight
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="kpi.update",
+        entity_type="kpi_rubric",
+        detail=f"bulk save: {len(payload.items)} competencies",
+    )
     await db.commit()
     for row in rows.values():
         await db.refresh(row)
@@ -232,7 +279,17 @@ async def reset_rubrics(
         delete(KpiRubric).where(KpiRubric.organization_id == current_user.organization_id)
     )
     await db.flush()
-    return await _ensure_defaults(db, current_user.organization_id)
+    rows = await _ensure_defaults(db, current_user.organization_id)
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="kpi.reset",
+        entity_type="kpi_rubric",
+        detail="reset to platform defaults",
+    )
+    await db.commit()
+    return rows
 
 
 __all__ = ["router"]

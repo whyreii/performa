@@ -304,3 +304,23 @@ def test_verify_audit_chain_detects_a_tampered_row():
     assert valid is False
     assert broken_id == rows[1].id
     assert checked == 1
+
+
+@pytest.mark.asyncio
+async def test_kpi_config_changes_are_audited_and_listed(client):
+    """A KPI change writes an activity row that the employer can review."""
+    employer = await login_user(client, EMPLOYER_EMAIL)
+
+    update = await client.put(
+        "/api/kpi-rubrics/task_completion",
+        headers=employer,
+        json={"target_score": 4.5, "weight": 0.25},
+    )
+    assert update.status_code == 200, update.text
+
+    history = await client.get("/api/kpi-rubrics/history", headers=employer)
+    assert history.status_code == 200, history.text
+    rows = history.json()
+    assert rows, "a KPI change must be recorded in the configuration history"
+    assert rows[0]["action"] in ("kpi.update", "kpi.reset")
+    assert rows[0]["actor_name"], "the actor should be named"

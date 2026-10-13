@@ -4,6 +4,7 @@ import { kpiApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { TARGET, COMPETENCIES, COMPETENCY_DESCRIPTIONS } from '../../config/domain';
+import { formatDate } from '../../utils/datetime';
 import { AlertCircle } from '../../components/icons';
 import { Page, Button, Badge, inputClass, SectionHead } from '../../components/ui';
 
@@ -85,6 +86,13 @@ export default function Rubrics() {
     enabled: canEdit,
   });
 
+  // Audited configuration changes (Employer only).
+  const { data: history = [] } = useQuery({
+    queryKey: ['kpi-history'],
+    queryFn: () => kpiApi.history(),
+    enabled: canEdit,
+  });
+
   const [form, setForm] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState('');
 
@@ -135,6 +143,7 @@ export default function Rubrics() {
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kpi-rubrics'] });
+      queryClient.invalidateQueries({ queryKey: ['kpi-history'] });
       toast.success('KPI configuration saved.');
     },
     onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to save KPI configuration.')),
@@ -144,6 +153,7 @@ export default function Rubrics() {
     mutationFn: () => kpiApi.reset(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kpi-rubrics'] });
+      queryClient.invalidateQueries({ queryKey: ['kpi-history'] });
       toast.success('Reset to platform defaults.');
     },
     onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to reset KPI configuration.')),
@@ -294,6 +304,39 @@ export default function Rubrics() {
               </Button>
             </div>
           </div>
+        </section>
+      )}
+
+      {/* Configuration history — every KPI change is audited (Employer only) */}
+      {canEdit && (
+        <section aria-label="Configuration history">
+          <SectionHead
+            title="Configuration history"
+            subtitle="Recent KPI target & weight changes"
+            note={history.length ? <Badge variant="neutral">{history.length}</Badge> : null}
+          />
+          {history.length === 0 ? (
+            <p className="py-3 text-14 text-ink-3">No configuration changes recorded yet.</p>
+          ) : (
+            <ul className="divide-y divide-line">
+              {history.map((entry) => (
+                <li
+                  key={entry.id}
+                  className="flex items-start justify-between gap-3 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <div className="text-14 text-ink break-words">
+                      {entry.detail || entry.action}
+                    </div>
+                    <div className="text-12 text-ink-3">
+                      {entry.actor_name || 'Unknown'} · {formatDate(entry.created_at, { withTime: true })}
+                    </div>
+                  </div>
+                  <Badge variant="neutral">{entry.action}</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       )}
 
