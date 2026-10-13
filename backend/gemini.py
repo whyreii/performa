@@ -32,7 +32,11 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PRIMARY_MODEL = "gemini-3.5-flash-lite"
 FALLBACK_MODEL = "gemini-flash-latest"
 TEMPERATURE = 0.0
-REQUEST_TIMEOUT_SECONDS = 10.0
+# Per-attempt budget. Gemini's own server deadline can exceed 10s (a 504
+# DEADLINE_EXCEEDED lands around ~13s), so a single short budget cancelled the
+# primary before it could answer and never let the fallback run. Each model now
+# gets its own budget.
+PER_ATTEMPT_TIMEOUT_SECONDS = 25.0
 
 FALLBACK_SUMMARY = "Performance summary unavailable."
 
@@ -114,22 +118,34 @@ def _config() -> Any:
     )
 
 
-async def _request_text(client: Any, prompt: str) -> str:
-    """Call the primary model, retrying once with the fallback model."""
-    try:
-        response = await client.aio.models.generate_content(
-            model=PRIMARY_MODEL,
-            contents=prompt,
-            config=_config(),
-        )
-    except Exception:
-        logger.warning("Model %s failed; retrying with %s.", PRIMARY_MODEL, FALLBACK_MODEL)
-        response = await client.aio.models.generate_content(
-            model=FALLBACK_MODEL,
-            contents=prompt,
-            config=_config(),
-        )
+async def _call_model(client: Any, model: str, prompt: str) -> str:
+    """Call one model under its own timeout and return the trimmed text."""
+    response = await asyncio.wait_for(
+        client.aio.models.generate_content(model=model, contents=prompt, config=_config()),
+        timeout=PER_ATTEMPT_TIMEOUT_SECONDS,
+    )
     return (response.text or "").strip()
+
+
+async def _request_text(client: Any, prompt: str) -> str:
+    """Try the primary model, then the fallback once on any failure or timeout.
+
+    Each attempt gets its own budget, so a slow/hung primary cannot starve the
+    fallback (the old single 10s budget did exactly that). Raises only when both
+    models fail, so the caller degrades to empty rationales.
+    """
+    for model in (PRIMARY_MODEL, FALLBACK_MODEL):
+        try:
+            return await _call_model(client, model, prompt)
+        except asyncio.TimeoutError:
+            logger.warning(
+                "Model %s timed out after %.1fs; trying the next model.",
+                model,
+                PER_ATTEMPT_TIMEOUT_SECONDS,
+            )
+        except Exception:
+            logger.warning("Model %s failed; trying the next model.", model, exc_info=True)
+    raise RuntimeError("Both Gemini models failed")
 
 
 def _parse_response(
@@ -195,18 +211,9 @@ async def generate_performance_rationales(
     )
 
     try:
-        text = await asyncio.wait_for(
-            _request_text(client, prompt),
-            timeout=REQUEST_TIMEOUT_SECONDS,
-        )
-    except asyncio.TimeoutError:
-        logger.warning(
-            "Gemini request timed out after %.1f seconds; using fallback.",
-            REQUEST_TIMEOUT_SECONDS,
-        )
-        return fallback
+        text = await _request_text(client, prompt)
     except Exception:
-        logger.warning("Gemini request failed; using fallback.", exc_info=True)
+        logger.warning("Gemini request failed; using the empty-rationale fallback.", exc_info=True)
         return fallback
 
     if not text:
@@ -221,7 +228,7 @@ __all__ = [
     "PRIMARY_MODEL",
     "FALLBACK_MODEL",
     "TEMPERATURE",
-    "REQUEST_TIMEOUT_SECONDS",
+    "PER_ATTEMPT_TIMEOUT_SECONDS",
     "FALLBACK_SUMMARY",
     "generate_performance_rationales",
 ]
