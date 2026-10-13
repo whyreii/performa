@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi } from '../../api';
@@ -12,7 +12,6 @@ import {
   PageGrid,
   Row,
   Col,
-  Th,
 } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import {
@@ -119,64 +118,55 @@ export default function Dashboard() {
   );
   const scoresLoading = scoreQueries.some((q) => q.isLoading);
 
+  // Scorecard by employee id (null = not rated yet), so an alert row can show
+  // its score without re-fetching.
+  const scById = useMemo(() => {
+    const map = {};
+    activeProbationers.forEach((e, i) => {
+      map[e.id] = scoreQueries[i]?.data || null;
+    });
+    return map;
+  }, [activeProbationers, scoreQueries]);
+
   const stats = useMemo(() => {
     let pastCap = 0;
     let decisionsDue = 0;
-    let onTrack = 0;
     activeProbationers.forEach((emp) => {
       const d = getDaysElapsed(emp.start_date);
       if (d > PROBATION_DAYS) pastCap += 1;
       else if (d >= MILESTONE_REVIEW) decisionsDue += 1;
-      else onTrack += 1;
     });
     return {
       pastCap,
       decisionsDue,
-      onTrack,
       pendingPlans: plans.filter((p) => p.status === 'pending_approval').length,
     };
   }, [activeProbationers, plans]);
 
   const targetScore = Number(scores[0]?.sc?.target_score) || 4.0;
 
-  // Next deadlines — one row per active probationer, sorted by nearest date.
-  const [sortKey, setSortKey] = useState('date');
-  const [sortDir, setSortDir] = useState('asc');
-  const onSort = (key) => {
-    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    else {
-      setSortKey(key);
-      setSortDir('asc');
-    }
-  };
-
-  const deadlines = useMemo(() => {
-    const list = activeProbationers.map((e) => {
-      const days = getDaysElapsed(e.start_date);
-      const next = nextMilestone(days) || PROBATION_DAYS;
-      return { emp: e, days, next, past: days > PROBATION_DAYS, date: milestoneDate(e.start_date, next) };
-    });
-    list.sort((a, b) => {
-      let r = 0;
-      if (sortKey === 'name') r = (a.emp.user?.full_name || '').localeCompare(b.emp.user?.full_name || '');
-      else if (sortKey === 'milestone') r = a.next - b.next;
-      else r = a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
-      return sortDir === 'asc' ? r : -r;
-    });
-    return list;
-  }, [activeProbationers, sortKey, sortDir]);
-
   // Alerts — one live row per active probationer who has reached the Day 150
-  // review (derived from the same employee data, so the day count is never a
-  // stale snapshot and superseded milestones collapse into the current window).
+  // review. Carries day/stage, the score when it changes the story, and the next
+  // milestone date (the "Next deadlines" table's only unique content).
   const alerts = useMemo(
     () =>
       activeProbationers
-        .map((emp) => ({ emp, days: getDaysElapsed(emp.start_date) }))
+        .map((emp) => {
+          const days = getDaysElapsed(emp.start_date);
+          const next = nextMilestone(days);
+          return {
+            emp,
+            days,
+            next,
+            nextDate: next ? milestoneDate(emp.start_date, next) : null,
+            capDate: emp.day_180_date,
+            tone: milestoneFor(days, emp.status).tone,
+            sc: scById[emp.id] || null,
+          };
+        })
         .filter((a) => a.days >= MILESTONE_REVIEW)
-        .sort((a, b) => b.days - a.days)
-        .map((a) => ({ ...a, tone: milestoneFor(a.days, a.emp.status).tone })),
-    [activeProbationers]
+        .sort((a, b) => b.days - a.days),
+    [activeProbationers, scById]
   );
 
   useStatusBar(
@@ -196,17 +186,6 @@ export default function Dashboard() {
       value: <CountUp value={stats.decisionsDue} />,
       caption: `Day ${MILESTONE_REVIEW}–${PROBATION_DAYS} window`,
       tone: 'warn',
-    },
-    {
-      label: 'On track',
-      value: <CountUp value={stats.onTrack} />,
-      caption: `Below Day ${MILESTONE_REVIEW}`,
-      tone: 'ok',
-    },
-    {
-      label: 'Interventions pending',
-      value: <CountUp value={stats.pendingPlans} />,
-      caption: stats.pendingPlans === 0 ? 'None awaiting sign-off' : 'Awaiting sign-off',
     },
   ];
 
@@ -313,101 +292,55 @@ export default function Dashboard() {
                 <p className="py-6 text-14 text-ink-3">No employees in a milestone window.</p>
               ) : (
                 <div>
-                  {alerts.map(({ emp, days, tone }) => (
-                    <div key={emp.id} className="flex items-start gap-2.5 border-t border-line py-3 first:border-t-0">
-                      <span
-                        className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
-                        aria-hidden="true"
-                      />
-                      <div className="min-w-0">
-                        <div className="text-14 text-ink">
-                          <Link to={`/employees/${emp.id}`} className="hover:underline">
-                            {emp.user?.full_name}
-                          </Link>
-                          {' · '}
-                          <span className="font-num">
-                            Day {days} of {PROBATION_DAYS}
-                          </span>
-                        </div>
-                        <div className="mt-0.5 text-14 leading-relaxed text-ink-2">
-                          {windowLabel(days)}
+                  {alerts.map(({ emp, days, next, nextDate, capDate, tone, sc }) => {
+                    const score = sc ? Number(sc.overall_score) : null;
+                    const target = sc ? Number(sc.target_score) || targetScore : targetScore;
+                    // Show the score only when it changes the story: below target
+                    // (a gap) or not rated yet — never when it meets the standard.
+                    const showScore = !sc || score < target;
+                    return (
+                      <div key={emp.id} className="flex items-start gap-2.5 border-t border-line py-3 first:border-t-0">
+                        <span
+                          className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
+                          aria-hidden="true"
+                        />
+                        <div className="min-w-0">
+                          <div className="text-14 text-ink">
+                            <Link to={`/employees/${emp.id}`} className="hover:underline">
+                              {emp.user?.full_name}
+                            </Link>
+                            {' · '}
+                            <span className="font-num">
+                              Day {days} of {PROBATION_DAYS}
+                            </span>
+                          </div>
+                          <div className="mt-0.5 text-14 leading-relaxed text-ink-2">
+                            {windowLabel(days)}
+                          </div>
+                          {showScore ? (
+                            <div
+                              className={`mt-0.5 text-14 font-num ${
+                                sc ? TONE_TEXT[scoreTone(score, target)] : 'text-ink-3'
+                              }`}
+                            >
+                              {sc ? `${score.toFixed(2)} / ${target.toFixed(1)}` : 'No score yet'}
+                            </div>
+                          ) : null}
+                          <div className="mt-0.5 text-12 text-ink-3">
+                            {next
+                              ? `Next: ${MILE_LABEL[next]}, ${formatDayMonth(nextDate)}.`
+                              : `Passed: Day ${PROBATION_DAYS} cap, ${formatDayMonth(capDate)}.`}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>
           </Col>
 
-          <Col span={7}>
-            <section aria-label="Next deadlines">
-              <SectionHead title="Next deadlines" />
-              {isEmpLoading ? (
-                <div className="space-y-3 pt-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                </div>
-              ) : deadlines.length === 0 ? (
-                <p className="py-6 text-14 text-ink-3">No active probationary employees.</p>
-              ) : (
-                <table className="w-full border-collapse text-left">
-                  <caption className="sr-only">
-                    Active probationers by their nearest statutory milestone
-                  </caption>
-                  <thead>
-                    <tr className="border-b border-line">
-                      <Th sortKey="date" activeKey={sortKey} dir={sortDir} onSort={onSort} className="w-16 py-2.5 pr-4">
-                        Date
-                      </Th>
-                      <Th sortKey="milestone" activeKey={sortKey} dir={sortDir} onSort={onSort} className="w-32 py-2.5 pr-4">
-                        Milestone
-                      </Th>
-                      <Th sortKey="name" activeKey={sortKey} dir={sortDir} onSort={onSort} className="py-2.5">
-                        Employee
-                      </Th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line">
-                    {deadlines.map(({ emp, days, next, past, date }) => {
-                      const tone = milestoneFor(days, emp.status).tone;
-                      return (
-                        <tr
-                          key={emp.id}
-                          onClick={() => navigate(`/employees/${emp.id}`)}
-                          className="cursor-pointer transition-colors hover:bg-hover"
-                        >
-                          <td className="py-3 pr-4 text-14 font-semibold font-num text-ink whitespace-nowrap">
-                            {formatDayMonth(date)}
-                          </td>
-                          <td className="py-3 pr-4 text-14 text-ink-2">
-                            {past ? 'Past cap' : MILE_LABEL[next]}
-                          </td>
-                          <td className="py-3">
-                            <span className="inline-flex items-center gap-2">
-                              <span
-                                className={`h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
-                                aria-hidden="true"
-                              />
-                              <Link
-                                to={`/employees/${emp.id}`}
-                                onClick={(e) => e.stopPropagation()}
-                                className="truncate text-14 text-ink"
-                              >
-                                {emp.user?.full_name}
-                              </Link>
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </section>
-          </Col>
-
-          <Col span={5}>
+          <Col span={12}>
             <section aria-label="Interventions">
               <SectionHead title="Interventions" subtitle="Training plans pending sign-off" />
               {isPlansLoading ? (

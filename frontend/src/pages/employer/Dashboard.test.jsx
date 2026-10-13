@@ -38,7 +38,7 @@ describe('Dashboard', () => {
     ).toBeInTheDocument();
   });
 
-  it('lists every active probationer in Next deadlines with their nearest milestone', async () => {
+  it('lists every active probationer across the score chart and alerts', async () => {
     vi.stubEnv('VITE_PERFORMA_TODAY', '2026-10-11');
     employeeApi.list.mockResolvedValue([
       employee({ id: 'e-due', start_date: '2026-05-04', user: { id: 'u1', full_name: 'Due Person', email: 'due@acme.com' } }),
@@ -53,7 +53,7 @@ describe('Dashboard', () => {
     expect((await screen.findAllByText('Past Cap Person')).length).toBeGreaterThan(0);
   });
 
-  it('shows the next statutory milestone per employee in Next deadlines', async () => {
+  it('shows the next statutory milestone in each alert line', async () => {
     vi.stubEnv('VITE_PERFORMA_TODAY', '2026-10-11');
     employeeApi.list.mockResolvedValue([
       employee({ id: 'e-due', start_date: '2026-05-04', user: { id: 'u1', full_name: 'Due Person', email: 'due@acme.com' } }),
@@ -61,7 +61,7 @@ describe('Dashboard', () => {
     interventionApi.listPending.mockResolvedValue([]);
     renderDashboard();
     // Day 160 → the next milestone is Day 165 (not the elapsed Day 160).
-    expect(await screen.findByText('Day 165 notice')).toBeInTheDocument();
+    expect(await screen.findByText(/Next: Day 165 notice/)).toBeInTheDocument();
   });
 
   it('labels the past-cap tile as Past Day 180, matching the >180 rule', async () => {
