@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import Settings from './Settings';
 import { adminApi } from '../../api';
 import { renderWithProviders } from '../../test/renderWithProviders';
@@ -13,8 +13,16 @@ describe('Settings', () => {
   it('renders the profile section with the signed-in account context', async () => {
     renderWithProviders(<Settings />, { route: '/settings', user: testUser('employer') });
     expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument();
-    expect(await screen.findByText('Profile & tenant')).toBeInTheDocument();
-    expect(screen.getByText('employer@acme.com')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Profile' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Email address')).toHaveValue('employer@acme.com');
+  });
+
+  it('shows a left rail of settings sections', async () => {
+    renderWithProviders(<Settings />, { route: '/settings', user: testUser('employer') });
+    const rail = await screen.findByRole('navigation', { name: 'Settings sections' });
+    expect(within(rail).getByRole('link', { name: 'Profile' })).toBeInTheDocument();
+    expect(within(rail).getByRole('link', { name: 'Appearance' })).toBeInTheDocument();
+    expect(within(rail).getByRole('link', { name: 'Account' })).toBeInTheDocument();
   });
 
   it('shows the read-only System settings section to an administrator', async () => {

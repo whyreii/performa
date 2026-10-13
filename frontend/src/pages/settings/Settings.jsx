@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -14,14 +14,10 @@ import {
   Col,
   SectionHead,
   RubberSegment,
+  inputClass,
 } from '../../components/ui';
-import {
-  CheckCircle2,
-  AlertCircle,
-  Sun,
-  Moon,
-  Monitor,
-} from '../../components/icons';
+import { CheckCircle2, AlertCircle, Sun, Moon, Monitor, Lock } from '../../components/icons';
+import { getInitials } from '../../utils/format';
 
 // Review-milestone day labels + competency/industry display helpers.
 const THRESHOLD_LABELS = {
@@ -65,16 +61,6 @@ const STATUTORY_ALERTS = [
   },
 ];
 
-// One label/value line in the profile block (label column, value column).
-function ProfileRow({ label, children }) {
-  return (
-    <div className="grid grid-cols-1 gap-x-4 gap-y-1 py-2.5 sm:grid-cols-[132px_minmax(0,1fr)] sm:items-center">
-      <span className="text-14 text-ink-3">{label}</span>
-      <span className="min-w-0 text-14 text-ink">{children}</span>
-    </div>
-  );
-}
-
 export default function Settings() {
   const { user, refreshUser } = useAuth();
   const { mode, setMode, reduceMotion, setReduceMotion } = useTheme();
@@ -83,6 +69,8 @@ export default function Settings() {
   // Scope: global deadline thresholds + industry KPI template library). The rest
   // of the roles never see it.
   const isAdmin = user?.role === 'admin';
+  // Organization (tenant) rename is Admin/Employer only.
+  const canManageOrg = user?.role === 'admin' || user?.role === 'employer';
 
   const { data: systemSettings, isError: isSystemError } = useQuery({
     queryKey: ['admin-settings'],
@@ -90,16 +78,48 @@ export default function Settings() {
     enabled: isAdmin,
   });
 
+  // Left-rail sections — one entry per rendered block, role-aware.
+  const sections = useMemo(() => {
+    const list = [
+      { id: 'profile', label: 'Profile' },
+      { id: 'appearance', label: 'Appearance' },
+      { id: 'security', label: 'Security' },
+      { id: 'alerts', label: 'Milestone alerts' },
+    ];
+    if (canManageOrg) list.push({ id: 'account', label: 'Account' });
+    if (isAdmin) list.push({ id: 'system', label: 'System' });
+    return list;
+  }, [canManageOrg, isAdmin]);
+
+  const [activeSection, setActiveSection] = useState('profile');
+
+  // Highlight the rail entry for the section currently in view. jsdom has no
+  // IntersectionObserver, so the observer is skipped under test.
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) setActiveSection(visible[0].target.id);
+      },
+      { rootMargin: '-96px 0px -60% 0px', threshold: 0 }
+    );
+    sections.forEach((s) => {
+      const el = document.getElementById(s.id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, [sections]);
+
   // Profile edit state
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileName, setProfileName] = useState(user?.full_name || '');
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
   const [profileStatus, setProfileStatus] = useState({ type: '', message: '' });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // Organization rename state (Admin/Employer only)
-  const canManageOrg = user?.role === 'admin' || user?.role === 'employer';
-  const [isEditingOrg, setIsEditingOrg] = useState(false);
   const [orgName, setOrgName] = useState(user?.organization_name || '');
   const [orgStatus, setOrgStatus] = useState({ type: '', message: '' });
   const [isSavingOrg, setIsSavingOrg] = useState(false);
@@ -116,7 +136,6 @@ export default function Settings() {
       await organizationApi.update(orgName.trim());
       await refreshUser();
       setOrgStatus({ type: 'success', message: 'Organization updated successfully.' });
-      setIsEditingOrg(false);
     } catch (err) {
       setOrgStatus({
         type: 'error',
@@ -142,7 +161,6 @@ export default function Settings() {
       });
       await refreshUser();
       setProfileStatus({ type: 'success', message: 'Profile updated successfully.' });
-      setIsEditingProfile(false);
     } catch (err) {
       setProfileStatus({
         type: 'error',
@@ -205,73 +223,73 @@ export default function Settings() {
     }
   };
 
+  const statusAlert = (status, className = 'mb-4') =>
+    status.message ? (
+      <div
+        role="alert"
+        className={`${className} p-3 rounded-ctl text-12 flex items-center gap-2 border border-line ${
+          status.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
+        }`}
+      >
+        {status.type === 'error' ? (
+          <AlertCircle className="w-4 h-4 shrink-0" />
+        ) : (
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+        )}
+        <span>{status.message}</span>
+      </div>
+    ) : null;
+
   return (
     <Page title="Settings">
-      <PageGrid className="space-y-10 lg:space-y-0 lg:gap-y-10">
-        {/* Profile & tenant (7) | Appearance (5) */}
-        <Row className="lg:items-start">
-          <Col span={7}>
-            <section aria-label="User profile and tenant">
-              <SectionHead
-                title="Profile & tenant"
-                note={
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setProfileName(user?.full_name || '');
-                      setProfileEmail(user?.email || '');
-                      setProfileStatus({ type: '', message: '' });
-                      setIsEditingProfile((prev) => !prev);
-                    }}
+      <PageGrid>
+        <Row className="lg:items-start lg:gap-y-0">
+          {/* Left anchor rail (horizontal scroll on small screens) */}
+          <Col span={3} className="lg:sticky lg:top-0 lg:self-start">
+            <nav
+              aria-label="Settings sections"
+              className="flex gap-1 overflow-x-auto pb-3 lg:flex-col lg:overflow-visible lg:pb-0"
+            >
+              {sections.map((s) => {
+                const isActive = activeSection === s.id;
+                return (
+                  <a
+                    key={s.id}
+                    href={`#${s.id}`}
+                    onClick={() => setActiveSection(s.id)}
+                    aria-current={isActive ? 'true' : undefined}
+                    className={`shrink-0 rounded-ctl px-3 py-2 text-14 whitespace-nowrap transition-colors ${
+                      isActive
+                        ? 'bg-accent/10 text-ink font-semibold'
+                        : 'text-ink-3 hover:bg-hover hover:text-ink'
+                    }`}
                   >
-                    {isEditingProfile ? 'Cancel' : 'Edit profile'}
-                  </Button>
-                }
-              />
+                    {s.label}
+                  </a>
+                );
+              })}
+            </nav>
+          </Col>
 
-              <div className="divide-y divide-line">
-                <ProfileRow label="Full name">{user?.full_name || 'User'}</ProfileRow>
-                <ProfileRow label="Work email">
-                  <span className="font-num">{user?.email}</span>
-                </ProfileRow>
-                <ProfileRow label="Platform role">
-                  <span className="capitalize">{user?.role?.replace(/_/g, ' ')}</span>
-                </ProfileRow>
-                <ProfileRow label="Organization">
-                  <span className="inline-flex items-center gap-3 min-w-0">
-                    <span className="truncate">
-                      {user?.organization_name || user?.organization_id || '—'}
-                    </span>
-                    {canManageOrg && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOrgName(user?.organization_name || '');
-                          setOrgStatus({ type: '', message: '' });
-                          setIsEditingOrg((prev) => !prev);
-                        }}
-                        className="shrink-0 text-12 text-accent hover:underline"
-                      >
-                        {isEditingOrg ? 'Cancel' : 'Rename'}
-                      </button>
-                    )}
-                  </span>
-                </ProfileRow>
+          {/* Content column — one block per section, hairline-separated */}
+          <Col span={9} className="mt-6 divide-y divide-line lg:mt-0">
+            {/* Profile */}
+            <section id="profile" aria-label="Profile" className="scroll-mt-4 pb-10">
+              <SectionHead title="Profile" subtitle="The information used for your account" />
+
+              <div className="flex items-center gap-3 py-4 border-b border-line">
+                <div className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 text-accent font-semibold text-14 flex items-center justify-center shrink-0">
+                  {getInitials(user?.full_name)}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-14 font-medium text-ink">Profile photo</div>
+                  <div className="text-12 text-ink-3">Generated automatically from your name.</div>
+                </div>
               </div>
 
-              {isEditingProfile && (
-                <form onSubmit={handleProfileSubmit} className="mt-5 space-y-4 border-t border-line pt-5">
-                  {profileStatus.message && (
-                    <div
-                      role="alert"
-                      className={`p-3 rounded-ctl text-12 border border-line ${
-                        profileStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
-                      }`}
-                    >
-                      {profileStatus.message}
-                    </div>
-                  )}
+              <form onSubmit={handleProfileSubmit} className="pt-4">
+                {statusAlert(profileStatus)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                   <TextField
                     id="p_name"
                     label="Full name"
@@ -281,64 +299,60 @@ export default function Settings() {
                   />
                   <TextField
                     id="p_email"
-                    label="Work email"
+                    label="Email address"
                     type="email"
                     value={profileEmail}
                     onChange={(e) => setProfileEmail(e.target.value)}
                     className="[&_input]:font-num"
                   />
+                  <div className="sm:col-span-2">
+                    <label className="block text-14 font-medium text-ink-2 mb-1" htmlFor="p_role">
+                      Role
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="p_role"
+                        value={user?.role?.replace(/_/g, ' ') || ''}
+                        disabled
+                        readOnly
+                        className={`${inputClass} pr-10 capitalize disabled:bg-hover disabled:text-ink-3`}
+                      />
+                      <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end pt-5">
                   <Button type="submit" variant="primary" isLoading={isSavingProfile}>
                     Save changes
                   </Button>
-                </form>
-              )}
-
-              {isEditingOrg && (
-                <form onSubmit={handleOrgSubmit} className="mt-5 space-y-4 border-t border-line pt-5">
-                  {orgStatus.message && (
-                    <div
-                      role="alert"
-                      className={`p-3 rounded-ctl text-12 border border-line ${
-                        orgStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
-                      }`}
-                    >
-                      {orgStatus.message}
-                    </div>
-                  )}
-                  <TextField
-                    id="org_name"
-                    label="Organization name"
-                    type="text"
-                    value={orgName}
-                    onChange={(e) => setOrgName(e.target.value)}
-                  />
-                  <Button type="submit" variant="primary" isLoading={isSavingOrg}>
-                    Save organization
-                  </Button>
-                </form>
-              )}
+                </div>
+              </form>
             </section>
-          </Col>
 
-          <Col span={5}>
-            <section aria-label="Appearance">
-              <SectionHead title="Appearance" subtitle="Light, Dark, or follow your system" />
-
-              <RubberSegment
-                aria-label="Color mode"
-                items={MODES.map((m) => {
-                  const Icon = m.icon;
-                  return { value: m.id, label: m.label, icon: <Icon className="w-4 h-4" /> };
-                })}
-                value={mode}
-                onChange={(value) => setMode(value)}
-                trackColor="var(--hover)"
-                thumbColor="var(--accent)"
-                textColor="var(--ink-2)"
-                activeTextColor="var(--on-accent)"
-                size="md"
-                radius={999}
+            {/* Appearance */}
+            <section id="appearance" aria-label="Appearance" className="scroll-mt-4 py-10">
+              <SectionHead
+                title="Appearance"
+                subtitle="Choose how Performa looks · changes apply instantly"
               />
+
+              <div className="pt-4">
+                <RubberSegment
+                  aria-label="Color mode"
+                  items={MODES.map((m) => {
+                    const Icon = m.icon;
+                    return { value: m.id, label: m.label, icon: <Icon className="w-4 h-4" /> };
+                  })}
+                  value={mode}
+                  onChange={(value) => setMode(value)}
+                  trackColor="var(--hover)"
+                  thumbColor="var(--accent)"
+                  textColor="var(--ink-2)"
+                  activeTextColor="var(--on-accent)"
+                  size="md"
+                  radius={999}
+                />
+              </div>
 
               <div className="mt-6 flex items-center justify-between gap-4">
                 <div className="min-w-0">
@@ -365,65 +379,53 @@ export default function Settings() {
                 </button>
               </div>
             </section>
-          </Col>
-        </Row>
 
-        {/* Security & password (5) | Review milestone alerts (7) */}
-        <Row className="lg:items-start">
-          <Col span={5}>
-            <section aria-label="Security">
-              <SectionHead title="Security & password" subtitle="Update your password" />
+            {/* Security */}
+            <section id="security" aria-label="Security" className="scroll-mt-4 py-10">
+              <SectionHead
+                title="Security"
+                subtitle="Change the password used to access your account"
+              />
 
-              {passwordStatus.message && (
-                <div
-                  role="alert"
-                  className={`mb-5 p-3 rounded-ctl text-12 flex items-center gap-2 border border-line ${
-                    passwordStatus.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
-                  }`}
-                >
-                  {passwordStatus.type === 'error' ? (
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                  ) : (
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  )}
-                  <span>{passwordStatus.message}</span>
+              <form onSubmit={handlePasswordSubmit} className="pt-4">
+                {statusAlert(passwordStatus)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                  <TextField
+                    id="currPass"
+                    label="Current password"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                  <TextField
+                    id="newPass"
+                    label="New password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="At least 8 characters"
+                  />
+                  <TextField
+                    id="confPass"
+                    label="Confirm new password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="sm:col-span-2"
+                  />
                 </div>
-              )}
-
-              <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                <TextField
-                  id="currPass"
-                  label="Current password"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
-                <TextField
-                  id="newPass"
-                  label="New password"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="At least 8 characters"
-                />
-                <TextField
-                  id="confPass"
-                  label="Confirm new password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
-                <Button type="submit" variant="primary" isLoading={isUpdatingPassword} className="mt-2">
-                  Update password
-                </Button>
+                <div className="flex justify-end pt-5">
+                  <Button type="submit" variant="primary" isLoading={isUpdatingPassword}>
+                    Update password
+                  </Button>
+                </div>
               </form>
             </section>
-          </Col>
 
-          <Col span={7}>
-            <section aria-label="Review milestone alerts">
+            {/* Review milestone alerts */}
+            <section id="alerts" aria-label="Review milestone alerts" className="scroll-mt-4 py-10">
               <SectionHead
                 title="Review milestone alerts"
                 subtitle="Article 296 · mandatory · always enforced · Asia/Manila"
@@ -440,14 +442,34 @@ export default function Settings() {
                 ))}
               </div>
             </section>
-          </Col>
-        </Row>
 
-        {/* Administrator-only read-only system settings */}
-        {isAdmin && (
-          <Row>
-            <Col span={12}>
-              <section aria-label="System settings">
+            {/* Account — tenant name (Admin/Employer) */}
+            {canManageOrg && (
+              <section id="account" aria-label="Account" className="scroll-mt-4 py-10">
+                <SectionHead title="Account" subtitle="Your organization (tenant) name" />
+                <form onSubmit={handleOrgSubmit} className="pt-4">
+                  {statusAlert(orgStatus)}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                    <TextField
+                      id="org_name"
+                      label="Organization name"
+                      type="text"
+                      value={orgName}
+                      onChange={(e) => setOrgName(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex justify-end pt-5">
+                    <Button type="submit" variant="primary" isLoading={isSavingOrg}>
+                      Save organization
+                    </Button>
+                  </div>
+                </form>
+              </section>
+            )}
+
+            {/* System settings — Administrator only, read-only */}
+            {isAdmin && (
+              <section id="system" aria-label="System settings" className="scroll-mt-4 py-10">
                 <SectionHead
                   title="System settings"
                   subtitle="Global review-milestone configuration · Administrator oversight (read-only)"
@@ -458,57 +480,66 @@ export default function Settings() {
                 ) : !systemSettings ? (
                   <p className="text-12 text-ink-3">Loading…</p>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-6 pt-2">
                     <div className="space-y-2">
-                      <div className="text-14 font-semibold text-ink">Article 296 deadline thresholds</div>
+                      <div className="text-14 font-semibold text-ink">
+                        Article 296 deadline thresholds
+                      </div>
                       <p className="text-12 text-ink-3">
                         Fixed review milestones. Informational only, not configurable.
                       </p>
                       <ul className="space-y-1">
-                        {Object.entries(systemSettings.deadline_thresholds || {}).map(([key, day]) => (
-                          <li
-                            key={key}
-                            className="flex items-center justify-between gap-3 text-12 border-b border-line py-1.5 last:border-0"
-                          >
-                            <span className="text-ink-2">{THRESHOLD_LABELS[key] || prettyKey(key)}</span>
-                            <span className="font-num text-ink font-semibold">{day} days</span>
-                          </li>
-                        ))}
+                        {Object.entries(systemSettings.deadline_thresholds || {}).map(
+                          ([key, day]) => (
+                            <li
+                              key={key}
+                              className="flex items-center justify-between gap-3 text-12 border-b border-line py-1.5 last:border-0"
+                            >
+                              <span className="text-ink-2">{THRESHOLD_LABELS[key] || prettyKey(key)}</span>
+                              <span className="font-num text-ink font-semibold">{day} days</span>
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
 
                     <div className="space-y-3">
-                      <div className="text-14 font-semibold text-ink">Industry KPI template library</div>
+                      <div className="text-14 font-semibold text-ink">
+                        Industry KPI template library
+                      </div>
                       <p className="text-12 text-ink-3">
                         Pre-built target/weight presets employers can apply in KPI Configuration.
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
-                        {Object.entries(systemSettings.kpi_templates || {}).map(([industry, rows]) => (
-                          <div key={industry} className="space-y-2">
-                            <div className="text-12 font-semibold text-ink">{prettyKey(industry)}</div>
-                            <ul className="space-y-0.5">
-                              {Object.entries(rows).map(([comp, cfg]) => (
-                                <li
-                                  key={comp}
-                                  className="flex items-center justify-between gap-3 text-12 text-ink-3"
-                                >
-                                  <span>{COMPETENCY_LABELS.get(comp) || comp}</span>
-                                  <span className="font-num whitespace-nowrap">
-                                    {Number(cfg.target_score).toFixed(1)} · {Math.round(Number(cfg.weight) * 100)}%
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ))}
+                        {Object.entries(systemSettings.kpi_templates || {}).map(
+                          ([industry, rows]) => (
+                            <div key={industry} className="space-y-2">
+                              <div className="text-12 font-semibold text-ink">{prettyKey(industry)}</div>
+                              <ul className="space-y-0.5">
+                                {Object.entries(rows).map(([comp, cfg]) => (
+                                  <li
+                                    key={comp}
+                                    className="flex items-center justify-between gap-3 text-12 text-ink-3"
+                                  >
+                                    <span>{COMPETENCY_LABELS.get(comp) || comp}</span>
+                                    <span className="font-num whitespace-nowrap">
+                                      {Number(cfg.target_score).toFixed(1)} ·{' '}
+                                      {Math.round(Number(cfg.weight) * 100)}%
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )
+                        )}
                       </div>
                     </div>
                   </div>
                 )}
               </section>
-            </Col>
-          </Row>
-        )}
+            )}
+          </Col>
+        </Row>
       </PageGrid>
     </Page>
   );
