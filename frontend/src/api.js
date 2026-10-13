@@ -96,6 +96,17 @@ export const authApi = {
     });
     return response.data; // { access_token, token_type }
   },
+  forgotPassword: async (email) => {
+    const response = await apiClient.post('/api/auth/forgot-password', { email: email.trim() });
+    return response.data;
+  },
+  resetPassword: async (token, newPassword) => {
+    const response = await apiClient.post('/api/auth/reset-password', {
+      token,
+      new_password: newPassword,
+    });
+    return response.data; // { access_token, token_type }
+  },
   getCurrentUser: async () => {
     const response = await apiClient.get('/api/auth/me');
     return response.data; // UserResponse: { id, email, full_name, role, organization_id, is_active }

@@ -128,6 +128,24 @@ class RegisterRequest(BaseModel):
         return value
 
 
+class ForgotPasswordRequest(BaseModel):
+    """Request a password-reset link for the given email."""
+
+    email: str = Field(..., max_length=255)
+
+    @field_validator("email")
+    @classmethod
+    def _check_email(cls, value: str) -> str:
+        return validate_email(value)
+
+
+class ResetPasswordRequest(BaseModel):
+    """Complete a password reset with the token from the emailed link."""
+
+    token: str = Field(..., min_length=1, max_length=512)
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
 # ---------------------------------------------------------------------------
 # Organization (tenant)
 # ---------------------------------------------------------------------------
@@ -588,6 +606,8 @@ __all__ = [
     "TokenPayload",
     "PasswordChange",
     "ProfileUpdate",
+    "ForgotPasswordRequest",
+    "ResetPasswordRequest",
     "ProbationaryEmployeeBase",
     "ProbationaryEmployeeUpdate",
     "ProbationaryEmployeeResponse",

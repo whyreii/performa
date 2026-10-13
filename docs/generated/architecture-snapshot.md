@@ -95,6 +95,17 @@ Unique constraints: (employee_id, month_number)
 
 Unique constraints: (name)
 
+### `password_reset_tokens`
+
+| Column | Type | Nullable | PK | Unique | Default | Foreign key |
+|---|---|---|---|---|---|---|
+| created_at | DATETIME | no | no | no | now() |  |
+| expires_at | DATETIME | no | no | no |  |  |
+| id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
+| token_hash | VARCHAR(64) | no | no | yes |  |  |
+| used_at | DATETIME | yes | no | no |  |  |
+| user_id | CHAR(32) | no | no | no |  | users.id |
+
 ### `probationary_employees`
 
 | Column | Type | Nullable | PK | Unique | Default | Foreign key |
@@ -211,11 +222,13 @@ Auth column is read from the FastAPI dependency graph.
 | POST | `/api/admin/users/{user_id}/reset-password` | roles: admin | reset_user_password |
 | PATCH | `/api/admin/users/{user_id}/status` | roles: admin | update_user_status |
 | POST | `/api/auth/change-password` | authenticated (any role) | change_password |
+| POST | `/api/auth/forgot-password` | not detected | forgot_password |
 | POST | `/api/auth/login` | not detected | login |
 | POST | `/api/auth/logout` | not detected | logout |
 | GET | `/api/auth/me` | authenticated (any role) | read_current_user |
 | PATCH | `/api/auth/me` | authenticated (any role) | update_current_user |
 | POST | `/api/auth/register` | not detected | register |
+| POST | `/api/auth/reset-password` | not detected | reset_password |
 | GET | `/api/employees/` | authenticated (any role) | list_employees |
 | POST | `/api/employees/` | roles: employer | create_employee |
 | GET | `/api/employees/milestones` | roles: employer, supervisor | list_milestones |
@@ -274,6 +287,7 @@ Auth column is read from the FastAPI dependency graph.
 | `EMAIL_PROVIDER` | `—` |
 | `GEMINI_API_KEY` | `—` |
 | `LOG_LEVEL` | `INFO` |
+| `PASSWORD_RESET_TTL_MINUTES` | `30` |
 | `PERFORMA_TODAY` | `—` |
 | `RESEND_API_KEY` | `—` |
 | `SECRET_KEY` | `performa-dev-secret-key-32charsmin` |

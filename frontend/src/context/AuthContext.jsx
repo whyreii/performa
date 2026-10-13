@@ -119,6 +119,26 @@ export function AuthProvider({ children }) {
     }
   }, [persistUser]);
 
+  const resetPassword = useCallback(async (token, newPassword) => {
+    setIsLoading(true);
+    try {
+      const tokenData = await authApi.resetPassword(token, newPassword);
+      try {
+        if (tokenData?.access_token) {
+          localStorage.setItem('performa_token', tokenData.access_token);
+        }
+      } catch {}
+      const userData = await authApi.getCurrentUser();
+      persistUser(userData);
+      return { success: true, user: userData };
+    } catch (err) {
+      const message = getApiErrorMessage(err, 'This reset link is invalid or has expired.');
+      return { success: false, error: message };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [persistUser]);
+
   const value = useMemo(
     () => ({
       user,
@@ -126,10 +146,11 @@ export function AuthProvider({ children }) {
       isLoading,
       login,
       register,
+      resetPassword,
       logout,
       refreshUser,
     }),
-    [user, isLoading, login, register, logout, refreshUser]
+    [user, isLoading, login, register, resetPassword, logout, refreshUser]
   );
 
   return (

@@ -1,8 +1,11 @@
 """Authentication routes: form-based login and current-user introspection."""
 from __future__ import annotations
 
+import hashlib
+import secrets
 import time
 from collections import defaultdict, deque
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -21,8 +24,17 @@ from ..auth import (
 from ..audit import record_activity
 from ..config import get_settings
 from ..database import get_db
-from ..models import Organization, User, UserRole
-from ..schemas import PasswordChange, ProfileUpdate, RegisterRequest, Token, UserResponse
+from ..emailer import send_password_reset_email
+from ..models import Organization, PasswordResetToken, User, UserRole
+from ..schemas import (
+    ForgotPasswordRequest,
+    PasswordChange,
+    ProfileUpdate,
+    RegisterRequest,
+    ResetPasswordRequest,
+    Token,
+    UserResponse,
+)
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -192,6 +204,110 @@ async def register(
         entity_type="organization",
         entity_id=organization.id,
         detail=f"{org_name} <{email}>",
+    )
+    await db.commit()
+    return _issue_session(response, user)
+
+
+def _hash_reset_token(token: str) -> str:
+    """SHA-256 of a reset token — only the hash is stored."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _expired(expires_at: datetime, now: datetime) -> bool:
+    """True if ``expires_at`` is at/before ``now`` (SQLite drops tzinfo)."""
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    return expires_at <= now
+
+
+@router.post(
+    "/forgot-password",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Request a password-reset link",
+)
+async def forgot_password(
+    payload: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Email a reset link when the account exists.
+
+    Always returns 202 so the endpoint cannot be used to enumerate accounts.
+    """
+    email = payload.email.strip().lower()
+    settings = get_settings()
+
+    user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
+
+    if user is not None and user.is_active:
+        raw_token = secrets.token_urlsafe(32)
+        ttl = max(1, settings.password_reset_ttl_minutes)
+        db.add(
+            PasswordResetToken(
+                user_id=user.id,
+                token_hash=_hash_reset_token(raw_token),
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=ttl),
+            )
+        )
+        record_activity(
+            db,
+            organization_id=user.organization_id,
+            actor=user,
+            action="auth.password_reset_requested",
+            entity_type="user",
+            entity_id=user.id,
+            detail=user.email,
+        )
+        await db.commit()
+
+        base = (settings.app_base_url or "").rstrip("/")
+        reset_link = f"{base}/reset-password?token={raw_token}"
+        await send_password_reset_email(user.email, user.full_name, reset_link, ttl)
+
+    return {"status": "accepted"}
+
+
+@router.post(
+    "/reset-password",
+    response_model=Token,
+    summary="Reset a password with a valid token",
+)
+async def reset_password(
+    response: Response,
+    payload: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+) -> Token:
+    """Consume a single-use reset token, set the new password, and sign in."""
+    row = (
+        await db.execute(
+            select(PasswordResetToken).where(
+                PasswordResetToken.token_hash == _hash_reset_token(payload.token)
+            )
+        )
+    ).scalar_one_or_none()
+
+    now = datetime.now(timezone.utc)
+    invalid = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="This reset link is invalid or has expired.",
+    )
+    if row is None or row.used_at is not None or _expired(row.expires_at, now):
+        raise invalid
+
+    user = (await db.execute(select(User).where(User.id == row.user_id))).scalar_one_or_none()
+    if user is None or not user.is_active:
+        raise invalid
+
+    user.hashed_password = get_password_hash(payload.new_password)
+    row.used_at = now
+    record_activity(
+        db,
+        organization_id=user.organization_id,
+        actor=user,
+        action="auth.password_reset",
+        entity_type="user",
+        entity_id=user.id,
+        detail=user.email,
     )
     await db.commit()
     return _issue_session(response, user)

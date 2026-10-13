@@ -7,6 +7,8 @@
 export const routeLoaders = {
   '/login': () => import('../pages/auth/Login'),
   '/register': () => import('../pages/auth/Register'),
+  '/forgot-password': () => import('../pages/auth/ForgotPassword'),
+  '/reset-password': () => import('../pages/auth/ResetPassword'),
   '/admin/users': () => import('../pages/admin/UserManagement'),
   '/admin/activity': () => import('../pages/admin/ActivityLog'),
   '/employees': () => import('../pages/employees/EmployeeSplit'),

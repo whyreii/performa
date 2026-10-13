@@ -12,6 +12,8 @@ import { routeLoaders } from './routes/loaders';
 // routes/loaders.js so navigation links can prefetch a chunk on hover/focus.
 const Login = lazy(routeLoaders['/login']);
 const Register = lazy(routeLoaders['/register']);
+const ForgotPassword = lazy(routeLoaders['/forgot-password']);
+const ResetPassword = lazy(routeLoaders['/reset-password']);
 const AppShell = lazy(() => import('./components/layout/AppShell'));
 const Settings = lazy(routeLoaders['/settings']);
 const EmployeeSplit = lazy(routeLoaders['/employees']);
@@ -57,6 +59,8 @@ const ROUTE_TITLES = [
   ['/settings', 'Settings'],
   ['/login', 'Sign in'],
   ['/register', 'Create account'],
+  ['/forgot-password', 'Reset password'],
+  ['/reset-password', 'Set a new password'],
 ];
 
 function titleForPath(pathname) {
@@ -150,6 +154,8 @@ export default function App() {
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
               {/* Protected routes wrapped in AppShell */}
               <Route

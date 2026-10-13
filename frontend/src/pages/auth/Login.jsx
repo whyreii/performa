@@ -146,13 +146,12 @@ export default function Login() {
                   <label className="text-12 font-medium text-ink-2" htmlFor="password">
                     Password
                   </label>
-                  <button
-                    type="button"
+                  <Link
+                    to="/forgot-password"
                     className="text-12 font-semibold text-accent hover:underline"
-                    onClick={() => {}}
                   >
                     Forgot password?
-                  </button>
+                  </Link>
                 </div>
                 <div className="relative">
                   <input

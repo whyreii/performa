@@ -4,6 +4,7 @@ from __future__ import annotations
 import pytest
 
 from backend.auth import verify_password
+from datetime import datetime, timedelta, timezone
 from backend.tests.helpers import (
     DEFAULT_PASSWORD,
     EMPLOYER_EMAIL,
@@ -218,3 +219,92 @@ def test_login_throttle_evicts_oldest_not_all(monkeypatch):
         assert list(store) == ["b", "c", "d"]
     finally:
         store.clear()
+
+
+def _capture_reset(monkeypatch, sent):
+    async def _fake(to_email, full_name, reset_link, ttl):
+        sent["to"] = to_email
+        sent["link"] = reset_link
+        return True
+
+    monkeypatch.setattr("backend.routers.auth.send_password_reset_email", _fake)
+
+
+@pytest.mark.asyncio
+async def test_forgot_password_is_enumeration_safe(client):
+    """Unknown and known emails both return 202 (no account enumeration)."""
+    unknown = await client.post(
+        "/api/auth/forgot-password", json={"email": "nobody@nowhere.test"}
+    )
+    assert unknown.status_code == 202, unknown.text
+
+    known = await client.post("/api/auth/forgot-password", json={"email": SUPERVISOR_EMAIL})
+    assert known.status_code == 202, known.text
+
+
+@pytest.mark.asyncio
+async def test_password_reset_flow_is_single_use(client, monkeypatch):
+    """A reset link sets a new password once; it cannot be reused."""
+    sent: dict = {}
+    _capture_reset(monkeypatch, sent)
+
+    requested = await client.post("/api/auth/forgot-password", json={"email": SUPERVISOR_EMAIL})
+    assert requested.status_code == 202, requested.text
+    assert sent["to"] == SUPERVISOR_EMAIL
+    token = sent["link"].split("token=")[-1]
+
+    reset = await client.post(
+        "/api/auth/reset-password",
+        json={"token": token, "new_password": "NewPassword123!"},
+    )
+    assert reset.status_code == 200, reset.text
+
+    old = await client.post(
+        "/api/auth/login", data={"username": SUPERVISOR_EMAIL, "password": DEFAULT_PASSWORD}
+    )
+    assert old.status_code == 401
+
+    new = await client.post(
+        "/api/auth/login", data={"username": SUPERVISOR_EMAIL, "password": "NewPassword123!"}
+    )
+    assert new.status_code == 200
+
+    reuse = await client.post(
+        "/api/auth/reset-password",
+        json={"token": token, "new_password": "Another123!"},
+    )
+    assert reuse.status_code == 400, reuse.text
+
+
+@pytest.mark.asyncio
+async def test_reset_password_rejects_unknown_and_expired_tokens(client, monkeypatch):
+    """An unknown token or an expired one is a 400."""
+    bad = await client.post(
+        "/api/auth/reset-password",
+        json={"token": "not-a-real-token", "new_password": "Password123!"},
+    )
+    assert bad.status_code == 400, bad.text
+
+    sent: dict = {}
+    _capture_reset(monkeypatch, sent)
+    await client.post("/api/auth/forgot-password", json={"email": SUPERVISOR_EMAIL})
+    token = sent["link"].split("token=")[-1]
+
+    from sqlalchemy import update
+
+    from backend.database import async_session_maker
+    from backend.models import PasswordResetToken
+
+    async with async_session_maker() as session:
+        await session.execute(
+            update(PasswordResetToken).values(
+                expires_at=datetime.now(timezone.utc) - timedelta(minutes=1)
+            )
+        )
+        await session.commit()
+
+    expired = await client.post(
+        "/api/auth/reset-password",
+        json={"token": token, "new_password": "Password123!"},
+    )
+    assert expired.status_code == 400, expired.text

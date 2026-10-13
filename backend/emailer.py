@@ -1,4 +1,4 @@
-"""Outbound email for account provisioning.
+"""Outbound email for account provisioning and password resets.
 
 Delivery is provider-based and env-driven, chosen in this order:
 
@@ -9,7 +9,7 @@ Delivery is provider-based and env-driven, chosen in this order:
 
 ``EMAIL_PROVIDER`` forces one of ``sendgrid`` / ``resend`` / ``smtp`` / ``log``.
 HTTP APIs run over port 443, so they are not blocked the way SMTP often is on
-PaaS hosts. A send failure is logged and never blocks account provisioning.
+PaaS hosts. A send failure is logged and never blocks the caller.
 """
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ def _render(
     password: str,
     organization_name: Optional[str],
 ) -> tuple[str, str]:
-    """Return ``(subject, body)`` shared by every delivery provider."""
+    """Return ``(subject, body)`` for the credential-provisioning email."""
     org = organization_name or "your organization"
     subject = "Your Performa account credentials"
     lines = [
@@ -51,6 +51,22 @@ def _render(
     if app_url:
         lines += ["", f"Sign in at {app_url.rstrip('/')}/login"]
     lines += ["", "For your security, please sign in and change this password."]
+    return subject, "\n".join(lines) + "\n"
+
+
+def _render_reset(full_name: str, reset_link: str, ttl_minutes: int) -> tuple[str, str]:
+    """Return ``(subject, body)`` for the password-reset email."""
+    subject = "Reset your Performa password"
+    lines = [
+        f"Hello {full_name},",
+        "",
+        "A password reset was requested for your Performa account.",
+        "",
+        f"Reset your password (this link is valid for {ttl_minutes} minutes):",
+        reset_link,
+        "",
+        "If you did not request this, you can ignore this email.",
+    ]
     return subject, "\n".join(lines) + "\n"
 
 
@@ -89,10 +105,7 @@ def _resolve_provider() -> str:
     return "log"
 
 
-def _sendgrid_payload(
-    to_email: str, full_name: str, password: str, organization_name: Optional[str]
-) -> dict:
-    subject, body = _render(to_email, full_name, password, organization_name)
+def _payload_sendgrid(to_email: str, subject: str, body: str) -> dict:
     from_email, from_name = _sender()
     return {
         "personalizations": [{"to": [{"email": to_email}]}],
@@ -102,10 +115,7 @@ def _sendgrid_payload(
     }
 
 
-def _resend_payload(
-    to_email: str, full_name: str, password: str, organization_name: Optional[str]
-) -> dict:
-    subject, body = _render(to_email, full_name, password, organization_name)
+def _payload_resend(to_email: str, subject: str, body: str) -> dict:
     from_email, from_name = _sender()
     return {
         "from": f"{from_name} <{from_email}>",
@@ -113,6 +123,21 @@ def _resend_payload(
         "subject": subject,
         "text": body,
     }
+
+
+# Credential-shaped payload builders (kept for the credentials email + tests).
+def _sendgrid_payload(
+    to_email: str, full_name: str, password: str, organization_name: Optional[str]
+) -> dict:
+    subject, body = _render(to_email, full_name, password, organization_name)
+    return _payload_sendgrid(to_email, subject, body)
+
+
+def _resend_payload(
+    to_email: str, full_name: str, password: str, organization_name: Optional[str]
+) -> dict:
+    subject, body = _render(to_email, full_name, password, organization_name)
+    return _payload_resend(to_email, subject, body)
 
 
 async def _post_json(url: str, headers: dict, payload: dict) -> tuple[bool, str]:
@@ -123,36 +148,35 @@ async def _post_json(url: str, headers: dict, payload: dict) -> tuple[bool, str]
     return False, f"{response.status_code} {response.text[:200]}"
 
 
-async def _send_sendgrid(to_email, full_name, password, organization_name) -> bool:
+async def _send_sendgrid(to_email: str, subject: str, body: str) -> bool:
     settings = get_settings()
     headers = {"Authorization": f"Bearer {settings.sendgrid_api_key}"}
     ok, detail = await _post_json(
-        _SENDGRID_URL, headers, _sendgrid_payload(to_email, full_name, password, organization_name)
+        _SENDGRID_URL, headers, _payload_sendgrid(to_email, subject, body)
     )
     if ok:
-        logger.info("Credentials email sent to %s via SendGrid", to_email)
+        logger.info("Email sent to %s via SendGrid", to_email)
     else:
         logger.error("SendGrid delivery failed for %s: %s", to_email, detail)
     return ok
 
 
-async def _send_resend(to_email, full_name, password, organization_name) -> bool:
+async def _send_resend(to_email: str, subject: str, body: str) -> bool:
     settings = get_settings()
     headers = {"Authorization": f"Bearer {settings.resend_api_key}"}
     ok, detail = await _post_json(
-        _RESEND_URL, headers, _resend_payload(to_email, full_name, password, organization_name)
+        _RESEND_URL, headers, _payload_resend(to_email, subject, body)
     )
     if ok:
-        logger.info("Credentials email sent to %s via Resend", to_email)
+        logger.info("Email sent to %s via Resend", to_email)
     else:
         logger.error("Resend delivery failed for %s: %s", to_email, detail)
     return ok
 
 
-def _send_smtp_sync(to_email, full_name, password, organization_name) -> bool:
+def _send_smtp_sync(to_email: str, subject: str, body: str) -> bool:
     settings = get_settings()
     from_addr = settings.smtp_from or settings.smtp_user or "no-reply@performa.local"
-    subject, body = _render(to_email, full_name, password, organization_name)
     message = EmailMessage()
     message["Subject"] = subject
     message["From"] = from_addr
@@ -175,41 +199,33 @@ def _send_smtp_sync(to_email, full_name, password, organization_name) -> bool:
                 client.login(settings.smtp_user, settings.smtp_password or "")
             client.send_message(message)
     except (smtplib.SMTPException, OSError):
-        logger.exception("Failed to send credentials email to %s", to_email)
+        logger.exception("Failed to send email to %s", to_email)
         return False
 
-    logger.info("Credentials email sent to %s via SMTP", to_email)
+    logger.info("Email sent to %s via SMTP", to_email)
     return True
 
 
-async def send_credentials_email(
-    to_email: str,
-    full_name: str,
-    password: str,
-    organization_name: Optional[str] = None,
-) -> bool:
-    """Send the generated credentials, or log them when no provider is set.
+async def _deliver(to_email: str, subject: str, body: str) -> bool:
+    """Send ``subject``/``body`` through the resolved provider, or log it.
 
-    Never raises: delivery problems must not block account provisioning.
+    Never raises: delivery problems must not block the caller.
     """
     provider = _resolve_provider()
     try:
         if provider == "sendgrid":
-            return await _send_sendgrid(to_email, full_name, password, organization_name)
+            return await _send_sendgrid(to_email, subject, body)
         if provider == "resend":
-            return await _send_resend(to_email, full_name, password, organization_name)
+            return await _send_resend(to_email, subject, body)
         if provider == "smtp":
-            return await asyncio.to_thread(
-                _send_smtp_sync, to_email, full_name, password, organization_name
-            )
+            return await asyncio.to_thread(_send_smtp_sync, to_email, subject, body)
     except Exception:
-        logger.exception("Unexpected error sending credentials email to %s", to_email)
+        logger.exception("Unexpected error sending email to %s", to_email)
         return False
 
-    subject, body = _render(to_email, full_name, password, organization_name)
     logger.warning(
-        "No email provider configured; logging the credentials email for %s instead "
-        "of sending it. Set SENDGRID_API_KEY (or SMTP_HOST) to deliver real email.\n"
+        "No email provider configured; logging the email for %s instead of sending "
+        "it. Set SENDGRID_API_KEY (or SMTP_HOST) to deliver real email.\n"
         "Subject: %s\n%s",
         to_email,
         subject,
@@ -218,4 +234,26 @@ async def send_credentials_email(
     return False
 
 
-__all__ = ["send_credentials_email"]
+async def send_credentials_email(
+    to_email: str,
+    full_name: str,
+    password: str,
+    organization_name: Optional[str] = None,
+) -> bool:
+    """Send the generated credentials, or log them when no provider is set."""
+    subject, body = _render(to_email, full_name, password, organization_name)
+    return await _deliver(to_email, subject, body)
+
+
+async def send_password_reset_email(
+    to_email: str,
+    full_name: str,
+    reset_link: str,
+    ttl_minutes: int,
+) -> bool:
+    """Send a password-reset link, or log it when no provider is set."""
+    subject, body = _render_reset(full_name, reset_link, ttl_minutes)
+    return await _deliver(to_email, subject, body)
+
+
+__all__ = ["send_credentials_email", "send_password_reset_email"]

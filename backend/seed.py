@@ -34,6 +34,7 @@ from .models import (
     MonthlySummary,
     Notification,
     Organization,
+    PasswordResetToken,
     ProbationaryEmployee,
     ProbationStatus,
     RegularizationRecommendation,
@@ -193,6 +194,9 @@ async def _reset(session: AsyncSession) -> None:
     )
     await session.execute(
         delete(KpiRubric).where(KpiRubric.organization_id == ORG_SLUG)
+    )
+    await session.execute(
+        delete(PasswordResetToken).where(PasswordResetToken.user_id.in_(user_ids))
     )
     await session.execute(delete(User).where(User.organization_id == ORG_SLUG))
     await session.execute(delete(Organization).where(Organization.slug == ORG_SLUG))

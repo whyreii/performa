@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     email_provider: Optional[str] = None
     email_from: Optional[str] = None
     app_base_url: Optional[str] = None
+    # Self-service password reset: how long a reset link stays valid.
+    password_reset_ttl_minutes: int = 30
     sendgrid_api_key: Optional[str] = None
     resend_api_key: Optional[str] = None
 
