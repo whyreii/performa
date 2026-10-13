@@ -111,9 +111,7 @@ export default function Rubrics() {
 
   const weightTotal = form.reduce((sum, row) => sum + (Number(row.weightPct) || 0), 0);
 
-  // Optional hint only: "Save changes" is always clickable (a no-op re-save is
-  // safe), so the marker just tells the employer when something differs from the
-  // saved rubrics.
+  // "Save changes" is a no-op until something actually differs from the saved rubrics.
   const isDirty = useMemo(() => {
     if (!form.length) return false;
     return form.some((row) => {
@@ -288,6 +286,7 @@ export default function Rubrics() {
               </Button>
               <Button
                 variant="primary"
+                disabled={!isDirty}
                 isLoading={saveMutation.isPending}
                 onClick={() => saveMutation.mutate()}
               >
