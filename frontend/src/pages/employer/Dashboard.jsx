@@ -20,6 +20,7 @@ import {
   MILESTONE_NOTICE,
   MILESTONE_CRITICAL,
 } from '../../config/domain';
+import { ROUTES } from '../../config/nav';
 import {
   milestoneFor,
   milestoneStage,
@@ -160,7 +161,8 @@ export default function Dashboard() {
       label: 'Past cap',
       value: <CountUp value={stats.pastCap} />,
       caption: `Past Day ${PROBATION_DAYS} · constructive regularization`,
-      tone: 'bad',
+      // Colour carries status: a zero needs no red — no dot when nothing is past cap.
+      tone: stats.pastCap > 0 ? 'bad' : undefined,
     },
     {
       label: 'Decisions due',
@@ -279,12 +281,34 @@ export default function Dashboard() {
                 <ul>
                   {plans.slice(0, 3).map((plan) => (
                     <li key={plan.id} className="border-t border-line py-3 first:border-t-0">
-                      <div className="text-14 font-semibold text-ink">{plan.intervention_title}</div>
-                      <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
-                        {plan.rationale || plan.competency?.replace(/_/g, ' ')}
-                      </p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-14 font-semibold text-ink">
+                            {plan.intervention_title}
+                          </div>
+                          <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
+                            {plan.rationale || plan.competency?.replace(/_/g, ' ')}
+                          </p>
+                        </div>
+                        <Link
+                          to={ROUTES.rollups.path}
+                          className="shrink-0 text-14 font-semibold text-accent hover:underline"
+                        >
+                          Review and sign off
+                        </Link>
+                      </div>
                     </li>
                   ))}
+                  {plans.length > 3 && (
+                    <li className="border-t border-line py-3">
+                      <Link
+                        to={ROUTES.rollups.path}
+                        className="text-14 font-semibold text-accent hover:underline"
+                      >
+                        View all {plans.length} pending
+                      </Link>
+                    </li>
+                  )}
                 </ul>
               )}
             </section>
