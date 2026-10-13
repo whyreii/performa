@@ -496,7 +496,13 @@ export default function EmployeeDashboard() {
           <section>
             <SectionHead
               title="Your checklist"
-              note={`${checklistDone} of ${applicableChecklist.length} done`}
+              note={
+                applicableChecklist.length < checklist.length
+                  ? `${checklistDone} done · ${
+                      checklist.length - applicableChecklist.length
+                    } not yet due`
+                  : `${checklistDone} of ${applicableChecklist.length} done`
+              }
             />
             <ul className="divide-y divide-line">
               {checklist.map((item) => (
