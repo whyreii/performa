@@ -4,10 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, MilestonePill, Skeleton, Page, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Page, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col, StatBand } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, COMPETENCIES } from '../../config/domain';
-import { scoreTone, TONE_FILL, TONE_TEXT } from '../../utils/status';
+import { scoreTone, formatProbationDay, TONE_FILL, TONE_TEXT } from '../../utils/status';
 import { CheckCircle2, ArrowRight, BookOpen, UserCheck } from '../../components/icons';
 
 const LABEL_BY_KEY = Object.fromEntries(COMPETENCIES.map((c) => [c.key, c.label]));
@@ -227,6 +227,29 @@ export default function EmployeeDashboard() {
       ? `${formatDayMonth(point.period_start)} – ${formatDayMonth(point.period_end)}`
       : null;
 
+  // Top stat strip — same grammar as the employer dashboard's KPI strip.
+  const kpis = [
+    {
+      label: 'Overall score',
+      value: overall != null ? overall.toFixed(2) : '—',
+      caption: `Standard ${TARGET.toFixed(1)}`,
+      tone: overall != null ? scoreTone(overall, TARGET) : undefined,
+    },
+    {
+      label: 'Probation day',
+      value: formatProbationDay(daysElapsed),
+      caption: isTerminal
+        ? 'Probation clock stopped'
+        : `${daysRemaining} day${daysRemaining === 1 ? '' : 's'} remaining`,
+      tone: daysElapsed > PROBATION_DAYS ? 'bad' : undefined,
+    },
+    {
+      label: 'Month',
+      value: currentMonth,
+      caption: `of ${PROBATION_MONTHS}`,
+    },
+  ];
+
   return (
     <Page
       title="My Performance Scorecard"
@@ -237,6 +260,8 @@ export default function EmployeeDashboard() {
       }
       actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}
     >
+      <StatBand cells={kpis} />
+
       <PageGrid className="space-y-4 lg:space-y-0 lg:gap-y-4 lg:items-start">
         <Col span={8} className="space-y-4 min-w-0">
           {/* Greeting · overall vs standard · plain dates */}
@@ -245,7 +270,7 @@ export default function EmployeeDashboard() {
               <Skeleton className="h-16 w-full" />
             ) : (
               <>
-                <p className="text-22 font-semibold tracking-tight text-ink">
+                <p className="text-16 font-semibold tracking-tight text-ink">
                   {daysToReview === null ? (
                     <>Hi {first}.</>
                   ) : daysToReview > 0 ? (
@@ -256,20 +281,7 @@ export default function EmployeeDashboard() {
                     <>Hi {first}, you are past the {PROBATION_DAYS}-day cap.</>
                   )}
                 </p>
-
-                {/* Overall score beside the standard (item 5.1). */}
-                <p className="mt-3 flex items-baseline gap-2 flex-wrap">
-                  <span className="text-12 text-ink-3">Overall</span>
-                  <span
-                    className={`text-22 font-semibold font-num ${
-                      overall !== null ? TONE_TEXT[scoreTone(overall, TARGET)] : 'text-ink-3'
-                    }`}
-                  >
-                    {overall !== null ? overall.toFixed(2) : '—'}
-                  </span>
-                  <span className="text-12 text-ink-3">· standard {TARGET.toFixed(1)}</span>
-                </p>
-                <p className="text-14 text-ink-2 mt-1.5 leading-relaxed">
+                <p className="text-14 text-ink-2 mt-2 leading-relaxed">
                   {standingSentence(overall, scorecard?.competencies)}
                 </p>
 
@@ -502,20 +514,19 @@ export default function EmployeeDashboard() {
                       aria-hidden="true"
                     />
                   )}
-                  <div className="flex-1 min-w-0 flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-14 text-ink">
-                        {item.label}
-                        <span className="sr-only">
-                          {!item.applicable ? ', not applicable' : item.done ? ', done' : ', not done'}
-                        </span>
-                      </div>
-                      <div className="text-12 text-ink-3 mt-0.5">{item.detail}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-14 text-ink">
+                      {item.label}
+                      <span className="sr-only">
+                        {!item.applicable ? ', not applicable' : item.done ? ', done' : ', not done'}
+                      </span>
                     </div>
+                    <div className="text-12 text-ink-3 mt-0.5">{item.detail}</div>
                     {item.action?.kind === 'ackStandards' && (
                       <Button
                         size="sm"
                         variant="primary"
+                        className="mt-2"
                         isLoading={ackStandardsMutation.isPending}
                         onClick={() => ackStandardsMutation.mutate()}
                       >
@@ -526,6 +537,7 @@ export default function EmployeeDashboard() {
                       <Button
                         size="sm"
                         variant="primary"
+                        className="mt-2"
                         isLoading={ackSummaryMutation.isPending}
                         onClick={() => ackSummaryMutation.mutate(item.action.summary.id)}
                       >
@@ -536,6 +548,7 @@ export default function EmployeeDashboard() {
                       <Button
                         size="sm"
                         variant="secondary"
+                        className="mt-2"
                         leftIcon={BookOpen}
                         onClick={() => navigate('/employee/training')}
                       >
