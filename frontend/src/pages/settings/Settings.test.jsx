@@ -13,7 +13,7 @@ describe('Settings', () => {
   it('renders the profile section with the signed-in account context', async () => {
     renderWithProviders(<Settings />, { route: '/settings', user: testUser('employer') });
     expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument();
-    expect(await screen.findByText('User Profile & Tenant')).toBeInTheDocument();
+    expect(await screen.findByText('Profile & tenant')).toBeInTheDocument();
     expect(screen.getByText('employer@acme.com')).toBeInTheDocument();
   });
 

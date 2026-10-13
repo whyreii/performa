@@ -68,7 +68,7 @@ const STATUTORY_ALERTS = [
 // One label/value line in the profile block (label column, value column).
 function ProfileRow({ label, children }) {
   return (
-    <div className="grid grid-cols-1 gap-x-4 gap-y-1 py-2.5 sm:grid-cols-[180px_minmax(0,1fr)] sm:items-center">
+    <div className="grid grid-cols-1 gap-x-4 gap-y-1 py-2.5 sm:grid-cols-[132px_minmax(0,1fr)] sm:items-center">
       <span className="text-14 text-ink-3">{label}</span>
       <span className="min-w-0 text-14 text-ink">{children}</span>
     </div>
@@ -208,12 +208,12 @@ export default function Settings() {
   return (
     <Page title="Settings">
       <PageGrid className="space-y-10 lg:space-y-0 lg:gap-y-10">
-        {/* Profile & tenant — full width */}
-        <Row>
+        {/* Profile & tenant (7) | Appearance (5) */}
+        <Row className="lg:items-start">
           <Col span={7}>
             <section aria-label="User profile and tenant">
               <SectionHead
-                title="User Profile & Tenant"
+                title="Profile & tenant"
                 note={
                   <Button
                     variant="secondary"
@@ -225,17 +225,17 @@ export default function Settings() {
                       setIsEditingProfile((prev) => !prev);
                     }}
                   >
-                    {isEditingProfile ? 'Cancel' : 'Edit Profile'}
+                    {isEditingProfile ? 'Cancel' : 'Edit profile'}
                   </Button>
                 }
               />
 
               <div className="divide-y divide-line">
-                <ProfileRow label="Full Name">{user?.full_name || 'User'}</ProfileRow>
-                <ProfileRow label="Work Email">
+                <ProfileRow label="Full name">{user?.full_name || 'User'}</ProfileRow>
+                <ProfileRow label="Work email">
                   <span className="font-num">{user?.email}</span>
                 </ProfileRow>
-                <ProfileRow label="Platform Role">
+                <ProfileRow label="Platform role">
                   <span className="capitalize">{user?.role?.replace(/_/g, ' ')}</span>
                 </ProfileRow>
                 <ProfileRow label="Organization">
@@ -261,10 +261,7 @@ export default function Settings() {
               </div>
 
               {isEditingProfile && (
-                <form
-                  onSubmit={handleProfileSubmit}
-                  className="mt-5 space-y-4 border-t border-line pt-5 max-w-md"
-                >
+                <form onSubmit={handleProfileSubmit} className="mt-5 space-y-4 border-t border-line pt-5">
                   {profileStatus.message && (
                     <div
                       role="alert"
@@ -277,30 +274,27 @@ export default function Settings() {
                   )}
                   <TextField
                     id="p_name"
-                    label="Full Name"
+                    label="Full name"
                     type="text"
                     value={profileName}
                     onChange={(e) => setProfileName(e.target.value)}
                   />
                   <TextField
                     id="p_email"
-                    label="Work Email"
+                    label="Work email"
                     type="email"
                     value={profileEmail}
                     onChange={(e) => setProfileEmail(e.target.value)}
                     className="[&_input]:font-num"
                   />
                   <Button type="submit" variant="primary" isLoading={isSavingProfile}>
-                    Save Changes
+                    Save changes
                   </Button>
                 </form>
               )}
 
               {isEditingOrg && (
-                <form
-                  onSubmit={handleOrgSubmit}
-                  className="mt-5 space-y-4 border-t border-line pt-5 max-w-md"
-                >
+                <form onSubmit={handleOrgSubmit} className="mt-5 space-y-4 border-t border-line pt-5">
                   {orgStatus.message && (
                     <div
                       role="alert"
@@ -313,23 +307,20 @@ export default function Settings() {
                   )}
                   <TextField
                     id="org_name"
-                    label="Organization Name"
+                    label="Organization name"
                     type="text"
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
                   />
                   <Button type="submit" variant="primary" isLoading={isSavingOrg}>
-                    Save Organization
+                    Save organization
                   </Button>
                 </form>
               )}
             </section>
           </Col>
-        </Row>
 
-        {/* Appearance (7) | Security (5) */}
-        <Row className="lg:items-start">
-          <Col span={7}>
+          <Col span={5}>
             <section aria-label="Appearance">
               <SectionHead title="Appearance" subtitle="Light, Dark, or follow your system" />
 
@@ -375,10 +366,13 @@ export default function Settings() {
               </div>
             </section>
           </Col>
+        </Row>
 
+        {/* Security & password (5) | Review milestone alerts (7) */}
+        <Row className="lg:items-start">
           <Col span={5}>
             <section aria-label="Security">
-              <SectionHead title="Security & Password" subtitle="Update your password" />
+              <SectionHead title="Security & password" subtitle="Update your password" />
 
               {passwordStatus.message && (
                 <div
@@ -399,7 +393,7 @@ export default function Settings() {
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 <TextField
                   id="currPass"
-                  label="Current Password"
+                  label="Current password"
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
@@ -407,7 +401,7 @@ export default function Settings() {
                 />
                 <TextField
                   id="newPass"
-                  label="New Password"
+                  label="New password"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -415,42 +409,33 @@ export default function Settings() {
                 />
                 <TextField
                   id="confPass"
-                  label="Confirm New Password"
+                  label="Confirm new password"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                 />
                 <Button type="submit" variant="primary" isLoading={isUpdatingPassword} className="mt-2">
-                  Update Password
+                  Update password
                 </Button>
               </form>
             </section>
           </Col>
-        </Row>
 
-        {/* Article 296 review-milestone protocols — full width */}
-        <Row>
-          <Col span={12}>
-              <section aria-label="Review milestone alerts">
+          <Col span={7}>
+            <section aria-label="Review milestone alerts">
               <SectionHead
                 title="Review milestone alerts"
                 subtitle="Article 296 · mandatory · always enforced · Asia/Manila"
               />
               <div>
                 {STATUTORY_ALERTS.map((a) => (
-                  <div
-                    key={a.title}
-                    className="grid grid-cols-1 gap-x-4 gap-y-1.5 border-t border-line py-3 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_150px_90px] sm:items-center"
-                  >
-                    <div className="min-w-0">
-                      <div className="text-14 font-semibold text-ink">{a.title}</div>
-                      <p className="mt-0.5 text-14 leading-relaxed text-ink-2">{a.body}</p>
-                    </div>
-                    <div>
+                  <div key={a.title} className="border-t border-line py-3.5 first:border-t-0">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <span className="text-14 font-semibold text-ink">{a.title}</span>
                       <Badge variant={a.tone}>{a.badge}</Badge>
                     </div>
-                    <span className="text-12 font-semibold text-good sm:text-right">Enforced</span>
+                    <p className="mt-1 text-14 leading-relaxed text-ink-2">{a.body}</p>
                   </div>
                 ))}
               </div>
@@ -497,9 +482,9 @@ export default function Settings() {
                       <p className="text-12 text-ink-3">
                         Pre-built target/weight presets employers can apply in KPI Configuration.
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
                         {Object.entries(systemSettings.kpi_templates || {}).map(([industry, rows]) => (
-                          <div key={industry} className="rounded-ctl border border-line p-3 space-y-2">
+                          <div key={industry} className="space-y-2">
                             <div className="text-12 font-semibold text-ink">{prettyKey(industry)}</div>
                             <ul className="space-y-0.5">
                               {Object.entries(rows).map(([comp, cfg]) => (
