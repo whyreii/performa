@@ -129,6 +129,17 @@ How to present work. The owner reads these responses directly; keep them tight a
 - Never claim something passes unless you ran it and can show the output. If you couldn't run it, say so plainly.
 - When the task is ambiguous, or a value appears differently in two places, **ask or flag it** — never guess.
 
+### Model and variant by task type (OpenCode)
+
+| Task type | Model | Variant |
+|---|---|---|
+| Routine: UI tweaks, test fixes, docs, copy | `claude-haiku-5-5` | `low` (`none` for trivial edits) |
+| Hard: migrations, RBAC, audit chain, ML or Gemini pipeline | `claude-haiku-5-5` | `high` |
+| Second opinion on a hard diff | `deepseek-v4.1-flash` | `high` |
+| Stuck after a `high` attempt | `claude-haiku-5-5` | `xhigh` (then `max` only if still stuck) |
+
+Starting points, not yet measured. Revise after the bake-off.
+
 ### UI foundation (current, keep it)
 The design grammar the app settled on lives in `docs/LAYOUT_GRAMMAR.md` and `src/tokens.css`:
 - **Flat sections**, not boxes: `SectionHead` + hairline rows. Use `Card` only when a block genuinely needs a surface.
