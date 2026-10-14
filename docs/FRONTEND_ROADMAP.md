@@ -85,17 +85,25 @@ Status: `[x]` done · `[ ]` open · `[~]` partial.
 - [x] Mark identity is consistent: `favicon.svg` is the mark, and `public/` has
   no other app/social icons to reconcile.
 - [ ] *(Optional)* a thin proportional hairline under the Docket to restore the
-  at-a-glance position cue without reverting to the old bar.
+  at-a-glance position cue without reverting to the old bar. **Deferred** — the
+  Docket already encodes status, so this is only worth doing if the position cue
+  is actually missed.
 
-### Phase 5 — Performance — **partial**
+### Phase 5 — Performance — **done**
 - [x] Drop `motion` (138 KB chunk) by porting the vanilla `RubberSegment` to
   `utils/animate.js`. The `motion` dependency is gone; the chunk is removed
   (Settings absorbs ~6 KB).
-- [~] Reviewed the mobile sticky bars: `MobileBar` and `BottomTabBar` use
-  `backdrop-blur-md` at 90–95% opacity, so the blur is near-invisible. Left
-  as-is pending device profiling (no speculative visual change).
+- [x] Mobile sticky bars: `MobileBar` and `BottomTabBar` no longer carry
+  `backdrop-blur-md`, so mobile loses a compositor layer. Their `bg-side/90` and
+  `bg-side/95` classes were **dead** — Tailwind cannot apply an opacity modifier
+  to a token declared as `var(--side)` (a full hex), so those bars had no
+  background at all and the blur was the only thing hiding content behind them.
+  They now use the plain `bg-side` token (opaque), which does resolve. Verified
+  live at 375px: `background: rgb(16, 18, 22)`, `backdrop-filter: none`. The
+  desktop toolbar and sidebar keep their glass blur (`bg-glass` is genuinely
+  translucent, so the blur is the design).
 
-### Phase 6 — Guardrails & docs — **partial**
+### Phase 6 — Guardrails & docs — **done**
 - [x] `eslint-plugin-jsx-a11y` wired into `npm run lint`.
 - [x] Guardrail tests for the statically-checkable rules —
   `backend/tests/guardrails/test_ui_contract.py`: single radius source (no
@@ -105,6 +113,41 @@ Status: `[x]` done · `[ ]` open · `[~]` partial.
 - [x] Delete the dead `StatRow` primitive; tokenize the `GlideSelect` /
   `RubberSegment` colour fallbacks so a no-prop usage is themed.
 - [x] This roadmap + the contract as the reference for UI changes.
+
+---
+
+## Open decisions (from the Rollups & AI Plans review)
+
+Recorded so they don't get lost. Each needs an owner decision before it can be
+built; none is a UI-only change.
+
+- [ ] **Approval record.** One employer approval per employee per cycle, with the
+  approved rationale text snapshotted. Touches the audit schema, so the field list
+  must be confirmed first (suggested: `approved_at`, `approved_by`, rationale
+  snapshot). Open: should dispatch require the approval? (Suggested: no.)
+- [ ] **Rationale cycle label.** `routers/evaluations.py` hardcodes
+  `month_number=5` when generating the regularization rationale, so the AI text
+  can say "fifth month" while the Rollups summary shows a later month.
+- [ ] **Milestone wording.** `ARCHITECTURE.md` line 87 calls Days 150 / 165 / 178
+  fixed statutory Article 296 milestones; the comment in `routers/employees.py`
+  calls them an internal review schedule. Docs and code must agree. Needs the
+  adviser's wording.
+- [ ] **Plan cap.** Capping training plans per rollup breaks the guardrail
+  `backend/tests/guardrails/test_gemini_scope.py` ("all 5 competencies below 3.0
+  map to the full catalog set"). The invariant must change in the docs before the
+  cap can be built.
+- [ ] **Dead `bg-surface/…` tints.** The same root cause (an opacity modifier on a
+  `var()`-declared token) leaves seven more classes with no background:
+  `bg-surface/95` (Toast), `bg-surface/80` (MobileBar icon buttons),
+  `bg-surface/30` (CommandPalette footer), `bg-surface/50` and `bg-surface/60`
+  (Sidebar buttons). Each keeps a border, so they still read as controls. Fixing
+  it properly means declaring `--bg` / `--side` / `--surface` as channel triplets
+  and using the existing `withOpacity()` helper (as `ink` / `accent` already do),
+  which touches `tokens.css` and every direct `var(--…)` consumer.
+- [ ] **Evidence chain view.** One per-employee sequence: weekly ratings → monthly
+  summary → rationale reviewed → plans approved → summary dispatched → employee
+  acknowledged. The data already exists; it is a frontend view. Depends on the
+  approval record.
 
 ---
 
