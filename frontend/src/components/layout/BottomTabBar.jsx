@@ -18,7 +18,7 @@ export default function BottomTabBar() {
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-side/95 backdrop-blur-md border-t border-line px-2 py-1 shadow-lg pb-[calc(0.25rem+env(safe-area-inset-bottom,0px))]"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-side border-t border-line px-2 py-1 shadow-lg pb-[calc(0.25rem+env(safe-area-inset-bottom,0px))]"
       aria-label="Mobile Navigation"
     >
       <div className={`grid gap-1 ${TAB_GRID[tabs.length] || 'grid-cols-5'}`}>

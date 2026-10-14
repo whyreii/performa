@@ -25,7 +25,7 @@ export default function MobileBar({ onOpenCommandPalette }) {
   const nextMode = () => setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]);
 
   return (
-    <header className="lg:hidden sticky top-0 z-30 h-14 w-full bg-side/90 backdrop-blur-md border-b border-line px-4 flex items-center justify-between">
+    <header className="lg:hidden sticky top-0 z-30 h-14 w-full bg-side border-b border-line px-4 flex items-center justify-between">
       {/* Left side: Back button or Brand */}
       {isSubPage ? (
         <button
