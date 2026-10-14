@@ -6,7 +6,7 @@ import React from 'react';
 // this so the surface string exists once.
 const TONE = {
   surface: 'bg-surface',
-  warn: 'bg-warn/6',
+  warn: 'bg-warn/8',
 };
 
 export default function Surface({

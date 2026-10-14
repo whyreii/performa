@@ -17,22 +17,22 @@ export default {
   theme: {
     extend: {
       borderColor: {
-        DEFAULT: 'var(--line)',
+        DEFAULT: withOpacity('--line'),
       },
       colors: {
-        bg: 'var(--bg)',
-        side: 'var(--side)',
-        surface: 'var(--surface)',
+        bg: withOpacity('--bg'),
+        side: withOpacity('--side'),
+        surface: withOpacity('--surface'),
         ink: {
           DEFAULT: withOpacity('--ink'),
           2: withOpacity('--ink-2'),
           3: withOpacity('--ink-3'),
         },
-        line: 'var(--line)',
-        hover: 'var(--hover)',
-        seg: 'var(--seg)',
-        glass: 'var(--glass)',
-        'glass-line': 'var(--glass-line)',
+        line: withOpacity('--line'),
+        hover: withOpacity('--hover'),
+        seg: withOpacity('--seg'),
+        glass: withOpacity('--glass'),
+        'glass-line': withOpacity('--glass-line'),
         accent: {
           DEFAULT: withOpacity('--accent'),
           foreground: 'var(--on-accent)',
@@ -42,7 +42,7 @@ export default {
         bad: withOpacity('--bad'),
         warn: withOpacity('--warn'),
         notice: withOpacity('--notice'),
-        off: 'var(--off)',
+        off: withOpacity('--off'),
       },
       borderRadius: {
         ctl: 'var(--r-ctl)',
