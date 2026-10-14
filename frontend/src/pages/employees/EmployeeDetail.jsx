@@ -822,6 +822,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                               {Number(regularization.overall_average).toFixed(2)}
                             </span>{' '}
                             / 5.0
+                            {' · '}
+                            covering Day 0 to Day {daysElapsed}
                           </p>
                           {regularization.rationale && (
                             <p className="text-14 text-ink-2 leading-relaxed">
