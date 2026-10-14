@@ -234,10 +234,11 @@ export default function Rollups() {
               const avgField = SUMMARY_AVG_FIELD[plan.competency];
               const rawScore = summary && avgField ? Number(summary[avgField]) : NaN;
               const gap = rawScore - TARGET;
-              // Basis is stated on the line: the monthly average, its gap to the
-              // standard, and the cycle it covers (the competency is in the meta line).
+              // Basis is stated on the line: the monthly average (two decimals,
+              // D6), its gap to the standard, and the cycle it covers (the
+              // competency is in the meta line).
               const evidence = Number.isFinite(rawScore)
-                ? `Avg ${rawScore.toFixed(1)} · gap ${gap >= 0 ? '+' : '−'}${Math.abs(gap).toFixed(
+                ? `Avg ${rawScore.toFixed(2)} · gap ${gap >= 0 ? '+' : '−'}${Math.abs(gap).toFixed(
                     1
                   )} vs ${TARGET.toFixed(1)} · Month ${summary.month_number}`
                 : null;
@@ -287,22 +288,18 @@ export default function Rollups() {
                     ) : null}
                   </div>
 
-                  {/* AI Rationale by Gemini, with the decision controls beside it */}
+                  {/* AI Rationale by Gemini */}
                   {plan.rationale ? (
                     <div className="border-t border-line pt-2.5 space-y-1.5">
                       <span className="font-semibold text-ink-3 text-12">
                         Gemini Performance Rationale
                       </span>
-                      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
-                        <p className="min-w-0 flex-1 text-14 text-ink-2 leading-relaxed">
-                          {plan.rationale}
-                        </p>
-                        {decision}
-                      </div>
+                      <p className="text-14 text-ink-2 leading-relaxed">{plan.rationale}</p>
                     </div>
-                  ) : (
-                    <div className="border-t border-line pt-2.5 flex justify-end">{decision}</div>
-                  )}
+                  ) : null}
+
+                  {/* Actions — after the rationale, so the decision is informed (D8) */}
+                  {decision}
                 </li>
               );
             })}

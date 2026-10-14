@@ -45,6 +45,29 @@ describe('Rollups', () => {
     await waitFor(() => expect(interventionApi.signOff).toHaveBeenCalledWith('p-1', true));
   });
 
+  it('reads the rationale before deciding, and prints the average to two decimals', async () => {
+    // Link the plan to the summary so the card renders its evidence line.
+    interventionApi.listPending.mockResolvedValue([plan({ monthly_summary_id: 's-1' })]);
+    renderRollups();
+
+    const rationale = await screen.findByText('Targets the throughput gap.');
+    const approve = await screen.findByRole('button', { name: /^Approve / });
+
+    // D8: the reason is read before the decision is taken.
+    expect(
+      rationale.compareDocumentPosition(approve) & Node.DOCUMENT_POSITION_FOLLOWING,
+      'the rationale must come before the Approve control'
+    ).toBeTruthy();
+    // …and the controls are their own row, not beside the rationale text.
+    expect(
+      rationale.parentElement.contains(approve),
+      'the decision controls must sit below the rationale block'
+    ).toBe(false);
+
+    // D6: a computed average prints two decimals, matching the summary table.
+    expect(await screen.findByText(/Avg \d+\.\d{2} ·/)).toHaveTextContent('Avg 4.10');
+  });
+
   it('shows an error with a working Retry', async () => {
     interventionApi.listPending.mockRejectedValue(new Error('down'));
     renderRollups();
