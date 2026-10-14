@@ -130,7 +130,7 @@ describe('Pending approvals show the employee and put the rationale first', () =
 
     const section = await screen.findByRole('region', { name: 'Pending approvals' });
     const titleEl = await within(section).findByText('SOP Workflow & Throughput Optimization');
-    const approve = await within(section).findByRole('button', { name: 'Approve' });
+    const approve = await within(section).findByRole('button', { name: /^Approve / });
 
     // The employee the plan targets must be visible on the same card as the
     // title and the decision controls (walk up to the nearest shared ancestor).

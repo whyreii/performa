@@ -37,7 +37,7 @@ describe('Rollups', () => {
     interventionApi.signOff.mockResolvedValue({});
     renderRollups();
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Approve' }));
+    fireEvent.click(await screen.findByRole('button', { name: /^Approve / }));
 
     const dialog = await screen.findByRole('dialog');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Approve' }));

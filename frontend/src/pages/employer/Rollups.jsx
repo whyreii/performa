@@ -206,10 +206,12 @@ export default function Rollups() {
               const avgField = SUMMARY_AVG_FIELD[plan.competency];
               const rawScore = summary && avgField ? Number(summary[avgField]) : NaN;
               const gap = rawScore - TARGET;
+              // Basis is stated on the line: the monthly average, its gap to the
+              // standard, and the cycle it covers (the competency is in the meta line).
               const evidence = Number.isFinite(rawScore)
-                ? `${competencyLabel(plan.competency)} ${rawScore.toFixed(1)} · gap ${
-                    gap >= 0 ? '+' : '−'
-                  }${Math.abs(gap).toFixed(1)} vs ${TARGET.toFixed(1)}`
+                ? `Avg ${rawScore.toFixed(1)} · gap ${gap >= 0 ? '+' : '−'}${Math.abs(gap).toFixed(
+                    1
+                  )} vs ${TARGET.toFixed(1)} · Month ${summary.month_number}`
                 : null;
               // The decision controls: defined once, rendered after the rationale
               // so the sign-off is informed (D8).
@@ -220,6 +222,7 @@ export default function Rollups() {
                     size="sm"
                     leftIcon={XCircle}
                     disabled={signOffMutation.isPending}
+                    aria-label={`Reject ${plan.intervention_title}`}
                     onClick={() => setConfirmPlan({ plan, approved: false })}
                   >
                     Reject
@@ -229,6 +232,7 @@ export default function Rollups() {
                     size="sm"
                     leftIcon={CheckCircle2}
                     disabled={signOffMutation.isPending}
+                    aria-label={`Approve ${plan.intervention_title}`}
                     onClick={() => setConfirmPlan({ plan, approved: true })}
                   >
                     Approve
@@ -319,7 +323,7 @@ export default function Rollups() {
                     Cycle
                   </Th>
                   <Th sortKey="overall" activeKey={summarySort.key} dir={summarySort.dir} onSort={onSummarySort} align="right" className="py-2.5 pr-4">
-                    Overall
+                    Month average
                   </Th>
                   <Th sortKey="risk" activeKey={summarySort.key} dir={summarySort.dir} onSort={onSummarySort} className="py-2.5 pr-4">
                     Risk tier
