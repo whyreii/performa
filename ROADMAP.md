@@ -35,8 +35,8 @@ Open your browser to: **`http://localhost:5173`**
 
 | Role | Email | Redirects To | What You Can Test Right Now |
 | :--- | :--- | :--- | :--- |
-| **System Administrator** | `admin@acme.com` | `/admin/users` | • **User Account Management Module**: Provision accounts & assign roles<br/>• Deactivate/reactivate accounts & reset user passwords<br/>• No employee-record access (per amended manuscript scope)<br/>• System activity log (`/admin/activity`)<br/>• System settings & live 5-palette theme switcher |
-| **Employer (Business Owner)** | `employer@acme.com` | `/dashboard` | • Executive KPI metrics & Day 150 urgent banner<br/>• 180-Day Probation timeline & live employee pipeline<br/>• **Exclusive Onboarding**: Add employee with auto Day 180 calculation<br/>• Monthly 30-Day Rollups with Gemini AI summaries<br/>• Employer digital sign-off on training plans<br/>• DOLE-compliant audit trail with printable export view<br/>• Settings: Switch between all 5 theme palettes live |
+| **System Administrator** | `admin@acme.com` | `/admin/users` | • **User Account Management Module**: Provision accounts & assign roles<br/>• Deactivate/reactivate accounts & reset user passwords<br/>• No employee-record access (per amended manuscript scope)<br/>• System activity log (`/admin/activity`)<br/>• System settings & Light / Dark / System theme mode |
+| **Employer (Business Owner)** | `employer@acme.com` | `/dashboard` | • Executive KPI metrics & Day 150 urgent banner<br/>• 180-Day Probation timeline & live employee pipeline<br/>• **Exclusive Onboarding**: Add employee with auto Day 180 calculation<br/>• Monthly 30-Day Rollups with Gemini AI summaries<br/>• Employer digital sign-off on training plans<br/>• DOLE-compliant audit trail with printable export view<br/>• Settings: Light / Dark / System theme mode |
 | **Supervisor** | `supervisor@acme.com` | `/supervisor/dashboard` | • Direct reports list with milestone tags<br/>• Weekly evaluation matrix (rate 1.0–5.0 across 5 competencies)<br/>• Target 4.0 marker and live gap calculations<br/>• View-only employee directory<br/>• Complete 5-competency statutory rubrics guide |
 | **Probationary Employee** | `emp1@acme.com` | `/employee/dashboard` | • Personal 180-day countdown & milestone pill<br/>• 5-Competency performance scorecard<br/>• View assigned AI-recommended training courses |
 
@@ -146,7 +146,7 @@ flowchart TD
 
 ### ✅ Phase 7: Frontend SPA Modernization & Component Architecture (100% COMPLETE)
 - [x] **Phase 7A (Foundations)**: Axios client with JWT auto-attachment, 401 interceptor, TanStack Query defaults, React Router guards.
-- [x] **Phase 7B (Design Tokens)**: `tokens.css` with 5 palettes, Tailwind mapping, self-hosted Geist fonts, anti-flash `ThemeProvider`.
+- [x] **Phase 7B (Design Tokens)**: `tokens.css` with 2 curated themes (`paper` light, `graphite` dark) plus Light / Dark / System mode, Tailwind mapping, self-hosted Inter fonts, anti-flash `ThemeProvider`.
 - [x] **Phase 7C (UI Primitives)**: `Button`, `Badge`, `ScoreMeter` (with 4.0 tick `<u>`), `StatusDot`, `MilestonePill`, `Skeleton`.
 - [x] **Phase 7D (AppShell)**: Collapsible sidebar (250px $\rightarrow$ 72px with `[` shortcut), MobileBar, BottomTabBar, Command Palette (`Ctrl+K`).
 - [x] **Phase 7E (All Live Pages)**: Migrated and connected all 13 production screens; removed all legacy 0-byte stubs.
@@ -158,7 +158,7 @@ flowchart TD
 
 ### 1. Phase 7F: Frontend QA & Accessibility Pass (Completed)
 - [x] Viewport responsiveness verified at Mobile (375px), Tablet (768px), and Desktop (1280px).
-- [x] Contrast verification across all 5 theme palettes (ensuring WCAG AA compliance).
+- [x] Contrast verification across both themes (paper, graphite) (ensuring WCAG AA compliance).
 - [x] Keyboard navigation verified (`Tab`, `Enter`, `Esc`, `[` sidebar toggle, `Ctrl+K` command palette).
 - [x] Live local browser manual testing completed on `http://localhost:5173`.
 
