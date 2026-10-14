@@ -144,12 +144,6 @@ export default function UserManagement() {
     <Page
         kicker="IT & System Administration"
         title="Account Management"
-        subtitle={
-          <>
-            User provisioning, role assignments, and credential management ·{' '}
-            <span className="font-num text-ink">{currentUser?.organization_name || currentUser?.organization_id}</span>
-          </>
-        }
         actions={
           <Button variant="primary" leftIcon={UserPlus} onClick={() => setIsCreateModalOpen(true)}>
             Create User Account

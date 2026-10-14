@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useChrome } from '../../context/ChromeContext';
 
@@ -7,10 +7,10 @@ import { useChrome } from '../../context/ChromeContext';
 // "gallery wall" lives once in AppShell.jsx (docs/LAYOUT_GRAMMAR.md; enforced by
 // backend/tests/guardrails/test_page_wrapper.py).
 //
-// In the iMac shell the page title/subtitle render in the top toolbar and the
-// actions portal into the toolbar's action slot — pages keep passing
-// title/subtitle/actions here unchanged. `header={false}` leaves the toolbar
-// empty (pages that render their own hero, e.g. the employee record).
+// In the iMac shell the page title renders in the top toolbar and the actions
+// portal into the toolbar's action slot — pages keep passing title/actions here
+// unchanged. `header={false}` leaves the toolbar empty (pages that render their
+// own hero, e.g. the employee record).
 //
 // `reveal` (default) fades the whole page in on mount as a single composited
 // layer (never one layer per section — see index.css). The app's Reduce-motion
@@ -18,7 +18,6 @@ import { useChrome } from '../../context/ChromeContext';
 export default function Page({
   kicker,
   title,
-  subtitle,
   actions,
   header = true,
   headerClassName = '',
@@ -29,22 +28,14 @@ export default function Page({
   children,
   ...props
 }) {
-  const { setTitle, setSubtitle, actionsEl } = useChrome();
-
-  // `subtitle` is often JSX, whose identity changes every render. Hold it in a
-  // ref so the effect below doesn't re-run each render — re-setting provider
-  // state every render would loop ("Maximum update depth exceeded").
-  const subtitleRef = useRef(subtitle);
-  subtitleRef.current = subtitle;
+  const { setTitle, actionsEl } = useChrome();
 
   useEffect(() => {
     setTitle(header ? title || '' : '');
-    setSubtitle(header ? subtitleRef.current || '' : '');
     return () => {
       setTitle('');
-      setSubtitle('');
     };
-  }, [header, title, setTitle, setSubtitle]);
+  }, [header, title, setTitle]);
 
   const classes = [
     'space-y-6',

@@ -45,7 +45,6 @@ export default function EmployeeTraining() {
   return (
     <Page
       title="Assigned Training Interventions"
-      subtitle="Targeted learning modules to close competency gaps before the Day 150 appraisal"
     >
       {isLoading ? (
         <div className="space-y-4">

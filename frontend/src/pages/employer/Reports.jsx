@@ -87,7 +87,6 @@ export default function Reports() {
   return (
     <Page
       title="Reports"
-      subtitle="DOLE Article 296 performance reports · generate, record and download"
       actions={
         <Button variant="primary" leftIcon={FileText} onClick={openGenerate}>
           Generate report

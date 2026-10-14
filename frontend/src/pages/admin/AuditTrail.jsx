@@ -130,7 +130,6 @@ export default function AuditTrail() {
         }
         headerClassName="no-print"
         title="Audit Trail & Compliance"
-        subtitle="Article 296 Evidentiary Due Process Logs · Immutable & Append-Only"
         actions={
           <>
             <Button

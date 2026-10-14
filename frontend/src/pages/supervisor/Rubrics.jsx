@@ -184,7 +184,6 @@ export default function Rubrics() {
   return (
     <Page
       title="KPI Performance Rubrics"
-      subtitle="The 5 core competencies & regularizing benchmarks · Philippine Labor Code Art. 296"
     >
       {isRubricsError && (
         <div className="p-3 rounded-ctl bg-warn/8 border border-line text-warn text-12 flex items-center gap-2">

@@ -46,11 +46,6 @@ export default function SupervisorDashboard() {
   return (
     <Page
         title="Supervisor Workspace"
-        subtitle={
-          <>
-            Weekly Evaluator Dashboard · <span className="font-num text-ink">{user?.organization_name || user?.organization_id}</span>
-          </>
-        }
         actions={
           <>
             <Button variant="secondary" onClick={() => navigate('/rubrics')}>

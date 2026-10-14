@@ -16,7 +16,6 @@ export default function EmployeeSplit() {
   return (
     <Page
       title="Employees"
-      subtitle="Select a record to view the scorecard, milestone timeline, audit trail, and AI recommendations."
       actions={
         canOnboard ? (
           <Button variant="primary" leftIcon={Plus} onClick={() => setIsAddOpen(true)}>

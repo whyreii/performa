@@ -13,19 +13,15 @@ import { Bell, CheckCheck, AlertCircle } from '../../components/icons';
 // only (the Admin is view-only and receives no performance alerts).
 const COPY_BY_ROLE = {
   admin: {
-    subtitle: 'System and account notifications',
     empty: 'System and account notifications will appear here.',
   },
   employer: {
-    subtitle: 'Probation milestone alerts for your probationary employees',
     empty: 'You will be alerted here when an employee reaches a Day 150, 165, or 178 milestone.',
   },
   supervisor: {
-    subtitle: 'Day 150 review alerts for your direct reports',
     empty: 'You will be alerted here when a direct report reaches the Day 150 performance review.',
   },
   probationary_employee: {
-    subtitle: 'Monthly performance summaries and training updates',
     empty: 'You will be alerted here when a performance summary or training plan is shared with you.',
   },
 };
@@ -74,7 +70,6 @@ export default function Notifications() {
   return (
     <Page
         title="Notifications"
-        subtitle={copy.subtitle}
         actions={
           <>
             {unreadCount > 0 && <Badge variant="accent">{unreadCount} unread</Badge>}

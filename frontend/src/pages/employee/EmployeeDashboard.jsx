@@ -253,11 +253,6 @@ export default function EmployeeDashboard() {
   return (
     <Page
       title="My Performance Scorecard"
-      subtitle={
-        <>
-          Your probation journey · <span className="font-num text-ink">{user?.organization_name || user?.organization_id}</span>
-        </>
-      }
       actions={myProfile ? <MilestonePill daysElapsed={daysElapsed} status={myProfile.status} /> : null}
     >
       <StatBand cells={kpis} />

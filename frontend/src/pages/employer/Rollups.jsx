@@ -163,7 +163,6 @@ export default function Rollups() {
   return (
     <Page
       title="Rollups & AI Plans"
-      subtitle="Gemini summaries · Random Forest recommendations"
       actions={
         <Button variant="primary" leftIcon={Sparkles} onClick={handleOpenGenerate}>
           Generate Rollup

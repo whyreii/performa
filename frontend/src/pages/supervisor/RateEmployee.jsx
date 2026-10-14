@@ -202,7 +202,6 @@ export default function RateEmployee() {
   return (
     <Page
       title="Rate Probationary Employee"
-      subtitle={`Article 296 evidentiary due process · Target ${thresholdTarget.toFixed(1)} standard`}
     >
       {error && (
         <div
