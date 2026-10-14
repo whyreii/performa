@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query';
-import { employeeApi, evaluationApi, interventionApi } from '../../api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { employeeApi, interventionApi } from '../../api';
 import {
   Button,
   Skeleton,
@@ -74,29 +74,19 @@ export default function Dashboard() {
     [employees]
   );
 
-  // One scorecard per active probationer (404 = not rated yet → null).
-  const scoreQueries = useQueries({
-    queries: activeProbationers.map((e) => ({
-      queryKey: ['scorecard', e.id],
-      queryFn: async () => {
-        try {
-          return (await evaluationApi.getScorecard(e.id)) ?? null;
-        } catch {
-          return null;
-        }
-      },
-      retry: false,
-      staleTime: 60_000,
-    })),
-  });
-  const scoresLoading = scoreQueries.some((q) => q.isLoading);
+  // The list response already carries each employee's latest-week score and the
+  // tenant target, so the dashboard makes one request, not one per employee.
+  const scoreFor = (emp) =>
+    emp.latest_overall_score == null
+      ? null
+      : { overall_score: emp.latest_overall_score, target_score: emp.latest_target_score };
 
   // One row per active probationer: day/stage, score vs target, next milestone.
   // A missing scorecard renders as "No score yet" rather than dropping the row.
   const rows = useMemo(
     () =>
       activeProbationers
-        .map((emp, i) => {
+        .map((emp) => {
           const days = getDaysElapsed(emp.start_date);
           const next = nextMilestone(days);
           return {
@@ -106,11 +96,11 @@ export default function Dashboard() {
             nextDate: next ? milestoneDate(emp.start_date, next) : null,
             capDate: emp.day_180_date,
             tone: milestoneFor(days, emp.status).tone,
-            sc: scoreQueries[i]?.data || null,
+            sc: scoreFor(emp),
           };
         })
         .sort((a, b) => b.days - a.days),
-    [activeProbationers, scoreQueries]
+    [activeProbationers]
   );
 
   const stats = useMemo(() => {
@@ -167,7 +157,7 @@ export default function Dashboard() {
                 title="Probation status"
                 subtitle={`Target ${targetScore.toFixed(1)}`}
               />
-              {isEmpLoading || scoresLoading ? (
+              {isEmpLoading ? (
                 <div className="space-y-3 pt-2">
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-full" />

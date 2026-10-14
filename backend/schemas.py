@@ -254,6 +254,10 @@ class ProbationaryEmployeeDetailResponse(ProbationaryEmployeeResponse):
     user: UserResponse
     employer: UserResponse
     supervisor: Optional[UserResponse] = None
+    # Latest-week performance summary, computed on the list so the roster and
+    # dashboard need one request instead of one per employee (None = unrated).
+    latest_overall_score: Optional[float] = None
+    latest_target_score: Optional[float] = None
 
 
 class ProbationaryEmployeeCreateRequest(BaseModel):

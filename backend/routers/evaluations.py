@@ -41,7 +41,6 @@ from ..ml.explain import explain_prediction
 from ..ml.predictor import predict_employee_risk
 from ..models import (
     EvaluationAuditLog,
-    KpiRubric,
     MonthlySummary,
     PerformanceRatingEnum,
     ProbationaryEmployee,
@@ -64,6 +63,7 @@ from ..schemas import (
     WeeklyEvaluationResponse,
     WeeklyRatingSubmit,
 )
+from ..scoring import rubric_maps, weighted_target
 from ..timeutils import manila_today, to_manila
 
 logger = logging.getLogger(__name__)
@@ -314,19 +314,7 @@ async def get_scorecard(
 
     scores = _scores_from_evaluation(latest)
 
-    rubrics = list(
-        (
-            await db.execute(
-                select(KpiRubric).where(
-                    KpiRubric.organization_id == current_user.organization_id
-                )
-            )
-        )
-        .scalars()
-        .all()
-    )
-    target_map = {rubric.competency.value: float(rubric.target_score) for rubric in rubrics}
-    weight_map = {rubric.competency.value: float(rubric.weight) for rubric in rubrics}
+    target_map, weight_map = await rubric_maps(db, current_user.organization_id)
 
     competencies = [
         CompetencyScoreItem(
@@ -339,12 +327,9 @@ async def get_scorecard(
         for attribute, label in COMPETENCIES
     ]
 
+    overall_target = weighted_target(target_map, weight_map)
     total_weight = sum(weight_map.values())
     if total_weight > 0:
-        overall_target = sum(
-            weight_map.get(attribute, 0.0) * target_map.get(attribute, TARGET_SCORE)
-            for attribute, _ in COMPETENCIES
-        ) / total_weight
         # Compare like-for-like: a weighted target must be measured against a
         # weighted score, not the unweighted mean.
         weighted_score = sum(
@@ -352,7 +337,6 @@ async def get_scorecard(
             for attribute, _ in COMPETENCIES
         ) / total_weight
     else:
-        overall_target = TARGET_SCORE
         weighted_score = float(latest.overall_score)
 
     overall_score = round(float(latest.overall_score), 2)

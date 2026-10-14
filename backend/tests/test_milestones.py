@@ -46,6 +46,29 @@ async def test_onboard_employee_with_supervisor(client):
 
 
 @pytest.mark.asyncio
+async def test_employee_list_carries_latest_score_and_target(client):
+    """The list computes each employee's latest-week score + the tenant target once.
+
+    Guards the roster/dashboard path: the list must carry the summary itself
+    (no per-employee scorecard fan-out), and must survive a tenant that HAS
+    rubrics — the unweighted case short-circuits before the weighted-target math.
+    """
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    rubrics = await client.get("/api/kpi-rubrics", headers=employer)  # provision defaults
+    assert rubrics.status_code == 200, rubrics.text
+
+    resp = await client.get("/api/employees/", headers=employer)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body, "expected at least one seeded employee"
+    for employee in body:
+        assert "latest_overall_score" in employee
+        assert "latest_target_score" in employee
+        # The target is tenant-wide, so it is always a number, never null.
+        assert employee["latest_target_score"] is not None
+
+
+@pytest.mark.asyncio
 async def test_onboard_without_password_generates_and_emails(client, caplog):
     """Onboarding without a password generates one and emails it (no-SMTP log fallback)."""
     employer = await login_user(client, EMPLOYER_EMAIL)

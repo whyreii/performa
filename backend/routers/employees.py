@@ -15,7 +15,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Load, selectinload
@@ -32,7 +32,14 @@ from ..domain import (
     milestone_dates,
 )
 from ..emailer import send_credentials_email, send_milestone_alert_email
-from ..models import Organization, ProbationaryEmployee, ProbationStatus, User, UserRole
+from ..models import (
+    Organization,
+    ProbationaryEmployee,
+    ProbationStatus,
+    User,
+    UserRole,
+    WeeklyEvaluation,
+)
 from ..notifications import create_notification
 from ..passwords import generate_password
 from ..schemas import (
@@ -43,6 +50,7 @@ from ..schemas import (
     ProbationaryEmployeeStatusUpdate,
     UserResponse,
 )
+from ..scoring import rubric_maps, weighted_target
 from ..timeutils import manila_today
 
 router = APIRouter(tags=["Employees"])
@@ -93,6 +101,38 @@ async def _fetch_employee(
             detail="Probationary employee not found",
         )
     return employee
+
+
+async def _latest_overall_by_employee(
+    db: AsyncSession, employee_ids: list[uuid.UUID], organization_id: str
+) -> dict[uuid.UUID, float]:
+    """Each employee's most recent weekly overall, in one query (avoids an N+1)."""
+    if not employee_ids:
+        return {}
+    ranked = (
+        select(
+            WeeklyEvaluation.employee_id.label("employee_id"),
+            WeeklyEvaluation.overall_score.label("overall_score"),
+            func.row_number()
+            .over(
+                partition_by=WeeklyEvaluation.employee_id,
+                order_by=(
+                    WeeklyEvaluation.evaluation_date.desc(),
+                    WeeklyEvaluation.created_at.desc(),
+                ),
+            )
+            .label("rank"),
+        )
+        .where(
+            WeeklyEvaluation.organization_id == organization_id,
+            WeeklyEvaluation.employee_id.in_(employee_ids),
+        )
+        .subquery()
+    )
+    rows = await db.execute(
+        select(ranked.c.employee_id, ranked.c.overall_score).where(ranked.c.rank == 1)
+    )
+    return {row.employee_id: round(float(row.overall_score), 2) for row in rows}
 
 
 def _milestone_item(employee: ProbationaryEmployee, as_of: date) -> MilestoneEmployee:
@@ -357,7 +397,7 @@ async def list_employees(
     limit: int = Query(default=50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> list[ProbationaryEmployee]:
+) -> list[ProbationaryEmployeeDetailResponse]:
     """List employees, scoped by tenant and, for supervisors, by assignment."""
     stmt = (
         select(ProbationaryEmployee)
@@ -386,7 +426,24 @@ async def list_employees(
         .limit(limit)
     )
     result = await db.execute(stmt)
-    return list(result.scalars().all())
+    employees = list(result.scalars().all())
+
+    # The latest-week score and the tenant's weighted target ride along on the
+    # list, so the roster and dashboard make one request, not one per employee.
+    target_map, weight_map = await rubric_maps(db, current_user.organization_id)
+    tenant_target = round(weighted_target(target_map, weight_map), 2)
+    latest = await _latest_overall_by_employee(
+        db, [employee.id for employee in employees], current_user.organization_id
+    )
+    return [
+        ProbationaryEmployeeDetailResponse.model_validate(employee).model_copy(
+            update={
+                "latest_overall_score": latest.get(employee.id),
+                "latest_target_score": tenant_target,
+            }
+        )
+        for employee in employees
+    ]
 
 
 @router.get(

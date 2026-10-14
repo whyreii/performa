@@ -98,6 +98,8 @@ export const employee = (overrides = {}) => ({
   user: { id: 'u-emp', full_name: 'Maria Midterm', email: 'emp1@acme.com' },
   employer: { id: 'u-employer', full_name: 'Test Employer' },
   supervisor: { id: 'u-supervisor', full_name: 'Test Supervisor' },
+  latest_overall_score: 4.1,
+  latest_target_score: 4.0,
   ...overrides,
 });
 

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery, useQueries } from '@tanstack/react-query';
-import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
+import { useQuery } from '@tanstack/react-query';
+import { employeeApi, getApiErrorMessage } from '../../api';
 import { Skeleton, EmptyState, Card, Th, SectionHead } from '../../components/ui';
 import { Users, AlertCircle, Download } from '../../components/icons';
 import { daysElapsed as getDaysElapsed } from '../../utils/datetime';
@@ -28,29 +28,18 @@ export default function EmployeeList() {
     queryFn: () => employeeApi.list({ limit: 200 }),
   });
 
-  const scoreQueries = useQueries({
-    queries: employees.map((e) => ({
-      queryKey: ['scorecard', e.id],
-      // 404 = "no evaluations yet" → null so it renders as "No score yet".
-      queryFn: async () => {
-        try {
-          return (await evaluationApi.getScorecard(e.id)) ?? null;
-        } catch {
-          return null;
-        }
-      },
-      retry: false,
-      staleTime: 60_000,
-    })),
-  });
-  const scoresLoading = scoreQueries.some((q) => q.isLoading);
-  const scoreById = useMemo(() => {
-    const map = {};
-    employees.forEach((e, i) => {
-      map[e.id] = scoreQueries[i]?.data || null;
-    });
-    return map;
-  }, [employees, scoreQueries]);
+  // The list response already carries each employee's latest-week score, so the
+  // roster makes one request, not one per employee.
+  const scoreById = useMemo(
+    () =>
+      Object.fromEntries(
+        employees.map((e) => [
+          e.id,
+          e.latest_overall_score == null ? null : { overall_score: e.latest_overall_score },
+        ])
+      ),
+    [employees]
+  );
 
   // Default: urgency — the largest day count (past cap) first, then nearest cap.
   const [sort, setSort] = useState({ key: 'day', dir: 'desc' });
@@ -280,8 +269,6 @@ export default function EmployeeList() {
                             : ' critical gap'}
                         </span>
                       </>
-                    ) : scoresLoading ? (
-                      '…'
                     ) : (
                       'No score yet'
                     )}
