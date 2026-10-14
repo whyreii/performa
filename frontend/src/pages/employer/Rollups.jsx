@@ -5,7 +5,7 @@ import { daysElapsed as getDaysElapsed, monthNumberFor } from '../../utils/datet
 import { PROBATION_MONTHS, PROBATION_MONTH_DAYS, COMPETENCIES, TARGET } from '../../config/domain';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Modal, EmptyState, Page, Label, GlideSelect, ConfirmDialog, SectionHead, Th } from '../../components/ui';
+import { Button, Badge, Skeleton, Modal, EmptyState, Page, Label, GlideSelect, ConfirmDialog, SectionHead, StatBand, Th } from '../../components/ui';
 import { FileCheck2, Sparkles, CheckCircle2, XCircle, AlertCircle, X, ArrowRight } from '../../components/icons';
 
 const LABEL_BY_KEY = Object.fromEntries(COMPETENCIES.map((c) => [c.key, c.label]));
@@ -139,6 +139,10 @@ export default function Rollups() {
     return list;
   }, [summaries, employees, summarySort]);
 
+  // Worklist lead figures (the band above the queue).
+  const awaitingDispatch = summaries.filter((s) => !s.dispatched_at).length;
+  const acknowledged = summaries.filter((s) => s.acknowledged_at).length;
+
   // Default the evaluation month to the employee's current 30-day cycle
   // (clamped to the 5-month operating window) instead of always month 1.
   const monthForEmployee = (empId) => {
@@ -169,12 +173,36 @@ export default function Rollups() {
         </Button>
       }
     >
+      {/* Worklist lead: what is waiting on the employer, then the queue. */}
+      <StatBand
+        cells={[
+          {
+            label: 'Pending approvals',
+            value: pendingPlans.length,
+            caption: 'Awaiting your sign-off',
+            tone: pendingPlans.length > 0 ? 'warn' : undefined,
+          },
+          {
+            label: 'Awaiting dispatch',
+            value: awaitingDispatch,
+            caption: 'Summaries not yet sent',
+            size: 'base',
+          },
+          {
+            label: 'Acknowledged',
+            value: acknowledged,
+            caption: 'Signed by the employee',
+            size: 'base',
+          },
+        ]}
+        spans={[6, 3, 3]}
+      />
+
       {/* Pending Interventions Queue */}
       <section aria-label="Pending approvals">
         <SectionHead
           title="Pending approvals"
           subtitle="Article 296 evidentiary support"
-          note={<Badge variant="warn">{pendingPlans.length} pending</Badge>}
         />
 
         {isPlansLoading ? (
@@ -198,7 +226,7 @@ export default function Rollups() {
             All training recommendations have been processed. Click “Generate Rollup” to run the 30-day Gemini evaluation rollup on an active probationer.
           </EmptyState>
         ) : (
-          <div>
+          <ul>
             {pendingPlans.map((plan) => {
               const summary = plan.monthly_summary_id
                 ? summaries.find((s) => s.id === plan.monthly_summary_id)
@@ -240,7 +268,7 @@ export default function Rollups() {
                 </div>
               );
               return (
-                <div key={plan.id} className="border-t border-line py-4 first:border-t-0 space-y-2.5">
+                <li key={plan.id} className="border-t border-line py-4 first:border-t-0 space-y-2.5">
                   <div className="space-y-1 min-w-0">
                     <div className="flex flex-wrap items-baseline gap-2">
                       <span className="font-semibold text-14 text-ink">
@@ -251,10 +279,8 @@ export default function Rollups() {
                         {' · '}
                         {competencyLabel(plan.competency)}
                         {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
+                        {plan.default_timeline ? ` · ${plan.default_timeline}` : ''}
                       </span>
-                    </div>
-                    <div className="text-12 text-ink-3 font-num">
-                      Timeline: {plan.default_timeline || '—'}
                     </div>
                     {evidence ? (
                       <div className="text-12 text-ink-3 font-num">{evidence}</div>
@@ -277,10 +303,10 @@ export default function Rollups() {
                   ) : (
                     <div className="border-t border-line pt-2.5 flex justify-end">{decision}</div>
                   )}
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </section>
 
@@ -320,7 +346,7 @@ export default function Rollups() {
                     Employee
                   </Th>
                   <Th sortKey="cycle" activeKey={summarySort.key} dir={summarySort.dir} onSort={onSummarySort} className="py-2.5 pr-4">
-                    Cycle
+                    Month
                   </Th>
                   <Th sortKey="overall" activeKey={summarySort.key} dir={summarySort.dir} onSort={onSummarySort} align="right" className="py-2.5 pr-4">
                     Month average
