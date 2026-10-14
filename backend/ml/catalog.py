@@ -5,13 +5,15 @@ import json
 from pathlib import Path
 from typing import Any
 
-COMPETENCIES: tuple[str, ...] = (
-    "task_completion",
-    "attendance_and_punctuality",
-    "communication_and_teamwork",
-    "initiative_and_adaptability",
-    "quality_of_work",
-)
+# Single source for the five statutory competencies: model attribute -> label.
+COMPETENCY_LABELS: dict[str, str] = {
+    "task_completion": "Task Completion",
+    "attendance_and_punctuality": "Attendance & Punctuality",
+    "communication_and_teamwork": "Communication & Teamwork",
+    "initiative_and_adaptability": "Initiative & Adaptability",
+    "quality_of_work": "Quality of Work",
+}
+COMPETENCIES: tuple[str, ...] = tuple(COMPETENCY_LABELS)
 
 CATALOG_PATH: Path = Path(__file__).resolve().parent / "training_catalog.json"
 

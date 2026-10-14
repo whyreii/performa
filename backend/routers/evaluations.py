@@ -37,6 +37,7 @@ from ..domain import (
     month_window,
 )
 from ..gemini import generate_performance_rationales
+from ..ml.catalog import COMPETENCY_LABELS
 from ..ml.explain import explain_prediction
 from ..ml.predictor import predict_employee_risk
 from ..models import (
@@ -70,14 +71,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Evaluations"])
 
-# (model attribute, API key, human-readable label) for the five fixed categories.
-COMPETENCIES: tuple[tuple[str, str], ...] = (
-    ("task_completion", "Task Completion"),
-    ("attendance_and_punctuality", "Attendance & Punctuality"),
-    ("communication_and_teamwork", "Communication & Teamwork"),
-    ("initiative_and_adaptability", "Initiative & Adaptability"),
-    ("quality_of_work", "Quality of Work"),
-)
+# (model attribute, human-readable label) for the five fixed categories, derived
+# from the ML catalog so the keys are defined in exactly one place.
+COMPETENCIES: tuple[tuple[str, str], ...] = tuple(COMPETENCY_LABELS.items())
 
 
 def _scores_from_payload(payload: WeeklyRatingSubmit) -> dict[str, float]:
