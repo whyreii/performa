@@ -249,10 +249,14 @@ export default function EmployeeList() {
                   </td>
                   <td className="py-3 pr-4 truncate text-14 text-ink-2">{emp.department}</td>
                   <td className="py-3 pr-4">
-                    <span className="inline-flex items-center gap-2 whitespace-nowrap text-14 font-num text-ink">
-                      <span className={`w-2 h-2 shrink-0 rounded-full ${TONE_BG[tone]}`} aria-hidden="true" />
-                      {formatProbationDay(days)}
-                    </span>
+                    {emp.status === 'pending' ? (
+                      <span className="text-14 text-ink-3">Pending assignment</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-2 whitespace-nowrap text-14 font-num text-ink">
+                        <span className={`w-2 h-2 shrink-0 rounded-full ${TONE_BG[tone]}`} aria-hidden="true" />
+                        {formatProbationDay(days)}
+                      </span>
+                    )}
                   </td>
                   <td
                     className={`py-3 pr-4 text-right text-14 font-semibold font-num ${
@@ -275,7 +279,7 @@ export default function EmployeeList() {
                     )}
                   </td>
                   <td className="py-3 text-right text-14 text-ink-2">
-                    {stageShort(days, emp.status)}
+                    {emp.status === 'pending' ? '—' : stageShort(days, emp.status)}
                   </td>
                 </tr>
               );

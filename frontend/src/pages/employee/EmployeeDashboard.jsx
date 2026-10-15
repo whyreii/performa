@@ -175,6 +175,19 @@ export default function EmployeeDashboard() {
     );
   }
 
+  // The account is provisioned but the Employer has not assigned a start date, so
+  // the 180-day clock has not started. Show a waiting state, not a day-0 scorecard.
+  if (myProfile?.status === 'pending') {
+    return (
+      <Page title="My Performance Scorecard">
+        <EmptyState icon={UserCheck} title="Waiting for your employer">
+          Your account is ready. Your employer will set your probation start date and
+          supervisor, and your scorecard will appear here once they do.
+        </EmptyState>
+      </Page>
+    );
+  }
+
   const trainingToDo = myTraining.filter((p) => p.status === 'approved');
   const hasTraining = myTraining.length > 0;
   const hasSummaries = mySummaries.length > 0;

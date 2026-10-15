@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Card, Page, Modal, EmptyState, Label, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
+import { Button, Badge, Skeleton, Card, Page, Modal, EmptyState, Label, TextField, GlideSelect, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, CRITICAL_GAP_FLOOR, COMPETENCIES } from '../../config/domain';
 import { BRAND } from '../../config/brand';
@@ -69,6 +69,9 @@ export default function EmployeeDetail() {
   const queryClient = useQueryClient();
 
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [assignDate, setAssignDate] = useState('');
+  const [assignSupervisorId, setAssignSupervisorId] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('regularized');
   const [statusReason, setStatusReason] = useState('');
   const [actionError, setActionError] = useState('');
@@ -141,6 +144,30 @@ export default function EmployeeDetail() {
     },
     onError: (err) => {
       setActionError(getApiErrorMessage(err, 'Failed to update employee status.'));
+    },
+  });
+
+  // Assignment: start the 180-day clock for a pending record.
+  const { data: supervisors = [] } = useQuery({
+    queryKey: ['supervisors'],
+    queryFn: () => employeeApi.listSupervisors(),
+    enabled: isAssignModalOpen,
+  });
+
+  const assignMutation = useMutation({
+    mutationFn: () =>
+      employeeApi.assign(id, {
+        start_date: assignDate,
+        supervisor_id: assignSupervisorId || undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee', id] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      setIsAssignModalOpen(false);
+      toast.success('Employee assigned. The probation clock has started.');
+    },
+    onError: (err) => {
+      setActionError(getApiErrorMessage(err, 'Failed to assign the employee.'));
     },
   });
 
@@ -483,6 +510,19 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                   }}
                 >
                   Record outcome
+                </Button>
+              )}
+              {canManageStatus && employee.status === 'pending' && (
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setAssignDate('');
+                    setAssignSupervisorId('');
+                    setActionError('');
+                    setIsAssignModalOpen(true);
+                  }}
+                >
+                  Assign start date
                 </Button>
               )}
               {user?.role !== 'probationary_employee' && (
@@ -1219,6 +1259,78 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
           </div>
         </div>
       </div>
+
+      {/* Assign Start Date Modal — starts the 180-day clock */}
+      <Modal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        labelledBy="assign-modal-title"
+      >
+        <div className="flex items-center justify-between border-b border-line pb-3">
+          <h3 id="assign-modal-title" className="text-16 font-semibold text-ink">
+            Assign start date
+          </h3>
+          <button
+            type="button"
+            onClick={() => setIsAssignModalOpen(false)}
+            className="text-ink-3 hover:text-ink"
+            aria-label="Close"
+            title="Close"
+          >
+            ✕
+          </button>
+        </div>
+
+        {actionError && (
+          <div className="p-3 rounded-ctl bg-bad/10 text-bad text-12 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{actionError}</span>
+          </div>
+        )}
+
+        <p className="text-12 text-ink-2">
+          Setting the start date begins the 180-day probation clock for{' '}
+          <b>{employee.user?.full_name}</b>.
+        </p>
+
+        <div className="space-y-3">
+          <TextField
+            id="assign_date"
+            label="Probation start date *"
+            type="date"
+            value={assignDate}
+            onChange={(e) => setAssignDate(e.target.value)}
+          />
+          <div>
+            <Label htmlFor="assign_sup">Supervisor (optional)</Label>
+            <GlideSelect
+              id="assign_sup"
+              className="glide-select--field"
+              ariaLabel="Supervisor"
+              value={assignSupervisorId}
+              onChange={(value) => setAssignSupervisorId(value)}
+              options={[
+                { value: '', label: 'Assign later' },
+                ...supervisors.map((s) => ({ value: s.id, label: s.full_name })),
+              ]}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-3 border-t border-line">
+          <Button variant="ghost" onClick={() => setIsAssignModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            disabled={!assignDate}
+            isLoading={assignMutation.isPending}
+            onClick={() => assignMutation.mutate()}
+          >
+            Assign and start clock
+          </Button>
+        </div>
+      </Modal>
 
       {/* Status Transition Modal */}
       <Modal

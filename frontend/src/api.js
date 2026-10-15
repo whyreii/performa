@@ -236,6 +236,10 @@ export const employeeApi = {
     const response = await apiClient.patch(`/api/employees/${id}/status`, payload);
     return response.data;
   },
+  assign: async (id, data) => {
+    const response = await apiClient.patch(`/api/employees/${id}/assign`, data);
+    return response.data;
+  },
   acknowledgeStandards: async (id) => {
     const response = await apiClient.post(`/api/employees/${id}/acknowledge-standards`);
     return response.data;

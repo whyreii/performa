@@ -24,6 +24,7 @@ export function createApiMock() {
       getById: vi.fn(),
       create: vi.fn(),
       updateStatus: vi.fn(),
+      assign: vi.fn(),
       acknowledgeStandards: vi.fn(),
     },
     evaluationApi: {
