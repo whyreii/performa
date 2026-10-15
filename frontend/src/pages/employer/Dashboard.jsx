@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, interventionApi } from '../../api';
@@ -9,6 +9,7 @@ import {
   CountUp,
   SectionHead,
   StatBand,
+  Th,
   PageGrid,
   Row,
   Col,
@@ -88,6 +89,15 @@ export default function Dashboard() {
       ? null
       : { overall_score: emp.latest_overall_score, target_score: emp.latest_target_score };
 
+  // Sortable headers — the shared <Th> primitive (aria-sort, keyboard) used by
+  // every other roster table. The default keeps the triage order: most advanced
+  // probation first, records still awaiting assignment last.
+  const [sort, setSort] = useState({ key: 'day', dir: 'desc' });
+  const onSort = (key) =>
+    setSort((s) =>
+      s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }
+    );
+
   // One row per probationer: day/stage, score vs target, next milestone. A pending
   // record has no clock yet, so it renders as "Pending assignment" and sorts last.
   // A missing scorecard renders as "No score yet" rather than dropping the row.
@@ -110,10 +120,32 @@ export default function Dashboard() {
           };
         })
         .sort((a, b) => {
+          // A pending record has no clock and no milestone — always last.
           if (a.pending !== b.pending) return a.pending ? 1 : -1;
-          return b.days - a.days;
+          const dir = sort.dir === 'asc' ? 1 : -1;
+          if (sort.key === 'score') {
+            // Unrated rows stay last regardless of direction (as in the roster).
+            const av = a.sc ? Number(a.sc.overall_score) : null;
+            const bv = b.sc ? Number(b.sc.overall_score) : null;
+            if (av === null && bv === null) return 0;
+            if (av === null) return 1;
+            if (bv === null) return -1;
+            return dir * (av - bv);
+          }
+          if (sort.key === 'next') {
+            // Past the Day 180 cap there is no next milestone — sort those last.
+            const av = a.next ?? Number.POSITIVE_INFINITY;
+            const bv = b.next ?? Number.POSITIVE_INFINITY;
+            return dir * (av - bv);
+          }
+          if (sort.key === 'name') {
+            const ka = (a.emp.user?.full_name || '').toLowerCase();
+            const kb = (b.emp.user?.full_name || '').toLowerCase();
+            return dir * (ka < kb ? -1 : ka > kb ? 1 : 0);
+          }
+          return dir * (a.days - b.days);
         }),
-    [probationers]
+    [probationers, sort]
   );
 
   const stats = useMemo(() => {
@@ -186,19 +218,44 @@ export default function Dashboard() {
                       milestone
                     </caption>
                     <thead>
-                      <tr className="border-b border-line text-12 text-ink-3">
-                        <th scope="col" className="py-2.5 pr-3 font-normal">
+                      <tr className="border-b border-line">
+                        <Th
+                          sortKey="name"
+                          activeKey={sort.key}
+                          dir={sort.dir}
+                          onSort={onSort}
+                          className="py-2.5 pr-3"
+                        >
                           Employee
-                        </th>
-                        <th scope="col" className="py-2.5 pr-3 font-normal">
+                        </Th>
+                        <Th
+                          sortKey="day"
+                          activeKey={sort.key}
+                          dir={sort.dir}
+                          onSort={onSort}
+                          className="py-2.5 pr-3"
+                        >
                           Probation
-                        </th>
-                        <th scope="col" className="py-2.5 pr-3 text-right font-normal">
+                        </Th>
+                        <Th
+                          sortKey="score"
+                          activeKey={sort.key}
+                          dir={sort.dir}
+                          onSort={onSort}
+                          align="right"
+                          className="py-2.5 pr-3"
+                        >
                           Score
-                        </th>
-                        <th scope="col" className="py-2.5 font-normal">
+                        </Th>
+                        <Th
+                          sortKey="next"
+                          activeKey={sort.key}
+                          dir={sort.dir}
+                          onSort={onSort}
+                          className="py-2.5"
+                        >
                           Next
-                        </th>
+                        </Th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line">
