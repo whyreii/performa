@@ -14,7 +14,7 @@ import uuid
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -245,6 +245,7 @@ def _is_approaching_or_past(threshold_date: date, as_of: date) -> bool:
 )
 async def create_employee(
     payload: ProbationaryEmployeeCreateRequest,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.EMPLOYER)),
 ) -> ProbationaryEmployee:
@@ -378,8 +379,9 @@ async def create_employee(
                 select(Organization.name).where(Organization.slug == organization_id)
             )
         ).scalar_one_or_none()
-        await send_credentials_email(
-            user.email, user.full_name, raw_password, organization_name
+        # Sent after the response, so a slow SMTP send does not delay onboarding.
+        background_tasks.add_task(
+            send_credentials_email, user.email, user.full_name, raw_password, organization_name
         )
 
     return await _fetch_employee(db, employee.id, organization_id)

@@ -5,7 +5,7 @@ import re
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -163,6 +163,7 @@ async def list_organizations(
 )
 async def create_user(
     payload: AdminCreateUserRequest,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.ADMIN)),
 ) -> User:
@@ -224,8 +225,10 @@ async def create_user(
                 select(Organization.name).where(Organization.slug == organization_id)
             )
         ).scalar_one_or_none()
-        # Delivery never blocks provisioning (see backend/emailer.py).
-        await send_credentials_email(
+        # Sent after the response, so a slow SMTP send does not delay account
+        # creation. Delivery failures are logged, never raised (see emailer.py).
+        background_tasks.add_task(
+            send_credentials_email,
             new_user.email,
             new_user.full_name,
             raw_password,
