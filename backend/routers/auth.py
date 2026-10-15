@@ -7,7 +7,7 @@ import time
 from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -79,8 +79,13 @@ def _clear_failures(key: str) -> None:
     _FAILED_ATTEMPTS.pop(key, None)
 
 
-def _issue_session(response: Response, user: User) -> Token:
-    """Issue a bearer token, set the httpOnly cookie, and return the Token."""
+def _issue_session(response: Response, user: User, remember_me: bool = True) -> Token:
+    """Issue a bearer token, set the httpOnly cookie, and return the Token.
+
+    ``remember_me=False`` makes the cookie a browser-session cookie (no Max-Age),
+    so the browser discards it when closed. The token itself still expires after
+    ACCESS_TOKEN_EXPIRE_MINUTES.
+    """
     access_token = create_access_token(
         data={
             "sub": str(user.id),
@@ -95,7 +100,7 @@ def _issue_session(response: Response, user: User) -> Token:
         httponly=True,
         samesite="lax",
         secure=get_settings().cookie_secure,
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60 if remember_me else None,
         path="/",
     )
     return Token(access_token=access_token, token_type="bearer")
@@ -105,6 +110,7 @@ def _issue_session(response: Response, user: User) -> Token:
 async def login(
     response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
+    remember_me: bool = Form(False),
     db: AsyncSession = Depends(get_db),
 ) -> Token:
     """Validate credentials and return a bearer access token."""
@@ -144,7 +150,7 @@ async def login(
         detail=user.email,
     )
     await db.commit()
-    return _issue_session(response, user)
+    return _issue_session(response, user, remember_me=remember_me)
 
 
 @router.post(

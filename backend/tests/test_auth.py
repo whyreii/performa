@@ -45,6 +45,35 @@ async def test_cookie_auth_and_logout(client):
 
 
 @pytest.mark.asyncio
+async def test_login_without_remember_me_sets_a_session_cookie(client):
+    """Unchecked 'Remember me' gives a browser-session cookie (no Max-Age)."""
+    resp = await client.post(
+        "/api/auth/login",
+        data={"username": EMPLOYER_EMAIL, "password": DEFAULT_PASSWORD},
+    )
+    assert resp.status_code == 200, resp.text
+    set_cookie = resp.headers["set-cookie"].lower()
+    assert "access_token=" in set_cookie
+    assert "max-age" not in set_cookie
+
+
+@pytest.mark.asyncio
+async def test_login_with_remember_me_sets_a_persistent_cookie(client):
+    """Checked 'Remember me' keeps the persistent cookie with the token lifetime."""
+    resp = await client.post(
+        "/api/auth/login",
+        data={
+            "username": EMPLOYER_EMAIL,
+            "password": DEFAULT_PASSWORD,
+            "remember_me": "true",
+        },
+    )
+    assert resp.status_code == 200, resp.text
+    set_cookie = resp.headers["set-cookie"].lower()
+    assert "max-age=" in set_cookie
+
+
+@pytest.mark.asyncio
 async def test_change_password_flow(client):
     """Users can update their password, which invalidates the old credentials."""
     login_resp = await client.post(
