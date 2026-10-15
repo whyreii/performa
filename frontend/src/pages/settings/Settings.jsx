@@ -371,7 +371,7 @@ export default function Settings() {
                     onChange={(e) => setProfileEmail(e.target.value)}
                     className="[&_input]:font-num"
                   />
-                  <div className="sm:col-span-2">
+                  <div>
                     <Label htmlFor="p_role">Role</Label>
                     <div className="relative">
                       <input
