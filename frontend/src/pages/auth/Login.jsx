@@ -219,7 +219,7 @@ export default function Login() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 accent-accent"
+                  className="w-3 h-3 accent-accent"
                 />
                 Remember me on this device
               </label>
