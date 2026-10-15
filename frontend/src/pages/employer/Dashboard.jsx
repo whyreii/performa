@@ -265,7 +265,7 @@ export default function Dashboard() {
                         const scoreVal = score != null ? scoreTone(score, target) : null;
                         return (
                           <tr key={emp.id}>
-                            <td className="py-3 pr-3">
+                            <td className="py-3 pr-3 whitespace-nowrap">
                               <Link
                                 to={`/employees/${emp.id}`}
                                 className="text-14 text-ink hover:underline"
