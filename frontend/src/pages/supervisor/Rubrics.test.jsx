@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import Rubrics from './Rubrics';
-import { kpiApi } from '../../api';
+import { kpiApi, customKpiApi } from '../../api';
 import { renderWithProviders } from '../../test/renderWithProviders';
 import { testUser } from '../../test/apiMock';
 
@@ -66,8 +66,44 @@ describe('Rubrics', () => {
     ]);
   });
 
-  it('shows the rubrics read-only for a supervisor (no configuration controls)', async () => {
+  it('lets an employer define a custom KPI and suggests a catalog course', async () => {
     kpiApi.list.mockResolvedValue(RUBRICS);
+    customKpiApi.list.mockResolvedValue([]);
+    customKpiApi.suggestCourse.mockResolvedValue({
+      custom_kpi_name: 'Client Rapport',
+      suggested_catalog_id: 'TC-103',
+      suggested_title: 'Client Communication Essentials',
+      match_score: 0.7,
+      alternatives: [],
+    });
+    customKpiApi.create.mockResolvedValue({
+      id: 'k-1',
+      name: 'Client Rapport',
+      mapped_catalog_id: 'TC-103',
+      is_active: true,
+      organization_id: 'acme-ph',
+      created_at: '2026-03-01T00:00:00+00:00',
+    });
+
+    renderWithProviders(<Rubrics />, { route: '/rubrics', user: testUser('employer') });
+    expect(await screen.findByRole('heading', { name: 'Custom KPIs' })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('New custom KPI'), {
+      target: { value: 'Client Rapport' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Suggest course' }));
+    expect(await screen.findByText(/Client Communication Essentials/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add KPI' }));
+    await waitFor(() =>
+      expect(customKpiApi.create).toHaveBeenCalledWith({
+        name: 'Client Rapport',
+        mapped_catalog_id: 'TC-103',
+      })
+    );
+  });
+
+  it('shows the rubrics read-only for a supervisor (no configuration controls)', async () => {    kpiApi.list.mockResolvedValue(RUBRICS);
     renderWithProviders(<Rubrics />, { route: '/rubrics', user: testUser('supervisor') });
 
     expect(

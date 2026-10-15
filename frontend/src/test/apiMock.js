@@ -98,6 +98,13 @@ export function createApiMock() {
       }
     },
     kpiApi: { list: vi.fn(), update: vi.fn(), saveAll: vi.fn(), history: vi.fn(), templates: vi.fn(), reset: vi.fn() },
+    customKpiApi: {
+      list: vi.fn().mockResolvedValue([]),
+      create: vi.fn(),
+      update: vi.fn(),
+      remove: vi.fn(),
+      suggestCourse: vi.fn(),
+    },
     getApiErrorMessage: (error, fallback = 'An unexpected error occurred.') => {
       const detail = error?.response?.data?.detail;
       if (typeof detail === 'string') return detail;

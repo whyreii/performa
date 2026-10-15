@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { employeeApi, evaluationApi, kpiApi, getApiErrorMessage } from '../../api';
+import { employeeApi, evaluationApi, kpiApi, customKpiApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, Skeleton, Modal, Page, EmptyState, Label, GlideSelect, SectionHead, StatBand, textareaClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
@@ -46,6 +46,13 @@ export default function RateEmployee() {
     return values.length ? Math.max(TARGET, ...values) : TARGET;
   }, [targetByKey]);
 
+  // Employer-defined custom KPIs (non-statutory). Rated alongside the five but
+  // never folded into the overall average.
+  const { data: customKpis = [] } = useQuery({
+    queryKey: ['custom-kpis'],
+    queryFn: () => customKpiApi.list(),
+  });
+
   // Selected employee ID state
   const [selectedId, setSelectedId] = useState(preselectedEmpId || '');
 
@@ -80,6 +87,18 @@ export default function RateEmployee() {
   const [error, setError] = useState('');
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [submittedEvaluation, setSubmittedEvaluation] = useState(null);
+  const [customRatings, setCustomRatings] = useState({});
+
+  // Seed a default score for each custom KPI once the list loads.
+  useEffect(() => {
+    setCustomRatings((prev) => {
+      const next = { ...prev };
+      customKpis.forEach((kpi) => {
+        if (next[kpi.id] === undefined) next[kpi.id] = TARGET;
+      });
+      return next;
+    });
+  }, [customKpis]);
 
   // Calculate live overall average
   const overallAverage = useMemo(() => {
@@ -115,6 +134,10 @@ export default function RateEmployee() {
     setRatings((prev) => ({ ...prev, [key]: Number(value) }));
   };
 
+  const handleCustomRatingChange = (key, value) => {
+    setCustomRatings((prev) => ({ ...prev, [key]: Number(value) }));
+  };
+
   const handleOpenConfirm = (e) => {
     e.preventDefault();
     setError('');
@@ -140,6 +163,10 @@ export default function RateEmployee() {
       communication_and_teamwork: ratings.communication_and_teamwork,
       initiative_and_adaptability: ratings.initiative_and_adaptability,
       remarks: remarks.trim(),
+      custom_kpi_ratings: customKpis.map((kpi) => ({
+        custom_kpi_id: kpi.id,
+        score: customRatings[kpi.id] ?? TARGET,
+      })),
     });
   };
 
@@ -326,6 +353,54 @@ export default function RateEmployee() {
                   })}
                 </div>
               </section>
+
+              {/* Employer-defined custom KPIs — rated, but never part of the 4.0 average */}
+              {customKpis.length > 0 && (
+                <section aria-label="Custom KPIs">
+                  <SectionHead
+                    title="Custom KPIs"
+                    subtitle="Employer-defined criteria · not part of the 4.0 regularizing standard"
+                  />
+                  <div className="space-y-5">
+                    {customKpis.map((kpi) => {
+                      const currentScore = customRatings[kpi.id] ?? TARGET;
+                      return (
+                        <div key={kpi.id}>
+                          <SectionHead
+                            title={kpi.name}
+                            note={
+                              <span className="font-num font-semibold text-ink-3">
+                                {currentScore.toFixed(1)}
+                              </span>
+                            }
+                          />
+                          <div className="grid grid-cols-9 gap-1 sm:gap-1.5">
+                            {SCALE.map((score) => {
+                              const isSelected = currentScore === score;
+                              return (
+                                <button
+                                  key={score}
+                                  type="button"
+                                  onClick={() => handleCustomRatingChange(kpi.id, score)}
+                                  aria-pressed={isSelected}
+                                  aria-label={`Score ${score.toFixed(1)} for ${kpi.name}`}
+                                  className={`h-9 rounded-ctl border font-num text-12 font-medium transition-colors ${
+                                    isSelected
+                                      ? 'bg-accent text-accent-foreground border-accent'
+                                      : 'bg-hover/80 text-ink border-line hover:border-ink-3'
+                                  }`}
+                                >
+                                  {score.toFixed(1)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
 
               {/* Overall summary + evidentiary remarks */}
               <section aria-label="Summary">

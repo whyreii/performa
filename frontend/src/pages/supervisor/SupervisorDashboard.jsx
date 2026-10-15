@@ -187,7 +187,9 @@ export default function SupervisorDashboard() {
                 <div className="flex flex-wrap items-baseline gap-2">
                   <span className="text-14 font-semibold text-ink">{plan.intervention_title}</span>
                   <span className="text-12 text-ink-3">
-                    {competencyLabel(plan.competency)}
+                    {plan.custom_kpi_name
+                      ? `Custom KPI: ${plan.custom_kpi_name}`
+                      : competencyLabel(plan.competency)}
                     {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
                   </span>
                 </div>

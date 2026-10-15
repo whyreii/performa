@@ -298,7 +298,10 @@ export default function Dashboard() {
                           {plan.intervention_title}
                         </div>
                         <p className="mt-0.5 text-14 leading-relaxed text-ink-2">
-                          {plan.rationale || plan.competency?.replace(/_/g, ' ')}
+                          {plan.rationale ||
+                            (plan.custom_kpi_name
+                              ? `Custom KPI: ${plan.custom_kpi_name}`
+                              : plan.competency?.replace(/_/g, ' '))}
                         </p>
                       </li>
                     ))}

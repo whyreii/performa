@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { kpiApi, getApiErrorMessage } from '../../api';
+import { kpiApi, customKpiApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { TARGET, COMPETENCIES, COMPETENCY_DESCRIPTIONS } from '../../config/domain';
@@ -159,6 +159,51 @@ export default function Rubrics() {
     onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to reset KPI configuration.')),
   });
 
+  // Employer-defined custom KPIs (non-statutory). The catalog mapping is chosen
+  // here and stored, so the intervention set stays deterministic.
+  const { data: customKpis = [] } = useQuery({
+    queryKey: ['custom-kpis', 'all'],
+    queryFn: () => customKpiApi.list({ include_inactive: true }),
+    enabled: canEdit,
+  });
+  const [newKpiName, setNewKpiName] = useState('');
+  const [mappedId, setMappedId] = useState('');
+  const [suggestion, setSuggestion] = useState(null);
+
+  const suggestMutation = useMutation({
+    mutationFn: () => customKpiApi.suggestCourse(newKpiName.trim()),
+    onSuccess: (data) => {
+      setSuggestion(data);
+      setMappedId(data.suggested_catalog_id || '');
+    },
+    onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to suggest a course.')),
+  });
+
+  const createKpiMutation = useMutation({
+    mutationFn: () =>
+      customKpiApi.create({
+        name: newKpiName.trim(),
+        mapped_catalog_id: mappedId || null,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['custom-kpis'] });
+      setNewKpiName('');
+      setMappedId('');
+      setSuggestion(null);
+      toast.success('Custom KPI added.');
+    },
+    onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to add the custom KPI.')),
+  });
+
+  const removeKpiMutation = useMutation({
+    mutationFn: (id) => customKpiApi.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['custom-kpis'] });
+      toast.success('Custom KPI removed.');
+    },
+    onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to remove the custom KPI.')),
+  });
+
   function updateRow(competency, patch) {
     setForm((prev) =>
       prev.map((row) => (row.competency === competency ? { ...row, ...patch } : row))
@@ -304,6 +349,97 @@ export default function Rubrics() {
         </section>
       )}
 
+      {/* Custom KPIs — employer-defined, non-statutory (Employer only) */}
+      {canEdit && (
+        <section aria-label="Custom KPIs">
+          <SectionHead
+            title="Custom KPIs"
+            subtitle="Employer-defined criteria outside the 5 statutory competencies"
+            note={customKpis.length ? <Badge variant="neutral">{customKpis.length}</Badge> : null}
+          />
+          <p className="text-12 text-ink-3 mb-3 leading-relaxed">
+            A custom KPI is rated weekly and never affects the 4.0 standard, the Random Forest model,
+            or the competency audit trail. Map it to a catalog course and a monthly average below 3.0
+            will raise that course for your approval.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-end mb-2">
+            <div className="flex-1 min-w-0">
+              <Label htmlFor="custom-kpi-name">New custom KPI</Label>
+              <input
+                id="custom-kpi-name"
+                className={inputClass}
+                value={newKpiName}
+                maxLength={120}
+                onChange={(e) => {
+                  setNewKpiName(e.target.value);
+                  setSuggestion(null);
+                }}
+                placeholder="How well he/she talks to the client"
+              />
+            </div>
+            <Button
+              variant="secondary"
+              className="shrink-0 whitespace-nowrap"
+              disabled={!newKpiName.trim()}
+              isLoading={suggestMutation.isPending}
+              onClick={() => suggestMutation.mutate()}
+            >
+              Suggest course
+            </Button>
+            <Button
+              variant="primary"
+              className="shrink-0 whitespace-nowrap"
+              disabled={!newKpiName.trim()}
+              isLoading={createKpiMutation.isPending}
+              onClick={() => createKpiMutation.mutate()}
+            >
+              Add KPI
+            </Button>
+          </div>
+
+          {suggestion && (
+            <p className="text-12 text-ink-3 mb-3">
+              Suggested course:{' '}
+              <span className="text-ink">{suggestion.suggested_title || '—'}</span>
+              {suggestion.suggested_catalog_id ? ` (${suggestion.suggested_catalog_id})` : ''}
+            </p>
+          )}
+
+          {customKpis.length === 0 ? (
+            <p className="py-3 text-14 text-ink-3">No custom KPIs defined yet.</p>
+          ) : (
+            <ul className="divide-y divide-line">
+              {customKpis.map((kpi) => (
+                <li key={kpi.id} className="flex items-center justify-between gap-3 py-2.5">
+                  <div className="min-w-0">
+                    <div className="text-14 text-ink break-words">{kpi.name}</div>
+                    <div className="text-12 text-ink-3">
+                      {kpi.mapped_catalog_id
+                        ? `Mapped to catalog course ${kpi.mapped_catalog_id}`
+                        : 'No catalog course mapped (summary-only)'}
+                      {kpi.is_active ? '' : ' · inactive'}
+                    </div>
+                  </div>
+                  {kpi.is_active && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      isLoading={
+                        removeKpiMutation.isPending && removeKpiMutation.variables === kpi.id
+                      }
+                      onClick={() => removeKpiMutation.mutate(kpi.id)}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
       {/* Configuration history — every KPI change is audited (Employer only) */}
       {canEdit && (
         <section aria-label="Configuration history">
@@ -351,14 +487,18 @@ export default function Rubrics() {
             </caption>
             <thead>
               <tr className="border-b border-line">
-                <th scope="col" className="py-2.5 pr-4 font-normal" style={{ width: '22%' }}>
-                  <span className="text-12 text-ink-3">Competency</span>
+                <th
+                  scope="col"
+                  className="py-2.5 pr-4 font-normal align-bottom"
+                  style={{ width: '22%' }}
+                >
+                  <span className="block text-12 text-ink-3">Competency</span>
                 </th>
                 {BANDS.map((b) => (
                   <th
                     key={b.key}
                     scope="col"
-                    className="py-2.5 pr-4 font-normal"
+                    className="py-2.5 pr-4 font-normal align-bottom"
                     style={{ width: '19.5%' }}
                   >
                     <span className={`font-num text-12 ${TONE_TEXT[b.tone]}`}>{b.range}</span>

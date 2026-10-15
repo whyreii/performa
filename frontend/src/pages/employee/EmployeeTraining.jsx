@@ -79,7 +79,9 @@ export default function EmployeeTraining() {
                         {plan.intervention_title}
                       </span>
                       <span className="text-12 text-ink-3">
-                        {competencyLabel(plan.competency)}
+                        {plan.custom_kpi_name
+                          ? `Custom KPI: ${plan.custom_kpi_name}`
+                          : competencyLabel(plan.competency)}
                         {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
                       </span>
                     </div>

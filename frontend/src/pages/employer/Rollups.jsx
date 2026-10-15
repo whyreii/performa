@@ -236,12 +236,17 @@ export default function Rollups() {
               const gap = rawScore - TARGET;
               // Basis is stated on the line: the monthly average (two decimals,
               // D6), its gap to the standard, and the cycle it covers (the
-              // competency is in the meta line).
-              const evidence = Number.isFinite(rawScore)
-                ? `Avg ${rawScore.toFixed(2)} · gap ${gap >= 0 ? '+' : '−'}${Math.abs(gap).toFixed(
-                    1
-                  )} vs ${TARGET.toFixed(1)} · Month ${summary.month_number}`
-                : null;
+              // competency is in the meta line). When a plan was raised by an
+              // employer-defined custom KPI rather than a competency gap, state
+              // the custom-KPI trigger rule instead of the competency average.
+              const monthTag = summary ? ` · Month ${summary.month_number}` : '';
+              const evidence = plan.custom_kpi_name
+                ? `Custom KPI (< 3.0 standard)${monthTag}`
+                : Number.isFinite(rawScore)
+                  ? `Avg ${rawScore.toFixed(2)} · gap ${gap >= 0 ? '+' : '−'}${Math.abs(
+                      gap
+                    ).toFixed(1)} vs ${TARGET.toFixed(1)}${monthTag}`
+                  : null;
               // The decision controls: defined once, rendered after the rationale
               // so the sign-off is informed (D8).
               const decision = (
@@ -278,7 +283,9 @@ export default function Rollups() {
                       <span className="text-12 text-ink-3">
                         {plan.employee_name || 'Unknown employee'}
                         {' · '}
-                        {competencyLabel(plan.competency)}
+                        {plan.custom_kpi_name
+                          ? `Custom KPI: ${plan.custom_kpi_name}`
+                          : competencyLabel(plan.competency)}
                         {plan.intervention_type ? ` · ${plan.intervention_type}` : ''}
                         {plan.default_timeline ? ` · ${plan.default_timeline}` : ''}
                       </span>
@@ -527,9 +534,11 @@ export default function Rollups() {
             <p>
               {confirmPlan.approved ? 'You are approving' : 'You are rejecting'}{' '}
               <b className="text-ink">{confirmPlan.plan.intervention_title}</b>
-              {confirmPlan.plan.competency
-                ? ` for ${competencyLabel(confirmPlan.plan.competency)}`
-                : ''}
+              {confirmPlan.plan.custom_kpi_name
+                ? ` for Custom KPI: ${confirmPlan.plan.custom_kpi_name}`
+                : confirmPlan.plan.competency
+                  ? ` for ${competencyLabel(confirmPlan.plan.competency)}`
+                  : ''}
               {` — ${confirmPlan.plan.employee_name || 'Unknown employee'}`}.
             </p>
             <p className="text-12 text-ink-3">

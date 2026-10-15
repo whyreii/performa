@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, fireEvent, within } from '@testing-library/react';
 import { Routes, Route } from 'react-router-dom';
 import RateEmployee from './RateEmployee';
-import { employeeApi, evaluationApi, kpiApi } from '../../api';
+import { employeeApi, evaluationApi, kpiApi, customKpiApi } from '../../api';
 import { renderWithProviders } from '../../test/renderWithProviders';
 import { employee, testUser } from '../../test/apiMock';
 
@@ -29,6 +29,8 @@ beforeEach(() => {
   localStorage.clear();
   employeeApi.list.mockReset();
   evaluationApi.submitWeeklyRating.mockReset();
+  customKpiApi.list.mockReset();
+  customKpiApi.list.mockResolvedValue([]);
   kpiApi.list.mockResolvedValue(RUBRICS);
 });
 
@@ -91,8 +93,43 @@ describe('RateEmployee', () => {
     );
   });
 
-  it('surfaces a submission error', async () => {
+  it('rates employer-defined custom KPIs and includes them in the payload', async () => {
     employeeApi.list.mockResolvedValue([employee()]);
+    customKpiApi.list.mockResolvedValue([
+      {
+        id: 'k-1',
+        name: 'How well he/she talks to the client',
+        mapped_catalog_id: 'TC-103',
+        is_active: true,
+        organization_id: 'acme-ph',
+        created_at: '2026-03-01T00:00:00+00:00',
+      },
+    ]);
+    evaluationApi.submitWeeklyRating.mockResolvedValue({
+      overall_score: 4.0,
+      evaluation_date: '2026-03-01',
+    });
+    renderRate();
+
+    expect(await screen.findByRole('heading', { name: 'Custom KPIs' })).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', { name: /Score 2\.0 for How well he\/she talks to the client/ })
+    );
+
+    const remarks = await screen.findByLabelText(/Evidentiary Behavioral Remarks/);
+    fireEvent.change(remarks, {
+      target: { value: 'Client communication was inconsistent this week and needs coaching.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Evaluation' }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm & Record' }));
+
+    await screen.findByText('Evaluation Successfully Recorded');
+    const payload = evaluationApi.submitWeeklyRating.mock.calls[0][1];
+    expect(payload.custom_kpi_ratings).toEqual([{ custom_kpi_id: 'k-1', score: 2.0 }]);
+  });
+
+  it('surfaces a submission error', async () => {    employeeApi.list.mockResolvedValue([employee()]);
     evaluationApi.submitWeeklyRating.mockRejectedValue({
       response: { data: { detail: 'Employee is inactive' } },
     });

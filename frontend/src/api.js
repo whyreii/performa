@@ -208,6 +208,31 @@ export const kpiApi = {
   },
 };
 
+// Employer-defined custom KPI API methods (non-statutory; never affects the
+// 4.0 standard, the ML model, or the competency audit chain).
+export const customKpiApi = {
+  list: async (params = {}) => {
+    const response = await apiClient.get('/api/custom-kpis', { params });
+    return response.data;
+  },
+  create: async (data) => {
+    const response = await apiClient.post('/api/custom-kpis', data);
+    return response.data;
+  },
+  update: async (id, data) => {
+    const response = await apiClient.put(`/api/custom-kpis/${id}`, data);
+    return response.data;
+  },
+  remove: async (id) => {
+    const response = await apiClient.delete(`/api/custom-kpis/${id}`);
+    return response.data;
+  },
+  suggestCourse: async (name) => {
+    const response = await apiClient.post('/api/custom-kpis/suggest-course', { name });
+    return response.data;
+  },
+};
+
 // Employee API methods
 export const employeeApi = {
   list: async (params = {}) => {
