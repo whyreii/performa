@@ -9,10 +9,14 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Optional
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_SECRET_KEY = "performa-dev-secret-key-32charsmin"
+
+# Environments in which the development secret is acceptable. Any other value
+# means a real deployment, where the default key must never be used.
+_DEV_ENVIRONMENTS = {"development", "dev", "local", "test", "testing"}
 
 
 class Settings(BaseSettings):
@@ -51,6 +55,23 @@ class Settings(BaseSettings):
     smtp_from: Optional[str] = None
     smtp_starttls: bool = True
     smtp_ssl: bool = False
+
+    # Deployment environment. Only the dev/test values below allow the default
+    # SECRET_KEY; anything else (e.g. "production", "staging") must set a real one.
+    environment: str = "development"
+
+    @model_validator(mode="after")
+    def _reject_default_secret_outside_dev(self) -> "Settings":
+        if (
+            self.secret_key == DEFAULT_SECRET_KEY
+            and self.environment.strip().lower() not in _DEV_ENVIRONMENTS
+        ):
+            raise ValueError(
+                "SECRET_KEY is still the insecure development default. Set "
+                "SECRET_KEY to a strong random value when "
+                f"ENVIRONMENT={self.environment!r}."
+            )
+        return self
 
 
 @lru_cache
