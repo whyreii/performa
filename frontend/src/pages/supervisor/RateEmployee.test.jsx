@@ -129,7 +129,8 @@ describe('RateEmployee', () => {
     expect(payload.custom_kpi_ratings).toEqual([{ custom_kpi_id: 'k-1', score: 2.0 }]);
   });
 
-  it('surfaces a submission error', async () => {    employeeApi.list.mockResolvedValue([employee()]);
+  it('surfaces a submission error', async () => {
+    employeeApi.list.mockResolvedValue([employee()]);
     evaluationApi.submitWeeklyRating.mockRejectedValue({
       response: { data: { detail: 'Employee is inactive' } },
     });

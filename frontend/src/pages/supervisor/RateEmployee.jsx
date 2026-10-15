@@ -10,6 +10,10 @@ import { Award, AlertTriangle, CheckCircle2, Info, Users } from '../../component
 
 const SCALE = [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0];
 
+// Stable empty array: an inline `= []` query default is a fresh reference on
+// every render, which re-fires any effect that depends on the query data.
+const NO_CUSTOM_KPIS = [];
+
 export default function RateEmployee() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -48,7 +52,7 @@ export default function RateEmployee() {
 
   // Employer-defined custom KPIs (non-statutory). Rated alongside the five but
   // never folded into the overall average.
-  const { data: customKpis = [] } = useQuery({
+  const { data: customKpis = NO_CUSTOM_KPIS } = useQuery({
     queryKey: ['custom-kpis'],
     queryFn: () => customKpiApi.list(),
   });
@@ -89,14 +93,21 @@ export default function RateEmployee() {
   const [submittedEvaluation, setSubmittedEvaluation] = useState(null);
   const [customRatings, setCustomRatings] = useState({});
 
-  // Seed a default score for each custom KPI once the list loads.
+  // Seed a default score for each custom KPI once the list loads. Returns the
+  // previous state object when nothing changed: always returning a fresh object
+  // re-renders on every pass, and while the query is pending the empty fallback
+  // changes identity each render, so the effect would loop without ever settling.
   useEffect(() => {
     setCustomRatings((prev) => {
+      let changed = false;
       const next = { ...prev };
       customKpis.forEach((kpi) => {
-        if (next[kpi.id] === undefined) next[kpi.id] = TARGET;
+        if (next[kpi.id] === undefined) {
+          next[kpi.id] = TARGET;
+          changed = true;
+        }
       });
-      return next;
+      return changed ? next : prev;
     });
   }, [customKpis]);
 
