@@ -642,7 +642,7 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         {/* Record body — Standing + timeline, then the recommendation and evidence */}
         <PageGrid className="mt-4 space-y-10 lg:space-y-0 lg:gap-y-10">
           {/* Competency standing (7) | Probation timeline (5) */}
-          <Row className="lg:items-start">
+          <Row className="lg:items-stretch">
             <Col span={7}>
               <section aria-label="Competency standing">
                 <SectionHead
@@ -666,8 +666,14 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
                 ) : (
                   <>
                     <div className="flex items-baseline gap-2.5 pt-3">
+                      {/* One lead figure per lens (LAYOUT_GRAMMAR rule 3). The
+                          employer lens has no PageBrief figure, so the standing
+                          score leads here; supervisor/employee already lead with
+                          their PageBrief figure, so this stays supporting size. */}
                       <span
-                        className={`text-22 font-semibold font-num ${
+                        className={`${
+                          lens === 'employer' ? 'text-30 leading-none' : 'text-22'
+                        } font-semibold font-num ${
                           TONE_TEXT[scoreTone(Number(scorecard.overall_score), overallTarget)]
                         }`}
                       >
@@ -732,10 +738,16 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               </section>
             </Col>
 
-            <Col span={5}>
-              <section aria-label="Probation timeline">
+            <Col span={5} className="lg:h-full">
+              <section
+                aria-label="Probation timeline"
+                className="lg:h-full lg:flex lg:flex-col"
+              >
                 <SectionHead title="Probation timeline" subtitle="Article 296 · Asia/Manila" />
-                <div>
+                {/* Stretched to the standing column's height so the two columns
+                    close on the same rule — the milestones distribute down the
+                    term instead of leaving dead space beside the scorecard. */}
+                <div className="lg:flex lg:flex-1 lg:flex-col lg:justify-between">
                   {MILE_ROWS.map(({ day, label }) => {
                     const done = daysElapsed >= day;
                     const isNext = !done && day === nextMilestone(daysElapsed) && !isTerminal;
@@ -1002,11 +1014,52 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               <GroupCard
                 title="Full record"
                 subtitle="Monthly trend, remarks, and the audit trail"
+                aria-label="Full record"
               >
+
+          {/* Supervisor remarks (behavioral notes from weekly ratings) — read
+              before the trend chart: the human evidence leads the quantitative. */}
+          <Card padded={false} flat className="py-5" aria-label="Supervisor remarks">
+            <SectionHead
+              title="Supervisor remarks"
+              subtitle="From weekly ratings"
+              note={
+                notedRemarks.length > remarksLimit ? (
+                  <button
+                    type="button"
+                    onClick={() => setRemarksLimit(notedRemarks.length)}
+                    className="text-accent font-semibold hover:underline"
+                  >
+                    Show all {notedRemarks.length}
+                  </button>
+                ) : notedRemarks.length ? (
+                  `${notedRemarks.length} noted`
+                ) : undefined
+              }
+            />
+            {isRemarksLoading ? (
+              <Skeleton className="h-16 w-full" />
+            ) : notedRemarks.length === 0 ? (
+              <p className="text-14 text-ink-3">No behavioral remarks recorded yet.</p>
+            ) : (
+              <ul className="space-y-4">
+                {notedRemarks.slice(0, remarksLimit).map((r) => (
+                  <li key={r.id}>
+                    <div className="text-12 text-ink-3">
+                      <span className="font-semibold text-ink-2">{r.evaluator_name}</span>
+                      {' · '}
+                      <span className="font-num">{formatDate(r.evaluation_date)}</span>
+                    </div>
+                    <p className="text-14 text-ink-2 mt-1 leading-relaxed break-words">{r.remarks}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
 
           {/* Monthly KPI trend */}
           {(isTrendLoading || trend.length > 0) && (
-            <Card padded={false} flat className="py-5">
+            <Card padded={false} flat className="py-5" aria-label="Monthly KPI trend">
               <SectionHead
                 title="Monthly KPI trend"
                 subtitle="Monthly rollup"
@@ -1071,47 +1124,8 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             </Card>
           )}
 
-          {/* Supervisor remarks (behavioral notes from weekly ratings) */}
-          <Card padded={false} flat className="py-5">
-            <SectionHead
-              title="Supervisor remarks"
-              subtitle="From weekly ratings"
-              note={
-                notedRemarks.length > remarksLimit ? (
-                  <button
-                    type="button"
-                    onClick={() => setRemarksLimit(notedRemarks.length)}
-                    className="text-accent font-semibold hover:underline"
-                  >
-                    Show all {notedRemarks.length}
-                  </button>
-                ) : notedRemarks.length ? (
-                  `${notedRemarks.length} noted`
-                ) : undefined
-              }
-            />
-            {isRemarksLoading ? (
-              <Skeleton className="h-16 w-full" />
-            ) : notedRemarks.length === 0 ? (
-              <p className="text-14 text-ink-3">No behavioral remarks recorded yet.</p>
-            ) : (
-              <ul className="space-y-4">
-                {notedRemarks.slice(0, remarksLimit).map((r) => (
-                  <li key={r.id}>
-                    <div className="text-12 text-ink-3">
-                      <span className="font-semibold text-ink-2">{r.evaluator_name}</span>
-                      {' · '}
-                      <span className="font-num">{formatDate(r.evaluation_date)}</span>
-                    </div>
-                    <p className="text-14 text-ink-2 mt-1 leading-relaxed break-words">{r.remarks}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-
           {/* Evaluation history (immutable audit trail) */}
-          <Card padded={false} flat className="py-5">
+          <Card padded={false} flat className="py-5" aria-label="Evaluation history">
             <SectionHead
               title="Evaluation history"
               subtitle="Immutable · append-only"
