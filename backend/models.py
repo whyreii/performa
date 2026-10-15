@@ -379,6 +379,13 @@ class TrainingPlan(Base):
     employer_approved_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Per-cycle approval record: who approved, and the exact rationale text that
+    # was on screen at that moment (frozen so a later regeneration cannot change
+    # what was approved).
+    employer_approved_by_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        Uuid, ForeignKey("users.id"), nullable=True
+    )
+    approved_rationale: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     completed_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

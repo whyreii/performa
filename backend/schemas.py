@@ -564,6 +564,9 @@ class TrainingPlanResponse(TrainingPlanBase):
 
     id: uuid.UUID
     created_at: datetime
+    # Per-cycle approval record (set on employer sign-off).
+    employer_approved_by_id: Optional[uuid.UUID] = None
+    approved_rationale: Optional[str] = None
     # Tenant-facing display name of the employee the plan targets (populated for
     # employer/supervisor lists; None when the caller IS that employee).
     employee_name: Optional[str] = None

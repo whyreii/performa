@@ -403,6 +403,10 @@ async def test_employee_can_complete_approved_training(client):
         f"/api/interventions/{plan_id}/sign-off", headers=employer, json={"approved": True}
     )
     assert sign.status_code == 200, sign.text
+    # Per-cycle approval record: the approver is recorded and the rationale is
+    # frozen at the value that was on screen at sign-off.
+    assert sign.json()["employer_approved_by_id"] is not None
+    assert sign.json()["approved_rationale"] == sign.json()["rationale"]
 
     done = await client.post(f"/api/interventions/{plan_id}/complete", headers=employee)
     assert done.status_code == 200, done.text

@@ -171,6 +171,7 @@ Unique constraints: (user_id)
 
 | Column | Type | Nullable | PK | Unique | Default | Foreign key |
 |---|---|---|---|---|---|---|
+| approved_rationale | TEXT | yes | no | no |  |  |
 | catalog_id | VARCHAR(100) | no | no | no |  |  |
 | competency | VARCHAR(100) | no | no | no |  |  |
 | completed_at | DATETIME | yes | no | no |  |  |
@@ -178,6 +179,7 @@ Unique constraints: (user_id)
 | default_timeline | VARCHAR(100) | no | no | no |  |  |
 | employee_id | CHAR(32) | no | no | no |  | probationary_employees.id |
 | employer_approved_at | DATETIME | yes | no | no |  |  |
+| employer_approved_by_id | CHAR(32) | yes | no | no |  | users.id |
 | id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
 | intervention_title | VARCHAR(255) | no | no | no |  |  |
 | intervention_type | VARCHAR(100) | no | no | no |  |  |
@@ -303,6 +305,7 @@ Auth column is read from the FastAPI dependency graph.
 | `EMAIL_FROM` | `—` |
 | `EMAIL_PROVIDER` | `—` |
 | `EMAIL_VERIFICATION_TTL_MINUTES` | `1440` |
+| `ENVIRONMENT` | `development` |
 | `GEMINI_API_KEY` | `—` |
 | `LOG_LEVEL` | `INFO` |
 | `PASSWORD_RESET_TTL_MINUTES` | `30` |

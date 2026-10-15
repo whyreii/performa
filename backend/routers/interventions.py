@@ -655,9 +655,14 @@ async def sign_off_intervention(
     if payload.approved:
         plan.status = TrainingStatusEnum.APPROVED
         plan.employer_approved_at = datetime.now(timezone.utc)
+        plan.employer_approved_by_id = current_user.id
+        # Freeze the rationale that was on screen when the decision was made.
+        plan.approved_rationale = plan.rationale
     else:
         plan.status = TrainingStatusEnum.REJECTED
         plan.employer_approved_at = None
+        plan.employer_approved_by_id = None
+        plan.approved_rationale = None
 
     record_activity(
         db,
