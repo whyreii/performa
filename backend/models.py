@@ -52,6 +52,10 @@ class UserRole(enum.Enum):
 class ProbationStatus(enum.Enum):
     """Lifecycle status of a probationary employee."""
 
+    # PENDING: the account exists (often created by an Admin) but the Employer
+    # has not yet assigned it a start date and supervisor, so the 180-day clock
+    # has not started.
+    PENDING = "pending"
     ACTIVE = "active"
     REGULARIZED = "regularized"
     TERMINATED = "terminated"
@@ -188,8 +192,9 @@ class ProbationaryEmployee(Base):
     organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
     job_title: Mapped[str] = mapped_column(String(255), nullable=False)
     department: Mapped[str] = mapped_column(String(255), nullable=False)
-    start_date: Mapped[date] = mapped_column(Date, nullable=False)
-    day_180_date: Mapped[date] = mapped_column(Date, nullable=False)
+    # Nullable until the Employer assigns a start date; a PENDING record has none.
+    start_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    day_180_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     status: Mapped[ProbationStatus] = mapped_column(
         SAEnum(ProbationStatus, name="probation_status", values_callable=_enum_values),
         default=ProbationStatus.ACTIVE,

@@ -447,6 +447,15 @@ async def create_regularization_recommendation(
     """Aggregate the first 150 days of evaluations into a decision-support output."""
     employee = await _get_scoped_employee(db, employee_id, current_user)
 
+    if employee.start_date is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "This employee has no probation start date yet. Assign one before "
+                "generating a regularization recommendation."
+            ),
+        )
+
     days_elapsed = (manila_today() - employee.start_date).days
     if days_elapsed < REGULARIZATION_HORIZON_DAYS:
         raise HTTPException(

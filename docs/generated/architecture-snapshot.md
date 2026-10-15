@@ -121,7 +121,7 @@ Unique constraints: (name)
 
 | Column | Type | Nullable | PK | Unique | Default | Foreign key |
 |---|---|---|---|---|---|---|
-| day_180_date | DATE | no | no | no |  |  |
+| day_180_date | DATE | yes | no | no |  |  |
 | department | VARCHAR(255) | no | no | no |  |  |
 | employer_id | CHAR(32) | no | no | no |  | users.id |
 | id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
@@ -131,7 +131,7 @@ Unique constraints: (name)
 | milestone_178_alerted | BOOLEAN | no | no | no | False |  |
 | organization_id | VARCHAR(100) | no | no | no |  |  |
 | standards_acknowledged_at | DATETIME | yes | no | no |  |  |
-| start_date | DATE | no | no | no |  |  |
+| start_date | DATE | yes | no | no |  |  |
 | status | VARCHAR(11) | no | no | no | ProbationStatus.ACTIVE |  |
 | status_reason | TEXT | yes | no | no |  |  |
 | supervisor_id | CHAR(32) | yes | no | no |  | users.id |
@@ -253,6 +253,7 @@ Auth column is read from the FastAPI dependency graph.
 | GET | `/api/employees/supervisors` | roles: employer | list_supervisors |
 | GET | `/api/employees/{employee_id}` | authenticated (any role) | get_employee |
 | POST | `/api/employees/{employee_id}/acknowledge-standards` | authenticated (any role) | acknowledge_standards |
+| PATCH | `/api/employees/{employee_id}/assign` | roles: employer | assign_employee |
 | PATCH | `/api/employees/{employee_id}/status` | roles: employer | update_status |
 | GET | `/api/evaluations/audit-trail` | roles: employer | get_tenant_audit_trail |
 | GET | `/api/evaluations/audit-trail.csv` | roles: employer | export_tenant_audit_trail_csv |

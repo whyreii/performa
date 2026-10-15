@@ -45,6 +45,7 @@ from ..passwords import generate_password
 from ..schemas import (
     MilestoneEmployee,
     MilestoneReport,
+    ProbationaryEmployeeAssignRequest,
     ProbationaryEmployeeCreateRequest,
     ProbationaryEmployeeDetailResponse,
     ProbationaryEmployeeStatusUpdate,
@@ -616,6 +617,61 @@ async def acknowledge_standards(
         await db.refresh(employee)
 
     return employee
+
+
+@router.patch(
+    "/{employee_id}/assign",
+    response_model=ProbationaryEmployeeDetailResponse,
+    summary="Assign a start date and supervisor, starting the probation clock (Employer)",
+)
+async def assign_employee(
+    employee_id: uuid.UUID,
+    payload: ProbationaryEmployeeAssignRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
+) -> ProbationaryEmployee:
+    """Start the 180-day clock: set the start date (and supervisor), then activate.
+
+    Only a PENDING record can be assigned. This is the transition from a
+    provisioned account (often created by an Admin) to a running probation.
+    """
+    employee = await _fetch_employee(db, employee_id, current_user.organization_id)
+
+    if employee.status != ProbationStatus.PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only a pending employee can be assigned a start date.",
+        )
+
+    if payload.supervisor_id is not None:
+        supervisor = await db.get(User, payload.supervisor_id)
+        if (
+            supervisor is None
+            or supervisor.organization_id != current_user.organization_id
+            or supervisor.role != UserRole.SUPERVISOR
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="supervisor_id must reference a supervisor in your organization",
+            )
+        employee.supervisor_id = supervisor.id
+
+    employee.start_date = payload.start_date
+    employee.day_180_date = payload.start_date + timedelta(days=PROBATION_TERM_DAYS)
+    employee.status = ProbationStatus.ACTIVE
+
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="employee.assign",
+        entity_type="employee",
+        entity_id=employee.id,
+        detail=f"start_date={payload.start_date.isoformat()}",
+    )
+    await db.commit()
+
+    return await _fetch_employee(db, employee_id, current_user.organization_id)
 
 
 @router.patch(

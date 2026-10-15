@@ -215,8 +215,9 @@ class ProbationaryEmployeeBase(BaseModel):
     organization_id: str = Field(..., max_length=100)
     job_title: str = Field(..., max_length=255)
     department: str = Field(..., max_length=255)
-    start_date: date
-    day_180_date: date
+    # Nullable until the Employer assigns a start date (a PENDING record has none).
+    start_date: Optional[date] = None
+    day_180_date: Optional[date] = None
     status: ProbationStatus = ProbationStatus.ACTIVE
 
 
@@ -282,6 +283,13 @@ class ProbationaryEmployeeStatusUpdate(BaseModel):
 
     status: ProbationStatus
     reason: Optional[str] = None
+
+
+class ProbationaryEmployeeAssignRequest(BaseModel):
+    """Employer assignment payload: starts the 180-day clock for a pending record."""
+
+    start_date: date
+    supervisor_id: Optional[uuid.UUID] = None
 
 
 class MilestoneEmployee(BaseModel):

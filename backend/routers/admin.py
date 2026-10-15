@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import re
 import uuid
-from datetime import date, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
@@ -67,8 +66,8 @@ class AdminCreateUserRequest(BaseModel):
 
     # Employee-only fields. When role is probationary_employee the account and its
     # probationary profile are created together, so the account appears on the
-    # employer side immediately. All of these stay editable by the Employer later.
-    start_date: Optional[date] = None
+    # employer side immediately. The record starts PENDING: the Employer assigns
+    # the start date and supervisor later, which is when the 180-day clock starts.
     job_title: Optional[str] = Field(default=None, max_length=255)
     department: Optional[str] = Field(default=None, max_length=255)
     supervisor_id: Optional[uuid.UUID] = None
@@ -221,18 +220,13 @@ async def create_user(
     # all of them stay editable by the Employer afterwards.
     employer_id: Optional[uuid.UUID] = None
     supervisor_id: Optional[uuid.UUID] = None
-    day_180_date: Optional[date] = None
     if payload.role == UserRole.PROBATIONARY_EMPLOYEE:
-        if (
-            payload.start_date is None
-            or not (payload.job_title or "").strip()
-            or not (payload.department or "").strip()
-        ):
+        if not (payload.job_title or "").strip() or not (payload.department or "").strip():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=(
-                    "start_date, job_title and department are required to create a "
-                    "probationary employee account."
+                    "job_title and department are required to create a probationary "
+                    "employee account."
                 ),
             )
         employer_id = await _org_employer_id(db, organization_id)
@@ -256,7 +250,6 @@ async def create_user(
                     detail="supervisor_id must reference a supervisor in this organization",
                 )
             supervisor_id = payload.supervisor_id
-        day_180_date = payload.start_date + timedelta(days=PROBATION_TERM_DAYS)
 
     # The caller may supply a password (API/back-compat, e.g. tests); when they
     # do not, one is generated here and emailed to the new account.
@@ -283,9 +276,9 @@ async def create_user(
                 organization_id=organization_id,
                 job_title=(payload.job_title or "").strip(),
                 department=(payload.department or "").strip(),
-                start_date=payload.start_date,
-                day_180_date=day_180_date,
-                status=ProbationStatus.ACTIVE,
+                start_date=None,
+                day_180_date=None,
+                status=ProbationStatus.PENDING,
             )
         )
         await db.flush()

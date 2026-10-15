@@ -189,7 +189,8 @@ async def test_admin_can_list_organizations(client):
 @pytest.mark.asyncio
 async def test_admin_creates_employee_with_its_profile(client):
     """Creating a probationary employee account also creates its employee record,
-    so the account appears on the employer side immediately."""
+    in the pending state, so the account appears on the employer side immediately
+    but the 180-day clock has not started."""
     admin = await login_user(client, ADMIN_EMAIL)
     created = await client.post(
         "/api/admin/users",
@@ -198,7 +199,6 @@ async def test_admin_creates_employee_with_its_profile(client):
             "email": "admin.made.employee@acme.com",
             "full_name": "Admin Made Employee",
             "role": "probationary_employee",
-            "start_date": "2026-09-01",
             "job_title": "Support Associate",
             "department": "Operations",
         },
@@ -212,13 +212,14 @@ async def test_admin_creates_employee_with_its_profile(client):
         e for e in roster.json() if e["user"]["email"] == "admin.made.employee@acme.com"
     ]
     assert match, "the admin-created employee must appear in the employer roster"
-    assert match[0]["start_date"] == "2026-09-01"
+    assert match[0]["status"] == "pending"
+    assert match[0]["start_date"] is None
     assert match[0]["department"] == "Operations"
 
 
 @pytest.mark.asyncio
 async def test_admin_employee_account_requires_hr_fields(client):
-    """An employee account without a start date, job title, or department is rejected."""
+    """An employee account without a job title or department is rejected."""
     admin = await login_user(client, ADMIN_EMAIL)
     missing = await client.post(
         "/api/admin/users",
@@ -230,4 +231,47 @@ async def test_admin_employee_account_requires_hr_fields(client):
         },
     )
     assert missing.status_code == 400, missing.text
-    assert "start_date" in missing.json()["detail"]
+    assert "job_title" in missing.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_employer_assigns_pending_employee_starts_clock(client):
+    """Assignment sets the start date and activates the record; the clock starts there."""
+    admin = await login_user(client, ADMIN_EMAIL)
+    await client.post(
+        "/api/admin/users",
+        headers=admin,
+        json={
+            "email": "assign.me@acme.com",
+            "full_name": "Assign Me",
+            "role": "probationary_employee",
+            "job_title": "Analyst",
+            "department": "Operations",
+        },
+    )
+
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    roster = await client.get("/api/employees/", headers=employer)
+    employee = next(
+        e for e in roster.json() if e["user"]["email"] == "assign.me@acme.com"
+    )
+    assert employee["status"] == "pending"
+
+    assigned = await client.patch(
+        f"/api/employees/{employee['id']}/assign",
+        headers=employer,
+        json={"start_date": "2026-09-01"},
+    )
+    assert assigned.status_code == 200, assigned.text
+    body = assigned.json()
+    assert body["status"] == "active"
+    assert body["start_date"] == "2026-09-01"
+    assert body["day_180_date"] == "2027-02-28"  # 2026-09-01 + 180 days
+
+    # A second assignment is rejected: the record is no longer pending.
+    again = await client.patch(
+        f"/api/employees/{employee['id']}/assign",
+        headers=employer,
+        json={"start_date": "2026-10-01"},
+    )
+    assert again.status_code == 409, again.text
