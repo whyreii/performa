@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, getApiErrorMessage } from '../../api';
 import { manilaTodayISO, addDays, formatDate } from '../../utils/datetime';
 import { PROBATION_DAYS } from '../../config/domain';
-import { Button, Modal, TextField, Label, GlideSelect } from '../ui';
+import { Button, Modal, TextField, Label, GlideSelect, DatePicker } from '../ui';
 import { X, AlertCircle, Lock } from '../icons';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
@@ -174,14 +174,12 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
               placeholder="e.g. Junior Systems Dev"
             />
 
-            <TextField
+            <DatePicker
               id="m_start"
               label="Start Date (Asia/Manila) *"
-              type="date"
-              required
+              ariaLabel="Start date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="[&_input]:font-num"
+              onChange={(v) => setStartDate(v)}
             />
           </div>
 

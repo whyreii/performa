@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, Skeleton, Card, Page, Modal, EmptyState, Label, TextField, GlideSelect, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
+import { Button, Badge, Skeleton, Card, Page, Modal, EmptyState, Label, TextField, DatePicker, GlideSelect, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, CRITICAL_GAP_FLOOR, COMPETENCIES } from '../../config/domain';
 import { BRAND } from '../../config/brand';
@@ -1294,12 +1294,12 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
         </p>
 
         <div className="space-y-3">
-          <TextField
+          <DatePicker
             id="assign_date"
             label="Probation start date *"
-            type="date"
+            ariaLabel="Probation start date"
             value={assignDate}
-            onChange={(e) => setAssignDate(e.target.value)}
+            onChange={(v) => setAssignDate(v)}
           />
           <div>
             <Label htmlFor="assign_sup">Supervisor (optional)</Label>
