@@ -184,3 +184,50 @@ async def test_admin_can_list_organizations(client):
     assert allowed.status_code == 200, allowed.text
     slugs = {org["slug"] for org in allowed.json()}
     assert "acme-ph" in slugs
+
+
+@pytest.mark.asyncio
+async def test_admin_creates_employee_with_its_profile(client):
+    """Creating a probationary employee account also creates its employee record,
+    so the account appears on the employer side immediately."""
+    admin = await login_user(client, ADMIN_EMAIL)
+    created = await client.post(
+        "/api/admin/users",
+        headers=admin,
+        json={
+            "email": "admin.made.employee@acme.com",
+            "full_name": "Admin Made Employee",
+            "role": "probationary_employee",
+            "start_date": "2026-09-01",
+            "job_title": "Support Associate",
+            "department": "Operations",
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    roster = await client.get("/api/employees/", headers=employer)
+    assert roster.status_code == 200, roster.text
+    match = [
+        e for e in roster.json() if e["user"]["email"] == "admin.made.employee@acme.com"
+    ]
+    assert match, "the admin-created employee must appear in the employer roster"
+    assert match[0]["start_date"] == "2026-09-01"
+    assert match[0]["department"] == "Operations"
+
+
+@pytest.mark.asyncio
+async def test_admin_employee_account_requires_hr_fields(client):
+    """An employee account without a start date, job title, or department is rejected."""
+    admin = await login_user(client, ADMIN_EMAIL)
+    missing = await client.post(
+        "/api/admin/users",
+        headers=admin,
+        json={
+            "email": "no.fields@acme.com",
+            "full_name": "No Fields",
+            "role": "probationary_employee",
+        },
+    )
+    assert missing.status_code == 400, missing.text
+    assert "start_date" in missing.json()["detail"]

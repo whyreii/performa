@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import re
 import uuid
+from datetime import date, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
@@ -25,6 +26,7 @@ from ..models import (
     ActivityLog,
     MonthlySummary,
     Organization,
+    ProbationStatus,
     ProbationaryEmployee,
     TrainingPlan,
     TrainingStatusEnum,
@@ -63,10 +65,39 @@ class AdminCreateUserRequest(BaseModel):
     # Omitted/blank keeps the administrator's own tenant (backward compatible).
     organization_name: Optional[str] = Field(default=None, max_length=255)
 
+    # Employee-only fields. When role is probationary_employee the account and its
+    # probationary profile are created together, so the account appears on the
+    # employer side immediately. All of these stay editable by the Employer later.
+    start_date: Optional[date] = None
+    job_title: Optional[str] = Field(default=None, max_length=255)
+    department: Optional[str] = Field(default=None, max_length=255)
+    supervisor_id: Optional[uuid.UUID] = None
+
     @field_validator("email")
     @classmethod
     def _check_email(cls, value: str) -> str:
         return validate_email(value)
+
+
+async def _org_employer_id(db: AsyncSession, organization_id: str) -> Optional[uuid.UUID]:
+    """Return an employer account in the organization, or None if there is none.
+
+    A probationary record must be owned by an Employer (the Admin is never an
+    employer), so a new employee account is attached to the organization's
+    existing employer.
+    """
+    return (
+        await db.execute(
+            select(User.id)
+            .where(
+                User.organization_id == organization_id,
+                User.role == UserRole.EMPLOYER,
+                User.is_active.is_(True),
+            )
+            .order_by(User.created_at)
+            .limit(1)
+        )
+    ).scalar_one_or_none()
 
 
 def _slugify(value: str) -> str:
@@ -185,6 +216,48 @@ async def create_user(
         or current_user.organization_id
     )
 
+    # A probationary employee account is created together with its profile, so it
+    # appears on the employer side immediately. The HR fields are required here;
+    # all of them stay editable by the Employer afterwards.
+    employer_id: Optional[uuid.UUID] = None
+    supervisor_id: Optional[uuid.UUID] = None
+    day_180_date: Optional[date] = None
+    if payload.role == UserRole.PROBATIONARY_EMPLOYEE:
+        if (
+            payload.start_date is None
+            or not (payload.job_title or "").strip()
+            or not (payload.department or "").strip()
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "start_date, job_title and department are required to create a "
+                    "probationary employee account."
+                ),
+            )
+        employer_id = await _org_employer_id(db, organization_id)
+        if employer_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "This organization has no employer account to own the employee "
+                    "record. Create an employer account first."
+                ),
+            )
+        if payload.supervisor_id is not None:
+            supervisor = await db.get(User, payload.supervisor_id)
+            if (
+                supervisor is None
+                or supervisor.organization_id != organization_id
+                or supervisor.role != UserRole.SUPERVISOR
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="supervisor_id must reference a supervisor in this organization",
+                )
+            supervisor_id = payload.supervisor_id
+        day_180_date = payload.start_date + timedelta(days=PROBATION_TERM_DAYS)
+
     # The caller may supply a password (API/back-compat, e.g. tests); when they
     # do not, one is generated here and emailed to the new account.
     generated_password = payload.password is None
@@ -200,6 +273,22 @@ async def create_user(
     )
     db.add(new_user)
     await db.flush()
+
+    if payload.role == UserRole.PROBATIONARY_EMPLOYEE:
+        db.add(
+            ProbationaryEmployee(
+                user_id=new_user.id,
+                employer_id=employer_id,
+                supervisor_id=supervisor_id,
+                organization_id=organization_id,
+                job_title=(payload.job_title or "").strip(),
+                department=(payload.department or "").strip(),
+                start_date=payload.start_date,
+                day_180_date=day_180_date,
+                status=ProbationStatus.ACTIVE,
+            )
+        )
+        await db.flush()
     record_activity(
         db,
         organization_id=current_user.organization_id,

@@ -592,6 +592,9 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('employer');
+  const [startDate, setStartDate] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
+  const [department, setDepartment] = useState('');
   const [orgSelection, setOrgSelection] = useState(defaultOrganizationId || '__new__');
   const [newOrgName, setNewOrgName] = useState('');
   const [error, setError] = useState(null);
@@ -601,6 +604,10 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
     e.preventDefault();
     if (!fullName.trim() || !email.trim()) {
       setError('Name and email are required.');
+      return;
+    }
+    if (role === 'probationary_employee' && (!startDate || !jobTitle.trim() || !department.trim())) {
+      setError('Start date, job title, and department are required for an employee account.');
       return;
     }
 
@@ -623,6 +630,13 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
         email: email.trim().toLowerCase(),
         role,
         organization_name: organizationName,
+        ...(role === 'probationary_employee'
+          ? {
+              start_date: startDate,
+              job_title: jobTitle.trim(),
+              department: department.trim(),
+            }
+          : {}),
       });
       onSuccess(newUser);
     } catch (err) {
@@ -774,6 +788,41 @@ function CreateUserModal({ organizations = [], defaultOrganizationId, onClose, o
               value={newOrgName}
               onChange={(e) => setNewOrgName(e.target.value)}
             />
+          )}
+
+          {role === 'probationary_employee' && (
+            <div className="space-y-4 p-3 rounded-ctl bg-hover border border-line">
+              <p className="text-12 text-ink-3">
+                The employee profile is created together with the account, so it appears on
+                the employer side right away. The employer can change these details later.
+              </p>
+              <TextField
+                id="m_start"
+                label="Probation start date *"
+                type="date"
+                required
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+              <TextField
+                id="m_job"
+                label="Job title *"
+                type="text"
+                required
+                placeholder="e.g. Customer Support Associate"
+                value={jobTitle}
+                onChange={(e) => setJobTitle(e.target.value)}
+              />
+              <TextField
+                id="m_dept"
+                label="Department *"
+                type="text"
+                required
+                placeholder="e.g. Operations"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+              />
+            </div>
           )}
 
           <div className="pt-3 border-t border-line flex justify-end gap-2">

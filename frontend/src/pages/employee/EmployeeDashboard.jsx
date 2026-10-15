@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, interventionApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Badge, MilestonePill, Skeleton, Page, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col, StatBand } from '../../components/ui';
+import { Button, Badge, MilestonePill, Skeleton, Page, AsyncBoundary, SectionHead, ScoreLedger, PageGrid, Col, StatBand, EmptyState } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, daysUntil, monthNumberFor, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, PROBATION_MONTHS, MILESTONE_REVIEW, TARGET, CRITICAL_GAP_FLOOR, COMPETENCIES } from '../../config/domain';
 import { scoreTone, formatProbationDay, TONE_FILL, TONE_TEXT } from '../../utils/status';
@@ -162,6 +162,19 @@ export default function EmployeeDashboard() {
     );
   }
 
+  // Account exists but no probationary employee record is linked to it. Show a
+  // clear message instead of rendering sections that require the profile.
+  if (!isEmpLoading && !myProfile) {
+    return (
+      <Page title="My Performance Scorecard">
+        <EmptyState icon={UserCheck} title="Your employee profile isn’t set up yet">
+          Your account exists, but no probationary employee record is linked to it. Ask your
+          employer to onboard you, then refresh this page.
+        </EmptyState>
+      </Page>
+    );
+  }
+
   const trainingToDo = myTraining.filter((p) => p.status === 'approved');
   const hasTraining = myTraining.length > 0;
   const hasSummaries = mySummaries.length > 0;
@@ -177,7 +190,7 @@ export default function EmployeeDashboard() {
       detail: myProfile?.standards_acknowledged_at
         ? `Done · ${formatDate(myProfile.standards_acknowledged_at)}`
         : 'Confirm the standards you’re being rated on',
-      action: !myProfile?.standards_acknowledged_at ? { kind: 'ackStandards' } : null,
+      action: myProfile && !myProfile.standards_acknowledged_at ? { kind: 'ackStandards' } : null,
     },
     {
       key: 'ratings',
