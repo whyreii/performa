@@ -214,7 +214,7 @@ export default function Login() {
                 </div>
               </div>
 
-              <label className="flex items-center gap-2 text-14 text-ink-2 cursor-pointer select-none">
+              <label className="flex items-center gap-2 text-12 text-ink-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={rememberMe}
