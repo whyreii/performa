@@ -155,7 +155,7 @@ export default function UserManagement() {
       {actionFeedback && (
         <div
           role="alert"
-          className={`p-3 rounded-ctl text-12 flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
+          className={`w-fit max-w-full p-3 rounded-ctl text-12 inline-flex items-center gap-2 border border-line animate-in fade-in duration-150 ${
             actionFeedback.type === 'error' ? 'bg-bad/8 text-bad' : 'bg-ok/8 text-ok'
           }`}
         >
