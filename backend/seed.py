@@ -32,6 +32,7 @@ from .models import (
     CustomKpi,
     CustomKpiRating,
     EmailVerificationToken,
+    EmployeeCustomKpi,
     EvaluationAuditLog,
     KpiRubric,
     MonthlySummary,
@@ -206,6 +207,9 @@ async def _reset(session: AsyncSession) -> None:
     )
     await session.execute(
         delete(EmailVerificationToken).where(EmailVerificationToken.user_id.in_(user_ids))
+    )
+    await session.execute(
+        delete(EmployeeCustomKpi).where(EmployeeCustomKpi.organization_id == ORG_SLUG)
     )
     await session.execute(
         delete(CustomKpi).where(CustomKpi.organization_id == ORG_SLUG)

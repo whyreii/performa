@@ -58,6 +58,18 @@ Unique constraints: (name, organization_id)
 | used_at | DATETIME | yes | no | no |  |  |
 | user_id | CHAR(32) | no | no | no |  | users.id |
 
+### `employee_custom_kpis`
+
+| Column | Type | Nullable | PK | Unique | Default | Foreign key |
+|---|---|---|---|---|---|---|
+| created_at | DATETIME | no | no | no | now() |  |
+| custom_kpi_id | CHAR(32) | no | no | no |  | custom_kpis.id |
+| employee_id | CHAR(32) | no | no | no |  | probationary_employees.id |
+| id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
+| organization_id | VARCHAR(100) | no | no | no |  |  |
+
+Unique constraints: (custom_kpi_id, employee_id)
+
 ### `evaluation_audit_logs`
 
 | Column | Type | Nullable | PK | Unique | Default | Foreign key |

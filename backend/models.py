@@ -470,6 +470,33 @@ class CustomKpiRating(Base):
     )
 
 
+class EmployeeCustomKpi(Base):
+    """Which employer-defined custom KPIs a given employee is rated on.
+
+    ``CustomKpi`` is organization-wide; this narrows it per employee, chosen by
+    the Employer when onboarding a new account. Non-statutory (ARCHITECTURE.md
+    §2): it never touches the five competencies, the 4.0 regularizing standard,
+    the ML feature vector, or the competency audit chain.
+    """
+
+    __tablename__ = "employee_custom_kpis"
+    __table_args__ = (
+        UniqueConstraint("employee_id", "custom_kpi_id", name="uq_employee_custom_kpi"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    employee_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("probationary_employees.id"), nullable=False, index=True
+    )
+    custom_kpi_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("custom_kpis.id"), nullable=False, index=True
+    )
+    organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, server_default=func.now(), nullable=False
+    )
+
+
 class RegularizationRecommendation(Base):
     """AI-assisted regularization decision support at the mid-5th month."""
 
