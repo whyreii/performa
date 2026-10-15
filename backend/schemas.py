@@ -375,6 +375,52 @@ class KpiRubricResponse(KpiRubricBase):
 
 
 # ---------------------------------------------------------------------------
+# CustomKpi (employer-defined, non-statutory)
+# ---------------------------------------------------------------------------
+class CustomKpiBase(BaseModel):
+    name: str = Field(..., min_length=2, max_length=120)
+    # Optional link to a catalog course. When set and the KPI's monthly average
+    # is below the critical-gap floor, that course is raised deterministically.
+    mapped_catalog_id: Optional[str] = Field(default=None, max_length=100)
+
+
+class CustomKpiCreate(CustomKpiBase):
+    pass
+
+
+class CustomKpiUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=2, max_length=120)
+    mapped_catalog_id: Optional[str] = Field(default=None, max_length=100)
+    is_active: Optional[bool] = None
+
+
+class CustomKpiResponse(CustomKpiBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    organization_id: str
+    is_active: bool
+    created_at: datetime
+
+
+class CustomKpiCourseSuggestion(BaseModel):
+    """The closest catalog course for a custom KPI name, plus ranked runners-up."""
+
+    custom_kpi_name: str
+    suggested_catalog_id: Optional[str] = None
+    suggested_title: Optional[str] = None
+    match_score: float = 0.0
+    alternatives: list[dict] = Field(default_factory=list)
+
+
+class CustomKpiRatingItem(BaseModel):
+    """One custom KPI's score within a weekly rating submission."""
+
+    custom_kpi_id: uuid.UUID
+    score: float = Field(..., ge=1.0, le=5.0)
+
+
+# ---------------------------------------------------------------------------
 # WeeklyEvaluation / Scorecard
 # ---------------------------------------------------------------------------
 class WeeklyRatingSubmit(BaseModel):
@@ -387,6 +433,19 @@ class WeeklyRatingSubmit(BaseModel):
     quality_of_work: float = Field(..., ge=1.0, le=5.0)
     remarks: Optional[str] = Field(default=None, max_length=500)
     evaluation_date: Optional[date] = Field(default=None)
+    # Employer-defined KPIs (non-statutory). Stored separately; never affects
+    # overall_score or the competency audit chain.
+    custom_kpi_ratings: list[CustomKpiRatingItem] = Field(default_factory=list)
+
+    @field_validator("custom_kpi_ratings")
+    @classmethod
+    def _unique_custom_kpis(
+        cls, value: list[CustomKpiRatingItem]
+    ) -> list[CustomKpiRatingItem]:
+        seen = [item.custom_kpi_id for item in value]
+        if len(set(seen)) != len(seen):
+            raise ValueError("Duplicate custom KPI in a weekly rating")
+        return value
 
 
 class WeeklyEvaluationResponse(BaseModel):
@@ -541,6 +600,8 @@ class TrainingPlanBase(BaseModel):
     employee_id: uuid.UUID
     monthly_summary_id: Optional[uuid.UUID] = None
     competency: str = Field(..., max_length=100)
+    # Non-null only when an employer-defined custom KPI raised this plan.
+    custom_kpi_name: Optional[str] = Field(default=None, max_length=120)
     catalog_id: str = Field(..., max_length=100)
     intervention_title: str = Field(..., max_length=255)
     intervention_type: str = Field(..., max_length=100)

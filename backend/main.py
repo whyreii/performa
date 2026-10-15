@@ -22,6 +22,7 @@ from .config import get_settings
 from .database import Base, engine
 from .routers.admin import router as admin_router
 from .routers.auth import router as auth_router
+from .routers.custom_kpis import router as custom_kpis_router
 from .routers.employees import router as employees_router
 from .routers.evaluations import router as evaluations_router
 from .routers.interventions import router as interventions_router
@@ -141,6 +142,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 
 app.include_router(auth_router)
 app.include_router(admin_router)
+app.include_router(custom_kpis_router)
 app.include_router(employees_router, prefix="/api/employees")
 app.include_router(evaluations_router, prefix="/api/evaluations")
 app.include_router(interventions_router)

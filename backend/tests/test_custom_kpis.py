@@ -1,0 +1,201 @@
+"""Employer-defined custom KPIs: CRUD, rating, and the deterministic pipeline.
+
+Custom KPIs are non-statutory. These tests lock in that they never enter the
+five-competency score or the audit chain, and that a mapped, sub-3.0 custom KPI
+raises its catalog course deterministically (Gemini only explains it).
+"""
+from __future__ import annotations
+
+import uuid
+
+import pytest
+from sqlalchemy import select
+
+from backend.database import async_session_maker
+from backend.ml.catalog import COMPETENCIES, get_catalog, rank_courses_by_text
+from backend.models import CustomKpiRating
+from backend.tests.helpers import (
+    ADMIN_EMAIL,
+    EMPLOYER_EMAIL,
+    SUPERVISOR_EMAIL,
+    find_employee_id,
+    login_user,
+)
+
+
+def _catalog_ids() -> set[str]:
+    return {str(c.get("catalog_id") or c.get("course_id")) for c in get_catalog()}
+
+
+def test_rank_courses_by_text_is_deterministic_and_ranks_catalog():
+    first = rank_courses_by_text("How well he/she talks to the client")
+    second = rank_courses_by_text("How well he/she talks to the client")
+    assert first == second, "matching must be deterministic"
+    assert len(first) == len(get_catalog())
+    scores = [c["_match_score"] for c in first]
+    assert scores == sorted(scores, reverse=True)
+
+
+async def _create_kpi(client, employer, name: str, mapped: str | None = None) -> dict:
+    resp = await client.post(
+        "/api/custom-kpis",
+        headers=employer,
+        json={"name": name, "mapped_catalog_id": mapped},
+    )
+    assert resp.status_code == 201, resp.text
+    return resp.json()
+
+
+@pytest.mark.asyncio
+async def test_employer_can_create_and_list(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    kpi = await _create_kpi(client, employer, "How well he/she talks to the client")
+    assert kpi["name"] == "How well he/she talks to the client"
+    assert kpi["is_active"] is True
+
+    listing = await client.get("/api/custom-kpis", headers=employer)
+    assert listing.status_code == 200
+    assert [k["id"] for k in listing.json()] == [kpi["id"]]
+
+
+@pytest.mark.asyncio
+async def test_duplicate_name_is_rejected(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    await _create_kpi(client, employer, "Client Rapport")
+    dup = await client.post(
+        "/api/custom-kpis", headers=employer, json={"name": "client rapport"}
+    )
+    assert dup.status_code == 409, dup.text
+
+
+@pytest.mark.asyncio
+async def test_supervisor_cannot_write_and_admin_is_denied(client):
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    admin = await login_user(client, ADMIN_EMAIL)
+
+    create = await client.post(
+        "/api/custom-kpis", headers=supervisor, json={"name": "Nope"}
+    )
+    assert create.status_code == 403, create.text
+
+    admin_list = await client.get("/api/custom-kpis", headers=admin)
+    assert admin_list.status_code == 403, admin_list.text
+
+
+@pytest.mark.asyncio
+async def test_suggest_course_returns_a_catalog_course(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    resp = await client.post(
+        "/api/custom-kpis/suggest-course",
+        headers=employer,
+        json={"name": "How well he/she talks to the client"},
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["suggested_catalog_id"] in _catalog_ids()
+    assert isinstance(body["alternatives"], list)
+
+
+@pytest.mark.asyncio
+async def test_unknown_catalog_mapping_is_rejected(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    resp = await client.post(
+        "/api/custom-kpis",
+        headers=employer,
+        json={"name": "Bad Map", "mapped_catalog_id": "NOT-A-COURSE"},
+    )
+    assert resp.status_code == 422, resp.text
+
+
+@pytest.mark.asyncio
+async def test_weekly_rating_stores_custom_kpi_without_changing_overall(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, employer, "Carlos Early")
+    kpi = await _create_kpi(client, employer, "Client Rapport")
+
+    resp = await client.post(
+        f"/api/evaluations/{emp_id}/weekly",
+        headers=employer,
+        json={
+            **{c: 4.0 for c in COMPETENCIES},
+            "custom_kpi_ratings": [{"custom_kpi_id": kpi["id"], "score": 2.0}],
+        },
+    )
+    assert resp.status_code == 201, resp.text
+    # The statutory overall is the mean of the five competencies only.
+    assert resp.json()["overall_score"] == 4.0
+
+    async with async_session_maker() as session:
+        rows = (
+            await session.execute(
+                select(CustomKpiRating).where(
+                    CustomKpiRating.custom_kpi_id == uuid.UUID(kpi["id"])
+                )
+            )
+        ).scalars().all()
+    assert len(rows) == 1 and rows[0].score == 2.0
+
+
+@pytest.mark.asyncio
+async def test_unknown_custom_kpi_in_weekly_rating_is_rejected(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, employer, "Carlos Early")
+    resp = await client.post(
+        f"/api/evaluations/{emp_id}/weekly",
+        headers=employer,
+        json={
+            **{c: 4.0 for c in COMPETENCIES},
+            "custom_kpi_ratings": [
+                {
+                    "custom_kpi_id": "00000000-0000-0000-0000-000000000000",
+                    "score": 2.0,
+                }
+            ],
+        },
+    )
+    assert resp.status_code == 400, resp.text
+
+
+@pytest.mark.asyncio
+async def test_low_mapped_custom_kpi_raises_its_course_deterministically(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, employer, "Carlos Early")
+    kpi = await _create_kpi(client, employer, "Client Rapport", mapped="TC-101")
+
+    await client.post(
+        f"/api/evaluations/{emp_id}/weekly",
+        headers=employer,
+        json={
+            **{c: 5.0 for c in COMPETENCIES},  # no competency is flagged
+            "custom_kpi_ratings": [{"custom_kpi_id": kpi["id"], "score": 2.0}],
+        },
+    )
+    rollup = await client.post(
+        f"/api/interventions/{emp_id}/monthly-rollup?month_number=2", headers=employer
+    )
+    assert rollup.status_code == 201, rollup.text
+
+    plans = (await client.get("/api/interventions/pending", headers=employer)).json()
+    assert [p["catalog_id"] for p in plans] == ["TC-101"]
+    assert plans[0]["custom_kpi_name"] == "Client Rapport"
+
+
+@pytest.mark.asyncio
+async def test_high_custom_kpi_raises_no_course(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, employer, "Carlos Early")
+    kpi = await _create_kpi(client, employer, "Client Rapport", mapped="TC-101")
+
+    await client.post(
+        f"/api/evaluations/{emp_id}/weekly",
+        headers=employer,
+        json={
+            **{c: 5.0 for c in COMPETENCIES},
+            "custom_kpi_ratings": [{"custom_kpi_id": kpi["id"], "score": 4.5}],
+        },
+    )
+    await client.post(
+        f"/api/interventions/{emp_id}/monthly-rollup?month_number=2", headers=employer
+    )
+    plans = (await client.get("/api/interventions/pending", headers=employer)).json()
+    assert plans == []

@@ -41,6 +41,8 @@ from ..ml.catalog import COMPETENCY_LABELS
 from ..ml.explain import explain_prediction
 from ..ml.predictor import predict_employee_risk
 from ..models import (
+    CustomKpi,
+    CustomKpiRating,
     EvaluationAuditLog,
     MonthlySummary,
     PerformanceRatingEnum,
@@ -156,6 +158,51 @@ async def _latest_evaluation(
     return result.scalar_one_or_none()
 
 
+async def _store_custom_kpi_ratings(
+    db: AsyncSession,
+    evaluation: WeeklyEvaluation,
+    payload: WeeklyRatingSubmit,
+    organization_id: str,
+) -> None:
+    """Persist employer-defined KPI scores for a weekly evaluation.
+
+    Kept entirely outside the five competency columns, so it never changes
+    ``overall_score`` or the tamper-evident competency audit chain.
+    """
+    if not payload.custom_kpi_ratings:
+        return
+    wanted = {item.custom_kpi_id: float(item.score) for item in payload.custom_kpi_ratings}
+    rows = list(
+        (
+            await db.execute(
+                select(CustomKpi).where(
+                    CustomKpi.id.in_(list(wanted)),
+                    CustomKpi.organization_id == organization_id,
+                    CustomKpi.is_active.is_(True),
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    known = {row.id for row in rows}
+    unknown = set(wanted) - known
+    if unknown:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unknown or inactive custom KPI in custom_kpi_ratings.",
+        )
+    for kpi_id, score in wanted.items():
+        db.add(
+            CustomKpiRating(
+                weekly_evaluation_id=evaluation.id,
+                custom_kpi_id=kpi_id,
+                organization_id=organization_id,
+                score=score,
+            )
+        )
+
+
 async def _latest_audit_hash(
     db: AsyncSession,
     employee_id: uuid.UUID,
@@ -236,6 +283,8 @@ async def submit_weekly_rating(
     )
     db.add(evaluation)
     await db.flush()
+
+    await _store_custom_kpi_ratings(db, evaluation, payload, current_user.organization_id)
 
     # Tamper-evident chain: each row hashes its predecessor's hash. Explicit,
     # strictly-increasing timestamps make the per-employee chain verifiable.

@@ -23,6 +23,30 @@ Source: `Base.metadata` (no DB connection).
 | id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
 | organization_id | VARCHAR(100) | no | no | no |  |  |
 
+### `custom_kpi_ratings`
+
+| Column | Type | Nullable | PK | Unique | Default | Foreign key |
+|---|---|---|---|---|---|---|
+| custom_kpi_id | CHAR(32) | no | no | no |  | custom_kpis.id |
+| id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
+| organization_id | VARCHAR(100) | no | no | no |  |  |
+| score | FLOAT | no | no | no |  |  |
+| weekly_evaluation_id | CHAR(32) | no | no | no |  | weekly_evaluations.id |
+
+### `custom_kpis`
+
+| Column | Type | Nullable | PK | Unique | Default | Foreign key |
+|---|---|---|---|---|---|---|
+| created_at | DATETIME | no | no | no | now() |  |
+| created_by_id | CHAR(32) | yes | no | no |  | users.id |
+| id | CHAR(32) | no | yes | no | uuid.uuid4 |  |
+| is_active | BOOLEAN | no | no | no | True |  |
+| mapped_catalog_id | VARCHAR(100) | yes | no | no |  |  |
+| name | VARCHAR(120) | no | no | no |  |  |
+| organization_id | VARCHAR(100) | no | no | no |  |  |
+
+Unique constraints: (name, organization_id)
+
 ### `email_verification_tokens`
 
 | Column | Type | Nullable | PK | Unique | Default | Foreign key |
@@ -176,6 +200,7 @@ Unique constraints: (user_id)
 | competency | VARCHAR(100) | no | no | no |  |  |
 | completed_at | DATETIME | yes | no | no |  |  |
 | created_at | DATETIME | no | no | no | now() |  |
+| custom_kpi_name | VARCHAR(120) | yes | no | no |  |  |
 | default_timeline | VARCHAR(100) | no | no | no |  |  |
 | employee_id | CHAR(32) | no | no | no |  | probationary_employees.id |
 | employer_approved_at | DATETIME | yes | no | no |  |  |
@@ -246,6 +271,11 @@ Auth column is read from the FastAPI dependency graph.
 | POST | `/api/auth/resend-verification` | not detected | resend_verification |
 | POST | `/api/auth/reset-password` | not detected | reset_password |
 | POST | `/api/auth/verify-email` | not detected | verify_email |
+| GET | `/api/custom-kpis` | roles: employer, supervisor | list_custom_kpis |
+| POST | `/api/custom-kpis` | roles: employer | create_custom_kpi |
+| POST | `/api/custom-kpis/suggest-course` | roles: employer | suggest_course |
+| DELETE | `/api/custom-kpis/{kpi_id}` | roles: employer | deactivate_custom_kpi |
+| PUT | `/api/custom-kpis/{kpi_id}` | roles: employer | update_custom_kpi |
 | GET | `/api/employees/` | authenticated (any role) | list_employees |
 | POST | `/api/employees/` | roles: employer | create_employee |
 | GET | `/api/employees/milestones` | roles: employer, supervisor | list_milestones |

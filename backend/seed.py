@@ -29,6 +29,8 @@ from .domain import PROBATION_TERM_DAYS
 from .timeutils import MANILA_TZ, manila_today
 from .models import (
     ActivityLog,
+    CustomKpi,
+    CustomKpiRating,
     EmailVerificationToken,
     EvaluationAuditLog,
     KpiRubric,
@@ -177,6 +179,9 @@ async def _reset(session: AsyncSession) -> None:
     for statement in statements_for(dialect):
         await session.execute(text(statement))
     await session.execute(
+        delete(CustomKpiRating).where(CustomKpiRating.organization_id == ORG_SLUG)
+    )
+    await session.execute(
         delete(TrainingPlan).where(TrainingPlan.employee_id.in_(employee_ids))
     )
     await session.execute(
@@ -201,6 +206,9 @@ async def _reset(session: AsyncSession) -> None:
     )
     await session.execute(
         delete(EmailVerificationToken).where(EmailVerificationToken.user_id.in_(user_ids))
+    )
+    await session.execute(
+        delete(CustomKpi).where(CustomKpi.organization_id == ORG_SLUG)
     )
     await session.execute(delete(User).where(User.organization_id == ORG_SLUG))
     await session.execute(delete(Organization).where(Organization.slug == ORG_SLUG))

@@ -21,7 +21,7 @@ Never change, remove, weaken, or "improve" these. If a task requires it, stop an
    - Frontend: `src/utils/datetime.js`.
    - Never use `new Date().toISOString()`, naive `datetime.now()`, or `datetime.utcnow()` for business logic.
 2. **Timeline and standard**: the 180-day cap, the Day 150 / 165 / 178 milestones, and the 4.0 / 5.0 regularizing standard are defined in `ARCHITECTURE.md` §2. They are fixed constants: not settings, not config. Reference each from one place in code; if you find them duplicated as literals, report it, don't refactor unasked. Use the shared date helpers; never re-implement day math inline. Day-count convention and how the standard is evaluated: `ARCHITECTURE.md` §6a (resolved).
-3. **Competencies**: exactly the 5 in `ARCHITECTURE.md` §2. Never add, remove, rename, or re-key one. Attendance stays an evaluator rating score only: no biometrics, punch clocks, or leave requests.
+3. **Competencies**: exactly the 5 in `ARCHITECTURE.md` §2. Never add, remove, rename, or re-key one. Attendance stays an evaluator rating score only: no biometrics, punch clocks, or leave requests. Employer-defined **custom KPIs** exist as a separate, non-statutory layer (`custom_kpis`); never fold one into `CompetencyEnum`, the ML feature vector, the 4.0 standard, the competency audit chain, or the catalog mapping.
 4. **Explainable AI**: "Random Forest", "Feature Importance", and "Gemini Performance Rationale" stay visible in the UI (needed for thesis defense). Never strip them as "jargon".
 5. **Dual audit separation**: the two logs in `ARCHITECTURE.md` §5 stay separate. Never merge or remove either. The Evidentiary Labor Score Audit Trail is immutable (DOLE/NLRC defense).
 

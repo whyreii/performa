@@ -307,6 +307,9 @@ class WeeklyEvaluation(Base):
     evaluator: Mapped["User"] = relationship(
         "User", back_populates="weekly_evaluations", foreign_keys=[evaluator_id]
     )
+    custom_kpi_ratings: Mapped[list["CustomKpiRating"]] = relationship(
+        "CustomKpiRating", back_populates="weekly_evaluation", cascade="all, delete-orphan"
+    )
 
 
 class MonthlySummary(Base):
@@ -370,6 +373,9 @@ class TrainingPlan(Base):
         Uuid, ForeignKey("monthly_summaries.id"), nullable=True
     )
     competency: Mapped[str] = mapped_column(String(100), nullable=False)
+    # Set only when this plan was raised by an employer-defined custom KPI (a
+    # non-statutory signal); null for the five-competency catalog mapping.
+    custom_kpi_name: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
     catalog_id: Mapped[str] = mapped_column(String(100), nullable=False)
     intervention_title: Mapped[str] = mapped_column(String(255), nullable=False)
     intervention_type: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -403,6 +409,64 @@ class TrainingPlan(Base):
     )
     monthly_summary: Mapped[Optional["MonthlySummary"]] = relationship(
         "MonthlySummary", back_populates="training_plans"
+    )
+
+
+class CustomKpi(Base):
+    """An employer-defined KPI that sits OUTSIDE the five statutory competencies.
+
+    Purely supplementary (ARCHITECTURE.md §2): it never enters the 4.0
+    regularizing standard, the ML feature vector, the competency audit chain, or
+    the ``CompetencyEnum``. ``mapped_catalog_id`` optionally links it to a
+    catalog course so a sub-3.0 monthly average can raise a deterministic,
+    employer-approved intervention that Gemini then explains (never selects).
+    """
+
+    __tablename__ = "custom_kpis"
+    __table_args__ = (
+        UniqueConstraint("organization_id", "name", name="uq_custom_kpi_org_name"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    mapped_catalog_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_by_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        Uuid, ForeignKey("users.id"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, server_default=func.now(), nullable=False
+    )
+
+    ratings: Mapped[list["CustomKpiRating"]] = relationship(
+        "CustomKpiRating", back_populates="custom_kpi", cascade="all, delete-orphan"
+    )
+
+
+class CustomKpiRating(Base):
+    """A weekly score for an employer-defined custom KPI.
+
+    Stored apart from the five statutory competency columns so it can never
+    change ``WeeklyEvaluation.overall_score`` or the tamper-evident competency
+    audit chain.
+    """
+
+    __tablename__ = "custom_kpi_ratings"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    weekly_evaluation_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("weekly_evaluations.id"), nullable=False, index=True
+    )
+    custom_kpi_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("custom_kpis.id"), nullable=False, index=True
+    )
+    organization_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    score: Mapped[float] = mapped_column(Float, nullable=False)
+
+    custom_kpi: Mapped["CustomKpi"] = relationship("CustomKpi", back_populates="ratings")
+    weekly_evaluation: Mapped["WeeklyEvaluation"] = relationship(
+        "WeeklyEvaluation", back_populates="custom_kpi_ratings"
     )
 
 

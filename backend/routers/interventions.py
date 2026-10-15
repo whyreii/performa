@@ -16,7 +16,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 from statistics import fmean
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
@@ -29,9 +29,11 @@ from ..database import get_db
 from ..domain import month_window
 from ..notifications import create_notification
 from ..gemini import generate_performance_rationales
-from ..ml.catalog import COMPETENCIES, recommend_courses
+from ..ml.catalog import COMPETENCIES, get_catalog, recommend_courses
 from ..ml.predictor import predict_employee_risk
 from ..models import (
+    CustomKpi,
+    CustomKpiRating,
     MonthlySummary,
     PerformanceRatingEnum,
     ProbationaryEmployee,
@@ -69,6 +71,14 @@ def _plan_response(plan: TrainingPlan) -> TrainingPlanResponse:
 
 def _course_id(course: dict[str, Any]) -> str:
     return str(course.get("catalog_id") or course.get("course_id") or "")
+
+
+def _course_by_catalog_id(catalog_id: str) -> Optional[dict[str, Any]]:
+    """Look up a catalog course by its id, or ``None`` when absent."""
+    for course in get_catalog():
+        if _course_id(course) == catalog_id:
+            return course
+    return None
 
 
 def _course_fields(course: dict[str, Any]) -> dict[str, Any]:
@@ -200,12 +210,66 @@ async def monthly_rollup(
                 seen_course_ids.add(course_id)
                 courses.append(course)
 
+    # Employer-defined KPIs: average each over the month, and when a mapped KPI
+    # falls below the critical-gap floor raise its course deterministically.
+    # Gemini only explains the set — it never selects it (ARCHITECTURE.md §5).
+    custom_kpi_scores: dict[str, float] = {}
+    custom_course_names: dict[str, str] = {}
+    evaluation_ids = [evaluation.id for evaluation in evaluations]
+    rating_rows = list(
+        (
+            await db.execute(
+                select(CustomKpiRating).where(
+                    CustomKpiRating.weekly_evaluation_id.in_(evaluation_ids),
+                    CustomKpiRating.organization_id == current_user.organization_id,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if rating_rows:
+        active_kpis = {
+            kpi.id: kpi
+            for kpi in (
+                await db.execute(
+                    select(CustomKpi).where(
+                        CustomKpi.organization_id == current_user.organization_id,
+                        CustomKpi.is_active.is_(True),
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        }
+        scores_by_kpi: dict[uuid.UUID, list[float]] = {}
+        for row in rating_rows:
+            scores_by_kpi.setdefault(row.custom_kpi_id, []).append(float(row.score))
+        for kpi_id, scores in scores_by_kpi.items():
+            kpi = active_kpis.get(kpi_id)
+            if kpi is None:
+                continue
+            average = round(fmean(scores), 2)
+            custom_kpi_scores[kpi.name] = average
+            # Same flag rule as the ML predictor's per-competency check
+            # (``ml/predictor.py``): below 3.0 is a gap.
+            if average < 3.0 and kpi.mapped_catalog_id:
+                course = _course_by_catalog_id(kpi.mapped_catalog_id)
+                if course is not None:
+                    course_id = _course_id(course)
+                    if course_id:
+                        custom_course_names[course_id] = kpi.name
+                        if course_id not in seen_course_ids:
+                            seen_course_ids.add(course_id)
+                            courses.append(course)
+
     summary_text, rationales = await generate_performance_rationales(
         employee_name=employee.user.full_name if employee.user else "",
         month_number=month_number,
         status_classification=predicted_tier,
         competency_scores=competency_scores,
         recommended_courses=courses,
+        custom_kpi_scores=custom_kpi_scores,
     )
 
     # Regenerate the month in place (idempotent, non-destructive):
@@ -252,10 +316,12 @@ async def monthly_rollup(
         for course in courses:
             fields = _course_fields(course)
             catalog_id = fields["catalog_id"]
+            fields["custom_kpi_name"] = custom_course_names.get(catalog_id)
             desired_catalog_ids.add(catalog_id)
             plan = plans_by_catalog.get(catalog_id)
             if plan is not None:
                 plan.rationale = rationales.get(catalog_id, "")
+                plan.custom_kpi_name = fields["custom_kpi_name"]
             else:
                 db.add(
                     TrainingPlan(
@@ -288,6 +354,7 @@ async def monthly_rollup(
 
         for course in courses:
             fields = _course_fields(course)
+            fields["custom_kpi_name"] = custom_course_names.get(fields["catalog_id"])
             db.add(
                 TrainingPlan(
                     employee_id=employee.id,

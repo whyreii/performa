@@ -92,6 +92,11 @@ MATRIX = {
     ("PUT", "/api/kpi-rubrics/{competency}"): {"employer"},
     ("PUT", "/api/kpi-rubrics"): {"employer"},
     ("POST", "/api/kpi-rubrics/reset"): {"employer"},
+    ("GET", "/api/custom-kpis"): {"employer", "supervisor"},
+    ("POST", "/api/custom-kpis"): {"employer"},
+    ("POST", "/api/custom-kpis/suggest-course"): {"employer"},
+    ("PUT", "/api/custom-kpis/{kpi_id}"): {"employer"},
+    ("DELETE", "/api/custom-kpis/{kpi_id}"): {"employer"},
     ("GET", "/api/notifications"): ALL,
     ("POST", "/api/notifications/{notification_id}/read"): ALL,
     ("POST", "/api/notifications/read-all"): ALL,
@@ -125,6 +130,7 @@ def _url(path: str, real_emp_id: str) -> str:
         "{plan_id}": FAKE_ID,
         "{report_id}": FAKE_ID,
         "{notification_id}": FAKE_ID,
+        "{kpi_id}": FAKE_ID,
         "{competency}": "task_completion",
     }.items():
         path = path.replace(token, value)

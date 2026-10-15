@@ -83,6 +83,7 @@ def _build_prompt(
     status_classification: str,
     competency_scores: dict[str, float],
     recommended_courses: list[dict[str, Any]],
+    custom_kpi_scores: Optional[dict[str, float]] = None,
 ) -> str:
     scores_text = "\n".join(
         f"- {name}: {float(value):.2f}/5.0" for name, value in competency_scores.items()
@@ -96,6 +97,17 @@ def _build_prompt(
     ]
     courses_text = "\n".join(course_lines) if course_lines else "- (none)"
 
+    custom_lines = "\n".join(
+        f'- "{name}": {float(value):.2f}/5.0'
+        for name, value in (custom_kpi_scores or {}).items()
+    )
+    custom_text = (
+        "Employer-defined custom KPIs (non-statutory):\n"
+        f"{custom_lines}\n\n"
+        if custom_lines
+        else ""
+    )
+
     return (
         "You are an HR performance assistant for a Philippine SME operating under "
         "Article 296 probation rules.\n"
@@ -104,12 +116,17 @@ def _build_prompt(
         f"Overall classification: {status_classification}\n"
         "Competency averages (1.0-5.0):\n"
         f"{scores_text}\n\n"
+        f"{custom_text}"
         "Recommended catalog interventions:\n"
         f"{courses_text}\n\n"
         "Write in plain, professional English. Refer to the employee by name or with "
         "gender-neutral language (they/their); never infer or state the employee's gender. "
         "Do not restate numeric scores or invent figures — the structured evidence is shown "
         "next to your text.\n\n"
+        "When employer-defined custom KPIs are listed, refer to each by its exact quoted "
+        "name in the summary (never invent a custom KPI that is not listed). When a "
+        "recommended course was raised by a custom KPI, name that custom KPI in its "
+        "rationale.\n\n"
         "Respond with ONLY compact JSON in exactly this shape:\n"
         '{"summary": "<exactly two sentences>", '
         '"rationales": {"<catalog_id>": "<exactly one sentence>"}}\n'
@@ -224,8 +241,13 @@ async def generate_performance_rationales(
     status_classification: str,
     competency_scores: dict[str, float],
     recommended_courses: list[dict[str, Any]],
+    custom_kpi_scores: Optional[dict[str, float]] = None,
 ) -> tuple[str, dict[str, str]]:
     """Generate a monthly summary and one rationale per recommended course.
+
+    ``custom_kpi_scores`` (name -> monthly average) is optional employer-defined
+    context. It only informs the wording of the summary and rationales; it never
+    changes which courses are recommended.
 
     Returns:
         A tuple of the summary text and a mapping of ``catalog_id`` to
@@ -248,6 +270,7 @@ async def generate_performance_rationales(
         status_classification,
         competency_scores,
         recommended_courses,
+        custom_kpi_scores,
     )
 
     try:

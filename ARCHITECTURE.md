@@ -34,6 +34,11 @@ What the system is, and the single source of truth for its values (model IDs, co
 | `quality_of_work` | |
 
 - **Competency status** (classifier output; the Random Forest is a learned *surrogate* that reproduces and explains it): Meets Expectations, Needs Improvement, Critical Gap.
+- **Custom KPIs (employer-defined, non-statutory)**: an Employer may define named KPIs outside the five
+  (`custom_kpis` table, `backend/routers/custom_kpis.py`). They are rated weekly and never enter the 4.0
+  standard, the Random Forest feature vector, the competency audit chain, or the five-item catalog mapping.
+  When a custom KPI is mapped to a catalog course and its monthly average is below 3.0, that course is
+  raised deterministically for employer approval; Gemini only names it.
 
 ---
 
@@ -56,6 +61,7 @@ What the system is, and the single source of truth for its values (model IDs, co
    Gemini never selects, adds, removes, or reorders interventions.
 6. **Fallback**: if Gemini times out, catalog items are saved with empty rationales. Saving is never blocked by Gemini.
 7. **Human in the loop**: interventions stay `pending_approval` until an Employer explicitly signs off.
+8. **Custom KPIs**: employer-defined KPIs are averaged monthly alongside the competencies but stay outside the 4.0 standard. When a mapped custom KPI's monthly average is below 3.0, its catalog course joins the deterministic set; Gemini only names it (never selects it). The mapping is chosen and stored when the Employer defines the KPI.
 
 ---
 
