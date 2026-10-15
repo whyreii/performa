@@ -46,6 +46,26 @@ const differs = (value, saved, caseInsensitive = false) => {
     : current !== original;
 };
 
+// Split a stored full name into first / middle / last. The first word is the
+// first name, the last word is the last name, and anything between is the middle
+// name. A single word becomes the first name only.
+const splitFullName = (full) => {
+  const words = String(full ?? '').trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return { first: '', middle: '', last: '' };
+  if (words.length === 1) return { first: words[0], middle: '', last: '' };
+  return {
+    first: words[0],
+    middle: words.slice(1, -1).join(' '),
+    last: words[words.length - 1],
+  };
+};
+
+const joinFullName = (first, middle, last) =>
+  [first, middle, last]
+    .map((part) => String(part ?? '').trim())
+    .filter(Boolean)
+    .join(' ');
+
 const MODES = [
   { id: 'light', label: 'Light', icon: Sun },
   { id: 'dark', label: 'Dark', icon: Moon },
@@ -126,8 +146,13 @@ export default function Settings() {
     return () => observer.disconnect();
   }, [sections]);
 
-  // Profile edit state
-  const [profileName, setProfileName] = useState(user?.full_name || '');
+  // Profile edit state. The account stores one full_name string; the form edits
+  // it as first / middle / last and joins them back on save.
+  const initialName = splitFullName(user?.full_name);
+  const [profileFirst, setProfileFirst] = useState(initialName.first);
+  const [profileMiddle, setProfileMiddle] = useState(initialName.middle);
+  const [profileLast, setProfileLast] = useState(initialName.last);
+  const profileName = joinFullName(profileFirst, profileMiddle, profileLast);
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
   const [profileStatus, setProfileStatus] = useState({ type: '', message: '' });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -169,8 +194,8 @@ export default function Settings() {
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setProfileStatus({ type: '', message: '' });
-    if (!profileName.trim() || !profileEmail.trim()) {
-      setProfileStatus({ type: 'error', message: 'Name and email are required.' });
+    if (!profileFirst.trim() || !profileLast.trim() || !profileEmail.trim()) {
+      setProfileStatus({ type: 'error', message: 'First name, last name, and email are required.' });
       return;
     }
     setIsSavingProfile(true);
@@ -312,13 +337,32 @@ export default function Settings() {
               <form onSubmit={handleProfileSubmit} className="pt-4">
                 {statusAlert(profileStatus)}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                  <TextField
-                    id="p_name"
-                    label="Full name"
-                    type="text"
-                    value={profileName}
-                    onChange={(e) => setProfileName(e.target.value)}
-                  />
+                  <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4">
+                    <TextField
+                      id="p_first"
+                      label="First name"
+                      type="text"
+                      autoComplete="given-name"
+                      value={profileFirst}
+                      onChange={(e) => setProfileFirst(e.target.value)}
+                    />
+                    <TextField
+                      id="p_middle"
+                      label="Middle name (optional)"
+                      type="text"
+                      autoComplete="additional-name"
+                      value={profileMiddle}
+                      onChange={(e) => setProfileMiddle(e.target.value)}
+                    />
+                    <TextField
+                      id="p_last"
+                      label="Last name"
+                      type="text"
+                      autoComplete="family-name"
+                      value={profileLast}
+                      onChange={(e) => setProfileLast(e.target.value)}
+                    />
+                  </div>
                   <TextField
                     id="p_email"
                     label="Email address"
