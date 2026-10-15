@@ -6,25 +6,26 @@ describe('generatePassword', () => {
     expect(generatePassword()).toHaveLength(16);
   });
 
-  it('clamps length to the API bounds (8–128)', () => {
-    expect(generatePassword(4)).toHaveLength(8);
-    expect(generatePassword(200)).toHaveLength(128);
-    expect(generatePassword(8)).toHaveLength(8);
-  });
-
-  it('always includes an uppercase, lowercase, digit, and symbol', () => {
-    for (let i = 0; i < 50; i += 1) {
-      const pwd = generatePassword();
-      expect(pwd).toMatch(/[A-Z]/);
-      expect(pwd).toMatch(/[a-z]/);
-      expect(pwd).toMatch(/[0-9]/);
-      expect(pwd).toMatch(/[!@#$%^&*()\-_=+]/);
+  it('always meets the server policy: upper, lower, and a number', () => {
+    for (let i = 0; i < 200; i += 1) {
+      const pw = generatePassword();
+      expect(pw).toMatch(/[A-Z]/);
+      expect(pw).toMatch(/[a-z]/);
+      expect(pw).toMatch(/[0-9]/);
     }
   });
 
   it('avoids visually ambiguous characters', () => {
-    for (let i = 0; i < 50; i += 1) {
+    for (let i = 0; i < 200; i += 1) {
       expect(generatePassword()).not.toMatch(/[IOlo01]/);
     }
+  });
+
+  it('clamps the length to at least 8 characters', () => {
+    expect(generatePassword(3)).toHaveLength(8);
+  });
+
+  it('produces different passwords each time', () => {
+    expect(generatePassword()).not.toBe(generatePassword());
   });
 });

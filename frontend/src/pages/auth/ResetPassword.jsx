@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { PerformaMark, AlertCircle, Sun, Moon } from '../../components/icons';
+import { PerformaMark, AlertCircle, Sun, Moon, Eye, EyeOff } from '../../components/icons';
 import { TextField, Button, PageGrid, Row, Col } from '../../components/ui';
 import { homeForRole } from '../../App';
+import { generatePassword } from '../../utils/password';
 
 const MODES = [
   { id: 'light', label: 'Light', icon: Sun },
@@ -20,8 +21,29 @@ export default function ResetPassword() {
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fills both fields and reveals the result, so the user can see and copy it.
+  const handleGenerate = () => {
+    const generated = generatePassword();
+    setPassword(generated);
+    setConfirm(generated);
+    setShowPassword(true);
+    setCopied(false);
+    setError('');
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(password);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -116,7 +138,7 @@ export default function ResetPassword() {
                   <TextField
                     id="password"
                     label="New password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -127,13 +149,33 @@ export default function ResetPassword() {
                   <TextField
                     id="confirm"
                     label="Confirm new password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     autoComplete="new-password"
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
                     placeholder="Repeat password"
                     required
                   />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button type="button" variant="secondary" size="sm" onClick={handleGenerate}>
+                      Generate password
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      leftIcon={showPassword ? EyeOff : Eye}
+                      aria-pressed={showPassword}
+                      onClick={() => setShowPassword((v) => !v)}
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </Button>
+                    {password && (
+                      <Button type="button" variant="ghost" size="sm" onClick={handleCopy}>
+                        {copied ? 'Copied' : 'Copy'}
+                      </Button>
+                    )}
+                  </div>
                   <Button type="submit" isLoading={isSubmitting} className="w-full">
                     {isSubmitting ? 'Saving…' : 'Set new password'}
                   </Button>

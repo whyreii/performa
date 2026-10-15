@@ -56,4 +56,25 @@ describe('ResetPassword', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Passwords do not match.');
     expect(authApi.resetPassword).not.toHaveBeenCalled();
   });
+
+  it('generates a password into both fields and submits that value', async () => {
+    authApi.resetPassword.mockResolvedValue({ access_token: 't' });
+    renderPage(testUser('employer'));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Generate password' }));
+
+    const first = screen.getByLabelText('New password').value;
+    const second = screen.getByLabelText('Confirm new password').value;
+    expect(first).toHaveLength(16);
+    expect(first).toMatch(/[A-Z]/);
+    expect(first).toMatch(/[a-z]/);
+    expect(first).toMatch(/[0-9]/);
+    expect(second).toBe(first);
+    // The generated password is shown so it can be copied.
+    expect(screen.getByLabelText('New password')).toHaveAttribute('type', 'text');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Set new password' }));
+    expect(await screen.findByText('EMPLOYER HOME')).toBeInTheDocument();
+    expect(authApi.resetPassword).toHaveBeenCalledWith('abc', first);
+  });
 });
