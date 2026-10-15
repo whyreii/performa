@@ -10,10 +10,47 @@ export const apiClient = axios.create({
   },
 });
 
+// Session storage. "Remember me" keeps the session in localStorage (survives a
+// browser restart); otherwise it lives in sessionStorage and ends with the browser.
+export const getStoredToken = () => {
+  try {
+    return localStorage.getItem('performa_token') || sessionStorage.getItem('performa_token');
+  } catch {
+    return null;
+  }
+};
+
+// The store that holds the signed-in user: the same one as the token.
+export const userStore = () => {
+  try {
+    return localStorage.getItem('performa_token') ? localStorage : sessionStorage;
+  } catch {
+    return sessionStorage;
+  }
+};
+
+export const storeSession = (token, remember) => {
+  try {
+    const target = remember ? localStorage : sessionStorage;
+    const other = remember ? sessionStorage : localStorage;
+    target.setItem('performa_token', token);
+    other.removeItem('performa_token');
+  } catch {}
+};
+
+export const clearStoredSession = () => {
+  for (const store of [localStorage, sessionStorage]) {
+    try {
+      store.removeItem('performa_user');
+      store.removeItem('performa_token');
+    } catch {}
+  }
+};
+
 // Request interceptor: attach Bearer token if present (dual-mode auth for dev)
 apiClient.interceptors.request.use((config) => {
   try {
-    const token = localStorage.getItem('performa_token');
+    const token = getStoredToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -51,10 +88,7 @@ apiClient.interceptors.response.use(
     }
 
     if (error.response && error.response.status === 401) {
-      try {
-        localStorage.removeItem('performa_user');
-        localStorage.removeItem('performa_token');
-      } catch {}
+      clearStoredSession();
       window.dispatchEvent(new CustomEvent('performa:unauthorized'));
     }
     return Promise.reject(error);
@@ -77,10 +111,11 @@ export function getApiErrorMessage(error, defaultMsg = 'An unexpected error occu
 
 // Authentication API methods
 export const authApi = {
-  login: async (email, password) => {
+  login: async (email, password, rememberMe = false) => {
     const params = new URLSearchParams();
     params.append('username', email.trim());
     params.append('password', password);
+    params.append('remember_me', rememberMe ? 'true' : 'false');
 
     const response = await apiClient.post('/api/auth/login', params, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

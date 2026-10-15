@@ -67,7 +67,8 @@ describe('AuthContext', () => {
     fireEvent.click(screen.getByText('login'));
 
     await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('in'));
-    expect(authApi.login).toHaveBeenCalledWith('e@acme.com', 'pw');
+    // Intentional: login now passes the Remember me choice (default false).
+    expect(authApi.login).toHaveBeenCalledWith('e@acme.com', 'pw', false);
     expect(screen.getByTestId('role')).toHaveTextContent('supervisor');
   });
 

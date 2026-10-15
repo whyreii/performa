@@ -65,6 +65,37 @@ export function createApiMock() {
       getReportsOverview: vi.fn(),
     },
     organizationApi: { update: vi.fn() },
+    // Session helpers mirror src/api.js so auth tests exercise the real storage rules.
+    getStoredToken: () => {
+      try {
+        return localStorage.getItem('performa_token') || sessionStorage.getItem('performa_token');
+      } catch {
+        return null;
+      }
+    },
+    userStore: () => {
+      try {
+        return localStorage.getItem('performa_token') ? localStorage : sessionStorage;
+      } catch {
+        return sessionStorage;
+      }
+    },
+    storeSession: (token, remember) => {
+      try {
+        const target = remember ? localStorage : sessionStorage;
+        const other = remember ? sessionStorage : localStorage;
+        target.setItem('performa_token', token);
+        other.removeItem('performa_token');
+      } catch {}
+    },
+    clearStoredSession: () => {
+      for (const store of [localStorage, sessionStorage]) {
+        try {
+          store.removeItem('performa_user');
+          store.removeItem('performa_token');
+        } catch {}
+      }
+    },
     kpiApi: { list: vi.fn(), update: vi.fn(), saveAll: vi.fn(), history: vi.fn(), templates: vi.fn(), reset: vi.fn() },
     getApiErrorMessage: (error, fallback = 'An unexpected error occurred.') => {
       const detail = error?.response?.data?.detail;

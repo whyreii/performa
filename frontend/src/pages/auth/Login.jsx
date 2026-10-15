@@ -31,6 +31,7 @@ export default function Login() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,7 +58,7 @@ export default function Login() {
     setError('');
     setIsSubmitting(true);
 
-    const result = await login(email, password);
+    const result = await login(email, password, rememberMe);
     setIsSubmitting(false);
 
     if (result.success) {
@@ -212,6 +213,16 @@ export default function Login() {
                   </button>
                 </div>
               </div>
+
+              <label className="flex items-center gap-2 text-14 text-ink-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 accent-accent"
+                />
+                Remember me on this device
+              </label>
 
               <Button type="submit" isLoading={isSubmitting} className="w-full">
                 {isSubmitting ? 'Signing in…' : 'Sign in'}

@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { authApi, getApiErrorMessage } from '../api';
+import {
+  authApi,
+  getApiErrorMessage,
+  clearStoredSession,
+  storeSession,
+  userStore,
+} from '../api';
 
 const AuthContext = createContext(null);
 
@@ -9,7 +15,7 @@ export function AuthProvider({ children }) {
 
   const [user, setUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('performa_user');
+      const saved = localStorage.getItem('performa_user') || sessionStorage.getItem('performa_user');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -29,10 +35,13 @@ export function AuthProvider({ children }) {
   const persistUser = useCallback((userData) => {
     setUser(userData);
     try {
+      const store = userStore();
+      const other = store === localStorage ? sessionStorage : localStorage;
+      other.removeItem('performa_user');
       if (userData) {
-        localStorage.setItem('performa_user', JSON.stringify(userData));
+        store.setItem('performa_user', JSON.stringify(userData));
       } else {
-        localStorage.removeItem('performa_user');
+        store.removeItem('performa_user');
       }
     } catch {}
   }, []);
@@ -41,9 +50,7 @@ export function AuthProvider({ children }) {
     try {
       await authApi.logout();
     } catch {}
-    try {
-      localStorage.removeItem('performa_token');
-    } catch {}
+    clearStoredSession();
     queryClient.clear();
     persistUser(null);
   }, [persistUser, queryClient]);
@@ -86,15 +93,13 @@ export function AuthProvider({ children }) {
     };
   }, [persistUser]);
 
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email, password, rememberMe = false) => {
     setIsLoading(true);
     try {
-      const tokenData = await authApi.login(email, password);
-      try {
-        if (tokenData?.access_token) {
-          localStorage.setItem('performa_token', tokenData.access_token);
-        }
-      } catch {}
+      const tokenData = await authApi.login(email, password, rememberMe);
+      if (tokenData?.access_token) {
+        storeSession(tokenData.access_token, rememberMe);
+      }
       const userData = await authApi.getCurrentUser();
       persistUser(userData);
       setSessionExpired(false);
@@ -137,11 +142,9 @@ export function AuthProvider({ children }) {
     setIsLoading(true);
     try {
       const tokenData = await authApi.verifyEmail(token);
-      try {
-        if (tokenData?.access_token) {
-          localStorage.setItem('performa_token', tokenData.access_token);
-        }
-      } catch {}
+      if (tokenData?.access_token) {
+        storeSession(tokenData.access_token, true);
+      }
       const userData = await authApi.getCurrentUser();
       persistUser(userData);
       setSessionExpired(false);
@@ -158,11 +161,9 @@ export function AuthProvider({ children }) {
     setIsLoading(true);
     try {
       const tokenData = await authApi.resetPassword(token, newPassword);
-      try {
-        if (tokenData?.access_token) {
-          localStorage.setItem('performa_token', tokenData.access_token);
-        }
-      } catch {}
+      if (tokenData?.access_token) {
+        storeSession(tokenData.access_token, true);
+      }
       const userData = await authApi.getCurrentUser();
       persistUser(userData);
       return { success: true, user: userData };

@@ -53,7 +53,8 @@ describe('Login', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
     expect(await screen.findByText('EMPLOYER HOME')).toBeInTheDocument();
-    expect(authApi.login).toHaveBeenCalledWith('employer@acme.com', 'Password123!');
+    // Intentional: sign-in now sends the Remember me choice; unchecked by default.
+    expect(authApi.login).toHaveBeenCalledWith('employer@acme.com', 'Password123!', false);
   });
 
   it('shows an alert on failed authentication', async () => {
