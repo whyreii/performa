@@ -175,6 +175,7 @@ export default function EmployeeList() {
           Onboard a probationary employee to get started.
         </EmptyState>
       ) : (
+        <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left">
           <caption className="sr-only">
             Probationary employees with their probation day, latest-week score and stage
@@ -281,6 +282,7 @@ export default function EmployeeList() {
             })}
           </tbody>
         </table>
+        </div>
       )}
     </Card>
   );
