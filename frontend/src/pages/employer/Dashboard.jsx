@@ -74,6 +74,13 @@ export default function Dashboard() {
     [employees]
   );
 
+  // The table mirrors the employer roster: active employees plus those awaiting
+  // assignment, so a newly created account shows here too (as pending).
+  const probationers = useMemo(
+    () => employees.filter((e) => e.status === 'active' || e.status === 'pending'),
+    [employees]
+  );
+
   // The list response already carries each employee's latest-week score and the
   // tenant target, so the dashboard makes one request, not one per employee.
   const scoreFor = (emp) =>
@@ -81,26 +88,32 @@ export default function Dashboard() {
       ? null
       : { overall_score: emp.latest_overall_score, target_score: emp.latest_target_score };
 
-  // One row per active probationer: day/stage, score vs target, next milestone.
+  // One row per probationer: day/stage, score vs target, next milestone. A pending
+  // record has no clock yet, so it renders as "Pending assignment" and sorts last.
   // A missing scorecard renders as "No score yet" rather than dropping the row.
   const rows = useMemo(
     () =>
-      activeProbationers
+      probationers
         .map((emp) => {
-          const days = getDaysElapsed(emp.start_date);
-          const next = nextMilestone(days);
+          const pending = emp.status === 'pending';
+          const days = pending ? 0 : getDaysElapsed(emp.start_date);
+          const next = pending ? null : nextMilestone(days);
           return {
             emp,
+            pending,
             days,
             next,
             nextDate: next ? milestoneDate(emp.start_date, next) : null,
             capDate: emp.day_180_date,
-            tone: milestoneFor(days, emp.status).tone,
+            tone: pending ? null : milestoneFor(days, emp.status).tone,
             sc: scoreFor(emp),
           };
         })
-        .sort((a, b) => b.days - a.days),
-    [activeProbationers]
+        .sort((a, b) => {
+          if (a.pending !== b.pending) return a.pending ? 1 : -1;
+          return b.days - a.days;
+        }),
+    [probationers]
   );
 
   const stats = useMemo(() => {
@@ -164,13 +177,13 @@ export default function Dashboard() {
                   <Skeleton className="h-4 w-full" />
                 </div>
               ) : rows.length === 0 ? (
-                <p className="py-6 text-14 text-ink-3">No active probationary employees.</p>
+                <p className="py-6 text-14 text-ink-3">No probationary employees yet.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse text-left">
                     <caption className="sr-only">
-                      Active probationary employees with their probation day, latest score and
-                      next milestone
+                      Probationary employees with their probation day, latest score and next
+                      milestone
                     </caption>
                     <thead>
                       <tr className="border-b border-line text-12 text-ink-3">
@@ -189,7 +202,7 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line">
-                      {rows.map(({ emp, days, tone, sc, next, nextDate, capDate }) => {
+                      {rows.map(({ emp, pending, days, tone, sc, next, nextDate, capDate }) => {
                         const score = sc ? Number(sc.overall_score) : null;
                         const target = sc ? Number(sc.target_score) || targetScore : targetScore;
                         const scoreVal = score != null ? scoreTone(score, target) : null;
@@ -204,13 +217,17 @@ export default function Dashboard() {
                               </Link>
                             </td>
                             <td className="py-3 pr-3">
-                              <span className="flex items-center gap-2 whitespace-nowrap text-14 text-ink-2 font-num">
-                                <span
-                                  className={`h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
-                                  aria-hidden="true"
-                                />
-                                {formatProbationDay(days)}
-                              </span>
+                              {pending ? (
+                                <span className="text-14 text-ink-3">Pending assignment</span>
+                              ) : (
+                                <span className="flex items-center gap-2 whitespace-nowrap text-14 text-ink-2 font-num">
+                                  <span
+                                    className={`h-2 w-2 shrink-0 rounded-full ${TONE_BG[tone]}`}
+                                    aria-hidden="true"
+                                  />
+                                  {formatProbationDay(days)}
+                                </span>
+                              )}
                             </td>
                             <td className="py-3 pr-3 text-right">
                               {sc ? (
@@ -237,7 +254,9 @@ export default function Dashboard() {
                               )}
                             </td>
                             <td className="py-3 text-12 text-ink-3">
-                              {next
+                              {pending
+                                ? 'Awaiting start date'
+                                : next
                                 ? `${MILE_LABEL[next]}, ${formatDayMonth(nextDate)}`
                                 : `Passed ${formatDayMonth(capDate)}`}
                             </td>
