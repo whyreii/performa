@@ -375,7 +375,7 @@ export default function Rubrics() {
                   setNewKpiName(e.target.value);
                   setSuggestion(null);
                 }}
-                placeholder="How well he/she talks to the client"
+                placeholder="Enter a custom KPI name…"
               />
             </div>
             <Button

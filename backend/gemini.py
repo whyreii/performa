@@ -77,6 +77,15 @@ def _course_title(course: dict[str, Any]) -> str:
     return str(course.get("intervention_title") or course.get("title") or "")
 
 
+def _custom_kpi_band(score: float) -> str:
+    value = float(score)
+    if value < 3.0:
+        return "below 3.0 gap threshold — requires the mapped training intervention"
+    if value < 4.0:
+        return "3.0–3.99 developing"
+    return "4.0+ meets expectations"
+
+
 def _build_prompt(
     employee_name: str,
     month_number: int,
@@ -84,21 +93,29 @@ def _build_prompt(
     competency_scores: dict[str, float],
     recommended_courses: list[dict[str, Any]],
     custom_kpi_scores: Optional[dict[str, float]] = None,
+    custom_course_names: Optional[dict[str, str]] = None,
 ) -> str:
     scores_text = "\n".join(
         f"- {name}: {float(value):.2f}/5.0" for name, value in competency_scores.items()
     )
-    course_lines = [
-        (
-            f"- catalog_id={_course_id(course)}; competency={course.get('competency')}; "
+    course_kpi_map = custom_course_names or {}
+    course_lines = []
+    for course in recommended_courses:
+        cid = _course_id(course)
+        raised_by = course_kpi_map.get(cid)
+        trigger = (
+            f'raised_by_custom_kpi="{raised_by}"'
+            if raised_by
+            else f"competency={course.get('competency')}"
+        )
+        course_lines.append(
+            f"- catalog_id={cid}; {trigger}; "
             f"title={_course_title(course)}; description={course.get('description', '')}"
         )
-        for course in recommended_courses
-    ]
     courses_text = "\n".join(course_lines) if course_lines else "- (none)"
 
     custom_lines = "\n".join(
-        f'- "{name}": {float(value):.2f}/5.0'
+        f'- "{name}": {float(value):.2f}/5.0 ({_custom_kpi_band(value)})'
         for name, value in (custom_kpi_scores or {}).items()
     )
     custom_text = (
@@ -124,9 +141,11 @@ def _build_prompt(
         "Do not restate numeric scores or invent figures — the structured evidence is shown "
         "next to your text.\n\n"
         "When employer-defined custom KPIs are listed, refer to each by its exact quoted "
-        "name in the summary (never invent a custom KPI that is not listed). When a "
-        "recommended course was raised by a custom KPI, name that custom KPI in its "
-        "rationale.\n\n"
+        "name in the summary (never invent a custom KPI that is not listed) and reflect "
+        "its rating band: below 3.0 is a performance gap requiring development, 3.0–3.99 "
+        "is developing, and 4.0+ meets expectations. When a recommended course has "
+        'raised_by_custom_kpi="<name>", base that course\'s rationale on the exact quoted '
+        "custom KPI name and explain how the course addresses that specific KPI gap.\n\n"
         "Respond with ONLY compact JSON in exactly this shape:\n"
         '{"summary": "<exactly two sentences>", '
         '"rationales": {"<catalog_id>": "<exactly one sentence>"}}\n'
@@ -242,12 +261,14 @@ async def generate_performance_rationales(
     competency_scores: dict[str, float],
     recommended_courses: list[dict[str, Any]],
     custom_kpi_scores: Optional[dict[str, float]] = None,
+    custom_course_names: Optional[dict[str, str]] = None,
 ) -> tuple[str, dict[str, str]]:
     """Generate a monthly summary and one rationale per recommended course.
 
-    ``custom_kpi_scores`` (name -> monthly average) is optional employer-defined
-    context. It only informs the wording of the summary and rationales; it never
-    changes which courses are recommended.
+    ``custom_kpi_scores`` (name -> monthly average) and ``custom_course_names``
+    (catalog_id -> custom KPI name that raised the course) are optional
+    employer-defined context. They only inform the wording of the summary and
+    rationales; they never change which courses are recommended.
 
     Returns:
         A tuple of the summary text and a mapping of ``catalog_id`` to
@@ -271,6 +292,7 @@ async def generate_performance_rationales(
         competency_scores,
         recommended_courses,
         custom_kpi_scores,
+        custom_course_names,
     )
 
     try:

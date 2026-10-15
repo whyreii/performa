@@ -270,6 +270,7 @@ async def monthly_rollup(
         competency_scores=competency_scores,
         recommended_courses=courses,
         custom_kpi_scores=custom_kpi_scores,
+        custom_course_names=custom_course_names,
     )
 
     # Regenerate the month in place (idempotent, non-destructive):

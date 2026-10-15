@@ -199,3 +199,36 @@ async def test_high_custom_kpi_raises_no_course(client):
     )
     plans = (await client.get("/api/interventions/pending", headers=employer)).json()
     assert plans == []
+
+
+def test_gemini_prompt_tags_custom_kpi_band_and_course_link():
+    from backend.gemini import _build_prompt
+
+    prompt = _build_prompt(
+        employee_name="Ana Urgent",
+        month_number=1,
+        status_classification="Meets Expectations",
+        competency_scores={c: 4.0 for c in COMPETENCIES},
+        recommended_courses=[
+            {
+                "catalog_id": "CT-102",
+                "competency": "communication_and_teamwork",
+                "title": "Clear Escalation & Active Listening",
+                "description": "Structured escalation and listening drills.",
+            }
+        ],
+        custom_kpi_scores={
+            "Client Escalation Responsiveness": 2.0,
+            "CRM Hygiene": 3.5,
+            "Product Knowledge": 4.5,
+        },
+        custom_course_names={"CT-102": "Client Escalation Responsiveness"},
+    )
+    assert (
+        '"Client Escalation Responsiveness": 2.00/5.0 '
+        "(below 3.0 gap threshold — requires the mapped training intervention)"
+    ) in prompt
+    assert '"CRM Hygiene": 3.50/5.0 (3.0–3.99 developing)' in prompt
+    assert '"Product Knowledge": 4.50/5.0 (4.0+ meets expectations)' in prompt
+    assert 'catalog_id=CT-102; raised_by_custom_kpi="Client Escalation Responsiveness"' in prompt
+
