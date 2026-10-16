@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi, evaluationApi, customKpiApi, employeeCustomKpiApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
@@ -8,6 +8,7 @@ import { Button, Badge, Skeleton, Card, Page, Modal, EmptyState, Label, TextFiel
 import { daysElapsed as getDaysElapsed, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
 import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, CRITICAL_GAP_FLOOR, COMPETENCIES, CUSTOM_KPIS_PER_EMPLOYEE } from '../../config/domain';
 import { BRAND } from '../../config/brand';
+import { ROUTES } from '../../config/nav';
 import { milestoneTone, milestoneStage, formatProbationDay, nextMilestone, scoreTone, TONE_TEXT, TONE_BG, TONE_FILL } from '../../utils/status';
 import { getInitials } from '../../utils/format';
 import {
@@ -60,6 +61,54 @@ const MILE_ROWS = [
 // as the scorecard (never a raw snake_case key).
 const LABEL_BY_KEY = Object.fromEntries(COMPETENCIES.map((c) => [c.key, c.label]));
 const competencyLabel = (key) => LABEL_BY_KEY[key] || key.replace(/_/g, ' ');
+
+// Stable empty array: an inline `= []` default is a new reference on every
+// render, which can re-fire effects that depend on it.
+const NO_KPIS = [];
+
+// The custom-KPI tick-box list, shared by the onboarding modal and the record's
+// own "Custom KPIs" section. At most CUSTOM_KPIS_PER_EMPLOYEE can be ticked.
+function KpiPicker({ kpis, selected, onToggle }) {
+  if (kpis.length === 0) {
+    return (
+      <p className="mt-1 text-12 text-ink-3">
+        The company has no custom KPIs yet.{' '}
+        <Link
+          to={ROUTES.rubrics.path}
+          className="text-accent font-semibold hover:underline"
+        >
+          Create them under KPI Rubrics
+        </Link>
+        . The five statutory competencies always apply.
+      </p>
+    );
+  }
+  return (
+    <>
+      <div className="mt-1 space-y-1.5">
+        {kpis.map((kpi) => {
+          const checked = selected.includes(kpi.id);
+          const atCap = !checked && selected.length >= CUSTOM_KPIS_PER_EMPLOYEE;
+          return (
+            <label key={kpi.id} className="flex items-center gap-2 text-14 text-ink-2">
+              <input
+                type="checkbox"
+                checked={checked}
+                disabled={atCap}
+                onChange={() => onToggle(kpi.id)}
+              />
+              <span>{kpi.name}</span>
+            </label>
+          );
+        })}
+      </div>
+      <p className="mt-1.5 text-12 text-ink-3">
+        {selected.length} of {CUSTOM_KPIS_PER_EMPLOYEE} selected · the five statutory
+        competencies always apply.
+      </p>
+    </>
+  );
+}
 
 export default function EmployeeDetail() {
   const { id } = useParams();
@@ -156,27 +205,39 @@ export default function EmployeeDetail() {
 
   // The Employer also chooses which of the tenant's custom KPIs apply to this
   // employee (at most CUSTOM_KPIS_PER_EMPLOYEE). The five statutory competencies
-  // always apply; this narrows only the non-statutory layer.
-  const { data: orgCustomKpis = [] } = useQuery({
+  // always apply; this narrows only the non-statutory layer. Both queries run
+  // unconditionally so the record can show the assigned set without the modal.
+  const { data: orgCustomKpis = NO_KPIS } = useQuery({
     queryKey: ['custom-kpis'],
     queryFn: () => customKpiApi.list(),
-    enabled: isAssignModalOpen,
   });
 
-  const { data: currentAssignment } = useQuery({
+  const { data: currentAssignment, isLoading: isAssignmentLoading } = useQuery({
     queryKey: ['employee-custom-kpis', id],
     queryFn: () => employeeCustomKpiApi.get(id),
-    enabled: isAssignModalOpen,
   });
 
-  const [assignKpiIds, setAssignKpiIds] = useState([]);
+  const assignedKpiIds = currentAssignment?.custom_kpi_ids ?? NO_KPIS;
+  const assignedKpis = useMemo(
+    () => orgCustomKpis.filter((kpi) => assignedKpiIds.includes(kpi.id)),
+    [orgCustomKpis, assignedKpiIds]
+  );
 
-  // Prefill the picker from whatever is already assigned.
+  const [assignKpiIds, setAssignKpiIds] = useState([]);
+  const [editKpiIds, setEditKpiIds] = useState([]);
+  const [isKpiModalOpen, setIsKpiModalOpen] = useState(false);
+
+  // Prefill the onboarding picker from whatever is already assigned.
   useEffect(() => {
     if (isAssignModalOpen && currentAssignment) {
       setAssignKpiIds(currentAssignment.custom_kpi_ids || []);
     }
   }, [isAssignModalOpen, currentAssignment]);
+
+  const toggleKpi = (setter) => (kpiId) =>
+    setter((prev) =>
+      prev.includes(kpiId) ? prev.filter((x) => x !== kpiId) : [...prev, kpiId]
+    );
 
   const assignMutation = useMutation({
     mutationFn: async () => {
@@ -196,6 +257,20 @@ export default function EmployeeDetail() {
     },
     onError: (err) => {
       setActionError(getApiErrorMessage(err, 'Failed to assign the employee.'));
+    },
+  });
+
+  // Change the assigned custom KPIs at any time — not only during onboarding, so
+  // a KPI created after the start date can still be attached.
+  const setKpiMutation = useMutation({
+    mutationFn: () => employeeCustomKpiApi.set(id, editKpiIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-custom-kpis', id] });
+      setIsKpiModalOpen(false);
+      toast.success('Custom KPIs updated.');
+    },
+    onError: (err) => {
+      setActionError(getApiErrorMessage(err, 'Failed to update the custom KPIs.'));
     },
   });
 
@@ -810,6 +885,51 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             </Col>
           </Row>
 
+          {/* Custom KPIs — employer-defined, non-statutory. Editable at any time,
+              so a KPI created after onboarding can still be attached. */}
+          <Row>
+            <Col span={12}>
+              <section aria-label="Custom KPIs">
+                <SectionHead
+                  title="Custom KPIs"
+                  subtitle="Employer-defined criteria · not part of the 4.0 regularizing standard"
+                  note={
+                    canManageStatus ? (
+                      <button
+                        type="button"
+                        aria-label="Change the custom KPIs assigned to this employee"
+                        onClick={() => {
+                          setEditKpiIds(assignedKpiIds);
+                          setActionError('');
+                          setIsKpiModalOpen(true);
+                        }}
+                        className="text-accent font-semibold hover:underline"
+                      >
+                        {assignedKpiIds.length ? 'Change' : 'Assign'}
+                      </button>
+                    ) : null
+                  }
+                />
+                {isAssignmentLoading ? (
+                  <Skeleton className="h-8 w-full" />
+                ) : assignedKpis.length === 0 ? (
+                  <p className="py-3 text-14 text-ink-3">
+                    No custom KPIs assigned — this employee is rated on the five
+                    statutory competencies only.
+                  </p>
+                ) : (
+                  <ul className="divide-y divide-line">
+                    {assignedKpis.map((kpi) => (
+                      <li key={kpi.id} className="py-2.5 text-14 text-ink">
+                        {kpi.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            </Col>
+          </Row>
+
           {/* Recommendation — full-width (employer/supervisor only; not shown to the employee) */}
           {user?.role !== 'probationary_employee' && (
             <Row>
@@ -1362,46 +1482,11 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             <legend className="text-12 text-ink-3">
               Custom KPIs for this employee (optional, max {CUSTOM_KPIS_PER_EMPLOYEE})
             </legend>
-            {orgCustomKpis.length === 0 ? (
-              <p className="mt-1 text-12 text-ink-3">
-                No custom KPIs defined yet — add them under KPI Rubrics. The five
-                statutory competencies always apply.
-              </p>
-            ) : (
-              <>
-                <div className="mt-1 space-y-1.5">
-                  {orgCustomKpis.map((kpi) => {
-                    const checked = assignKpiIds.includes(kpi.id);
-                    const atCap =
-                      !checked && assignKpiIds.length >= CUSTOM_KPIS_PER_EMPLOYEE;
-                    return (
-                      <label
-                        key={kpi.id}
-                        className="flex items-center gap-2 text-14 text-ink-2"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          disabled={atCap}
-                          onChange={() =>
-                            setAssignKpiIds((prev) =>
-                              prev.includes(kpi.id)
-                                ? prev.filter((x) => x !== kpi.id)
-                                : [...prev, kpi.id]
-                            )
-                          }
-                        />
-                        <span>{kpi.name}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-                <p className="mt-1.5 text-12 text-ink-3">
-                  {assignKpiIds.length} of {CUSTOM_KPIS_PER_EMPLOYEE} selected · the
-                  five statutory competencies always apply.
-                </p>
-              </>
-            )}
+            <KpiPicker
+              kpis={orgCustomKpis}
+              selected={assignKpiIds}
+              onToggle={toggleKpi(setAssignKpiIds)}
+            />
           </fieldset>
         </div>
 
@@ -1416,6 +1501,60 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
             onClick={() => assignMutation.mutate()}
           >
             Assign and start clock
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Custom KPI Modal — change the assigned set at any time */}
+      <Modal
+        isOpen={isKpiModalOpen}
+        onClose={() => setIsKpiModalOpen(false)}
+        labelledBy="kpi-modal-title"
+      >
+        <div className="flex items-center justify-between border-b border-line pb-3">
+          <h3 id="kpi-modal-title" className="text-16 font-semibold text-ink">
+            Custom KPIs
+          </h3>
+          <button
+            type="button"
+            onClick={() => setIsKpiModalOpen(false)}
+            className="text-ink-3 hover:text-ink"
+            aria-label="Close"
+            title="Close"
+          >
+            ✕
+          </button>
+        </div>
+
+        {actionError && (
+          <div className="p-3 rounded-ctl bg-bad/10 text-bad text-12 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{actionError}</span>
+          </div>
+        )}
+
+        <p className="text-12 text-ink-2">
+          Choose which employer-defined KPIs <b>{employee.user?.full_name}</b> is rated on
+          (at most {CUSTOM_KPIS_PER_EMPLOYEE}). The five statutory competencies always
+          apply.
+        </p>
+
+        <KpiPicker
+          kpis={orgCustomKpis}
+          selected={editKpiIds}
+          onToggle={toggleKpi(setEditKpiIds)}
+        />
+
+        <div className="flex justify-end gap-2 pt-3 border-t border-line">
+          <Button variant="ghost" onClick={() => setIsKpiModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            isLoading={setKpiMutation.isPending}
+            onClick={() => setKpiMutation.mutate()}
+          >
+            Save
           </Button>
         </div>
       </Modal>

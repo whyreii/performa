@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { Routes, Route } from 'react-router-dom';
 import EmployeeDetail from './EmployeeDetail';
-import { employeeApi, evaluationApi } from '../../api';
+import { employeeApi, evaluationApi, customKpiApi, employeeCustomKpiApi } from '../../api';
 import { renderWithProviders } from '../../test/renderWithProviders';
 import { employee, auditRows, scorecard, testUser } from '../../test/apiMock';
 
@@ -145,6 +145,52 @@ describe('EmployeeDetail', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Verify integrity' }));
     expect(await screen.findByText(/12 records verified/)).toBeInTheDocument();
     expect(evaluationApi.verifyAuditChain).toHaveBeenCalledWith('e-1');
+  });
+
+  it('shows the assigned custom KPIs and lets the employer change them', async () => {
+    primeHappyPath();
+    customKpiApi.list.mockResolvedValue([
+      { id: 'k-1', name: 'Client Rapport', mapped_catalog_id: null, is_active: true },
+      { id: 'k-2', name: 'CRM Hygiene', mapped_catalog_id: null, is_active: true },
+    ]);
+    employeeCustomKpiApi.get.mockResolvedValue({
+      employee_id: 'e-1',
+      custom_kpi_ids: ['k-1'],
+    });
+    renderDetail('employer');
+
+    expect(await screen.findByRole('heading', { name: 'Custom KPIs' })).toBeInTheDocument();
+    // Only the assigned KPI is listed on the record.
+    expect(await screen.findByText('Client Rapport')).toBeInTheDocument();
+    expect(screen.queryByText('CRM Hygiene')).not.toBeInTheDocument();
+
+    // The employer can reopen it at any time (not just at onboarding).
+    fireEvent.click(
+      screen.getByRole('button', { name: /Change the custom KPIs assigned/ })
+    );
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('checkbox', { name: 'CRM Hygiene' })).not.toBeChecked();
+    expect(within(dialog).getByRole('checkbox', { name: 'Client Rapport' })).toBeChecked();
+  });
+
+  it('points to KPI Rubrics when the company has no custom KPIs yet', async () => {
+    primeHappyPath();
+    customKpiApi.list.mockResolvedValue([]);
+    employeeCustomKpiApi.get.mockResolvedValue({
+      employee_id: 'e-1',
+      custom_kpi_ids: [],
+    });
+    renderDetail('employer');
+
+    expect(await screen.findByRole('heading', { name: 'Custom KPIs' })).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', { name: /Change the custom KPIs assigned/ })
+    );
+    const dialog = await screen.findByRole('dialog');
+    const link = within(dialog).getByRole('link', {
+      name: /Create them under KPI Rubrics/,
+    });
+    expect(link).toHaveAttribute('href', '/rubrics');
   });
 
   it('hides the recommendation and ML panel from the employee (self view)', async () => {
