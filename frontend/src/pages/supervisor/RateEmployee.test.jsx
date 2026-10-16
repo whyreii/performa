@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, fireEvent, within } from '@testing-library/react';
 import { Routes, Route } from 'react-router-dom';
 import RateEmployee from './RateEmployee';
-import { employeeApi, evaluationApi, kpiApi, customKpiApi } from '../../api';
+import { employeeApi, evaluationApi, kpiApi, customKpiApi, employeeCustomKpiApi } from '../../api';
 import { renderWithProviders } from '../../test/renderWithProviders';
 import { employee, testUser } from '../../test/apiMock';
 
@@ -31,6 +31,8 @@ beforeEach(() => {
   evaluationApi.submitWeeklyRating.mockReset();
   customKpiApi.list.mockReset();
   customKpiApi.list.mockResolvedValue([]);
+  employeeCustomKpiApi.get.mockReset();
+  employeeCustomKpiApi.get.mockResolvedValue({ employee_id: 'e-1', custom_kpi_ids: [] });
   kpiApi.list.mockResolvedValue(RUBRICS);
 });
 
@@ -105,6 +107,11 @@ describe('RateEmployee', () => {
         created_at: '2026-03-01T00:00:00+00:00',
       },
     ]);
+    // The Employer assigns the KPI to this employee; only assigned ones render.
+    employeeCustomKpiApi.get.mockResolvedValue({
+      employee_id: 'e-1',
+      custom_kpi_ids: ['k-1'],
+    });
     evaluationApi.submitWeeklyRating.mockResolvedValue({
       overall_score: 4.0,
       evaluation_date: '2026-03-01',

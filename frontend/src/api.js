@@ -233,6 +233,20 @@ export const customKpiApi = {
   },
 };
 
+// Which employer-defined KPIs a given employee is rated on (at most five).
+export const employeeCustomKpiApi = {
+  get: async (employeeId) => {
+    const response = await apiClient.get(`/api/custom-kpis/employees/${employeeId}`);
+    return response.data;
+  },
+  set: async (employeeId, customKpiIds) => {
+    const response = await apiClient.put(`/api/custom-kpis/employees/${employeeId}`, {
+      custom_kpi_ids: customKpiIds,
+    });
+    return response.data;
+  },
+};
+
 // Employee API methods
 export const employeeApi = {
   list: async (params = {}) => {

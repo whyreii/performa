@@ -22,6 +22,10 @@ export const MILESTONE_NOTICE = 165;
 export const MILESTONE_CRITICAL = 178;
 export const MILESTONES = [MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL];
 
+// Ceiling on the employer-defined KPIs assigned to one employee (mirrors the
+// backend domain.CUSTOM_KPIS_PER_EMPLOYEE).
+export const CUSTOM_KPIS_PER_EMPLOYEE = 5;
+
 export const COMPETENCIES = [
   { key: 'task_completion', label: 'Task Completion' },
   { key: 'quality_of_work', label: 'Quality of Work' },

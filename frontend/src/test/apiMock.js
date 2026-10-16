@@ -105,6 +105,10 @@ export function createApiMock() {
       remove: vi.fn(),
       suggestCourse: vi.fn(),
     },
+    employeeCustomKpiApi: {
+      get: vi.fn().mockResolvedValue({ employee_id: 'e-1', custom_kpi_ids: [] }),
+      set: vi.fn(),
+    },
     getApiErrorMessage: (error, fallback = 'An unexpected error occurred.') => {
       const detail = error?.response?.data?.detail;
       if (typeof detail === 'string') return detail;

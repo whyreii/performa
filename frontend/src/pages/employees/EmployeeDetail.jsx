@@ -1,12 +1,12 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { employeeApi, evaluationApi, getApiErrorMessage } from '../../api';
+import { employeeApi, evaluationApi, customKpiApi, employeeCustomKpiApi, getApiErrorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, Skeleton, Card, Page, Modal, EmptyState, Label, TextField, DatePicker, GlideSelect, textareaClass, SectionHead, GroupCard, PageBrief, PageGrid, Row, Col } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate, formatDayMonth, milestoneDate } from '../../utils/datetime';
-import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, CRITICAL_GAP_FLOOR, COMPETENCIES } from '../../config/domain';
+import { PROBATION_DAYS, MILESTONE_REVIEW, MILESTONE_NOTICE, MILESTONE_CRITICAL, TARGET, CRITICAL_GAP_FLOOR, COMPETENCIES, CUSTOM_KPIS_PER_EMPLOYEE } from '../../config/domain';
 import { BRAND } from '../../config/brand';
 import { milestoneTone, milestoneStage, formatProbationDay, nextMilestone, scoreTone, TONE_TEXT, TONE_BG, TONE_FILL } from '../../utils/status';
 import { getInitials } from '../../utils/format';
@@ -154,15 +154,43 @@ export default function EmployeeDetail() {
     enabled: isAssignModalOpen,
   });
 
+  // The Employer also chooses which of the tenant's custom KPIs apply to this
+  // employee (at most CUSTOM_KPIS_PER_EMPLOYEE). The five statutory competencies
+  // always apply; this narrows only the non-statutory layer.
+  const { data: orgCustomKpis = [] } = useQuery({
+    queryKey: ['custom-kpis'],
+    queryFn: () => customKpiApi.list(),
+    enabled: isAssignModalOpen,
+  });
+
+  const { data: currentAssignment } = useQuery({
+    queryKey: ['employee-custom-kpis', id],
+    queryFn: () => employeeCustomKpiApi.get(id),
+    enabled: isAssignModalOpen,
+  });
+
+  const [assignKpiIds, setAssignKpiIds] = useState([]);
+
+  // Prefill the picker from whatever is already assigned.
+  useEffect(() => {
+    if (isAssignModalOpen && currentAssignment) {
+      setAssignKpiIds(currentAssignment.custom_kpi_ids || []);
+    }
+  }, [isAssignModalOpen, currentAssignment]);
+
   const assignMutation = useMutation({
-    mutationFn: () =>
-      employeeApi.assign(id, {
+    mutationFn: async () => {
+      const assigned = await employeeApi.assign(id, {
         start_date: assignDate,
         supervisor_id: assignSupervisorId || undefined,
-      }),
+      });
+      await employeeCustomKpiApi.set(id, assignKpiIds);
+      return assigned;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employee', id] });
       queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: ['employee-custom-kpis', id] });
       setIsAssignModalOpen(false);
       toast.success('Employee assigned. The probation clock has started.');
     },
@@ -1329,6 +1357,52 @@ ${competenciesText || '   • No weekly ratings submitted yet.'}
               ]}
             />
           </div>
+
+          <fieldset className="m-0 border-0 p-0">
+            <legend className="text-12 text-ink-3">
+              Custom KPIs for this employee (optional, max {CUSTOM_KPIS_PER_EMPLOYEE})
+            </legend>
+            {orgCustomKpis.length === 0 ? (
+              <p className="mt-1 text-12 text-ink-3">
+                No custom KPIs defined yet — add them under KPI Rubrics. The five
+                statutory competencies always apply.
+              </p>
+            ) : (
+              <>
+                <div className="mt-1 space-y-1.5">
+                  {orgCustomKpis.map((kpi) => {
+                    const checked = assignKpiIds.includes(kpi.id);
+                    const atCap =
+                      !checked && assignKpiIds.length >= CUSTOM_KPIS_PER_EMPLOYEE;
+                    return (
+                      <label
+                        key={kpi.id}
+                        className="flex items-center gap-2 text-14 text-ink-2"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          disabled={atCap}
+                          onChange={() =>
+                            setAssignKpiIds((prev) =>
+                              prev.includes(kpi.id)
+                                ? prev.filter((x) => x !== kpi.id)
+                                : [...prev, kpi.id]
+                            )
+                          }
+                        />
+                        <span>{kpi.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="mt-1.5 text-12 text-ink-3">
+                  {assignKpiIds.length} of {CUSTOM_KPIS_PER_EMPLOYEE} selected · the
+                  five statutory competencies always apply.
+                </p>
+              </>
+            )}
+          </fieldset>
         </div>
 
         <div className="flex justify-end gap-2 pt-3 border-t border-line">

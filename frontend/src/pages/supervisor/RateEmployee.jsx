@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { employeeApi, evaluationApi, kpiApi, customKpiApi, getApiErrorMessage } from '../../api';
+import { employeeApi, evaluationApi, kpiApi, customKpiApi, employeeCustomKpiApi, getApiErrorMessage } from '../../api';
 import { useToast } from '../../context/ToastContext';
 import { Button, Badge, Skeleton, Modal, Page, EmptyState, Label, GlideSelect, SectionHead, StatBand, textareaClass } from '../../components/ui';
 import { daysElapsed as getDaysElapsed, formatDate } from '../../utils/datetime';
@@ -52,13 +52,28 @@ export default function RateEmployee() {
 
   // Employer-defined custom KPIs (non-statutory). Rated alongside the five but
   // never folded into the overall average.
-  const { data: customKpis = NO_CUSTOM_KPIS } = useQuery({
+  const { data: allCustomKpis = NO_CUSTOM_KPIS } = useQuery({
     queryKey: ['custom-kpis'],
     queryFn: () => customKpiApi.list(),
   });
 
   // Selected employee ID state
   const [selectedId, setSelectedId] = useState(preselectedEmpId || '');
+
+  // The Employer decides which custom KPIs apply to each employee, so only the
+  // assigned set is rated here. The server enforces the same rule, so a stale
+  // client cannot slip an unassigned KPI through.
+  const { data: assignedKpiIds = NO_CUSTOM_KPIS } = useQuery({
+    queryKey: ['employee-custom-kpis', selectedId],
+    queryFn: () =>
+      employeeCustomKpiApi.get(selectedId).then((res) => res.custom_kpi_ids || []),
+    enabled: Boolean(selectedId),
+  });
+
+  const customKpis = useMemo(
+    () => allCustomKpis.filter((kpi) => assignedKpiIds.includes(kpi.id)),
+    [allCustomKpis, assignedKpiIds]
+  );
 
   // Apply the URL ?employee= pre-selection (on mount / when the param changes)
   // without locking the dropdown against the user's own selection.
