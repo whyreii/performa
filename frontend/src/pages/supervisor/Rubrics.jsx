@@ -169,6 +169,12 @@ export default function Rubrics() {
   const [newKpiName, setNewKpiName] = useState('');
   const [mappedId, setMappedId] = useState('');
   const [suggestion, setSuggestion] = useState(null);
+  // Retired KPIs are hidden unless the employer asks to see them.
+  const [showRemoved, setShowRemoved] = useState(false);
+
+  const activeKpis = customKpis.filter((kpi) => kpi.is_active);
+  const removedKpis = customKpis.filter((kpi) => !kpi.is_active);
+  const visibleKpis = showRemoved ? customKpis : activeKpis;
 
   const suggestMutation = useMutation({
     mutationFn: () => customKpiApi.suggestCourse(newKpiName.trim()),
@@ -202,6 +208,18 @@ export default function Rubrics() {
       toast.success('Custom KPI removed.');
     },
     onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to remove the custom KPI.')),
+  });
+
+  // Removing retires a KPI — it keeps its historical weekly ratings, because
+  // deleting evidence is never allowed. Restoring brings the same KPI back, so
+  // any employee assignments it had return with it.
+  const restoreKpiMutation = useMutation({
+    mutationFn: (id) => customKpiApi.update(id, { is_active: true }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['custom-kpis'] });
+      toast.success('Custom KPI restored.');
+    },
+    onError: (err) => toast.error(getApiErrorMessage(err, 'Failed to restore the custom KPI.')),
   });
 
   function updateRow(competency, patch) {
@@ -355,7 +373,7 @@ export default function Rubrics() {
           <SectionHead
             title="Custom KPIs"
             subtitle="Employer-defined criteria outside the 5 statutory competencies"
-            note={customKpis.length ? <Badge variant="neutral">{customKpis.length}</Badge> : null}
+            note={activeKpis.length ? <Badge variant="neutral">{activeKpis.length}</Badge> : null}
           />
           <p className="text-12 text-ink-3 mb-3 leading-relaxed">
             A custom KPI is rated weekly and never affects the 4.0 standard, the Random Forest model,
@@ -406,11 +424,15 @@ export default function Rubrics() {
             </p>
           )}
 
-          {customKpis.length === 0 ? (
-            <p className="py-3 text-14 text-ink-3">No custom KPIs defined yet.</p>
+          {visibleKpis.length === 0 ? (
+            <p className="py-3 text-14 text-ink-3">
+              {removedKpis.length > 0
+                ? 'No active custom KPIs — every one has been removed.'
+                : 'No custom KPIs defined yet.'}
+            </p>
           ) : (
             <ul className="divide-y divide-line">
-              {customKpis.map((kpi) => (
+              {visibleKpis.map((kpi) => (
                 <li key={kpi.id} className="flex items-center justify-between gap-3 py-2.5">
                   <div className="min-w-0">
                     <div className="text-14 text-ink break-words">{kpi.name}</div>
@@ -418,10 +440,10 @@ export default function Rubrics() {
                       {kpi.mapped_catalog_id
                         ? `Mapped to catalog course ${kpi.mapped_catalog_id}`
                         : 'No catalog course mapped (summary-only)'}
-                      {kpi.is_active ? '' : ' · inactive'}
+                      {kpi.is_active ? '' : ' · removed'}
                     </div>
                   </div>
-                  {kpi.is_active && (
+                  {kpi.is_active ? (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -432,10 +454,31 @@ export default function Rubrics() {
                     >
                       Remove
                     </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      isLoading={
+                        restoreKpiMutation.isPending && restoreKpiMutation.variables === kpi.id
+                      }
+                      onClick={() => restoreKpiMutation.mutate(kpi.id)}
+                    >
+                      Restore
+                    </Button>
                   )}
                 </li>
               ))}
             </ul>
+          )}
+
+          {removedKpis.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowRemoved((shown) => !shown)}
+              className="mt-3 text-12 font-semibold text-accent hover:underline"
+            >
+              {showRemoved ? 'Hide removed' : `Show removed (${removedKpis.length})`}
+            </button>
           )}
         </section>
       )}
