@@ -35,11 +35,13 @@ import {
 // table (day + score + next milestone per active probationer) and the pending
 // training plans. Every value comes from the API/DB (scores via each employee's
 // scorecard; no invented numbers).
-const MILE_LABEL = {
-  [MILESTONE_REVIEW]: `Day ${MILESTONE_REVIEW} · Performance appraisal`,
-  [MILESTONE_NOTICE]: `Day ${MILESTONE_NOTICE} · Milestone review`,
-  [MILESTONE_CRITICAL]: `Day ${MILESTONE_CRITICAL} · Final milestone`,
-  [PROBATION_DAYS]: `Day ${PROBATION_DAYS} · Probation cap`,
+// Milestone names only — the day number and its date render on the second line
+// of the "Next" cell, so every row in the table is the same height.
+const MILE_NAME = {
+  [MILESTONE_REVIEW]: 'Performance appraisal',
+  [MILESTONE_NOTICE]: 'Milestone review',
+  [MILESTONE_CRITICAL]: 'Final milestone',
+  [PROBATION_DAYS]: 'Probation cap',
 };
 
 export default function Dashboard() {
@@ -311,11 +313,16 @@ export default function Dashboard() {
                               )}
                             </td>
                             <td className="py-3 text-12 text-ink-3">
-                              {pending
-                                ? 'Awaiting start date'
-                                : next
-                                ? `${MILE_LABEL[next]}, ${formatDayMonth(nextDate)}`
-                                : `Passed ${formatDayMonth(capDate)}`}
+                              <span className="block">
+                                {pending ? 'Awaiting start date' : next ? MILE_NAME[next] : 'Passed'}
+                              </span>
+                              <span className="block font-num">
+                                {pending
+                                  ? '—'
+                                  : `Day ${next ?? PROBATION_DAYS} · ${formatDayMonth(
+                                      next ? nextDate : capDate
+                                    )}`}
+                              </span>
                             </td>
                           </tr>
                         );
