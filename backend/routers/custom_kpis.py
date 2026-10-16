@@ -93,11 +93,23 @@ async def _assert_name_free(
     if exclude_id is not None:
         stmt = stmt.where(CustomKpi.id != exclude_id)
     existing = (await db.execute(stmt)).scalar_one_or_none()
-    if existing is not None:
+    if existing is None:
+        return
+    # A removed KPI still holds its name (the tenant-wide uniqueness rule does
+    # not care about is_active), so say that plainly instead of a bare duplicate
+    # error the employer cannot act on.
+    if not existing.is_active:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="A custom KPI with this name already exists.",
+            detail=(
+                "That name belongs to a removed custom KPI — restore it instead of "
+                "creating a new one."
+            ),
         )
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail="A custom KPI with this name already exists.",
+    )
 
 
 @router.get("", response_model=list[CustomKpiResponse], summary="List custom KPIs")

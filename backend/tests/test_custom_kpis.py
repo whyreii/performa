@@ -77,6 +77,23 @@ async def test_duplicate_name_is_rejected(client):
         "/api/custom-kpis", headers=employer, json={"name": "client rapport"}
     )
     assert dup.status_code == 409, dup.text
+    # An active clash is a plain duplicate — nothing for the employer to restore.
+    assert "restore" not in dup.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_removed_kpi_name_points_at_restore(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    kpi = await _create_kpi(client, employer, "Client Rapport")
+    removed = await client.delete(f"/api/custom-kpis/{kpi['id']}", headers=employer)
+    assert removed.status_code == 200, removed.text
+
+    # The name is still held by the removed KPI; say so instead of a bare clash.
+    dup = await client.post(
+        "/api/custom-kpis", headers=employer, json={"name": "Client Rapport"}
+    )
+    assert dup.status_code == 409, dup.text
+    assert "restore" in dup.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
