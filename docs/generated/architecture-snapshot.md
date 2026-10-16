@@ -285,6 +285,8 @@ Auth column is read from the FastAPI dependency graph.
 | POST | `/api/auth/verify-email` | not detected | verify_email |
 | GET | `/api/custom-kpis` | roles: employer, supervisor | list_custom_kpis |
 | POST | `/api/custom-kpis` | roles: employer | create_custom_kpi |
+| GET | `/api/custom-kpis/employees/{employee_id}` | roles: employer, supervisor | list_employee_custom_kpis |
+| PUT | `/api/custom-kpis/employees/{employee_id}` | roles: employer | set_employee_custom_kpis |
 | POST | `/api/custom-kpis/suggest-course` | roles: employer | suggest_course |
 | DELETE | `/api/custom-kpis/{kpi_id}` | roles: employer | deactivate_custom_kpi |
 | PUT | `/api/custom-kpis/{kpi_id}` | roles: employer | update_custom_kpi |

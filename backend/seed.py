@@ -182,6 +182,11 @@ async def _reset(session: AsyncSession) -> None:
     await session.execute(
         delete(CustomKpiRating).where(CustomKpiRating.organization_id == ORG_SLUG)
     )
+    # Employee KPI assignments reference probationary_employees, so they must be
+    # cleared before the employees themselves.
+    await session.execute(
+        delete(EmployeeCustomKpi).where(EmployeeCustomKpi.organization_id == ORG_SLUG)
+    )
     await session.execute(
         delete(TrainingPlan).where(TrainingPlan.employee_id.in_(employee_ids))
     )
@@ -207,9 +212,6 @@ async def _reset(session: AsyncSession) -> None:
     )
     await session.execute(
         delete(EmailVerificationToken).where(EmailVerificationToken.user_id.in_(user_ids))
-    )
-    await session.execute(
-        delete(EmployeeCustomKpi).where(EmployeeCustomKpi.organization_id == ORG_SLUG)
     )
     await session.execute(
         delete(CustomKpi).where(CustomKpi.organization_id == ORG_SLUG)

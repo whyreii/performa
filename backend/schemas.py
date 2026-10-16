@@ -403,6 +403,19 @@ class CustomKpiResponse(CustomKpiBase):
     created_at: datetime
 
 
+class EmployeeCustomKpiAssign(BaseModel):
+    """The Employer's per-employee custom-KPI selection (at most five)."""
+
+    custom_kpi_ids: list[uuid.UUID] = Field(default_factory=list)
+
+
+class EmployeeCustomKpiResponse(BaseModel):
+    """Which employer-defined KPIs a given employee is rated on."""
+
+    employee_id: uuid.UUID
+    custom_kpi_ids: list[uuid.UUID] = Field(default_factory=list)
+
+
 class CustomKpiCourseSuggestion(BaseModel):
     """The closest catalog course for a custom KPI name, plus ranked runners-up."""
 

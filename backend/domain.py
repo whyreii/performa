@@ -22,6 +22,10 @@ MILESTONE_DAYS: tuple[int, int, int] = (
 REGULARIZATION_HORIZON_DAYS = MILESTONE_REVIEW_DAY
 PROBATION_MONTH_DAYS = 30
 TARGET_SCORE = 4.0
+# Ceiling on the employer-defined KPIs assigned to one probationary employee.
+# The custom layer must stay visibly subordinate to the five statutory
+# competencies, so its cap is below the statutory count.
+CUSTOM_KPIS_PER_EMPLOYEE = 5
 
 
 def days_elapsed(start_date: date, as_of: date) -> int:
@@ -64,6 +68,7 @@ __all__ = [
     "REGULARIZATION_HORIZON_DAYS",
     "PROBATION_MONTH_DAYS",
     "TARGET_SCORE",
+    "CUSTOM_KPIS_PER_EMPLOYEE",
     "days_elapsed",
     "day_180_date",
     "milestone_dates",

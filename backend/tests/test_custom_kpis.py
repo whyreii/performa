@@ -46,6 +46,17 @@ async def _create_kpi(client, employer, name: str, mapped: str | None = None) ->
     return resp.json()
 
 
+async def _assign_kpi(client, employer, employee_id: str, kpi_ids: list[str]) -> dict:
+    """Set which custom KPIs this employee is rated on (the onboarding step)."""
+    resp = await client.put(
+        f"/api/custom-kpis/employees/{employee_id}",
+        headers=employer,
+        json={"custom_kpi_ids": kpi_ids},
+    )
+    assert resp.status_code == 200, resp.text
+    return resp.json()
+
+
 @pytest.mark.asyncio
 async def test_employer_can_create_and_list(client):
     employer = await login_user(client, EMPLOYER_EMAIL)
@@ -112,6 +123,7 @@ async def test_weekly_rating_stores_custom_kpi_without_changing_overall(client):
     employer = await login_user(client, EMPLOYER_EMAIL)
     emp_id = await find_employee_id(client, employer, "Carlos Early")
     kpi = await _create_kpi(client, employer, "Client Rapport")
+    await _assign_kpi(client, employer, emp_id, [kpi["id"]])
 
     resp = await client.post(
         f"/api/evaluations/{emp_id}/weekly",
@@ -161,6 +173,7 @@ async def test_low_mapped_custom_kpi_raises_its_course_deterministically(client)
     employer = await login_user(client, EMPLOYER_EMAIL)
     emp_id = await find_employee_id(client, employer, "Carlos Early")
     kpi = await _create_kpi(client, employer, "Client Rapport", mapped="TC-101")
+    await _assign_kpi(client, employer, emp_id, [kpi["id"]])
 
     await client.post(
         f"/api/evaluations/{emp_id}/weekly",
@@ -185,6 +198,7 @@ async def test_high_custom_kpi_raises_no_course(client):
     employer = await login_user(client, EMPLOYER_EMAIL)
     emp_id = await find_employee_id(client, employer, "Carlos Early")
     kpi = await _create_kpi(client, employer, "Client Rapport", mapped="TC-101")
+    await _assign_kpi(client, employer, emp_id, [kpi["id"]])
 
     await client.post(
         f"/api/evaluations/{emp_id}/weekly",
@@ -199,6 +213,86 @@ async def test_high_custom_kpi_raises_no_course(client):
     )
     plans = (await client.get("/api/interventions/pending", headers=employer)).json()
     assert plans == []
+
+
+@pytest.mark.asyncio
+async def test_assignment_caps_at_five(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, employer, "Carlos Early")
+    kpis = [await _create_kpi(client, employer, f"KPI {i}") for i in range(6)]
+
+    over = await client.put(
+        f"/api/custom-kpis/employees/{emp_id}",
+        headers=employer,
+        json={"custom_kpi_ids": [k["id"] for k in kpis]},
+    )
+    assert over.status_code == 422, over.text
+
+    ok = await client.put(
+        f"/api/custom-kpis/employees/{emp_id}",
+        headers=employer,
+        json={"custom_kpi_ids": [k["id"] for k in kpis[:5]]},
+    )
+    assert ok.status_code == 200, ok.text
+    assert len(ok.json()["custom_kpi_ids"]) == 5
+
+
+@pytest.mark.asyncio
+async def test_unassigned_custom_kpi_cannot_be_rated(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, employer, "Carlos Early")
+    assigned = await _create_kpi(client, employer, "Assigned KPI")
+    unassigned = await _create_kpi(client, employer, "Unassigned KPI")
+    await _assign_kpi(client, employer, emp_id, [assigned["id"]])
+
+    resp = await client.post(
+        f"/api/evaluations/{emp_id}/weekly",
+        headers=employer,
+        json={
+            **{c: 4.0 for c in COMPETENCIES},
+            "custom_kpi_ratings": [{"custom_kpi_id": unassigned["id"], "score": 2.0}],
+        },
+    )
+    assert resp.status_code == 400, resp.text
+    assert "not assigned" in resp.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_assignment_rejects_an_unknown_kpi(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, employer, "Carlos Early")
+    resp = await client.put(
+        f"/api/custom-kpis/employees/{emp_id}",
+        headers=employer,
+        json={"custom_kpi_ids": ["00000000-0000-0000-0000-000000000000"]},
+    )
+    assert resp.status_code == 422, resp.text
+
+
+@pytest.mark.asyncio
+async def test_assignment_is_readable_by_the_supervisor(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, employer, "Carlos Early")
+    kpi = await _create_kpi(client, employer, "Client Rapport")
+    await _assign_kpi(client, employer, emp_id, [kpi["id"]])
+
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    resp = await client.get(f"/api/custom-kpis/employees/{emp_id}", headers=supervisor)
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["custom_kpi_ids"] == [kpi["id"]]
+
+
+@pytest.mark.asyncio
+async def test_supervisor_cannot_change_an_assignment(client):
+    employer = await login_user(client, EMPLOYER_EMAIL)
+    emp_id = await find_employee_id(client, employer, "Carlos Early")
+    supervisor = await login_user(client, SUPERVISOR_EMAIL)
+    resp = await client.put(
+        f"/api/custom-kpis/employees/{emp_id}",
+        headers=supervisor,
+        json={"custom_kpi_ids": []},
+    )
+    assert resp.status_code == 403, resp.text
 
 
 def test_gemini_prompt_tags_custom_kpi_band_and_course_link():

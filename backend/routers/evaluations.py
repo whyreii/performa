@@ -43,6 +43,7 @@ from ..ml.predictor import predict_employee_risk
 from ..models import (
     CustomKpi,
     CustomKpiRating,
+    EmployeeCustomKpi,
     EvaluationAuditLog,
     MonthlySummary,
     PerformanceRatingEnum,
@@ -192,6 +193,28 @@ async def _store_custom_kpi_ratings(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Unknown or inactive custom KPI in custom_kpi_ratings.",
         )
+
+    # The Employer decides which custom KPIs apply to this employee; the server
+    # enforces it, so a stale client cannot rate one that was never assigned
+    # (AGENTS.md §2: hiding something in the UI is not access control).
+    assigned = set(
+        (
+            await db.execute(
+                select(EmployeeCustomKpi.custom_kpi_id).where(
+                    EmployeeCustomKpi.employee_id == evaluation.employee_id,
+                    EmployeeCustomKpi.organization_id == organization_id,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if set(wanted) - assigned:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Custom KPI is not assigned to this employee.",
+        )
+
     for kpi_id, score in wanted.items():
         db.add(
             CustomKpiRating(

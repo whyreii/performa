@@ -15,19 +15,22 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..audit import record_activity
 from ..auth import require_role
 from ..database import get_db
+from ..domain import CUSTOM_KPIS_PER_EMPLOYEE
 from ..ml.catalog import get_catalog, rank_courses_by_text
-from ..models import CustomKpi, User, UserRole
+from ..models import CustomKpi, EmployeeCustomKpi, ProbationaryEmployee, User, UserRole
 from ..schemas import (
     CustomKpiCourseSuggestion,
     CustomKpiCreate,
     CustomKpiResponse,
     CustomKpiUpdate,
+    EmployeeCustomKpiAssign,
+    EmployeeCustomKpiResponse,
 )
 
 router = APIRouter(prefix="/api/custom-kpis", tags=["Custom KPIs"])
@@ -58,6 +61,25 @@ async def _scoped_kpi(
             detail="Custom KPI not found",
         )
     return kpi
+
+
+async def _scoped_employee(
+    db: AsyncSession, employee_id: uuid.UUID, organization_id: str
+) -> ProbationaryEmployee:
+    employee = (
+        await db.execute(
+            select(ProbationaryEmployee).where(
+                ProbationaryEmployee.id == employee_id,
+                ProbationaryEmployee.organization_id == organization_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if employee is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Employee not found",
+        )
+    return employee
 
 
 async def _assert_name_free(
@@ -245,3 +267,121 @@ async def deactivate_custom_kpi(
     await db.commit()
     await db.refresh(kpi)
     return kpi
+
+
+@router.get(
+    "/employees/{employee_id}",
+    response_model=EmployeeCustomKpiResponse,
+    summary="Custom KPIs assigned to an employee",
+)
+async def list_employee_custom_kpis(
+    employee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(
+        require_role(UserRole.EMPLOYER, UserRole.SUPERVISOR)
+    ),
+) -> EmployeeCustomKpiResponse:
+    """The custom KPIs this employee is rated on.
+
+    Supervisors need this to know which scales to show; it is never used to
+    decide statutory scoring.
+    """
+    await _scoped_employee(db, employee_id, current_user.organization_id)
+    assigned = list(
+        (
+            await db.execute(
+                select(EmployeeCustomKpi.custom_kpi_id).where(
+                    EmployeeCustomKpi.employee_id == employee_id,
+                    EmployeeCustomKpi.organization_id
+                    == current_user.organization_id,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return EmployeeCustomKpiResponse(
+        employee_id=employee_id, custom_kpi_ids=assigned
+    )
+
+
+@router.put(
+    "/employees/{employee_id}",
+    response_model=EmployeeCustomKpiResponse,
+    summary="Assign custom KPIs to an employee (Employer)",
+)
+async def set_employee_custom_kpis(
+    employee_id: uuid.UUID,
+    payload: EmployeeCustomKpiAssign,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.EMPLOYER)),
+) -> EmployeeCustomKpiResponse:
+    """Replace the employee's assigned custom KPIs (idempotent).
+
+    At most ``CUSTOM_KPIS_PER_EMPLOYEE`` may be assigned; every id must be an
+    active custom KPI of this tenant. An empty list is valid — it means the
+    employee is rated on the five statutory competencies only.
+    """
+    await _scoped_employee(db, employee_id, current_user.organization_id)
+
+    wanted = list(dict.fromkeys(payload.custom_kpi_ids))
+    if len(wanted) > CUSTOM_KPIS_PER_EMPLOYEE:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                f"At most {CUSTOM_KPIS_PER_EMPLOYEE} custom KPIs can be "
+                "assigned to one employee."
+            ),
+        )
+
+    if wanted:
+        known = set(
+            (
+                await db.execute(
+                    select(CustomKpi.id).where(
+                        CustomKpi.id.in_(wanted),
+                        CustomKpi.organization_id == current_user.organization_id,
+                        CustomKpi.is_active.is_(True),
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        if set(wanted) - known:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=(
+                    "Every assigned custom KPI must be an active KPI of this "
+                    "organization."
+                ),
+            )
+
+    await db.execute(
+        delete(EmployeeCustomKpi).where(
+            EmployeeCustomKpi.employee_id == employee_id,
+            EmployeeCustomKpi.organization_id == current_user.organization_id,
+        )
+    )
+    for kpi_id in wanted:
+        db.add(
+            EmployeeCustomKpi(
+                employee_id=employee_id,
+                custom_kpi_id=kpi_id,
+                organization_id=current_user.organization_id,
+            )
+        )
+
+    record_activity(
+        db,
+        organization_id=current_user.organization_id,
+        actor=current_user,
+        action="custom_kpi.assign",
+        entity_type="probationary_employee",
+        entity_id=employee_id,
+        detail=f"{len(wanted)} custom KPI(s) assigned",
+    )
+    await db.commit()
+    return EmployeeCustomKpiResponse(
+        employee_id=employee_id, custom_kpi_ids=wanted
+    )

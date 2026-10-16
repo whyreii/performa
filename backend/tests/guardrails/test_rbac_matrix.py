@@ -97,6 +97,8 @@ MATRIX = {
     ("POST", "/api/custom-kpis/suggest-course"): {"employer"},
     ("PUT", "/api/custom-kpis/{kpi_id}"): {"employer"},
     ("DELETE", "/api/custom-kpis/{kpi_id}"): {"employer"},
+    ("GET", "/api/custom-kpis/employees/{employee_id}"): {"employer", "supervisor"},
+    ("PUT", "/api/custom-kpis/employees/{employee_id}"): {"employer"},
     ("GET", "/api/notifications"): ALL,
     ("POST", "/api/notifications/{notification_id}/read"): ALL,
     ("POST", "/api/notifications/read-all"): ALL,
