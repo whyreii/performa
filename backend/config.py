@@ -73,6 +73,29 @@ class Settings(BaseSettings):
             )
         return self
 
+    @model_validator(mode="after")
+    def _normalize_database_url(self) -> "Settings":
+        """Rewrite driver-less database URLs onto their async driver.
+
+        Managed Postgres hands out ``postgresql://`` or ``postgres://``, but
+        SQLAlchemy's *async* engine refuses a URL with no async driver ("The
+        asyncio extension requires an async driver to be used"). Normalising here
+        means a deployment can paste the URL the provider gave it verbatim instead
+        of remembering to insert ``+asyncpg``. A URL that already names its async
+        driver (``postgresql+asyncpg://``, ``sqlite+aiosqlite://``) is left alone.
+        """
+        url = self.database_url.strip()
+        for prefix, replacement in (
+            ("postgres://", "postgresql+asyncpg://"),
+            ("postgresql://", "postgresql+asyncpg://"),
+            ("sqlite://", "sqlite+aiosqlite://"),
+        ):
+            if url.startswith(prefix):
+                url = replacement + url[len(prefix) :]
+                break
+        self.database_url = url
+        return self
+
 
 @lru_cache
 def get_settings() -> Settings:

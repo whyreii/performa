@@ -31,3 +31,30 @@ def test_default_secret_is_allowed_in_development():
 def test_a_real_secret_is_allowed_in_production():
     settings = Settings(environment="production", secret_key="a-strong-random-secret-value")
     assert settings.secret_key == "a-strong-random-secret-value"
+
+
+def test_a_driverless_postgres_url_gains_the_async_driver():
+    """Managed Postgres hands out `postgresql://`; the async engine needs +asyncpg."""
+    settings = Settings(database_url="postgresql://u:p@host:5432/db")
+    assert settings.database_url == "postgresql+asyncpg://u:p@host:5432/db"
+
+
+def test_the_heroku_style_postgres_scheme_is_rewritten_too():
+    settings = Settings(database_url="postgres://u:p@host:5432/db")
+    assert settings.database_url == "postgresql+asyncpg://u:p@host:5432/db"
+
+
+def test_a_driverless_sqlite_url_gains_aiosqlite():
+    settings = Settings(database_url="sqlite:///./performa.db")
+    assert settings.database_url == "sqlite+aiosqlite:///./performa.db"
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "postgresql+asyncpg://u:p@host:5432/db",
+        "sqlite+aiosqlite:///./performa.db",
+    ],
+)
+def test_a_url_that_already_names_its_async_driver_is_untouched(url):
+    assert Settings(database_url=url).database_url == url
