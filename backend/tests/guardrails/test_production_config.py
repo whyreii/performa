@@ -58,3 +58,33 @@ def test_a_driverless_sqlite_url_gains_aiosqlite():
 )
 def test_a_url_that_already_names_its_async_driver_is_untouched(url):
     assert Settings(database_url=url).database_url == url
+
+
+def test_neon_style_sslmode_is_translated_to_ssl():
+    """libpq spells it `sslmode`; asyncpg only knows `ssl` and rejects the URL."""
+    settings = Settings(
+        database_url="postgresql://u:p@ep-x.neon.tech/db?sslmode=require"
+    )
+    assert settings.database_url == (
+        "postgresql+asyncpg://u:p@ep-x.neon.tech/db?ssl=require"
+    )
+
+
+def test_sslmode_translation_keeps_sibling_query_parameters():
+    settings = Settings(
+        database_url=(
+            "postgresql://u:p@ep-x.neon.tech/db?sslmode=require&channel_binding=require"
+        )
+    )
+    assert settings.database_url == (
+        "postgresql+asyncpg://u:p@ep-x.neon.tech/db?ssl=require&channel_binding=require"
+    )
+
+
+def test_unrelated_query_parameters_are_left_alone():
+    settings = Settings(
+        database_url="postgresql://u:p@host:5432/db?options=-csearch_path%3Dpublic"
+    )
+    assert settings.database_url == (
+        "postgresql+asyncpg://u:p@host:5432/db?options=-csearch_path%3Dpublic"
+    )

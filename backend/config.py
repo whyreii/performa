@@ -6,6 +6,7 @@ variables automatically (e.g. ``database_url`` -> ``DATABASE_URL``).
 """
 from __future__ import annotations
 
+import re
 from functools import lru_cache
 from typing import Optional
 
@@ -75,7 +76,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _normalize_database_url(self) -> "Settings":
-        """Rewrite driver-less database URLs onto their async driver.
+        """Rewrite driver-less database URLs onto their async driver, and
+        translate libpq's ``sslmode`` to the driver's ``ssl``.
 
         Managed Postgres hands out ``postgresql://`` or ``postgres://``, but
         SQLAlchemy's *async* engine refuses a URL with no async driver ("The
@@ -83,6 +85,12 @@ class Settings(BaseSettings):
         means a deployment can paste the URL the provider gave it verbatim instead
         of remembering to insert ``+asyncpg``. A URL that already names its async
         driver (``postgresql+asyncpg://``, ``sqlite+aiosqlite://``) is left alone.
+
+        ``sslmode`` needs the same treatment: libpq spells it that way, but asyncpg
+        only knows ``ssl`` and rejects the whole URL with "connect() got an
+        unexpected keyword argument 'sslmode'". Neon (and others) hand out
+        ``?sslmode=require``, so translate the key and keep the value and any
+        sibling parameters.
         """
         url = self.database_url.strip()
         for prefix, replacement in (
@@ -93,6 +101,12 @@ class Settings(BaseSettings):
             if url.startswith(prefix):
                 url = replacement + url[len(prefix) :]
                 break
+
+        head, separator, query = url.partition("?")
+        if separator and "sslmode=" in query.lower():
+            query = re.sub(r"(?i)(^|&)sslmode=", r"\1ssl=", query)
+            url = f"{head}?{query}"
+
         self.database_url = url
         return self
 
