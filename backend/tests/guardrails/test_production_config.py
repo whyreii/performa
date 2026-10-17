@@ -70,21 +70,24 @@ def test_neon_style_sslmode_is_translated_to_ssl():
     )
 
 
-def test_sslmode_translation_keeps_sibling_query_parameters():
+def test_libpq_only_parameters_are_dropped_not_forwarded():
+    """asyncpg aborts on any connect keyword it does not recognise.
+
+    Neon hands out ``?sslmode=require&channel_binding=require``, and
+    ``channel_binding`` is not an asyncpg keyword — it must not reach the driver.
+    """
     settings = Settings(
         database_url=(
             "postgresql://u:p@ep-x.neon.tech/db?sslmode=require&channel_binding=require"
         )
     )
     assert settings.database_url == (
-        "postgresql+asyncpg://u:p@ep-x.neon.tech/db?ssl=require&channel_binding=require"
+        "postgresql+asyncpg://u:p@ep-x.neon.tech/db?ssl=require"
     )
 
 
-def test_unrelated_query_parameters_are_left_alone():
+def test_a_url_with_only_unknown_parameters_loses_its_query_string():
     settings = Settings(
-        database_url="postgresql://u:p@host:5432/db?options=-csearch_path%3Dpublic"
+        database_url="postgresql://u:p@host:5432/db?application_name=performa"
     )
-    assert settings.database_url == (
-        "postgresql+asyncpg://u:p@host:5432/db?options=-csearch_path%3Dpublic"
-    )
+    assert settings.database_url == "postgresql+asyncpg://u:p@host:5432/db"

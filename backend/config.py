@@ -6,7 +6,6 @@ variables automatically (e.g. ``database_url`` -> ``DATABASE_URL``).
 """
 from __future__ import annotations
 
-import re
 from functools import lru_cache
 from typing import Optional
 
@@ -103,9 +102,25 @@ class Settings(BaseSettings):
                 break
 
         head, separator, query = url.partition("?")
-        if separator and "sslmode=" in query.lower():
-            query = re.sub(r"(?i)(^|&)sslmode=", r"\1ssl=", query)
-            url = f"{head}?{query}"
+        if separator:
+            keep: list[str] = []
+            for pair in query.split("&"):
+                if not pair:
+                    continue
+                key, _, value = pair.partition("=")
+                lowered = key.lower()
+                if lowered == "sslmode":
+                    keep.append(f"ssl={value}")
+                elif lowered == "ssl":
+                    keep.append(pair)
+                # Everything else is a libpq-ism (channel_binding,
+                # application_name, options, ...) that is not an asyncpg connect
+                # keyword. SQLAlchemy forwards unknown query parameters straight
+                # to the driver, so each one aborts the connection with
+                # "connect() got an unexpected keyword argument '<name>'".
+                # Dropping them keeps the provider's string pasteable; the SSL
+                # requirement, which is the only one this app depends on, survives.
+            url = f"{head}?{'&'.join(keep)}" if keep else head
 
         self.database_url = url
         return self
