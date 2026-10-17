@@ -3,11 +3,11 @@
   // Assets-only Worker: no `main` entry point, because this project ships no
   // server-side Worker script — Cloudflare just serves the Vite output.
   //
-  // The SPA fallback is declared twice on purpose:
-  //   - `not_found_handling` is the documented Workers way to return index.html
-  //     with a 200 for unmatched paths;
-  //   - `public/_redirects` (copied into ./dist at build time) does the same and
-  //     is what Pages used, so deep links keep working either way.
+  // SPA fallback: `not_found_handling` returns index.html with a 200 for any path
+  // that does not match a static asset, which is the documented Workers way to
+  // support client-side routing. Pages used a `public/_redirects` rewrite for
+  // this, but Workers rejects that exact rule as an infinite loop (it strips
+  // `/index` and re-matches), so that file was removed.
   "name": "performa",
   "compatibility_date": "2026-10-17",
   "assets": {
