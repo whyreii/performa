@@ -1,0 +1,17 @@
+{
+  // Cloudflare Workers deploy config for the frontend static build.
+  // Assets-only Worker: no `main` entry point, because this project ships no
+  // server-side Worker script — Cloudflare just serves the Vite output.
+  //
+  // The SPA fallback is declared twice on purpose:
+  //   - `not_found_handling` is the documented Workers way to return index.html
+  //     with a 200 for unmatched paths;
+  //   - `public/_redirects` (copied into ./dist at build time) does the same and
+  //     is what Pages used, so deep links keep working either way.
+  "name": "performa",
+  "compatibility_date": "2026-10-17",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
